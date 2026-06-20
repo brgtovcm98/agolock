@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.ImageMapper">
+
+    <resultMap id="ImageResultMap" type="ImageDTO">
+        <id     property="id"               column="id"/>
+        <result property="externalId"       column="external_id"/>
+        <result property="userId"           column="user_id"/>
+        <result property="storagePath"      column="storage_path"/>
+        <result property="originalFilename" column="original_filename"/>
+        <result property="contentType"      column="content_type"/>
+        <result property="sizeBytes"        column="size_bytes"/>
+        <result property="contentHash"      column="content_hash"/>
+        <result property="createdAt"        column="created_at"/>
+    </resultMap>
+
+    <insert id="insertImage" parameterType="ImageDTO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO images (user_id, storage_path, original_filename, content_type, size_bytes, content_hash)
+        VALUES (#{userId}, #{storagePath}, #{originalFilename}, #{contentType}, #{sizeBytes}, #{contentHash})
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="ImageResultMap">
+        SELECT id, external_id, user_id, storage_path, original_filename, content_type, size_bytes, content_hash, created_at
+        FROM images
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByExternalId" parameterType="java.util.UUID" resultMap="ImageResultMap">
+        SELECT id, external_id, user_id, storage_path, original_filename, content_type, size_bytes, content_hash, created_at
+        FROM images
+        WHERE external_id = #{externalId}
+    </select>
+
+    <select id="findPrimaryByItemId" parameterType="long" resultMap="ImageResultMap">
+        SELECT img.id, img.external_id, img.user_id, img.storage_path, img.original_filename,
+               img.content_type, img.size_bytes, img.content_hash, img.created_at
+        FROM item_images ii
+        JOIN images img ON img.id = ii.image_id
+        WHERE ii.item_id = #{itemId}
+        ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+        LIMIT 1
+    </select>
+
+    <select id="findPrimaryByStockId" parameterType="long" resultMap="ImageResultMap">
+        SELECT img.id, img.external_id, img.user_id, img.storage_path, img.original_filename,
+               img.content_type, img.size_bytes, img.content_hash, img.created_at
+        FROM stock_images si
+        JOIN images img ON img.id = si.image_id
+        WHERE si.stock_id = #{stockId}
+        ORDER BY si.is_primary DESC, si.display_order, si.created_at
+        LIMIT 1
+    </select>
+
+    <select id="findByUserIdAndContentHash" resultMap="ImageResultMap">
+        SELECT id, external_id, user_id, storage_path, original_filename,
+               content_type, size_bytes, content_hash, created_at
+        FROM images
+        WHERE user_id = #{userId} AND content_hash = #{contentHash}
+    </select>
+
+</mapper>

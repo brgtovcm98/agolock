@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.list.quickAdd}">빠른 재고 등록</h2>
+        <p class="text-xs text-slate-400 mb-4" th:text="#{view.stock.modal.quick.description}">품목을 새로 만들고 바로 재고에 추가합니다.</p>
+
+        <form th:object="${form}"
+              method="post"
+              enctype="multipart/form-data"
+              hx-post="/stocks/quick"
+              hx-encoding="multipart/form-data"
+              hx-target="#stock-panel"
+              hx-swap="outerHTML">
+
+            <input type="hidden" name="spaceExternalId" th:value="${spaceId}">
+            <input type="hidden" name="shelfExternalId" th:value="${shelfId}">
+            <input type="hidden" name="boxExternalId"   th:value="${boxId}">
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.item.modal.image.label}">사진</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer w-full rounded-md border border-dashed border-slate-300
+                              px-3 py-2 text-sm text-slate-500 hover:border-blue-400 hover:text-blue-500 transition"
+                       id="image-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="image-label-text" th:text="#{view.item.modal.image.placeholder}">사진을 선택하세요</span>
+                    <input type="file" th:field="*{imageFile}" accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="sr-only">
+                </label>
+                <img id="quick-image-preview"
+                     class="hidden mt-2 w-full aspect-square rounded-md object-cover border border-slate-200"
+                     th:alt="#{view.item.modal.image.previewAlt}">
+                <span id="quick-analysis-status"
+                      class="hidden mt-1 block text-xs text-blue-500" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
+                <button type="button"
+                        id="quick-analysis-retry-btn"
+                        class="hidden mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+                        th:text="#{view.item.card.aiRetry}">
+                    다시 분석
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-slate-700 mb-1" th:text="#{view.item.card.nameLabel}">품목명</label>
+                <input type="text" th:field="*{name}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:placeholder="#{view.item.modal.namePlaceholder}">
+                <span th:if="${#fields.hasErrors('name')}"
+                      th:errors="*{name}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.item.card.descLabel}">설명</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                </label>
+                <input type="text" th:field="*{description}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:placeholder="#{view.item.modal.descPlaceholder}">
+                <span th:if="${#fields.hasErrors('description')}"
+                      th:errors="*{description}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.count.label}">수량</span> <span class="text-slate-400 font-normal" th:text="|#{view.stock.modal.quick.max}|">(최대 50개)</span>
+                </label>
+                <input type="number" th:field="*{count}" min="1" max="50"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <span th:if="${#fields.hasErrors('count')}"
+                      th:errors="*{count}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.price.label}">가격</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                </label>
+                <input type="number" min="0" step="1" th:field="*{price}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:placeholder="#{view.stock.form.price.placeholder}">
+                <span th:if="${#fields.hasErrors('price')}"
+                      th:errors="*{price}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                </label>
+                <input type="text" th:field="*{memo}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+
+            <input type="hidden" th:field="*{imageHash}" id="quick-image-hash">
+
+            <div class="flex gap-2 justify-end">
+                <button type="button"
+                        hx-get="/empty"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        th:text="#{view.common.cancel}">
+                    취소
+                </button>
+                <button type="submit"
+                        id="quick-submit-btn"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        th:text="#{view.common.add}">
+                    등록
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+    <script>
+    var analyzeQuickModalImage = createImageAnalysisHandler({
+        fileInputSelector:        '#modal input[name="imageFile"]',
+        nameInputSelector:        '#modal input[name="name"]',
+        descriptionInputSelector: '#modal input[name="description"]',
+        submitSelector:           '#quick-submit-btn',
+        statusSelector:           '#quick-analysis-status',
+        retryButtonSelector:      '#quick-analysis-retry-btn',
+        fileLabelSelector:        '#image-label'
+    });
+
+    initImageUpload({
+        fileInputSelector:  '#modal input[name="imageFile"]',
+        previewSelector:    '#quick-image-preview',
+        hashInputSelector:  '#quick-image-hash',
+        submitSelector:     '#quick-submit-btn',
+        labelTextSelector:  '#image-label-text',
+        onImageReady: analyzeQuickModalImage
+    });
+    </script>
+</div>
+</body>
+</html>

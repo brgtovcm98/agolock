@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 메모 보기 모달 -->
+<div th:fragment="view(stock)"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+        
+        <h2 class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.memo.viewTitle}">메모 보기</h2>
+        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+
+        <div class="flex-1 mb-6">
+            <div class="rounded-lg bg-slate-50 border border-slate-100 p-4 min-h-[8rem] text-sm text-slate-700 whitespace-pre-wrap"
+                 th:text="${stock.memo != null and !stock.memo.isEmpty()} ? ${stock.memo} : '-'">
+                메모 내용이 없습니다.
+            </div>
+        </div>
+
+        <div class="flex gap-2 justify-end">
+            <button type="button"
+                    hx-get="/empty"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                    th:text="#{view.common.close}">
+                닫기
+            </button>
+            <button type="button"
+                    th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId})}"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                    th:text="#{view.common.edit}">
+                수정
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 메모 작성/수정 모달 -->
+<div th:fragment="edit(stock)"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-1"
+            th:text="${stock.memo != null and !stock.memo.isEmpty()} ? #{view.stock.modal.memo.editTitle} : #{view.stock.modal.memo.writeTitle}">
+            메모 작성
+        </h2>
+        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+
+        <form th:attr="hx-put=@{/stocks/{id}/memo(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
+              hx-swap="outerHTML">
+            
+            <div class="mb-6">
+                <textarea name="memo" rows="4"
+                          class="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          th:text="${stock.memo}"
+                          th:placeholder="#{view.stock.form.memo.placeholder}"
+                          autofocus></textarea>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button"
+                        th:attr="hx-get=${stock.memo != null and !stock.memo.isEmpty()} ? @{/stocks/{id}/memo(id=${stock.externalId})} : '/empty'"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        th:text="#{view.common.cancel}">
+                    취소
+                </button>
+                <button type="submit"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        th:text="#{view.common.edit}">
+                    수정
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

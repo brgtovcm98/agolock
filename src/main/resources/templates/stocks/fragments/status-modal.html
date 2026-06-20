@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 상태 변경 모달 -->
+<div th:fragment="modal"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.status.title}">상태 변경</h2>
+        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+
+        <form th:attr="hx-put=@{/stocks/{id}/status(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
+              hx-swap="outerHTML">
+
+            <div class="space-y-1.5 mb-4">
+                <label th:each="s : ${statuses}"
+                       class="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 transition">
+                    <input type="radio" name="status" th:value="${s.name()}" required
+                           class="text-blue-600 focus:ring-blue-500">
+                    <span th:text="#{${'enum.StockStatus.' + s.name()}}">상태</span>
+                </label>
+            </div>
+
+            <div class="mb-6">
+                <label class="mb-1 block text-xs font-medium text-slate-500"
+                       th:text="#{view.stock.modal.status.memoLabel}">사유 메모 (선택)</label>
+                <textarea name="memo" rows="3"
+                          class="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          th:placeholder="#{view.stock.modal.status.memoPlaceholder}"></textarea>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button"
+                        hx-get="/empty"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        th:text="#{view.common.cancel}">취소</button>
+                <button type="submit"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        th:text="#{view.stock.modal.status.confirm}">변경</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 변경 완료: 행 제거 + 모달 닫기 -->
+<th:block th:fragment="removed"><div id="modal" hx-swap-oob="true"></div></th:block>
+
+</body>
+</html>

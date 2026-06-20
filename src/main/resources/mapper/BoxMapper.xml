@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.BoxMapper">
+
+    <resultMap id="BoxResultMap" type="BoxDTO">
+        <id     property="id"         column="id"/>
+        <result property="externalId" column="external_id"/>
+        <result property="shelfId"    column="shelf_id"/>
+        <result property="name"       column="name"/>
+        <result property="createdAt"  column="created_at"/>
+    </resultMap>
+
+    <insert id="insertBox" parameterType="BoxDTO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO boxes (shelf_id, name)
+        VALUES (#{shelfId}, #{name})
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="BoxResultMap">
+        SELECT id, external_id, shelf_id, name, created_at
+        FROM boxes
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByExternalId" parameterType="java.util.UUID" resultMap="BoxResultMap">
+        SELECT id, external_id, shelf_id, name, created_at
+        FROM boxes
+        WHERE external_id = #{externalId}
+    </select>
+
+    <select id="findByShelfId" parameterType="long" resultMap="BoxResultMap">
+        SELECT id, external_id, shelf_id, name, created_at
+        FROM boxes
+        WHERE shelf_id = #{shelfId}
+    </select>
+
+    <update id="updateBox" parameterType="BoxDTO">
+        UPDATE boxes
+        SET name = #{name}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM boxes
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

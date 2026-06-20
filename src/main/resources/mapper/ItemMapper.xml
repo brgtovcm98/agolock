@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.ItemMapper">
+
+    <resultMap id="ItemResultMap" type="ItemDTO">
+        <id     property="id"          column="id"/>
+        <result property="externalId"  column="external_id"/>
+        <result property="userId"      column="user_id"/>
+        <result property="name"        column="name"/>
+        <result property="description" column="description"/>
+        <result property="price"       column="price"/>
+        <result property="serialMode"  column="serial_mode"/>
+        <result property="serialPrefix" column="serial_prefix"/>
+        <result property="serialPaddingLength" column="serial_padding_length"/>
+        <result property="serialIncrementUnit" column="serial_increment_unit"/>
+        <result property="serialNextSequence" column="serial_next_sequence"/>
+        <result property="lotMode" column="lot_mode"/>
+        <result property="lotVendorCode" column="lot_vendor_code"/>
+        <result property="lotDateFormat" column="lot_date_format"/>
+        <result property="lotIncludeSequence" column="lot_include_sequence"/>
+        <result property="lotSequenceKey" column="lot_sequence_key"/>
+        <result property="lotNextSequence" column="lot_next_sequence"/>
+        <result property="expirationPeriodDays" column="expiration_period_days"/>
+        <result property="active"      column="active"/>
+        <result property="primaryImageExternalId" column="primary_image_external_id"/>
+        <result property="createdAt"   column="created_at"/>
+        <result property="stockCount"  column="stock_count"/>
+        <result property="spaceCount"  column="space_count"/>
+        <result property="historyCount" column="history_count"/>
+    </resultMap>
+
+    <sql id="ItemListMetrics">
+        (SELECT COUNT(*)
+         FROM stocks s
+         WHERE s.item_id = i.id
+           AND s.status = 'IN_STOCK') AS stock_count,
+        (SELECT COUNT(DISTINCT s.space_id)
+         FROM stocks s
+         WHERE s.item_id = i.id
+           AND s.status = 'IN_STOCK') AS space_count,
+        (SELECT COUNT(*)
+         FROM stock_transactions st
+         JOIN stocks s ON st.stock_id = s.id
+         WHERE s.item_id = i.id) AS history_count
+    </sql>
+
+    <insert id="insertItem" parameterType="ItemDTO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO items (
+            user_id, name, description, price,
+            serial_mode, serial_prefix, serial_padding_length, serial_increment_unit, serial_next_sequence,
+            lot_mode, lot_vendor_code, lot_date_format, lot_include_sequence, lot_sequence_key, lot_next_sequence,
+            expiration_period_days
+        )
+        VALUES (
+            #{userId}, #{name}, #{description}, #{price},
+            #{serialMode}, #{serialPrefix}, #{serialPaddingLength}, #{serialIncrementUnit}, #{serialNextSequence},
+            #{lotMode}, #{lotVendorCode}, #{lotDateFormat}, #{lotIncludeSequence}, #{lotSequenceKey}, #{lotNextSequence},
+            #{expirationPeriodDays}
+        )
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="ItemResultMap">
+        SELECT i.id, i.external_id, i.user_id, i.name, i.description, i.price,
+               i.serial_mode, i.serial_prefix, i.serial_padding_length, i.serial_increment_unit,
+               i.serial_next_sequence, i.lot_mode, i.lot_vendor_code, i.lot_date_format,
+               i.lot_include_sequence, i.lot_sequence_key, i.lot_next_sequence,
+               i.expiration_period_days, i.active, i.created_at,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS primary_image_external_id,
+               <include refid="ItemListMetrics"/>
+        FROM items i
+        WHERE i.id = #{id}
+    </select>
+
+    <select id="findByExternalId" parameterType="java.util.UUID" resultMap="ItemResultMap">
+        SELECT i.id, i.external_id, i.user_id, i.name, i.description, i.price,
+               i.serial_mode, i.serial_prefix, i.serial_padding_length, i.serial_increment_unit,
+               i.serial_next_sequence, i.lot_mode, i.lot_vendor_code, i.lot_date_format,
+               i.lot_include_sequence, i.lot_sequence_key, i.lot_next_sequence,
+               i.expiration_period_days, i.active, i.created_at,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS primary_image_external_id,
+               <include refid="ItemListMetrics"/>
+        FROM items i
+        WHERE i.external_id = #{externalId}
+    </select>
+
+    <select id="findByUserId" parameterType="long" resultMap="ItemResultMap">
+        SELECT i.id, i.external_id, i.user_id, i.name, i.description, i.price,
+               i.serial_mode, i.serial_prefix, i.serial_padding_length, i.serial_increment_unit,
+               i.serial_next_sequence, i.lot_mode, i.lot_vendor_code, i.lot_date_format,
+               i.lot_include_sequence, i.lot_sequence_key, i.lot_next_sequence,
+               i.expiration_period_days, i.active, i.created_at,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS primary_image_external_id,
+               <include refid="ItemListMetrics"/>
+        FROM items i
+        WHERE i.user_id = #{userId}
+          AND i.active = TRUE
+    </select>
+
+    <select id="findByUserIdWithOptions" resultMap="ItemResultMap">
+        SELECT i.id, i.external_id, i.user_id, i.name, i.description, i.price,
+               i.serial_mode, i.serial_prefix, i.serial_padding_length, i.serial_increment_unit,
+               i.serial_next_sequence, i.lot_mode, i.lot_vendor_code, i.lot_date_format,
+               i.lot_include_sequence, i.lot_sequence_key, i.lot_next_sequence,
+               i.expiration_period_days, i.active, i.created_at,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS primary_image_external_id,
+               <include refid="ItemListMetrics"/>
+        FROM items i
+        WHERE i.user_id = #{userId}
+          AND i.active = TRUE
+        <if test="keyword != null and keyword != ''">
+          <choose>
+              <when test="searchType == 'description'">
+                  AND i.description LIKE CONCAT('%', #{keyword}, '%')
+              </when>
+              <otherwise>
+                  AND i.name LIKE CONCAT('%', #{keyword}, '%')
+              </otherwise>
+          </choose>
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'oldest'">
+                i.created_at ASC, i.id ASC
+            </when>
+            <when test="sortBy == 'name'">
+                i.name ASC, i.created_at DESC, i.id DESC
+            </when>
+            <otherwise>
+                i.created_at DESC, i.id DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserIdWithOptions" resultType="int">
+        SELECT COUNT(*)
+        FROM items i
+        WHERE i.user_id = #{userId}
+          AND i.active = TRUE
+        <if test="keyword != null and keyword != ''">
+          <choose>
+              <when test="searchType == 'description'">
+                  AND i.description LIKE CONCAT('%', #{keyword}, '%')
+              </when>
+              <otherwise>
+                  AND i.name LIKE CONCAT('%', #{keyword}, '%')
+              </otherwise>
+          </choose>
+        </if>
+    </select>
+
+    <update id="updateItem" parameterType="ItemDTO">
+        UPDATE items
+        SET name        = #{name},
+            description = #{description},
+            price       = #{price},
+            serial_mode = #{serialMode},
+            serial_prefix = #{serialPrefix},
+            serial_padding_length = #{serialPaddingLength},
+            serial_increment_unit = #{serialIncrementUnit},
+            serial_next_sequence = #{serialNextSequence},
+            lot_mode = #{lotMode},
+            lot_vendor_code = #{lotVendorCode},
+            lot_date_format = #{lotDateFormat},
+            lot_include_sequence = #{lotIncludeSequence},
+            lot_sequence_key = #{lotSequenceKey},
+            lot_next_sequence = #{lotNextSequence},
+            expiration_period_days = #{expirationPeriodDays}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateSerialNextSequence">
+        UPDATE items
+        SET serial_next_sequence = #{serialNextSequence}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateLotSequence">
+        UPDATE items
+        SET lot_sequence_key = #{lotSequenceKey},
+            lot_next_sequence = #{lotNextSequence}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deactivateById" parameterType="long">
+        UPDATE items
+        SET active = FALSE
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM items
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

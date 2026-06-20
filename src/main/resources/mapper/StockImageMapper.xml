@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.StockImageMapper">
+
+    <update id="unsetPrimaryByStockId" parameterType="long">
+        UPDATE stock_images
+        SET is_primary = FALSE
+        WHERE stock_id = #{stockId}
+    </update>
+
+    <insert id="insertStockImage">
+        INSERT INTO stock_images (stock_id, image_id, display_order, is_primary)
+        VALUES (#{stockId}, #{imageId}, #{displayOrder}, #{primary})
+    </insert>
+
+</mapper>

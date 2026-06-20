@@ -1,0 +1,693 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.StockMapper">
+
+    <resultMap id="ItemSpaceStockResultMap" type="ItemSpaceStockDTO">
+        <result property="spaceExternalId" column="space_external_id"/>
+        <result property="spaceName"       column="space_name"/>
+        <result property="count"           column="count"/>
+    </resultMap>
+
+    <resultMap id="StockPanelResultMap" type="StockPanelDTO">
+        <result property="itemExternalId" column="item_external_id"/>
+        <result property="itemName"       column="item_name"/>
+        <result property="displayImageExternalId" column="display_image_external_id"/>
+        <result property="count"          column="count"/>
+    </resultMap>
+
+    <resultMap id="StockResultMap" type="StockDTO">
+        <id     property="id"             column="id"/>
+        <result property="externalId"     column="external_id"/>
+        <result property="itemId"         column="item_id"/>
+        <result property="spaceId"        column="space_id"/>
+        <result property="shelfId"        column="shelf_id"/>
+        <result property="boxId"          column="box_id"/>
+        <result property="lotId"          column="lot_id"/>
+        <result property="serialNumber"   column="serial_number"/>
+        <result property="lotNumber"      column="lot_number"/>
+        <result property="expirationDate" column="expiration_date"/>
+        <result property="memo"           column="memo"/>
+        <result property="status"         column="status"/>
+        <result property="kept"           column="is_kept"/>
+        <result property="price"          column="price"/>
+        <result property="createdAt"      column="created_at"/>
+    </resultMap>
+
+    <resultMap id="StockDetailResultMap" type="StockDetailDTO">
+        <result property="externalId"              column="external_id"/>
+        <result property="itemExternalId"          column="item_external_id"/>
+        <result property="itemName"                column="item_name"/>
+        <result property="displayImageExternalId"  column="display_image_external_id"/>
+        <result property="spaceExternalId"         column="space_external_id"/>
+        <result property="spaceName"               column="space_name"/>
+        <result property="shelfExternalId"         column="shelf_external_id"/>
+        <result property="shelfName"               column="shelf_name"/>
+        <result property="boxExternalId"           column="box_external_id"/>
+        <result property="boxName"                 column="box_name"/>
+        <result property="lotExternalId"           column="lot_external_id"/>
+        <result property="serialNumber"            column="serial_number"/>
+        <result property="lotNumber"               column="lot_number"/>
+        <result property="expirationDate"          column="expiration_date"/>
+        <result property="memo"                    column="memo"/>
+        <result property="status"                  column="status"/>
+        <result property="kept"                    column="is_kept"/>
+        <result property="price"                   column="price"/>
+        <result property="itemPrice"               column="item_price"/>
+        <result property="createdAt"               column="created_at"/>
+    </resultMap>
+
+    <insert id="insertStock" parameterType="StockDTO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO stocks (item_id, space_id, shelf_id, box_id, lot_id, serial_number, lot_number, expiration_date, memo, price, status)
+        VALUES (#{itemId}, #{spaceId}, #{shelfId}, #{boxId}, #{lotId}, #{serialNumber}, #{lotNumber}, #{expirationDate}, #{memo}, #{price}, 'IN_STOCK')
+    </insert>
+
+    <insert id="insertStocks" parameterType="list"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO stocks (item_id, space_id, shelf_id, box_id, lot_id, serial_number, lot_number, expiration_date, memo, price, status)
+        VALUES
+        <foreach collection="list" item="s" separator=",">
+            (#{s.itemId}, #{s.spaceId}, #{s.shelfId}, #{s.boxId},
+             #{s.lotId}, #{s.serialNumber}, #{s.lotNumber}, #{s.expirationDate}, #{s.memo}, #{s.price}, 'IN_STOCK')
+        </foreach>
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByExternalId" parameterType="java.util.UUID" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE external_id = #{externalId}
+    </select>
+
+    <select id="findByBoxId" parameterType="long" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE box_id = #{boxId}
+    </select>
+
+    <select id="findByShelfIdDirectOnly" parameterType="long" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE shelf_id = #{shelfId}
+          AND box_id IS NULL
+    </select>
+
+    <select id="findBySpaceIdDirectOnly" parameterType="long" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE space_id = #{spaceId}
+          AND shelf_id IS NULL
+    </select>
+
+    <select id="findByItemId" parameterType="long" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE item_id = #{itemId}
+    </select>
+
+    <select id="countByItemId" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM stocks
+        WHERE item_id = #{itemId}
+    </select>
+
+    <select id="countInStockByItemId" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM stocks
+        WHERE item_id = #{itemId}
+          AND status = 'IN_STOCK'
+    </select>
+
+    <select id="findExistingSerialNumbers" resultType="string">
+        SELECT serial_number
+        FROM stocks
+        WHERE item_id = #{itemId}
+          AND serial_number IN
+          <foreach collection="serialNumbers" item="serialNumber" open="(" separator="," close=")">
+              #{serialNumber}
+          </foreach>
+    </select>
+
+    <select id="findBySpaceId" parameterType="long" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE space_id = #{spaceId}
+    </select>
+
+    <select id="findInStockByItemAndBox" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE item_id = #{itemId}
+          AND box_id  = #{boxId}
+          AND status  = 'IN_STOCK'
+        ORDER BY created_at
+    </select>
+
+    <select id="findInStockByItemAndShelf" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE item_id  = #{itemId}
+          AND shelf_id = #{shelfId}
+          AND box_id IS NULL
+          AND status   = 'IN_STOCK'
+        ORDER BY created_at
+    </select>
+
+    <select id="findInStockByItemAndSpace" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE item_id  = #{itemId}
+          AND space_id = #{spaceId}
+          AND shelf_id IS NULL
+          AND status   = 'IN_STOCK'
+        ORDER BY created_at
+    </select>
+
+    <select id="findDispatchableByItemAndBox" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE item_id = #{itemId}
+          AND box_id  = #{boxId}
+          AND status  = 'IN_STOCK'
+        <if test="!includeKept">AND is_kept = FALSE</if>
+        ORDER BY created_at
+    </select>
+
+    <select id="findDispatchableByItemAndShelf" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE item_id  = #{itemId}
+          AND shelf_id = #{shelfId}
+          AND box_id IS NULL
+          AND status   = 'IN_STOCK'
+        <if test="!includeKept">AND is_kept = FALSE</if>
+        ORDER BY created_at
+    </select>
+
+    <select id="findDispatchableByItemAndSpace" resultMap="StockResultMap">
+        SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
+               serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
+        FROM stocks
+        WHERE item_id  = #{itemId}
+          AND space_id = #{spaceId}
+          AND shelf_id IS NULL
+          AND status   = 'IN_STOCK'
+        <if test="!includeKept">AND is_kept = FALSE</if>
+        ORDER BY created_at
+    </select>
+
+    <update id="updateIsKept">
+        UPDATE stocks
+        SET is_kept = #{kept}
+        WHERE external_id = #{externalId}
+          AND status = 'IN_STOCK'
+          AND item_id IN (
+              SELECT id
+              FROM items
+              WHERE user_id = #{userId}
+          )
+    </update>
+
+    <update id="updateStatusAndMemoIfInStock">
+        UPDATE stocks
+        SET status = #{status},
+            memo   = #{memo}
+        WHERE external_id = #{externalId}
+          AND status = 'IN_STOCK'
+          AND item_id IN (
+              SELECT id
+              FROM items
+              WHERE user_id = #{userId}
+          )
+    </update>
+
+    <update id="updateStatusIfInStock">
+        UPDATE stocks
+        SET status = #{status}
+        WHERE id = #{id}
+          AND status = 'IN_STOCK'
+    </update>
+
+    <update id="updateLocationIfInStock">
+        UPDATE stocks
+        SET space_id = #{spaceId},
+            shelf_id = #{shelfId},
+            box_id   = #{boxId}
+        WHERE status = 'IN_STOCK'
+          AND id IN
+          <foreach collection="ids" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM stocks
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteInStockByExternalIdAndUserId">
+        DELETE FROM stocks
+        WHERE external_id = #{externalId}
+          AND status = 'IN_STOCK'
+          AND item_id IN (
+              SELECT id
+              FROM items
+              WHERE user_id = #{userId}
+          )
+    </delete>
+
+    <delete id="deleteInStockByItemAndBox">
+        DELETE FROM stocks
+        WHERE item_id = #{itemId}
+          AND box_id  = #{boxId}
+          AND status  = 'IN_STOCK'
+    </delete>
+
+    <delete id="deleteInStockByItemAndShelf">
+        DELETE FROM stocks
+        WHERE item_id  = #{itemId}
+          AND shelf_id = #{shelfId}
+          AND box_id IS NULL
+          AND status   = 'IN_STOCK'
+    </delete>
+
+    <delete id="deleteInStockByItemAndSpace">
+        DELETE FROM stocks
+        WHERE item_id  = #{itemId}
+          AND space_id = #{spaceId}
+          AND shelf_id IS NULL
+          AND status   = 'IN_STOCK'
+    </delete>
+
+    <select id="findSpaceStockByItem" resultMap="ItemSpaceStockResultMap">
+        SELECT sp.external_id AS space_external_id,
+               sp.name   AS space_name,
+               COUNT(*)  AS count
+        FROM stocks s
+        JOIN spaces sp ON s.space_id = sp.id
+        JOIN items  i  ON s.item_id  = i.id
+        WHERE i.external_id = #{itemExternalId}
+          AND i.user_id     = #{userId}
+          AND s.status      = 'IN_STOCK'
+        GROUP BY sp.id, sp.external_id, sp.name
+        ORDER BY sp.name
+    </select>
+
+    <sql id="StockDetailSelect">
+        SELECT s.external_id,
+               i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               sp.external_id AS space_external_id,
+               sp.name AS space_name,
+               sh.external_id AS shelf_external_id,
+               sh.name AS shelf_name,
+               b.external_id AS box_external_id,
+               b.name AS box_name,
+               il.external_id AS lot_external_id,
+               s.serial_number,
+               COALESCE(il.lot_number, s.lot_number) AS lot_number,
+               s.expiration_date,
+               s.memo,
+               s.status,
+               s.is_kept,
+               s.price,
+               i.price AS item_price,
+               s.created_at
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        JOIN spaces sp ON s.space_id = sp.id
+        LEFT JOIN shelves sh ON s.shelf_id = sh.id
+        LEFT JOIN boxes b ON s.box_id = b.id
+        LEFT JOIN item_lots il ON s.lot_id = il.id
+    </sql>
+
+    <select id="searchDetails" resultMap="StockDetailResultMap">
+        <include refid="StockDetailSelect"/>
+        WHERE i.user_id = #{userId}
+          AND s.status = 'IN_STOCK'
+        <if test="itemExternalId != null">
+          AND i.external_id = #{itemExternalId}
+        </if>
+        <if test="spaceExternalId != null">
+          AND sp.external_id = #{spaceExternalId}
+        </if>
+        <if test="shelfExternalId != null">
+          AND sh.external_id = #{shelfExternalId}
+        </if>
+        <if test="boxExternalId != null">
+          AND b.external_id = #{boxExternalId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND (
+            <choose>
+                <when test="searchType == 'item'">
+                    i.name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'serial'">
+                    s.serial_number LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'lot'">
+                    COALESCE(il.lot_number, s.lot_number) LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'memo'">
+                    s.memo LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <otherwise>
+                    i.name LIKE CONCAT('%', #{keyword}, '%')
+                    OR s.serial_number LIKE CONCAT('%', #{keyword}, '%')
+                    OR COALESCE(il.lot_number, s.lot_number) LIKE CONCAT('%', #{keyword}, '%')
+                    OR s.memo LIKE CONCAT('%', #{keyword}, '%')
+                </otherwise>
+            </choose>
+          )
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'oldest'">
+                s.created_at ASC, s.id ASC
+            </when>
+            <when test="sortBy == 'name'">
+                i.name ASC, sp.name ASC, sh.name ASC, b.name ASC, s.created_at DESC
+            </when>
+            <otherwise>
+                s.created_at DESC, s.id DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countSearchDetails" resultType="int">
+        SELECT COUNT(*)
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        JOIN spaces sp ON s.space_id = sp.id
+        LEFT JOIN shelves sh ON s.shelf_id = sh.id
+        LEFT JOIN boxes b ON s.box_id = b.id
+        LEFT JOIN item_lots il ON s.lot_id = il.id
+        WHERE i.user_id = #{userId}
+          AND s.status = 'IN_STOCK'
+        <if test="itemExternalId != null">
+          AND i.external_id = #{itemExternalId}
+        </if>
+        <if test="spaceExternalId != null">
+          AND sp.external_id = #{spaceExternalId}
+        </if>
+        <if test="shelfExternalId != null">
+          AND sh.external_id = #{shelfExternalId}
+        </if>
+        <if test="boxExternalId != null">
+          AND b.external_id = #{boxExternalId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND (
+            <choose>
+                <when test="searchType == 'item'">
+                    i.name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'serial'">
+                    s.serial_number LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'lot'">
+                    COALESCE(il.lot_number, s.lot_number) LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'memo'">
+                    s.memo LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <otherwise>
+                    i.name LIKE CONCAT('%', #{keyword}, '%')
+                    OR s.serial_number LIKE CONCAT('%', #{keyword}, '%')
+                    OR COALESCE(il.lot_number, s.lot_number) LIKE CONCAT('%', #{keyword}, '%')
+                    OR s.memo LIKE CONCAT('%', #{keyword}, '%')
+                </otherwise>
+            </choose>
+          )
+        </if>
+    </select>
+
+    <select id="findDetailByExternalId" resultMap="StockDetailResultMap">
+        <include refid="StockDetailSelect"/>
+        WHERE s.external_id = #{externalId}
+          AND i.user_id = #{userId}
+    </select>
+
+    <update id="updateDetails">
+        UPDATE stocks
+        SET serial_number = #{form.serialNumber},
+            lot_number = #{form.lotNumber},
+            expiration_date = #{form.expirationDate},
+            price = #{form.price},
+            memo = #{form.memo}
+        WHERE external_id = #{externalId}
+          AND status = 'IN_STOCK'
+          AND item_id IN (
+              SELECT id
+              FROM items
+              WHERE user_id = #{userId}
+          )
+    </update>
+
+    <select id="findPanelByBoxId" parameterType="long" resultMap="StockPanelResultMap">
+        SELECT i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               COUNT(*) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.box_id = #{boxId}
+          AND s.status = 'IN_STOCK'
+        GROUP BY i.id, i.external_id, i.name
+    </select>
+
+    <select id="findPanelByBoxIdPaged" resultMap="StockPanelResultMap">
+        SELECT i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               COUNT(*) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.box_id = #{boxId}
+          AND s.status = 'IN_STOCK'
+        GROUP BY i.id, i.external_id, i.name
+        ORDER BY i.name ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPanelByBoxId" parameterType="long" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.box_id = #{boxId}
+          AND s.status = 'IN_STOCK'
+    </select>
+
+    <select id="findPanelByShelfDirectOnly" parameterType="long" resultMap="StockPanelResultMap">
+        SELECT i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               COUNT(*) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.shelf_id = #{shelfId}
+          AND s.box_id IS NULL
+          AND s.status = 'IN_STOCK'
+        GROUP BY i.id, i.external_id, i.name
+    </select>
+
+    <select id="findPanelByShelfDirectOnlyPaged" resultMap="StockPanelResultMap">
+        SELECT i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               COUNT(*) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.shelf_id = #{shelfId}
+          AND s.box_id IS NULL
+          AND s.status = 'IN_STOCK'
+        GROUP BY i.id, i.external_id, i.name
+        ORDER BY i.name ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPanelByShelfDirectOnly" parameterType="long" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.shelf_id = #{shelfId}
+          AND s.box_id IS NULL
+          AND s.status = 'IN_STOCK'
+    </select>
+
+    <select id="findPanelBySpaceDirectOnly" parameterType="long" resultMap="StockPanelResultMap">
+        SELECT i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               COUNT(*) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.space_id = #{spaceId}
+          AND s.shelf_id IS NULL
+          AND s.status = 'IN_STOCK'
+        GROUP BY i.id, i.external_id, i.name
+    </select>
+
+    <select id="findPanelBySpaceDirectOnlyPaged" resultMap="StockPanelResultMap">
+        SELECT i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               COUNT(*) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.space_id = #{spaceId}
+          AND s.shelf_id IS NULL
+          AND s.status = 'IN_STOCK'
+        GROUP BY i.id, i.external_id, i.name
+        ORDER BY i.name ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPanelBySpaceDirectOnly" parameterType="long" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.space_id = #{spaceId}
+          AND s.shelf_id IS NULL
+          AND s.status = 'IN_STOCK'
+    </select>
+
+    <select id="findPanelBySpaceAllWithOptions" resultMap="StockPanelResultMap">
+        SELECT i.external_id AS item_external_id,
+               i.name AS item_name,
+               (
+                   SELECT img.external_id
+                   FROM item_images ii
+                   JOIN images img ON img.id = ii.image_id
+                   WHERE ii.item_id = i.id
+                   ORDER BY ii.is_primary DESC, ii.display_order, ii.created_at
+                   LIMIT 1
+               ) AS display_image_external_id,
+               COUNT(*) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.space_id = #{spaceId}
+          AND s.status = 'IN_STOCK'
+          <if test="keyword != null and keyword != ''">
+              AND i.name LIKE CONCAT('%', #{keyword}, '%')
+          </if>
+        GROUP BY i.id, i.external_id, i.name
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'oldest'">
+                (SELECT MIN(st.created_at)
+                 FROM stock_transactions st
+                 JOIN stocks sk ON sk.id = st.stock_id
+                 WHERE sk.item_id = i.id AND sk.space_id = #{spaceId}) ASC NULLS LAST,
+                i.name ASC
+            </when>
+            <when test="sortBy == 'inFreq'">
+                (SELECT COUNT(*)
+                 FROM stock_transactions st
+                 JOIN stocks sk ON sk.id = st.stock_id
+                 WHERE sk.item_id = i.id AND sk.space_id = #{spaceId}
+                   AND st.transaction_type = 'IN') DESC,
+                i.name ASC
+            </when>
+            <when test="sortBy == 'outFreq'">
+                (SELECT COUNT(*)
+                 FROM stock_transactions st
+                 JOIN stocks sk ON sk.id = st.stock_id
+                 WHERE sk.item_id = i.id AND sk.space_id = #{spaceId}
+                   AND st.transaction_type = 'OUT') DESC,
+                i.name ASC
+            </when>
+            <otherwise>
+                (SELECT MAX(st.created_at)
+                 FROM stock_transactions st
+                 JOIN stocks sk ON sk.id = st.stock_id
+                 WHERE sk.item_id = i.id AND sk.space_id = #{spaceId}) DESC NULLS LAST,
+                i.name ASC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPanelBySpaceAllWithOptions" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.space_id = #{spaceId}
+          AND s.status = 'IN_STOCK'
+          <if test="keyword != null and keyword != ''">
+              AND i.name LIKE CONCAT('%', #{keyword}, '%')
+          </if>
+    </select>
+
+</mapper>

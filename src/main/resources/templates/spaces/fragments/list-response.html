@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="space-more-response">
+    <div hx-swap-oob="beforeend:#space-list-rows">
+        <th:block th:each="space : ${spaces}">
+            <th:block th:replace="~{spaces/fragments/row :: view}"></th:block>
+        </th:block>
+    </div>
+    <!-- space-list-more fragment is in spaces/list.html -->
+    <div id="space-list-more" th:replace="~{spaces/list :: space-list-more}"></div>
+</th:block>
+
+</body>
+</html>

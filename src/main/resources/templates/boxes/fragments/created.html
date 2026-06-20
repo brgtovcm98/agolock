@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 새 박스 행 -->
+<li th:fragment="created"
+    th:id="'box-' + ${box.externalId}"
+    class="flex items-center gap-1 px-3 py-1.5 hover:bg-slate-50 transition cursor-pointer group">
+
+    <span class="text-xs text-slate-300 w-3">□</span>
+
+    <button type="button"
+            class="flex-1 text-left text-sm text-slate-600 truncate"
+            th:text="${box.name}"
+            th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/stocks(sid=${spaceExternalId},shid=${shelfExternalId},id=${box.externalId})}"
+            hx-target="#stock-panel"
+            hx-swap="outerHTML"></button>
+
+    <span class="hidden group-hover:flex items-center gap-1 shrink-0">
+    <button type="button"
+            class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-blue-500 hover:text-blue-700"
+            th:attr="hx-get=@{/stocks/new(spaceId=${spaceExternalId},shelfId=${shelfExternalId},boxId=${box.externalId})}"
+            hx-target="#modal"
+            hx-swap="outerHTML"
+            th:title="#{view.box.created.addStock}">📦</button>
+
+    <button type="button"
+            class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-red-400 hover:text-red-600"
+            th:attr="hx-delete=@{/spaces/{sid}/shelves/{shid}/boxes/{id}(sid=${spaceExternalId},shid=${shelfExternalId},id=${box.externalId})},
+                     hx-confirm=#{view.box.created.deleteConfirm},
+                     hx-target='#box-list-' + ${shelfExternalId}"
+            hx-swap="outerHTML"
+            th:title="#{view.box.created.delete}">×</button>
+    </span>
+</li>
+
+<!-- OOB: 모달 닫기 -->
+<div id="modal" hx-swap-oob="true"></div>
+
+</body>
+</html>

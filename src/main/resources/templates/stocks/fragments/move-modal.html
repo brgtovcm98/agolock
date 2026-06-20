@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.move.title}">물품 이동</h2>
+        <p class="text-xs text-slate-400 mb-4" th:text="#{view.stock.modal.move.description}">선택한 물품을 같은 위치로 이동합니다.</p>
+
+        <form th:object="${form}"
+              method="post"
+              hx-post="/stocks/move"
+              hx-target="#stock-panel"
+              hx-swap="outerHTML">
+
+            <input type="hidden" th:field="*{sourceSpaceExternalId}">
+            <input type="hidden" th:field="*{sourceShelfExternalId}">
+            <input type="hidden" th:field="*{sourceBoxExternalId}">
+
+            <input type="hidden" th:field="*{targetSpaceExternalId}" id="move-target-space">
+            <input type="hidden" th:field="*{targetShelfExternalId}" id="move-target-shelf">
+            <input type="hidden" th:field="*{targetBoxExternalId}" id="move-target-box">
+
+            <th:block th:each="item, stat : *{items}">
+                <input type="hidden" th:field="*{items[__${stat.index}__].itemExternalId}">
+                <input type="hidden" th:field="*{items[__${stat.index}__].count}">
+            </th:block>
+
+            <div th:if="${#fields.hasAnyErrors()}"
+                 class="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+                 th:text="#{view.common.error.checkInput}">
+                입력값을 확인해주세요.
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-2" th:text="#{view.stock.form.target.label}">이동할 장소</label>
+                <div class="max-h-72 overflow-y-auto rounded-md border border-slate-200 divide-y divide-slate-100">
+                    <label th:each="option : ${locationOptions}"
+                           class="flex items-center gap-3 px-3 py-2 text-sm"
+                           th:classappend="${option.current} ? 'cursor-not-allowed bg-slate-50 text-slate-400' : 'cursor-pointer hover:bg-slate-50 text-slate-700'">
+                        <input type="radio"
+                               name="moveTargetOption"
+                               required
+                               th:disabled="${option.current}"
+                               th:data-space-id="${option.spaceExternalId}"
+                               th:data-shelf-id="${option.shelfExternalId}"
+                               th:data-box-id="${option.boxExternalId}"
+                               onchange="setStockMoveTarget(this)"
+                               class="text-blue-600 focus:ring-blue-500">
+                        <span th:text="${option.label}">위치</span>
+                        <span th:if="${option.current}" class="ml-auto text-xs text-slate-400" th:text="#{view.stock.form.target.current}">현재 위치</span>
+                    </label>
+                </div>
+                <span th:if="${#fields.hasErrors('targetSpaceExternalId')}"
+                      th:errors="*{targetSpaceExternalId}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                </label>
+                <input type="text" th:field="*{memo}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:placeholder="#{view.stock.form.memo.placeholder}">
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button"
+                        hx-get="/empty"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        th:text="#{view.common.cancel}">
+                    취소
+                </button>
+                <button type="submit"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        th:text="#{view.stock.modal.move.button}">
+                    이동
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    function setStockMoveTarget(input) {
+        document.getElementById('move-target-space').value = input.dataset.spaceId || '';
+        document.getElementById('move-target-shelf').value = input.dataset.shelfId || '';
+        document.getElementById('move-target-box').value = input.dataset.boxId || '';
+    }
+    </script>
+</div>
+
+</body>
+</html>

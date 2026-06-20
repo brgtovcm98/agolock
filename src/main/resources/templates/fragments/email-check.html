@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="result">
+    <span th:if="${!empty and taken}"  class="text-red-500" th:text="#{view.register.emailTaken}">이미 사용 중인 이메일입니다.</span>
+    <span th:if="${!empty and !taken}" class="text-green-600" th:text="#{view.register.emailAvailable}">사용 가능한 이메일입니다.</span>
+</div>
+</body>
+</html>

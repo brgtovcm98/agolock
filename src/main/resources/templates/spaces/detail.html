@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head(~{::title})}">
+    <title th:text="${space.name} + ' · SeuStock'">공간 상세 · SeuStock</title>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col">
+
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+
+<div id="modal"></div>
+
+<style>
+    .selected-tree-item {
+        background-color: #eff6ff !important; /* blue-50 */
+    }
+    .selected-tree-item .tree-item-text {
+        color: #1d4ed8 !important; /* blue-700 */
+        font-weight: 600 !important;
+    }
+</style>
+
+<main class="mx-auto w-full max-w-5xl px-4 py-10 flex-1">
+
+    <!-- 헤더 -->
+    <div class="mb-6 flex items-center gap-2 text-sm text-slate-500">
+        <a href="/spaces" class="hover:text-slate-800 transition" th:text="#{view.space.detail.nav}">내 공간</a>
+        <span>›</span>
+        <span class="font-semibold text-slate-800" th:text="${space.name}"></span>
+    </div>
+
+    <!-- 2패널 레이아웃 -->
+    <div class="flex flex-col lg:flex-row gap-4 lg:items-start">
+
+        <!-- 왼쪽: 위치 트리 -->
+        <div class="w-full lg:w-64 lg:shrink-0 rounded-lg border border-slate-200 bg-white overflow-hidden">
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide" th:text="#{view.space.detail.structure}">위치 구조</span>
+                <button th:attr="hx-get=@{/spaces/{id}/shelves/new(id=${space.externalId})}"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        th:text="#{view.space.detail.addShelf}">
+                    + 선반
+                </button>
+            </div>
+
+            <ul id="shelf-list" th:fragment="shelf-list">
+                <th:block th:replace="~{spaces/fragments/shelf-list-response :: shelf-list-content}"></th:block>
+            </ul>
+
+            <!-- 전체보기 진입점 -->
+            <div class="tree-item-container selected-tree-item border-t border-slate-100 px-3">
+                <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space.externalId})}"
+                        hx-target="#stock-panel"
+                        hx-swap="outerHTML"
+                        class="tree-item-trigger tree-item-text w-full text-left text-sm font-medium text-slate-600 hover:text-slate-900 active:bg-slate-50 transition py-3 min-h-[56px] flex items-center"
+                        th:text="|🗂 #{view.space.detail.viewAll(${space.name})}|">
+                    🗂 [[${space.name}]] 전체보기
+                </button>
+            </div>
+
+            <!-- 공간 직접 재고 진입점 -->
+            <div class="tree-item-container border-t border-slate-100 px-3">
+                <button th:attr="hx-get=@{/spaces/{id}/stocks(id=${space.externalId})}"
+                        hx-target="#stock-panel"
+                        hx-swap="outerHTML"
+                        class="tree-item-trigger tree-item-text w-full text-left text-sm text-slate-500 hover:text-slate-800 active:bg-slate-50 transition py-3 min-h-[56px] flex items-center"
+                        th:text="|📦 #{view.space.detail.viewLoose(${space.name})}|">
+                    📦 [[${space.name}]]에 대충 던져놓은 물건들
+                </button>
+            </div>
+        </div>
+
+        <!-- 오른쪽: 재고 패널 -->
+        <div class="w-full lg:flex-1 lg:min-w-0">
+            <div id="stock-panel"
+                 th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space.externalId})}"
+                 hx-trigger="load"
+                 hx-swap="outerHTML">
+            </div>
+        </div>
+
+    </div>
+
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script>
+    function toggleBoxList(shelfId, headerEl) {
+        const ul = document.getElementById('box-list-' + shelfId);
+        const arrow = headerEl.querySelector('.arrow');
+        if (!ul) return;
+        if (ul.classList.contains('hidden')) {
+            ul.classList.remove('hidden');
+            if (arrow) arrow.textContent = '▼';
+        } else {
+            ul.classList.add('hidden');
+            if (arrow) arrow.textContent = '▶';
+        }
+    }
+
+    function startStockMoveMode() {
+        const panel = document.getElementById('stock-panel');
+        if (!panel) return;
+        panel.classList.add('stock-move-mode');
+        panel.querySelectorAll('.stock-default-only').forEach(function(el) {
+            el.classList.add('hidden');
+        });
+        panel.querySelectorAll('.stock-move-only').forEach(function(el) {
+            el.classList.remove('hidden');
+        });
+        const form = document.getElementById('stock-move-selection-form');
+        if (form) form.classList.remove('hidden');
+        syncStockMoveControls();
+    }
+
+    function cancelStockMoveMode() {
+        const panel = document.getElementById('stock-panel');
+        if (!panel) return;
+        panel.classList.remove('stock-move-mode');
+        panel.querySelectorAll('.stock-default-only').forEach(function(el) {
+            el.classList.remove('hidden');
+        });
+        panel.querySelectorAll('.stock-move-only').forEach(function(el) {
+            el.classList.add('hidden');
+        });
+        panel.querySelectorAll('.stock-move-check').forEach(function(input) {
+            input.checked = false;
+        });
+        panel.querySelectorAll('.stock-move-count').forEach(function(input) {
+            input.value = input.max || '1';
+        });
+        const form = document.getElementById('stock-move-selection-form');
+        if (form) form.classList.add('hidden');
+        const fields = document.getElementById('move-selection-fields');
+        if (fields) fields.innerHTML = '';
+        syncStockMoveControls();
+    }
+
+    function syncStockMoveControls() {
+        const submit = document.getElementById('stock-move-submit');
+        if (!submit) return;
+        const checkedRows = Array.from(document.querySelectorAll('#stock-panel .stock-move-check:checked'));
+        const hasInvalidCount = checkedRows.some(function(check) {
+            const row = check.closest('[data-item-external-id]');
+            const countInput = row ? row.querySelector('.stock-move-count') : null;
+            const count = countInput ? parseInt(countInput.value, 10) : NaN;
+            const max = countInput ? parseInt(countInput.max, 10) : NaN;
+            return isNaN(count) || count < 1 || count > max;
+        });
+        submit.disabled = checkedRows.length === 0 || hasInvalidCount;
+    }
+
+    function prepareStockMoveSelection() {
+        const fields = document.getElementById('move-selection-fields');
+        if (!fields) return false;
+        fields.innerHTML = '';
+
+        const checkedRows = Array.from(document.querySelectorAll('#stock-panel .stock-move-check:checked'));
+        if (checkedRows.length === 0) {
+            syncStockMoveControls();
+            return false;
+        }
+
+        for (let i = 0; i < checkedRows.length; i++) {
+            const row = checkedRows[i].closest('[data-item-external-id]');
+            const countInput = row ? row.querySelector('.stock-move-count') : null;
+            const count = countInput ? parseInt(countInput.value, 10) : NaN;
+            const max = countInput ? parseInt(countInput.max, 10) : NaN;
+            if (!row || isNaN(count) || count < 1 || count > max) {
+                syncStockMoveControls();
+                return false;
+            }
+            fields.appendChild(hiddenInput('items[' + i + '].itemExternalId', row.dataset.itemExternalId));
+            fields.appendChild(hiddenInput('items[' + i + '].count', String(count)));
+        }
+        return true;
+    }
+
+    function hiddenInput(name, value) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value || '';
+        return input;
+    }
+
+    document.addEventListener('htmx:afterRequest', function(evt) {
+        const triggerEl = evt.detail.elt;
+        if (triggerEl && triggerEl.classList.contains('tree-item-trigger')) {
+            document.querySelectorAll('.tree-item-container').forEach(function(el) {
+                el.classList.remove('selected-tree-item');
+            });
+            const container = triggerEl.closest('.tree-item-container');
+            if (container) {
+                container.classList.add('selected-tree-item');
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

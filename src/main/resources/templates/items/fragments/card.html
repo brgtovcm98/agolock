@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 읽기 모드 카드 -->
+<div th:fragment="view"
+     th:id="'item-' + ${item.externalId}"
+     data-item-card
+     class="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1.3fr)_minmax(0,0.7fr)_minmax(0,0.8fr)_10rem] md:items-center">
+
+    <div class="flex min-w-0 items-center gap-3">
+        <img th:src="${item.primaryImageExternalId != null} ? @{/images/{id}(id=${item.primaryImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
+             alt=""
+             class="h-14 w-14 rounded-md object-cover border border-slate-200 shrink-0">
+        <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 md:block">
+                <p class="text-sm font-semibold text-slate-800 truncate" th:text="${item.name}"></p>
+                <p class="text-xs text-slate-400 mt-0.5 shrink-0"
+                   th:text="${#temporals.format(item.createdAt, 'yyyy-MM-dd')}"></p>
+                <p th:if="${item.price != null}" class="text-xs font-medium text-slate-600 mt-0.5 shrink-0"
+                   th:text="#{view.common.price.format(${#numbers.formatInteger(item.price, 1, 'COMMA')})}">5,000원</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 설명이 있는 경우: 모바일, 데스크톱 모두 렌더링 -->
+    <p th:if="${item.description != null and !item.description.isEmpty()}"
+       class="text-sm text-slate-500 min-h-[1.25rem] truncate min-w-0"
+       th:text="${item.description}"></p>
+    <!-- 설명이 없는 경우: 데스크톱에서만 영역 확보를 위해 렌더링 (그리드 밀림 방지) -->
+    <div th:unless="${item.description != null and !item.description.isEmpty()}"
+         class="hidden md:block text-slate-300 min-h-[1.25rem] min-w-0">—</div>
+
+    <div class="flex flex-wrap items-center gap-2 min-w-0 md:contents">
+        <div class="flex items-center gap-2 text-xs min-w-0">
+            <a th:if="${item.stockCount > 0}"
+               th:href="@{/stocks(itemExternalId=${item.externalId})}"
+               class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 font-medium hover:bg-blue-100 transition"
+               th:text="#{view.item.card.stockCount(${item.stockCount})}"></a>
+            <span th:if="${item.stockCount == 0}"
+                  class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-slate-500 font-medium"
+                  th:text="#{view.item.card.stockCount(${item.stockCount})}"></span>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs min-w-0">
+            <button th:if="${item.spaceCount > 0}"
+                    th:attr="hx-get=@{/items/{id}/spaces(id=${item.externalId})}"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 font-medium hover:bg-emerald-100 transition"
+                    th:text="#{view.item.card.spaceCount(${item.spaceCount})}"></button>
+            <span th:if="${item.spaceCount == 0}"
+                  class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-slate-500 font-medium"
+                  th:text="#{view.item.card.spaceCount(${item.spaceCount})}"></span>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 md:justify-end">
+        <button class="whitespace-nowrap rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                th:attr="hx-get=@{/items/{id}/history(id=${item.externalId})}"
+                hx-target="#modal"
+                hx-swap="outerHTML"
+                th:text="${item.historyCount > 0} ? #{view.item.card.historyCount(${item.historyCount})} : #{view.item.card.historyNone}">기록없음</button>
+        <button class="whitespace-nowrap rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                th:attr="hx-get=@{/items/{id}/edit(id=${item.externalId})},hx-target='#item-' + ${item.externalId}"
+                hx-swap="outerHTML"
+                th:text="#{view.common.edit}">수정</button>
+    </div>
+
+</div>
+
+<!-- 수정 모드 카드 -->
+<div th:fragment="edit"
+     th:id="'item-' + ${item.externalId}"
+     data-item-card
+     class="grid max-h-[calc(100vh-8rem)] gap-3 overflow-y-auto border-l-4 border-blue-500 bg-blue-50/40 px-4 py-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1.3fr)_minmax(0,0.7fr)_minmax(0,0.8fr)_10rem] md:items-start">
+
+    <div class="min-w-0">
+        <div class="mb-2 w-20 md:w-full">
+            <img th:src="${item.primaryImageExternalId != null} ? @{/images/{id}(id=${item.primaryImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
+                 data-existing-image
+                 alt=""
+                 class="aspect-square w-full rounded-md object-cover border border-slate-200">
+            <img data-image-preview
+                 class="hidden aspect-square w-full rounded-md object-cover border border-slate-200"
+                 alt="">
+        </div>
+        <input type="file" name="imageFile" data-image-file
+               accept="image/jpeg,image/png,image/webp,image/gif"
+               class="block w-full text-xs text-slate-500
+                      file:mr-2 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2
+                      file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200">
+        <span data-image-analysis-status
+              class="hidden mt-1 block text-xs text-blue-500" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
+        <button type="button"
+                data-image-analysis-retry
+                class="hidden mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+                th:text="#{view.item.card.aiRetry}">
+            다시 분석
+        </button>
+        <button type="button"
+                th:if="${item.primaryImageExternalId != null}"
+                th:attr="data-reanalyze-src=@{/images/{id}/analyze(id=${item.primaryImageExternalId})}"
+                data-image-reanalyze
+                class="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+                th:text="#{view.item.card.aiReanalyzeStored}">
+            저장된 이미지 AI 분석
+        </button>
+        <input type="hidden" name="imageHash" data-image-hash value="">
+    </div>
+
+    <div class="space-y-2 min-w-0">
+        <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1" th:text="#{view.item.card.nameLabel}">품목명 *</label>
+            <input type="text" name="name" th:value="${item.name}"
+                   class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1" th:text="#{view.item.card.descLabel}">설명</label>
+            <input type="text" name="description" th:value="${item.description}"
+                   class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   th:placeholder="#{view.item.card.descPlaceholder}">
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1" th:text="#{view.item.card.priceLabel}">가격</label>
+            <input type="number" min="0" step="1" name="price" th:value="${item.price}"
+                   class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   th:placeholder="#{view.stock.form.price.placeholder}">
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1">
+                <span th:text="#{view.item.policy.expirationDays}">유통기한(일)</span>
+            </label>
+            <input type="number" min="1" name="expirationPeriodDays" th:value="${item.expirationPeriodDays}"
+                   class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   th:placeholder="#{view.item.policy.expirationDays}">
+            <p data-expiration-preview
+               th:data-label="#{view.item.policy.expirationPreview}"
+               class="hidden mt-2 rounded-md bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"></p>
+        </div>
+
+        <details>
+            <summary class="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-800 transition" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
+            <div class="mt-3 space-y-3">
+                <select name="serialMode" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="NONE" th:selected="${item.serialMode.name() == 'NONE'}" th:text="#{enum.TrackingMode.NONE}">없음</option>
+                    <option value="AUTO" th:selected="${item.serialMode.name() == 'AUTO'}" th:text="#{enum.TrackingMode.AUTO}">자동</option>
+                    <option value="MANUAL" th:selected="${item.serialMode.name() == 'MANUAL'}" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
+                </select>
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="text" name="serialPrefix" th:value="${item.serialPrefix}" th:placeholder="#{view.item.policy.serialPrefix}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                    <input type="number" min="0" max="16" name="serialPaddingLength" th:value="${item.serialPaddingLength}" th:placeholder="#{view.item.policy.serialPadding}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                    <input type="number" min="0" name="serialNextSequence" th:value="${item.serialNextSequence}" th:placeholder="#{view.item.policy.serialNext}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                </div>
+                <p data-serial-preview
+                   th:data-label="#{view.item.policy.serialPreview}"
+                   class="hidden rounded-md bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700"></p>
+                <input type="hidden" name="serialIncrementUnit" th:value="${item.serialIncrementUnit}">
+
+                <select name="lotMode" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="NONE" th:selected="${item.lotMode.name() == 'NONE'}" th:text="#{enum.TrackingMode.NONE}">없음</option>
+                    <option value="AUTO" th:selected="${item.lotMode.name() == 'AUTO'}" th:text="#{enum.TrackingMode.AUTO}">자동</option>
+                    <option value="MANUAL" th:selected="${item.lotMode.name() == 'MANUAL'}" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
+                </select>
+                <div>
+                    <input type="text" name="lotVendorCode" th:value="${item.lotVendorCode}" th:placeholder="#{view.item.policy.lotVendorCode}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                </div>
+                <p data-lot-preview
+                   th:data-label="#{view.item.policy.lotPreview}"
+                   class="hidden rounded-md bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700"></p>
+                <input type="hidden" name="lotDateFormat" th:value="${item.lotDateFormat}">
+                <input type="hidden" name="lotIncludeSequence" th:value="${item.lotIncludeSequence}">
+                <input type="hidden" name="lotNextSequence" th:value="${item.lotNextSequence}">
+                <input type="hidden" data-lot-sequence-key th:value="${item.lotSequenceKey}">
+            </div>
+        </details>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 min-w-0 md:contents">
+        <div class="flex flex-wrap items-center gap-2 text-xs min-w-0">
+            <a th:if="${item.stockCount > 0}"
+               th:href="@{/stocks(itemExternalId=${item.externalId})}"
+               class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 font-medium hover:bg-blue-100 transition"
+               th:text="#{view.item.card.stockCount(${item.stockCount})}"></a>
+            <span th:if="${item.stockCount == 0}"
+                  class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-slate-500 font-medium"
+                  th:text="#{view.item.card.stockCount(${item.stockCount})}"></span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs min-w-0">
+            <button th:if="${item.spaceCount > 0}"
+                    th:attr="hx-get=@{/items/{id}/spaces(id=${item.externalId})}"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 font-medium hover:bg-emerald-100 transition"
+                    th:text="#{view.item.card.spaceCount(${item.spaceCount})}"></button>
+            <span th:if="${item.spaceCount == 0}"
+                  class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-slate-500 font-medium"
+                  th:text="#{view.item.card.spaceCount(${item.spaceCount})}"></span>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 items-center md:justify-end">
+        <button class="rounded-md border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition md:order-last"
+                th:attr="hx-delete=@{/items/{id}(id=${item.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.item.card.deleteConfirm(${item.name})}"
+                hx-target="#item-list-section"
+                hx-swap="outerHTML"
+                th:text="#{view.common.delete}">삭제</button>
+        <button class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                th:attr="hx-put=@{/items/{id}(id=${item.externalId})},hx-target='#item-' + ${item.externalId},hx-include='#item-' + ${item.externalId}"
+                hx-swap="outerHTML"
+                hx-encoding="multipart/form-data"
+                data-submit-btn
+                th:text="#{view.common.save}">저장</button>
+        <button class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                th:attr="hx-get=@{/items/{id}/cancel(id=${item.externalId})},hx-target='#item-' + ${item.externalId}"
+                hx-swap="outerHTML"
+                th:text="#{view.common.cancel}">취소</button>
+    </div>
+
+    <script>
+    (function () {
+        var card = document.currentScript.closest('[data-item-card]');
+        if (!card) return;
+        var analyzeImage = createImageAnalysisHandler({
+            fileInputSelector:        '[data-image-file]',
+            nameInputSelector:        'input[name="name"]',
+            descriptionInputSelector: 'input[name="description"]',
+            submitSelector:           '[data-submit-btn]',
+            statusSelector:           '[data-image-analysis-status]',
+            retryButtonSelector:      '[data-image-analysis-retry]'
+        }, card);
+
+        initImageUpload({
+            fileInputSelector:     '[data-image-file]',
+            previewSelector:       '[data-image-preview]',
+            hashInputSelector:     '[data-image-hash]',
+            submitSelector:        '[data-submit-btn]',
+            existingImageSelector: '[data-existing-image]',
+            onImageReady: analyzeImage
+        }, card);
+
+        (function initTrackingModeToggles() {
+            var serialMode = card.querySelector('[name="serialMode"]');
+            var serialPrefix = card.querySelector('[name="serialPrefix"]');
+            var serialPadding = card.querySelector('[name="serialPaddingLength"]');
+            var serialNext = card.querySelector('[name="serialNextSequence"]');
+
+            var lotMode = card.querySelector('[name="lotMode"]');
+            var lotVendor = card.querySelector('[name="lotVendorCode"]');
+
+            function updateSerial() {
+                if (!serialMode) return;
+                var isAuto = serialMode.value === 'AUTO';
+                if (serialPrefix) serialPrefix.disabled = !isAuto;
+                if (serialPadding) serialPadding.disabled = !isAuto;
+                if (serialNext) serialNext.disabled = !isAuto;
+            }
+
+            function updateLot() {
+                if (!lotMode) return;
+                var isAuto = lotMode.value === 'AUTO';
+                if (lotVendor) lotVendor.disabled = !isAuto;
+            }
+
+            if (serialMode) {
+                serialMode.addEventListener('change', updateSerial);
+                updateSerial();
+            }
+            if (lotMode) {
+                lotMode.addEventListener('change', updateLot);
+                updateLot();
+            }
+            if (window.initTrackingPolicyPreview) {
+                window.initTrackingPolicyPreview(card);
+            }
+        })();
+
+
+        var reanalyzeBtn = card.querySelector('[data-image-reanalyze]');
+        if (reanalyzeBtn) {
+            var statusSpan = card.querySelector('[data-image-analysis-status]');
+            var nameInput  = card.querySelector('input[name="name"]');
+            var descInput  = card.querySelector('input[name="description"]');
+            var reanalyzed = 0;
+
+            var fileInput = card.querySelector('[data-image-file]');
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    reanalyzeBtn.classList.add('hidden');
+                });
+            }
+
+            reanalyzeBtn.addEventListener('click', async function () {
+                var endpoint = reanalyzeBtn.dataset.reanalyzeSrc;
+                if (!endpoint) return;
+
+                reanalyzeBtn.disabled = true;
+                if (statusSpan) { statusSpan.classList.remove('hidden'); statusSpan.textContent = 'AI 분석 중...'; }
+
+                var fd = new FormData();
+                fd.append('retryAttempt', String(reanalyzed));
+                if (reanalyzed > 0) {
+                    if (nameInput) fd.append('previousName', nameInput.value);
+                    if (descInput) fd.append('previousDescription', descInput.value);
+                }
+
+                try {
+                    var res = await fetch(endpoint, {
+                        method: 'POST',
+                        body: fd,
+                        headers: getCsrfHeaders()
+                    });
+                    if (!res.ok) {
+                        var errorMessage = '이미지 AI 분석에 실패했습니다.';
+                        try {
+                            var errorData = await res.json();
+                            if (errorData && errorData.message) errorMessage = errorData.message;
+                        } catch (_) {}
+                        throw new Error(errorMessage);
+                    }
+                    var data = await res.json();
+                    if (nameInput && data.name) nameInput.value = data.name;
+                    if (descInput && data.description) descInput.value = data.description;
+                    reanalyzed++;
+                    reanalyzeBtn.textContent = '다시 분석';
+                } catch (e) {
+                    if (window.SeuStockToast) window.SeuStockToast({ type: 'error', message: e.message || '이미지 AI 분석에 실패했습니다.' });
+                } finally {
+                    if (statusSpan) statusSpan.classList.add('hidden');
+                    reanalyzeBtn.disabled = false;
+                }
+            });
+        }
+    })();
+    </script>
+</div>
+</body>
+</html>

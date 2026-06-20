@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
+        <div class="mb-4 flex items-start justify-between gap-3">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-800" th:text="#{view.lot.detail.title}">로트 상세</h2>
+                <p class="mt-1 text-sm text-slate-500">
+                    <span th:text="${lot.itemName}">품목</span>
+                    <span class="text-slate-300"> / </span>
+                    <span th:text="${lot.lotNumber}">LOT</span>
+                </p>
+            </div>
+            <button type="button"
+                    hx-get="/empty"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 transition"
+                    th:text="#{view.common.close}">
+                닫기
+            </button>
+        </div>
+
+        <div class="mb-4 grid gap-2 rounded-md bg-slate-50 p-3 text-sm text-slate-600 sm:grid-cols-2">
+            <p>
+                <span class="text-xs text-slate-400" th:text="#{view.stock.form.lot.label}">로트 번호</span><br>
+                <span class="font-medium text-slate-800" th:text="${lot.lotNumber}">LOT-001</span>
+            </p>
+            <p>
+                <span class="text-xs text-slate-400" th:text="#{view.stock.form.expiration.label}">유통기한</span><br>
+                <span class="font-medium text-slate-800"
+                      th:text="${lot.expirationDate != null ? #temporals.format(lot.expirationDate, 'yyyy-MM-dd') : '-'}">-</span>
+            </p>
+        </div>
+
+        <div class="overflow-hidden rounded-lg border border-slate-200">
+            <div class="grid grid-cols-[minmax(0,1fr)_7rem] gap-2 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
+                <div th:text="#{view.stock.form.serial.label}">시리얼 번호</div>
+                <div th:text="#{view.stock.table.status}">상태</div>
+            </div>
+            <p th:if="${units.empty}" class="px-3 py-8 text-center text-sm text-slate-400"
+               th:text="#{view.lot.detail.empty}">이 로트에 연결된 재고가 없습니다.</p>
+            <div th:if="${!units.empty}" class="divide-y divide-slate-100">
+                <div th:each="unit : ${units}"
+                     class="grid grid-cols-[minmax(0,1fr)_7rem] gap-2 px-3 py-2 text-sm">
+                    <div class="min-w-0">
+                        <a th:href="@{/stocks(keyword=${unit.serialNumber})}"
+                           class="truncate font-medium text-blue-700 hover:underline"
+                           th:text="${unit.serialNumber != null and !unit.serialNumber.isBlank()} ? ${unit.serialNumber} : '-'">SN</a>
+                        <p class="truncate text-xs text-slate-400">
+                            <span th:text="${unit.spaceName}">공간</span>
+                            <th:block th:if="${unit.shelfName != null}">
+                                <span> / </span><span th:text="${unit.shelfName}">선반</span>
+                            </th:block>
+                            <th:block th:if="${unit.boxName != null}">
+                                <span> / </span><span th:text="${unit.boxName}">박스</span>
+                            </th:block>
+                        </p>
+                    </div>
+                    <div>
+                        <span class="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700"
+                              th:text="#{${'enum.StockStatus.' + unit.status.name()}}">재고중</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

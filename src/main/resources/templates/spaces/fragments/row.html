@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 읽기 모드 카드 (컴팩트 집계 스트립) -->
+<div th:fragment="view" th:id="'space-' + ${space.externalId}"
+     class="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between">
+    <div class="min-w-0 flex-1"
+         th:with="sm=${summaries != null ? summaries.get(space.externalId) : null}">
+        <div class="flex flex-wrap items-baseline gap-x-2">
+            <a th:href="@{/spaces/{id}(id=${space.externalId})}"
+               class="truncate text-sm font-medium text-blue-600 hover:underline"
+               th:text="${space.name}"></a>
+            <span class="text-xs text-slate-400"
+                  th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}"></span>
+        </div>
+
+        <!-- 집계 지표 (요약이 있을 때만) -->
+        <div th:if="${sm != null}" class="mt-1.5 space-y-1">
+            <p class="text-xs text-slate-600">
+                <span th:text="|#{view.space.list.summary.items} ${sm.itemCount}|"></span>
+                <span class="text-slate-300"> · </span>
+                <span th:text="|#{view.space.list.summary.stocks} ${sm.stockCount}|"></span>
+                <span class="text-slate-300"> · </span>
+                <span class="font-medium text-slate-700"
+                      th:text="|₩ ${#numbers.formatInteger(sm.totalValue, 1, 'COMMA')}|"></span>
+            </p>
+
+            <p class="text-xs text-slate-400">
+                <span th:text="|#{view.space.list.summary.shelves} ${sm.shelfCount}|"></span>
+                <span class="text-slate-300"> · </span>
+                <span th:text="|#{view.space.list.summary.boxes} ${sm.boxCount}|"></span>
+                <span th:if="${sm.lastActivityAt != null}">
+                    <span class="text-slate-300"> · </span>
+                    <span th:text="|#{view.space.list.summary.lastActivity} ${#temporals.format(sm.lastActivityAt, 'MM-dd')}|"></span>
+                </span>
+            </p>
+
+            <!-- 주의 배지 (값이 0이면 숨김) -->
+            <div th:if="${sm.expiringCount > 0 or sm.expiredCount > 0 or sm.damagedLostCount > 0}"
+                 class="flex flex-wrap gap-1">
+                <span th:if="${sm.expiringCount > 0}"
+                      class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200"
+                      th:text="|⚠ #{view.space.list.summary.alert.expiring} ${sm.expiringCount}|"></span>
+                <span th:if="${sm.expiredCount > 0}"
+                      class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200"
+                      th:text="|#{view.space.list.summary.alert.expired} ${sm.expiredCount}|"></span>
+                <span th:if="${sm.damagedLostCount > 0}"
+                      class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200"
+                      th:text="|#{view.space.list.summary.alert.damagedLost} ${sm.damagedLostCount}|"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-2 sm:justify-end">
+        <button class="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                th:attr="hx-get=@{/spaces/{id}/edit(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
+                hx-swap="outerHTML" th:text="#{view.common.edit}">수정</button>
+    </div>
+</div>
+
+<!-- 수정 모드 카드 -->
+<div th:fragment="edit" th:id="'space-' + ${space.externalId}"
+     class="grid gap-3 border-l-4 border-blue-500 bg-blue-50/40 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_14rem] md:items-center">
+    <input type="text" name="name" th:value="${space.name}"
+           class="flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    <p class="text-sm text-slate-500"
+       th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}"></p>
+    <div class="flex items-center gap-2 md:justify-end">
+        <button class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                th:attr="hx-put=@{/spaces/{id}(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
+                hx-swap="outerHTML"
+                hx-include="closest div[id]" th:text="#{view.common.save}">저장</button>
+        <button class="rounded-md border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition"
+                th:attr="hx-delete=@{/spaces/{id}(id=${space.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.space.list.deleteConfirm(${space.name})}"
+                hx-target="#space-list-section"
+                hx-swap="outerHTML" th:text="#{view.common.delete}">삭제</button>
+        <button class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                th:attr="hx-get=@{/spaces/{id}/cancel(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
+                hx-swap="outerHTML" th:text="#{view.common.cancel}">취소</button>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head(~{::title})}">
+    <title th:text="|#{view.stock.list.title} · SeuStock|">내 재고 · SeuStock</title>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col">
+
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+
+<main class="mx-auto w-full max-w-5xl px-4 py-10 flex-1">
+
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800" th:text="#{view.stock.list.header}">내 재고</h1>
+            <p class="mt-1 text-sm text-slate-500"
+               th:text="${filtered} ? #{view.stock.list.description.filtered} : #{view.stock.list.description.all}"></p>
+        </div>
+        <a th:if="${filtered}"
+           href="/stocks"
+           class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+           th:text="#{view.common.all}">
+            전체 보기
+        </a>
+    </div>
+
+    <div id="stock-detail-section" th:fragment="stock-detail-section" class="space-y-3">
+        <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 space-y-2">
+            <form hx-get="/stocks"
+                  hx-target="#stock-detail-section"
+                  hx-select="#stock-detail-section"
+                  hx-swap="outerHTML"
+                  hx-push-url="true"
+                  class="flex items-stretch">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="page" value="1">
+                <input th:if="${itemExternalId != null}" type="hidden" name="itemExternalId" th:value="${itemExternalId}">
+                <input th:if="${spaceExternalId != null}" type="hidden" name="spaceExternalId" th:value="${spaceExternalId}">
+                <input th:if="${shelfExternalId != null}" type="hidden" name="shelfExternalId" th:value="${shelfExternalId}">
+                <input th:if="${boxExternalId != null}" type="hidden" name="boxExternalId" th:value="${boxExternalId}">
+                <select name="searchType"
+                        class="shrink-0 rounded-l-md rounded-r-none border border-r-0 border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-500 focus:z-10 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+                    <option value="all" th:selected="${searchType == null or searchType == 'all'}" th:text="#{view.stock.list.searchType.all}">전체</option>
+                    <option value="item" th:selected="${searchType == 'item'}" th:text="#{view.stock.list.searchType.item}">품목명</option>
+                    <option value="serial" th:selected="${searchType == 'serial'}" th:text="#{view.stock.list.searchType.serial}">시리얼</option>
+                    <option value="lot" th:selected="${searchType == 'lot'}" th:text="#{view.stock.list.searchType.lot}">로트</option>
+                    <option value="memo" th:selected="${searchType == 'memo'}" th:text="#{view.stock.list.searchType.memo}">메모</option>
+                </select>
+                <input type="text"
+                       name="keyword"
+                       th:value="${keyword}"
+                       th:placeholder="#{view.stock.list.searchPlaceholder}"
+                       class="flex-1 min-w-0 rounded-none border border-slate-200 px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:z-10 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+                <button type="submit"
+                        class="shrink-0 rounded-l-none rounded-r-md bg-slate-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
+                        th:text="#{view.common.search}">
+                    검색
+                </button>
+            </form>
+            <div class="flex flex-wrap gap-1">
+                <button th:attr="hx-get=@{/stocks(sortBy='newest',keyword=${keyword},searchType=${searchType},itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})}"
+                        hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
+                        th:classappend="${sortBy == 'newest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
+                        class="rounded-full px-2.5 py-0.5 text-xs font-medium transition"
+                        th:text="#{view.common.sort.newest}">
+                    가장 최신 순
+                </button>
+                <button th:attr="hx-get=@{/stocks(sortBy='oldest',keyword=${keyword},searchType=${searchType},itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})}"
+                        hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
+                        th:classappend="${sortBy == 'oldest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
+                        class="rounded-full px-2.5 py-0.5 text-xs font-medium transition"
+                        th:text="#{view.common.sort.oldest}">
+                    가장 오래된 순
+                </button>
+                <button th:attr="hx-get=@{/stocks(sortBy='name',keyword=${keyword},searchType=${searchType},itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})}"
+                        hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
+                        th:classappend="${sortBy == 'name'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
+                        class="rounded-full px-2.5 py-0.5 text-xs font-medium transition"
+                        th:text="#{view.common.sort.name}">
+                    품목명 순
+                </button>
+            </div>
+        </div>
+
+        <div id="stock-detail-list"
+             class="overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div class="hidden md:grid grid-cols-[minmax(0,1.2fr)_minmax(0,1.3fr)_minmax(0,1fr)_18rem] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div th:text="#{view.stock.table.item}">품목</div>
+                <div th:text="#{view.stock.table.location}">위치</div>
+                <div th:text="#{view.stock.table.identifier}">식별정보</div>
+                <div class="text-right" th:text="#{view.stock.table.manage}">관리</div>
+            </div>
+
+            <p th:if="${stocks.empty}"
+               class="px-4 py-10 text-center text-sm text-slate-400"
+               th:text="#{view.stock.list.empty}">
+                표시할 재고가 없습니다.
+            </p>
+
+            <div th:if="${!stocks.empty}" class="divide-y divide-slate-100">
+                <th:block th:each="stock : ${stocks}">
+                    <th:block th:replace="~{stocks/fragments/detail-row :: view(stock=${stock})}"></th:block>
+                </th:block>
+            </div>
+        </div>
+
+        <div th:if="${page.totalPages() > 1}"
+             class="flex items-center justify-center gap-1">
+            <button th:if="${page.hasPrevious()}"
+                    th:attr="hx-get=@{/stocks(page=${page.previousPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})}"
+                    hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
+                    class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                    th:text="#{view.common.pagination.prev}">
+                이전
+            </button>
+            <th:block th:each="pageNumber : ${#numbers.sequence(1, page.totalPages())}">
+                <button th:attr="hx-get=@{/stocks(page=${pageNumber},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})}"
+                        hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
+                        th:classappend="${pageNumber == page.page()} ? 'bg-blue-600 text-white' : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'"
+                        class="min-w-9 rounded-md px-3 py-1.5 text-sm font-semibold transition"
+                        th:text="${pageNumber}">1</button>
+            </th:block>
+            <button th:if="${page.hasNext()}"
+                    th:attr="hx-get=@{/stocks(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})}"
+                    hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
+                    class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                    th:text="#{view.common.pagination.next}">
+                다음
+            </button>
+        </div>
+    </div>
+    <div id="modal"></div>
+
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

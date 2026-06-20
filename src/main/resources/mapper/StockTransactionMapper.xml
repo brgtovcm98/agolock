@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.StockTransactionMapper">
+
+    <resultMap id="StockTransactionResultMap" type="StockTransactionDTO">
+        <id     property="id"              column="id"/>
+        <result property="externalId"      column="external_id"/>
+        <result property="stockId"         column="stock_id"/>
+        <result property="transactionType" column="transaction_type"/>
+        <result property="fromSpaceId"     column="from_space_id"/>
+        <result property="fromShelfId"     column="from_shelf_id"/>
+        <result property="fromBoxId"       column="from_box_id"/>
+        <result property="toSpaceId"       column="to_space_id"/>
+        <result property="toShelfId"       column="to_shelf_id"/>
+        <result property="toBoxId"         column="to_box_id"/>
+        <result property="memo"            column="memo"/>
+        <result property="createdAt"       column="created_at"/>
+    </resultMap>
+
+    <insert id="insertTransaction" parameterType="StockTransactionDTO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO stock_transactions (
+            stock_id, transaction_type,
+            from_space_id, from_shelf_id, from_box_id,
+            to_space_id, to_shelf_id, to_box_id,
+            memo
+        )
+        VALUES (
+            #{stockId}, #{transactionType},
+            #{fromSpaceId}, #{fromShelfId}, #{fromBoxId},
+            #{toSpaceId}, #{toShelfId}, #{toBoxId},
+            #{memo}
+        )
+    </insert>
+
+    <insert id="insertTransactions" parameterType="list">
+        INSERT INTO stock_transactions (
+            stock_id, transaction_type,
+            from_space_id, from_shelf_id, from_box_id,
+            to_space_id, to_shelf_id, to_box_id,
+            memo
+        )
+        VALUES
+        <foreach collection="list" item="t" separator=",">
+            (#{t.stockId}, #{t.transactionType},
+             #{t.fromSpaceId}, #{t.fromShelfId}, #{t.fromBoxId},
+             #{t.toSpaceId}, #{t.toShelfId}, #{t.toBoxId},
+             #{t.memo})
+        </foreach>
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="StockTransactionResultMap">
+        SELECT id, external_id, stock_id, transaction_type,
+               from_space_id, from_shelf_id, from_box_id,
+               to_space_id, to_shelf_id, to_box_id,
+               memo, created_at
+        FROM stock_transactions
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByStockId" parameterType="long" resultMap="StockTransactionResultMap">
+        SELECT id, external_id, stock_id, transaction_type,
+               from_space_id, from_shelf_id, from_box_id,
+               to_space_id, to_shelf_id, to_box_id,
+               memo, created_at
+        FROM stock_transactions
+        WHERE stock_id = #{stockId}
+        ORDER BY created_at
+    </select>
+
+    <select id="findFrequentMemosByUserIdAndType" resultType="string">
+        SELECT TRIM(st.memo) AS memo
+        FROM stock_transactions st
+        JOIN stocks s ON st.stock_id = s.id
+        JOIN items i ON s.item_id = i.id
+        WHERE i.user_id = #{userId}
+          AND st.transaction_type = #{transactionType}
+          AND st.memo IS NOT NULL
+          AND TRIM(st.memo) != ''
+          AND TRIM(st.memo) NOT IN ('초기 등록', '빠른 등록')
+        GROUP BY TRIM(st.memo)
+        ORDER BY COUNT(*) DESC, MAX(st.created_at) DESC, TRIM(st.memo)
+        LIMIT #{limit}
+    </select>
+
+    <resultMap id="HistoryResultMap" type="ItemTransactionHistoryDTO">
+        <result property="transactionExternalId" column="transaction_external_id"
+                typeHandler="com.seu.seustock.configuration.UUIDTypeHandler"/>
+        <result property="transactionType"       column="transaction_type"/>
+        <result property="memo"                  column="memo"/>
+        <result property="createdAt"             column="created_at"/>
+        <result property="stockExternalId"       column="stock_external_id"
+                typeHandler="com.seu.seustock.configuration.UUIDTypeHandler"/>
+        <result property="serialNumber"          column="serial_number"/>
+        <result property="lotNumber"             column="lot_number"/>
+        <result property="status"                column="status"/>
+        <result property="spaceName"             column="space_name"/>
+        <result property="shelfName"             column="shelf_name"/>
+        <result property="boxName"               column="box_name"/>
+        <result property="fromSpaceName"         column="from_space_name"/>
+        <result property="fromShelfName"         column="from_shelf_name"/>
+        <result property="fromBoxName"           column="from_box_name"/>
+        <result property="toSpaceName"           column="to_space_name"/>
+        <result property="toShelfName"           column="to_shelf_name"/>
+        <result property="toBoxName"             column="to_box_name"/>
+    </resultMap>
+
+    <select id="findHistoryByItemExternalId" resultMap="HistoryResultMap">
+        SELECT
+            st.external_id  AS transaction_external_id,
+            st.transaction_type,
+            st.memo,
+            st.created_at,
+            s.external_id   AS stock_external_id,
+            s.serial_number,
+            s.lot_number,
+            s.status,
+            sp.name         AS space_name,
+            sh.name         AS shelf_name,
+            b.name          AS box_name,
+            from_sp.name    AS from_space_name,
+            from_sh.name    AS from_shelf_name,
+            from_b.name     AS from_box_name,
+            to_sp.name      AS to_space_name,
+            to_sh.name      AS to_shelf_name,
+            to_b.name       AS to_box_name
+        FROM stock_transactions st
+        JOIN stocks  s  ON st.stock_id  = s.id
+        JOIN items   i  ON s.item_id    = i.id
+        JOIN spaces  sp ON s.space_id   = sp.id
+        LEFT JOIN shelves sh ON s.shelf_id = sh.id
+        LEFT JOIN boxes   b  ON s.box_id   = b.id
+        LEFT JOIN spaces  from_sp ON st.from_space_id = from_sp.id
+        LEFT JOIN shelves from_sh ON st.from_shelf_id = from_sh.id
+        LEFT JOIN boxes   from_b  ON st.from_box_id   = from_b.id
+        LEFT JOIN spaces  to_sp   ON st.to_space_id   = to_sp.id
+        LEFT JOIN shelves to_sh   ON st.to_shelf_id   = to_sh.id
+        LEFT JOIN boxes   to_b    ON st.to_box_id     = to_b.id
+        WHERE i.external_id = #{itemExternalId, typeHandler=com.seu.seustock.configuration.UUIDTypeHandler}
+          AND i.user_id = #{userId}
+        ORDER BY st.created_at DESC
+    </select>
+
+    <select id="findHistoryByStockExternalId" resultMap="HistoryResultMap">
+        SELECT
+            st.external_id  AS transaction_external_id,
+            st.transaction_type,
+            st.memo,
+            st.created_at,
+            s.external_id   AS stock_external_id,
+            s.serial_number,
+            s.lot_number,
+            s.status,
+            sp.name         AS space_name,
+            sh.name         AS shelf_name,
+            b.name          AS box_name,
+            from_sp.name    AS from_space_name,
+            from_sh.name    AS from_shelf_name,
+            from_b.name     AS from_box_name,
+            to_sp.name      AS to_space_name,
+            to_sh.name      AS to_shelf_name,
+            to_b.name       AS to_box_name
+        FROM stock_transactions st
+        JOIN stocks  s  ON st.stock_id  = s.id
+        JOIN items   i  ON s.item_id    = i.id
+        JOIN spaces  sp ON s.space_id   = sp.id
+        LEFT JOIN shelves sh ON s.shelf_id = sh.id
+        LEFT JOIN boxes   b  ON s.box_id   = b.id
+        LEFT JOIN spaces  from_sp ON st.from_space_id = from_sp.id
+        LEFT JOIN shelves from_sh ON st.from_shelf_id = from_sh.id
+        LEFT JOIN boxes   from_b  ON st.from_box_id   = from_b.id
+        LEFT JOIN spaces  to_sp   ON st.to_space_id   = to_sp.id
+        LEFT JOIN shelves to_sh   ON st.to_shelf_id   = to_sh.id
+        LEFT JOIN boxes   to_b    ON st.to_box_id     = to_b.id
+        WHERE s.external_id = #{stockExternalId, typeHandler=com.seu.seustock.configuration.UUIDTypeHandler}
+          AND i.user_id = #{userId}
+        ORDER BY st.created_at, st.id
+    </select>
+
+</mapper>

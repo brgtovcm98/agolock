@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="shelf-list-content">
+    <li th:if="${shelves.empty}"
+        class="px-3 py-4 text-xs text-slate-400 text-center"
+        th:text="#{view.space.shelves.empty}">
+        선반이 없습니다.
+    </li>
+
+    <th:block th:each="shelf : ${shelves}">
+        <th:block th:replace="~{shelves/fragments/tree-item :: tree-item(shelf=${shelf}, spaceExternalId=${spaceExternalId})}"></th:block>
+    </th:block>
+</th:block>
+
+<th:block th:fragment="shelf-list-response">
+    <ul id="shelf-list" hx-swap-oob="true">
+        <th:block th:replace="~{:: shelf-list-content}"></th:block>
+    </ul>
+    <div id="modal"></div>
+</th:block>
+
+</body>
+</html>

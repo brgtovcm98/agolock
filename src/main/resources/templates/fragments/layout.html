@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+
+<!--/* 공통 <head> — 모든 페이지에서 th:replace="~{fragments/layout :: head(~{::title})}" 로 사용 */-->
+<head th:fragment="head(titleContent)">
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${titleContent}">SeuStock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Sans+KR:wght@100..900&family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+SC:wght@100..900&display=swap">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="/js/csrf.js"></script>
+    <script src="/js/image-upload.js"></script>
+    <script src="/js/tracking-policy-preview.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', '"Noto Sans JP"', '"Noto Sans SC"', '"Noto Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            DEFAULT: '#3b82f6',
+                            hover:   '#2563eb',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        (function () {
+            function ensureToastContainer() {
+                var container = document.getElementById('toast-container');
+                if (container) return container;
+
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed right-4 top-4 z-[60] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2';
+                document.body.appendChild(container);
+                return container;
+            }
+
+            function showToast(detail) {
+                var message = detail && detail.message ? detail.message : /*[[#{toast.default.success}]]*/ '요청을 처리했습니다.';
+                var type = detail && detail.type ? detail.type : 'success';
+                var isError = type === 'error';
+                var toast = document.createElement('div');
+                toast.className = 'rounded-md border px-4 py-3 text-sm shadow-lg transition flex items-center gap-2 ' +
+                    (isError
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-emerald-200 bg-emerald-50 text-emerald-700');
+
+                var msgSpan = document.createElement('span');
+                msgSpan.className = 'flex-1';
+                msgSpan.textContent = message;
+
+                var closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.textContent = '×';
+                closeBtn.className = 'ml-1 shrink-0 text-base leading-none opacity-50 hover:opacity-100 focus:outline-none';
+
+                function dismiss() {
+                    window.clearTimeout(timerId);
+                    toast.classList.add('opacity-0');
+                    window.setTimeout(function () { toast.remove(); }, 200);
+                }
+                closeBtn.addEventListener('click', dismiss);
+
+                toast.appendChild(msgSpan);
+                toast.appendChild(closeBtn);
+                ensureToastContainer().appendChild(toast);
+
+                var timerId = window.setTimeout(dismiss, 2800);
+            }
+
+            window.SeuStockToast = showToast;
+
+            function replaceModalFromResponse(xhr) {
+                if (!xhr || !xhr.responseText) return false;
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(xhr.responseText, 'text/html');
+                var incomingModal = doc.getElementById('modal');
+                if (!incomingModal || !incomingModal.hasAttribute('data-error-modal')) return false;
+
+                var currentModal = document.getElementById('modal');
+                var insertedModal;
+                if (currentModal) {
+                    currentModal.outerHTML = incomingModal.outerHTML;
+                    insertedModal = document.getElementById('modal');
+                } else {
+                    document.body.insertAdjacentHTML('beforeend', incomingModal.outerHTML);
+                    insertedModal = document.getElementById('modal');
+                }
+                if (insertedModal && window.htmx) {
+                    window.htmx.process(insertedModal);
+                }
+                return true;
+            }
+
+            document.addEventListener('app:toast', function (event) {
+                showToast(event.detail);
+            });
+
+            document.addEventListener('htmx:responseError', function (event) {
+                if (!replaceModalFromResponse(event.detail && event.detail.xhr)) {
+                    showToast({ type: 'error', message: /*[[#{toast.default.error}]]*/ '요청을 처리하지 못했습니다.' });
+                }
+            });
+        })();
+    </script>
+    <script th:if="${toastMessage != null}" th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            window.SeuStockToast({
+                type: /*[[${toastType}]]*/ 'success' || 'success',
+                message: /*[[${toastMessage}]]*/ /*[[#{toast.default.success}]]*/ '요청을 처리했습니다.'
+            });
+        });
+    </script>
+</head>
+
+<!--/* 공통 네비게이션 바 */-->
+<nav th:fragment="nav" class="border-b border-slate-200 bg-white">
+    <div class="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
+        <a href="/" class="text-lg font-semibold text-slate-800 tracking-tight">SeuStock</a>
+
+        <!--/* 데스크탑: md 이상에서 가로 나열 */-->
+        <div class="hidden md:flex items-center gap-x-4 text-sm">
+            <th:block th:if="${currentUsername != null}">
+                <a href="/spaces"
+                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.mySpaces}">내 공간</a>
+                <span class="text-slate-300">|</span>
+                <a href="/items"
+                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.myItems}">내 품목</a>
+                <span class="text-slate-300">|</span>
+                <a href="/stocks"
+                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.myStocks}">내 재고</a>
+                <span class="text-slate-300">|</span>
+                <span class="text-slate-500" th:text="${currentNickname}"></span>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit"
+                            class="text-slate-600 hover:text-slate-900 transition cursor-pointer bg-transparent border-0 p-0" th:text="#{view.nav.logout}">로그아웃</button>
+                </form>
+            </th:block>
+            <th:block th:if="${currentUsername == null}">
+                <a href="/login"
+                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.login}">로그인</a>
+                <a href="/register"
+                   class="rounded-md bg-blue-600 px-3 py-1.5 font-medium text-white
+                          hover:bg-blue-700 transition" th:text="#{view.nav.register}">회원가입</a>
+            </th:block>
+        </div>
+
+        <!--/* 모바일: md 미만에서 드롭다운 */-->
+        <details class="relative md:hidden text-sm">
+            <summary class="list-none cursor-pointer select-none rounded px-3 py-1.5
+                            text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition" th:text="|#{view.nav.menu} ▾|">
+                메뉴 ▾
+            </summary>
+            <div class="absolute right-0 top-full mt-1 min-w-[120px] rounded-md
+                        border border-slate-200 bg-white shadow-md py-1 z-50">
+                <th:block th:if="${currentUsername != null}">
+                    <div class="px-3 py-1.5 text-xs text-slate-400"
+                         th:text="${currentNickname}"></div>
+                    <hr class="border-slate-100 mx-2 my-1"/>
+                    <a href="/spaces"
+                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.mySpaces}">내 공간</a>
+                    <a href="/items"
+                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.myItems}">내 품목</a>
+                    <a href="/stocks"
+                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.myStocks}">내 재고</a>
+                    <hr class="border-slate-100 mx-2 my-1"/>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit"
+                                class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition bg-transparent border-0 cursor-pointer" th:text="#{view.nav.logout}">로그아웃</button>
+                    </form>
+                </th:block>
+                <th:block th:if="${currentUsername == null}">
+                    <a href="/login"
+                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.login}">로그인</a>
+                    <a href="/register"
+                       class="block px-3 py-2 text-blue-600 font-medium hover:bg-slate-50 transition" th:text="#{view.nav.register}">회원가입</a>
+                </th:block>
+            </div>
+        </details>
+    </div>
+</nav>
+
+<!--/* 공통 푸터 */-->
+<footer th:fragment="footer" class="border-t border-slate-200 bg-white mt-auto">
+    <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-col gap-2">
+            <p class="text-sm text-slate-500">
+                &copy; 2026 <span class="font-medium text-slate-700">Team Ugui</span>. All rights reserved.
+            </p>
+            <div class="flex flex-col gap-2 text-xs text-slate-400 sm:flex-row sm:items-center sm:gap-3">
+                <div class="flex flex-wrap gap-x-2 gap-y-1">
+                    <a th:href="@{''(lang='ko')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'ko'} ? 'font-bold text-slate-600' : ''">한국어</a>
+                    <a th:href="@{''(lang='en')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'en'} ? 'font-bold text-slate-600' : ''">English</a>
+                    <a th:href="@{''(lang='ja')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'ja'} ? 'font-bold text-slate-600' : ''">日本語</a>
+                    <a th:href="@{''(lang='zh-CN')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'zh' && #locale.country == 'CN'} ? 'font-bold text-slate-600' : ''">简体中文</a>
+                    <a th:href="@{''(lang='mn')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'mn'} ? 'font-bold text-slate-600' : ''">Монгол</a>
+                </div>
+                <span class="hidden text-slate-200 sm:inline">|</span>
+                <span>Released under the <a href="https://opensource.org/licenses/MIT" target="_blank" class="hover:text-slate-600 underline decoration-slate-300">MIT License</a>.</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="https://github.com/TeamUgui/SeuStock" target="_blank" class="text-slate-400 hover:text-slate-600 transition" aria-label="GitHub">
+                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+                </svg>
+            </a>
+        </div>
+    </div>
+</footer>
+
+</html>

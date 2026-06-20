@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- HTMX로 Box 목록 첫 로드 시 innerHTML로 삽입됨 -->
+<th:block th:fragment="box-list">
+    <th:block th:replace="~{:: box-list-content}"></th:block>
+</th:block>
+
+<th:block th:fragment="box-list-content">
+    <li th:if="${boxes.empty}"
+        class="px-3 py-2 text-xs text-slate-400"
+        th:text="#{view.shelf.list.empty}">
+        박스가 없습니다.
+    </li>
+
+    <th:block th:each="box : ${boxes}">
+        <th:block th:replace="~{boxes/fragments/tree-item :: tree-item(box=${box}, spaceExternalId=${spaceExternalId}, shelfExternalId=${shelf.externalId})}"></th:block>
+    </th:block>
+</th:block>
+
+<ul th:fragment="box-list-container"
+    th:id="'box-list-' + ${shelf.externalId}"
+    class="ml-4 border-l border-slate-100">
+    <th:block th:replace="~{:: box-list-content}"></th:block>
+</ul>
+
+<th:block th:fragment="box-list-response">
+    <ul th:id="'box-list-' + ${shelf.externalId}"
+        class="ml-4 border-l border-slate-100"
+        hx-swap-oob="true">
+        <th:block th:replace="~{:: box-list-content}"></th:block>
+    </ul>
+    <div id="modal"></div>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+
+        <!-- 헤더 -->
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold text-slate-800" th:text="${itemName}">품목명</h2>
+            <p class="text-sm text-slate-500" th:text="#{view.stock.modal.action.subtitle}">재고 조작</p>
+        </div>
+
+        <!-- 탭 -->
+        <div class="flex gap-1 mb-5 bg-slate-100 rounded-lg p-1">
+            <button type="button" onclick="switchActionTab('in')" id="action-tab-in"
+                    class="flex-1 rounded-md py-1.5 text-sm font-medium bg-white shadow-sm text-blue-600 transition"
+                    th:text="#{view.stock.modal.in.title}">
+                입고
+            </button>
+            <button type="button" onclick="switchActionTab('out')" id="action-tab-out"
+                    class="flex-1 rounded-md py-1.5 text-sm font-medium text-slate-500 transition"
+                    th:text="#{view.stock.modal.out.title}">
+                출고
+            </button>
+            <button type="button" onclick="switchActionTab('del')" id="action-tab-del"
+                    class="flex-1 rounded-md py-1.5 text-sm font-medium text-slate-500 transition"
+                    th:text="#{view.common.delete}">
+                삭제
+            </button>
+        </div>
+
+        <!-- 입고 섹션 -->
+        <div id="action-section-in">
+            <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>
+            <form id="in-form">
+                <input type="hidden" name="itemExternalId"  th:value="${itemExternalId}">
+                <input type="hidden" name="spaceExternalId" th:value="${spaceExternalId}">
+                <input type="hidden" name="shelfExternalId" th:value="${shelfExternalId}">
+                <input type="hidden" name="boxExternalId"   th:value="${boxExternalId}">
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-slate-700 mb-1" th:text="#{view.stock.form.count.label}">수량</label>
+                    <input type="number" name="count" value="1" min="1"
+                           id="in-count-input"
+                           th:data-current-count="${currentCount}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <p id="in-count-msg" class="mt-1 text-xs text-slate-500"></p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
+                        <span th:text="#{view.stock.form.memo.label}">메모</span>
+                        <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                    </label>
+                    <input type="text" name="memo"
+                           id="in-memo-input"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                           th:placeholder="#{view.stock.modal.in.memoPlaceholder}">
+                    <div class="mt-2 flex flex-wrap gap-1.5" th:if="${inMemoSuggestions != null and !inMemoSuggestions.isEmpty()}">
+                        <button type="button"
+                                th:each="memo : ${inMemoSuggestions}"
+                                th:data-memo="${memo}"
+                                onclick="setTransactionMemo('in', this.dataset.memo)"
+                                class="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition"
+                                th:text="${memo}">
+                            구매 입고
+                        </button>
+                    </div>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button type="button"
+                            hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
+                            class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                            th:text="#{view.common.cancel}">
+                        취소
+                    </button>
+                    <button type="button"
+                            hx-post="/stocks/in"
+                            hx-include="#in-form"
+                            hx-target="#stock-panel"
+                            hx-swap="outerHTML"
+                            th:attr="hx-confirm=#{view.stock.modal.in.confirm}"
+                            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                            th:text="#{view.stock.modal.in.title}">
+                        입고
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 출고 섹션 -->
+        <div id="action-section-out" class="hidden">
+            <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
+            <form id="out-form">
+                <input type="hidden" name="itemExternalId"  th:value="${itemExternalId}">
+                <input type="hidden" name="spaceExternalId" th:value="${spaceExternalId}">
+                <input type="hidden" name="shelfExternalId" th:value="${shelfExternalId}">
+                <input type="hidden" name="boxExternalId"   th:value="${boxExternalId}">
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-slate-700 mb-1" th:text="#{view.stock.form.count.label}">수량</label>
+                    <input type="number" name="count" value="1" min="1"
+                           id="out-count-input"
+                           th:data-current-count="${currentCount}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition">
+                    <p id="out-count-msg" class="mt-1 text-xs text-slate-500"></p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
+                        <span th:text="#{view.stock.form.memo.label}">메모</span>
+                        <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                    </label>
+                    <input type="text" name="memo"
+                           id="out-memo-input"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
+                           th:placeholder="#{view.stock.modal.out.memoPlaceholder}">
+                    <div class="mt-2 flex flex-wrap gap-1.5" th:if="${outMemoSuggestions != null and !outMemoSuggestions.isEmpty()}">
+                        <button type="button"
+                                th:each="memo : ${outMemoSuggestions}"
+                                th:data-memo="${memo}"
+                                onclick="setTransactionMemo('out', this.dataset.memo)"
+                                class="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700 hover:bg-orange-100 transition"
+                                th:text="${memo}">
+                            사용 출고
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3 flex items-center gap-2">
+                    <input type="checkbox"
+                           id="out-include-kept"
+                           name="includeKept"
+                           value="true"
+                           class="h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                    <label for="out-include-kept"
+                           class="text-sm text-slate-600"
+                           th:text="#{view.stock.modal.out.includeKept}">보관 품목 포함</label>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button type="button"
+                            hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
+                            class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                            th:text="#{view.common.cancel}">
+                        취소
+                    </button>
+                    <button type="button"
+                            hx-post="/stocks/out"
+                            hx-include="#out-form"
+                            hx-target="#stock-panel"
+                            hx-swap="outerHTML"
+                            th:attr="hx-confirm=#{view.stock.modal.out.confirm}"
+                            class="rounded-md bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 transition"
+                            th:text="#{view.stock.modal.out.title}">
+                        출고
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 삭제 섹션 -->
+        <div id="action-section-del" class="hidden">
+            <p class="text-sm font-medium text-red-600 mb-2" th:text="#{view.stock.modal.delete.warning}">⚠ 이 위치의 재고를 모두 삭제합니다.</p>
+            <p class="text-sm text-slate-500 mb-6" th:text="#{view.stock.modal.delete.message}">삭제된 재고는 복구할 수 없습니다.</p>
+            <div class="flex gap-2 justify-end">
+                <button type="button"
+                        hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
+                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        th:text="#{view.common.cancel}">
+                    취소
+                </button>
+                <button type="button"
+                        th:attr="hx-delete=@{/stocks(itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})},hx-confirm=#{view.stock.modal.delete.confirm}"
+                        hx-target="#stock-panel"
+                        hx-swap="outerHTML"
+                        class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition"
+                        th:text="#{view.common.delete}">
+                    삭제
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- fragment 안에 있어야 HTMX swap 시 함께 전달됨 -->
+    <script th:inline="javascript">
+    const minCountMsg = /*[[#{view.stock.modal.js.minCount}]]*/ '1개 이상 입력해주세요';
+    const maxCountMsg = /*[[#{view.stock.modal.js.maxCount}]]*/ '50개 초과 입력할 수 없습니다';
+    const addMsgTemplate = /*[[#{view.stock.modal.js.addMessage}]]*/ '{0}개가 추가되어 총 {1}개가 됩니다';
+    const outMsgTemplate = /*[[#{view.stock.modal.js.outMessage}]]*/ '{0}개가 출고되어 총 {1}개가 됩니다';
+    const minTotalErrorMsg = /*[[#{view.stock.modal.js.minTotalError}]]*/ '재고의 총 수량은 0개 이하가 될 수 없습니다';
+
+    function switchActionTab(tab) {
+        const tabColors = { in: 'text-blue-600', out: 'text-orange-600', del: 'text-red-600' };
+        ['in', 'out', 'del'].forEach(function(t) {
+            var section = document.getElementById('action-section-' + t);
+            var btn = document.getElementById('action-tab-' + t);
+            if (t === tab) {
+                section.classList.remove('hidden');
+                btn.classList.add('bg-white', 'shadow-sm', tabColors[t]);
+                btn.classList.remove('text-slate-500');
+            } else {
+                section.classList.add('hidden');
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600', 'text-orange-600', 'text-red-600');
+                btn.classList.add('text-slate-500');
+            }
+        });
+        document.getElementById('in-count-msg').textContent = '';
+        document.getElementById('out-count-msg').textContent = '';
+    }
+
+    function updateInMsg() {
+        var input = document.getElementById('in-count-input');
+        var msg = document.getElementById('in-count-msg');
+        var count = parseInt(input.value, 10);
+        var current = parseInt(input.dataset.currentCount, 10);
+        if (isNaN(count)) {
+            msg.textContent = '';
+        } else if (count <= 0) {
+            msg.textContent = minCountMsg;
+        } else if (count > 50) {
+            msg.textContent = maxCountMsg;
+        } else {
+            msg.textContent = addMsgTemplate.replace('{0}', count).replace('{1}', current + count);
+        }
+    }
+
+    function updateOutMsg() {
+        var input = document.getElementById('out-count-input');
+        var msg = document.getElementById('out-count-msg');
+        var count = parseInt(input.value, 10);
+        var current = parseInt(input.dataset.currentCount, 10);
+        if (isNaN(count)) {
+            msg.textContent = '';
+        } else if (count <= 0) {
+            msg.textContent = minCountMsg;
+        } else if (count > 50) {
+            msg.textContent = maxCountMsg;
+        } else if (current - count <= 0) {
+            msg.textContent = minTotalErrorMsg;
+        } else {
+            msg.textContent = outMsgTemplate.replace('{0}', count).replace('{1}', current - count);
+        }
+    }
+
+    function setTransactionMemo(type, memo) {
+        var input = document.getElementById(type + '-memo-input');
+        if (!input) return;
+        input.value = memo || '';
+        input.focus();
+    }
+
+    (function() {
+        var inInput = document.getElementById('in-count-input');
+        var outInput = document.getElementById('out-count-input');
+        if (inInput) { inInput.addEventListener('input', updateInMsg); }
+        if (outInput) { outInput.addEventListener('input', updateOutMsg); }
+    })();
+    </script>
+
+</div>
+
+</body>
+</html>

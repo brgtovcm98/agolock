@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.ShelfMapper">
+
+    <resultMap id="ShelfResultMap" type="ShelfDTO">
+        <id     property="id"         column="id"/>
+        <result property="externalId" column="external_id"/>
+        <result property="spaceId"    column="space_id"/>
+        <result property="name"       column="name"/>
+        <result property="createdAt"  column="created_at"/>
+    </resultMap>
+
+    <insert id="insertShelf" parameterType="ShelfDTO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shelves (space_id, name)
+        VALUES (#{spaceId}, #{name})
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="ShelfResultMap">
+        SELECT id, external_id, space_id, name, created_at
+        FROM shelves
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByExternalId" parameterType="java.util.UUID" resultMap="ShelfResultMap">
+        SELECT id, external_id, space_id, name, created_at
+        FROM shelves
+        WHERE external_id = #{externalId}
+    </select>
+
+    <select id="findBySpaceId" parameterType="long" resultMap="ShelfResultMap">
+        SELECT id, external_id, space_id, name, created_at
+        FROM shelves
+        WHERE space_id = #{spaceId}
+    </select>
+
+    <update id="updateShelf" parameterType="ShelfDTO">
+        UPDATE shelves
+        SET name = #{name}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM shelves
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

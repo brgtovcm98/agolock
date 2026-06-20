@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.SpaceMapper">
+
+    <resultMap id="SpaceResultMap" type="SpaceDTO">
+        <id     property="id"         column="id"/>
+        <result property="externalId" column="external_id"/>
+        <result property="userId"     column="user_id"/>
+        <result property="name"       column="name"/>
+        <result property="createdAt"  column="created_at"/>
+    </resultMap>
+
+    <insert id="insertSpace" parameterType="SpaceDTO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO spaces (user_id, name)
+        VALUES (#{userId}, #{name})
+    </insert>
+
+    <select id="findByExternalId" parameterType="java.util.UUID" resultMap="SpaceResultMap">
+        SELECT id, external_id, user_id, name, created_at
+        FROM spaces
+        WHERE external_id = #{externalId}
+    </select>
+
+    <select id="findById" parameterType="long" resultMap="SpaceResultMap">
+        SELECT id, external_id, user_id, name, created_at
+        FROM spaces
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByUserId" parameterType="long" resultMap="SpaceResultMap">
+        SELECT id, external_id, user_id, name, created_at
+        FROM spaces
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findByUserIdWithOptions" resultMap="SpaceResultMap">
+        SELECT id, external_id, user_id, name, created_at
+        FROM spaces
+        WHERE user_id = #{userId}
+        <if test="keyword != null and keyword != ''">
+          AND name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'oldest'">
+                created_at ASC, id ASC
+            </when>
+            <when test="sortBy == 'name'">
+                name ASC, created_at DESC, id DESC
+            </when>
+            <otherwise>
+                created_at DESC, id DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserIdWithOptions" resultType="int">
+        SELECT COUNT(*)
+        FROM spaces
+        WHERE user_id = #{userId}
+        <if test="keyword != null and keyword != ''">
+          AND name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+    </select>
+
+    <update id="updateSpace" parameterType="SpaceDTO">
+        UPDATE spaces
+        SET name = #{name}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM spaces
+        WHERE id = #{id}
+    </delete>
+
+    <resultMap id="SpaceSummaryResultMap" type="SpaceSummaryDTO">
+        <result property="spaceExternalId"  column="space_external_id"/>
+        <result property="itemCount"        column="item_count"/>
+        <result property="stockCount"       column="stock_count"/>
+        <result property="totalValue"       column="total_value"/>
+        <result property="expiringCount"    column="expiring_count"/>
+        <result property="expiredCount"     column="expired_count"/>
+        <result property="damagedLostCount" column="damaged_lost_count"/>
+        <result property="shelfCount"       column="shelf_count"/>
+        <result property="boxCount"         column="box_count"/>
+        <result property="lastActivityAt"   column="last_activity_at"/>
+    </resultMap>
+
+    <!-- Per-space rollup for the space-list summary strip. Scalar subqueries keep each metric
+         independent (no join fan-out). All stock counts consider only IN_STOCK except
+         damaged_lost_count. today/soonCutoff are passed in to avoid DB-specific date math. -->
+    <select id="findSummariesBySpaceIds" resultMap="SpaceSummaryResultMap">
+        SELECT
+            s.external_id AS space_external_id,
+            (SELECT COUNT(DISTINCT st.item_id) FROM stocks st
+                WHERE st.space_id = s.id AND st.status = 'IN_STOCK') AS item_count,
+            (SELECT COUNT(*) FROM stocks st
+                WHERE st.space_id = s.id AND st.status = 'IN_STOCK') AS stock_count,
+            (SELECT COALESCE(SUM(COALESCE(st.price, i.price)), 0) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE st.space_id = s.id AND st.status = 'IN_STOCK') AS total_value,
+            (SELECT COUNT(*) FROM stocks st
+                WHERE st.space_id = s.id AND st.status = 'IN_STOCK'
+                  AND st.expiration_date IS NOT NULL
+                  AND st.expiration_date &gt;= #{today}
+                  AND st.expiration_date &lt;= #{soonCutoff}) AS expiring_count,
+            (SELECT COUNT(*) FROM stocks st
+                WHERE st.space_id = s.id AND st.status = 'IN_STOCK'
+                  AND st.expiration_date IS NOT NULL
+                  AND st.expiration_date &lt; #{today}) AS expired_count,
+            (SELECT COUNT(*) FROM stocks st
+                WHERE st.space_id = s.id AND st.status IN ('DAMAGED', 'LOST')) AS damaged_lost_count,
+            (SELECT COUNT(*) FROM shelves sh
+                WHERE sh.space_id = s.id) AS shelf_count,
+            (SELECT COUNT(*) FROM boxes b
+                JOIN shelves sh ON b.shelf_id = sh.id
+                WHERE sh.space_id = s.id) AS box_count,
+            (SELECT MAX(t.created_at) FROM stock_transactions t
+                JOIN stocks st ON t.stock_id = st.id
+                WHERE st.space_id = s.id) AS last_activity_at
+        FROM spaces s
+        WHERE s.id IN
+        <foreach item="id" collection="spaceIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="modal"
+     id="modal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+
+        <h2 class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.stock.modal.add.title}">재고 추가</h2>
+
+        <!-- 품목 없음 안내 -->
+        <div th:if="${items.empty}" class="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
+             th:text="#{view.stock.modal.emptyItems}">
+            등록된 품목이 없습니다. 먼저 품목을 등록해주세요.
+        </div>
+
+        <form th:unless="${items.empty}"
+              th:object="${form}"
+              method="post"
+              hx-post="/stocks"
+              hx-target="#stock-panel"
+              hx-swap="outerHTML">
+
+            <input type="hidden" name="spaceExternalId" th:value="${spaceId}">
+            <input type="hidden" name="shelfExternalId" th:value="${shelfId}">
+            <input type="hidden" name="boxExternalId"   th:value="${boxId}">
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-slate-700 mb-1" th:text="#{view.stock.form.item.label}">품목</label>
+                <div class="max-h-48 overflow-y-auto rounded-md border border-slate-200 divide-y divide-slate-100">
+                    <label th:each="item : ${items}"
+                           class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer">
+                        <input type="radio" name="itemExternalId" th:value="${item.externalId}"
+                               th:data-serial-mode="${item.serialMode}"
+                               th:data-lot-mode="${item.lotMode}"
+                               class="text-blue-600 focus:ring-blue-500">
+                        <img th:if="${item.primaryImageExternalId != null}"
+                             th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
+                             alt=""
+                             class="h-9 w-9 rounded-md object-cover border border-slate-200">
+                        <span th:unless="${item.primaryImageExternalId != null}"
+                              class="h-9 w-9 rounded-md border border-slate-200 bg-slate-50"></span>
+                        <span class="text-sm text-slate-800" th:text="${item.name}">품목명</span>
+                    </label>
+                </div>
+                <span th:if="${#fields.hasErrors('itemExternalId')}"
+                      th:errors="*{itemExternalId}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-3" data-count-field>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.count.label}">수량</span>
+                    <span class="text-slate-400 font-normal" th:text="#{view.stock.form.count.maxHint}">(최대 50개)</span>
+                </label>
+                <input type="number" th:field="*{count}" min="1" max="50"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <span th:if="${#fields.hasErrors('count')}"
+                      th:errors="*{count}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.price.label}">가격</span>
+                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                </label>
+                <input type="number" min="0" step="1" th:field="*{price}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:placeholder="#{view.stock.form.price.placeholder}">
+                <span th:if="${#fields.hasErrors('price')}"
+                      th:errors="*{price}"
+                      class="mt-1 block text-xs text-red-500"></span>
+            </div>
+
+            <div class="mb-3" data-serial-single-field>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.serial.label}">시리얼 번호</span>
+                    <span class="text-slate-400 font-normal" th:text="#{view.stock.form.serial.hint}">(선택, 수량 1일 때)</span>
+                </label>
+                <input type="text" th:field="*{serialNumber}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:placeholder="#{view.stock.form.serial.placeholder}">
+            </div>
+
+            <div class="mb-3 hidden" data-serial-manual-field>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.serials.label}">시리얼 번호 목록</span>
+                </label>
+                <textarea th:field="*{serialNumbersText}" rows="4"
+                          class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          th:placeholder="#{view.stock.form.serials.placeholder}"></textarea>
+            </div>
+
+            <div class="mb-3" data-lot-manual-field>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.lot.label}">로트 번호</span>
+                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                </label>
+                <input type="text" th:field="*{lotNumber}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    <span th:text="#{view.stock.form.expiration.label}">유통기한</span>
+                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                </label>
+                <input type="date" th:field="*{expirationDate}"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button"
+                        hx-get="/empty"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        th:text="#{view.common.cancel}">
+                    취소
+                </button>
+                <button type="submit"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        th:text="#{view.common.add}">
+                    추가
+                </button>
+            </div>
+        </form>
+
+        <div th:if="${items.empty}" class="flex justify-end">
+            <button type="button"
+                    hx-get="/empty"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                    th:text="#{view.common.close}">
+                닫기
+            </button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var modal = document.getElementById('modal');
+        if (!modal) return;
+        var countField = modal.querySelector('[data-count-field]');
+        var serialSingleField = modal.querySelector('[data-serial-single-field]');
+        var serialManualField = modal.querySelector('[data-serial-manual-field]');
+        var lotManualField = modal.querySelector('[data-lot-manual-field]');
+        function applyPolicy(radio) {
+            var serialMode = radio.getAttribute('data-serial-mode') || 'NONE';
+            var lotMode = radio.getAttribute('data-lot-mode') || 'NONE';
+            if (countField) countField.classList.toggle('hidden', serialMode === 'MANUAL');
+            if (serialSingleField) serialSingleField.classList.toggle('hidden', serialMode !== 'NONE');
+            if (serialManualField) serialManualField.classList.toggle('hidden', serialMode !== 'MANUAL');
+            if (lotManualField) lotManualField.classList.toggle('hidden', lotMode === 'AUTO');
+        }
+        modal.querySelectorAll('input[name="itemExternalId"]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                applyPolicy(radio);
+            });
+        });
+    })();
+    </script>
+</div>
+
+</body>
+</html>
