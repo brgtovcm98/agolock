@@ -61,11 +61,10 @@ public class SpaceController {
   public String detail(@PathVariable UUID externalId, Principal principal, Model model) {
     String username = principal.getName();
     SpaceDTO space = spaceService.findByExternalId(externalId, username);
-    model.addAttribute("space", space);
+    model.addAttribute("spaceDetail", space);
+    model.addAttribute("space", externalId);
     model.addAttribute("shelves", shelfService.findAllBySpaceId(externalId, username));
-    model.addAttribute("stocks", stockService.findPanelBySpace(externalId, username));
     model.addAttribute("breadcrumb", space.getName());
-    model.addAttribute("spaceExternalId", externalId);
     return "spaces/detail";
   }
 
