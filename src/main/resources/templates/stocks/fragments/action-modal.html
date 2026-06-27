@@ -4,8 +4,8 @@
 
 <div th:fragment="modal"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
         <!-- 헤더 -->
         <div class="mb-4">
@@ -36,10 +36,10 @@
         <div id="action-section-in">
             <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>
             <form id="in-form">
-                <input type="hidden" name="itemExternalId"  th:value="${itemExternalId}">
-                <input type="hidden" name="spaceExternalId" th:value="${spaceExternalId}">
-                <input type="hidden" name="shelfExternalId" th:value="${shelfExternalId}">
-                <input type="hidden" name="boxExternalId"   th:value="${boxExternalId}">
+                <input type="hidden" name="itemExternalId"  th:value="${item}">
+                <input type="hidden" name="spaceExternalId" th:value="${space}">
+                <input type="hidden" name="shelfExternalId" th:value="${shelf}">
+                <input type="hidden" name="boxExternalId"   th:value="${box}">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-slate-700 mb-1" th:text="#{view.stock.form.count.label}">수량</label>
                     <input type="number" name="count" value="1" min="1"
@@ -95,10 +95,10 @@
         <div id="action-section-out" class="hidden">
             <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
             <form id="out-form">
-                <input type="hidden" name="itemExternalId"  th:value="${itemExternalId}">
-                <input type="hidden" name="spaceExternalId" th:value="${spaceExternalId}">
-                <input type="hidden" name="shelfExternalId" th:value="${shelfExternalId}">
-                <input type="hidden" name="boxExternalId"   th:value="${boxExternalId}">
+                <input type="hidden" name="itemExternalId"  th:value="${item}">
+                <input type="hidden" name="spaceExternalId" th:value="${space}">
+                <input type="hidden" name="shelfExternalId" th:value="${shelf}">
+                <input type="hidden" name="boxExternalId"   th:value="${box}">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-slate-700 mb-1" th:text="#{view.stock.form.count.label}">수량</label>
                     <input type="number" name="count" value="1" min="1"
@@ -172,7 +172,7 @@
                     취소
                 </button>
                 <button type="button"
-                        th:attr="hx-delete=@{/stocks(itemExternalId=${itemExternalId},spaceExternalId=${spaceExternalId},shelfExternalId=${shelfExternalId},boxExternalId=${boxExternalId})},hx-confirm=#{view.stock.modal.delete.confirm}"
+                        th:attr="hx-delete=@{/stocks(item=${item},space=${space},shelf=${shelf},box=${box})},hx-confirm=#{view.stock.modal.delete.confirm}"
                         hx-target="#stock-panel"
                         hx-swap="outerHTML"
                         class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition"

@@ -2,14 +2,14 @@
 <html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<li th:fragment="tree-item(shelf, spaceExternalId)"
+<li th:fragment="tree-item(shelf, space)"
     th:id="'shelf-' + ${shelf.externalId}"
     class="border-b border-slate-100 last:border-0">
 
     <!-- Shelf 헤더: 클릭 첫 번째→HTMX로 Box 목록 로드, 이후→JS 토글 -->
     <div class="tree-item-container flex items-center gap-1 px-3 py-3 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 transition cursor-pointer group"
          th:attr="onclick='toggleBoxList(\'' + ${shelf.externalId} + '\', this)',
-                  hx-get=@{/spaces/{sid}/shelves/{id}/boxes(sid=${spaceExternalId},id=${shelf.externalId})},
+                  hx-get=@{/spaces/{sid}/shelves/{id}/boxes(sid=${space},id=${shelf.externalId})},
                   hx-target='#box-list-' + ${shelf.externalId}"
          hx-swap="innerHTML"
          hx-trigger="click once">
@@ -20,7 +20,7 @@
         <button type="button"
                 class="tree-item-trigger tree-item-text flex-1 text-left text-sm font-medium text-slate-700 truncate"
                 th:text="${shelf.name}"
-                th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/stocks(sid=${spaceExternalId},id=${shelf.externalId})}"
+                th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/stocks(sid=${space},id=${shelf.externalId})}"
                 hx-target="#stock-panel"
                 hx-swap="outerHTML"
                 onclick="event.stopPropagation()"></button>
@@ -37,7 +37,7 @@
             <!-- Shelf 수정 버튼 -->
             <button type="button"
                     class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                    th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/edit(sid=${spaceExternalId},id=${shelf.externalId})}"
+                    th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/edit(sid=${space},id=${shelf.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
                     onclick="event.stopPropagation()"
@@ -46,7 +46,7 @@
             <!-- Box 추가 버튼 -->
             <button type="button"
                     class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-blue-500 hover:bg-blue-50 hover:text-blue-700"
-                    th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/boxes/new(sid=${spaceExternalId},id=${shelf.externalId})}"
+                    th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/boxes/new(sid=${space},id=${shelf.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
                     onclick="event.stopPropagation()"
@@ -55,7 +55,7 @@
             <!-- Shelf 삭제 버튼 -->
             <button type="button"
                     class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-red-50 hover:text-red-500"
-                    th:attr="hx-delete=@{/spaces/{sid}/shelves/{id}(sid=${spaceExternalId},id=${shelf.externalId})},
+                    th:attr="hx-delete=@{/spaces/{sid}/shelves/{id}(sid=${space},id=${shelf.externalId})},
                              hx-confirm=#{view.shelf.created.deleteConfirm}"
                     hx-target="#shelf-list"
                     hx-swap="outerHTML"

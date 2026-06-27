@@ -34,7 +34,7 @@
     <div class="flex flex-wrap items-center gap-2 min-w-0 md:contents">
         <div class="flex items-center gap-2 text-xs min-w-0">
             <a th:if="${item.stockCount > 0}"
-               th:href="@{/stocks(itemId=${item.externalId})}"
+               th:href="@{/stocks(item=${item.externalId})}"
                class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 font-medium hover:bg-blue-100 transition"
                th:text="#{view.item.card.stockCount(${item.stockCount})}"></a>
             <span th:if="${item.stockCount == 0}"
@@ -190,7 +190,7 @@
     <div class="flex flex-wrap items-center gap-2 min-w-0 md:contents">
         <div class="flex flex-wrap items-center gap-2 text-xs min-w-0">
             <a th:if="${item.stockCount > 0}"
-               th:href="@{/stocks(itemId=${item.externalId})}"
+               th:href="@{/stocks(item=${item.externalId})}"
                class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 font-medium hover:bg-blue-100 transition"
                th:text="#{view.item.card.stockCount(${item.stockCount})}"></a>
             <span th:if="${item.stockCount == 0}"

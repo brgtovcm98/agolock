@@ -4,8 +4,8 @@
 
 <div th:fragment="modal"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col gap-4">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col gap-4">
 
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-slate-800">
@@ -25,7 +25,7 @@
 
         <div class="divide-y divide-slate-100">
             <a th:each="ss : ${spaceStocks}"
-               th:href="@{/stocks(itemExternalId=${externalId},spaceExternalId=${ss.spaceExternalId})}"
+               th:href="@{/stocks(item=${externalId},space=${ss.spaceExternalId})}"
                class="flex items-center justify-between py-2.5 hover:bg-slate-50 transition">
                 <span class="text-sm text-slate-700" th:text="${ss.spaceName}"></span>
                 <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5

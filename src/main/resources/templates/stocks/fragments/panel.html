@@ -35,14 +35,14 @@
                     th:text="#{view.stock.modal.move.title}">
                 물품 이동
             </button>
-            <button th:attr="hx-get=@{/stocks/quick(spaceId=${spaceExternalId},shelfId=${shelfExternalId},boxId=${boxExternalId})}"
+            <button th:attr="hx-get=@{/stocks/quick(spaceId=${space},shelfId=${shelf},boxId=${box})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
                     class="stock-default-only rounded-md bg-slate-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
                     th:text="|+#{view.stock.list.quickAdd}|">
                 + 빠른 등록
             </button>
-            <button th:attr="hx-get=@{/stocks/new(spaceId=${spaceExternalId},shelfId=${shelfExternalId},boxId=${boxExternalId})}"
+            <button th:attr="hx-get=@{/stocks/new(spaceId=${space},shelfId=${shelf},boxId=${box})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
                     class="stock-default-only rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
@@ -54,7 +54,7 @@
 
     <!-- 검색바 + 정렬 뱃지 (전체보기 전용) -->
     <div th:if="${isAllView}" class="px-4 py-3 border-b border-slate-100 space-y-2">
-        <form th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${spaceExternalId})}"
+        <form th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space})}"
               hx-target="#stock-panel"
               hx-swap="outerHTML"
               class="flex items-center gap-2">
@@ -73,28 +73,28 @@
             </button>
         </form>
         <div class="flex flex-wrap gap-1">
-            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${spaceExternalId},sortBy='newest',keyword=${keyword})}"
+            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='newest',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'newest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
                     class="rounded-full px-2.5 py-0.5 text-xs font-medium transition"
                     th:text="#{view.common.sort.newest}">
                 가장 최신 순
             </button>
-            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${spaceExternalId},sortBy='oldest',keyword=${keyword})}"
+            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='oldest',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'oldest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
                     class="rounded-full px-2.5 py-0.5 text-xs font-medium transition"
                     th:text="#{view.common.sort.oldest}">
                 가장 오래된 순
             </button>
-            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${spaceExternalId},sortBy='inFreq',keyword=${keyword})}"
+            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='inFreq',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'inFreq'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
                     class="rounded-full px-2.5 py-0.5 text-xs font-medium transition"
                     th:text="#{view.stock.list.sort.inFreq}">
                 입고 빈도 순
             </button>
-            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${spaceExternalId},sortBy='outFreq',keyword=${keyword})}"
+            <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='outFreq',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'outFreq'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
                     class="rounded-full px-2.5 py-0.5 text-xs font-medium transition"
@@ -110,9 +110,9 @@
           hx-target="#modal"
           hx-swap="outerHTML"
           onsubmit="return prepareStockMoveSelection()">
-        <input type="hidden" name="sourceSpaceExternalId" th:value="${spaceExternalId}">
-        <input type="hidden" name="sourceShelfExternalId" th:value="${shelfExternalId}">
-        <input type="hidden" name="sourceBoxExternalId" th:value="${boxExternalId}">
+        <input type="hidden" name="sourceSpaceExternalId" th:value="${space}">
+        <input type="hidden" name="sourceShelfExternalId" th:value="${shelf}">
+        <input type="hidden" name="sourceBoxExternalId" th:value="${box}">
         <div id="move-selection-fields"></div>
         <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="text-sm text-blue-700" th:text="#{view.stock.modal.move.instruction}">이동할 물품을 선택하고 수량을 조정하세요.</p>
@@ -146,7 +146,7 @@
 
     <div id="stock-panel-more" th:fragment="stock-panel-more" class="border-t border-slate-100 px-4 py-3 text-center">
         <button th:if="${page.hasNext() and isAllView}"
-                th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${spaceExternalId},page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
+                th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
                 class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
@@ -154,7 +154,7 @@
             더 보기
         </button>
         <button th:if="${page.hasNext() and isAllView == false and shelfExternalId == null}"
-                th:attr="hx-get=@{/spaces/{id}/stocks(id=${spaceExternalId},page=${page.nextPage()},append=true)}"
+                th:attr="hx-get=@{/spaces/{id}/stocks(id=${space},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
                 class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
@@ -162,7 +162,7 @@
             더 보기
         </button>
         <button th:if="${page.hasNext() and isAllView == false and shelfExternalId != null and boxExternalId == null}"
-                th:attr="hx-get=@{/spaces/{id}/shelves/{id}/stocks(sid=${spaceExternalId},id=${shelfExternalId},page=${page.nextPage()},append=true)}"
+                th:attr="hx-get=@{/spaces/{id}/shelves/{id}/stocks(sid=${space},id=${shelf},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
                 class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
@@ -170,7 +170,7 @@
             더 보기
         </button>
         <button th:if="${page.hasNext() and isAllView == false and shelfExternalId != null and boxExternalId != null}"
-                th:attr="hx-get=@{/spaces/{sid}/shelves/{shelfId}/boxes/{boxId}/stocks(sid=${spaceExternalId},shelfId=${shelfExternalId},boxId=${boxExternalId},page=${page.nextPage()},append=true)}"
+                th:attr="hx-get=@{/spaces/{sid}/shelves/{shelfId}/boxes/{boxId}/stocks(sid=${space},shelfId=${shelf},boxId=${box},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
                 class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"

@@ -19,17 +19,17 @@
 
     <div class="min-w-0 space-y-2">
         <div class="flex flex-wrap gap-1.5">
-            <a th:href="@{/stocks(spaceExternalId=${stock.spaceExternalId})}"
+            <a th:href="@{/stocks(space=${stock.spaceExternalId})}"
                class="inline-flex max-w-full items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-100 hover:bg-blue-100 transition">
                 <span class="truncate" th:text="${stock.spaceName}">공간</span>
             </a>
             <a th:if="${stock.shelfName != null}"
-               th:href="@{/stocks(shelfExternalId=${stock.shelfExternalId})}"
+               th:href="@{/stocks(shelf=${stock.shelfExternalId})}"
                class="inline-flex max-w-full items-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 ring-1 ring-inset ring-teal-100 hover:bg-teal-100 transition">
                 <span class="truncate" th:text="${stock.shelfName}">선반</span>
             </a>
             <a th:if="${stock.boxName != null}"
-               th:href="@{/stocks(boxExternalId=${stock.boxExternalId})}"
+               th:href="@{/stocks(box=${stock.boxExternalId})}"
                class="inline-flex max-w-full items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-100 hover:bg-amber-100 transition">
                 <span class="truncate" th:text="${stock.boxName}">박스</span>
             </a>
@@ -156,17 +156,17 @@
 
     <div class="min-w-0 space-y-2">
         <div class="flex flex-wrap gap-1.5">
-            <a th:href="@{/stocks(spaceExternalId=${stock.spaceExternalId})}"
+            <a th:href="@{/stocks(space=${stock.spaceExternalId})}"
                class="inline-flex max-w-full items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-100 hover:bg-blue-100 transition">
                 <span class="truncate" th:text="${stock.spaceName}">공간</span>
             </a>
             <a th:if="${stock.shelfName != null}"
-               th:href="@{/stocks(shelfExternalId=${stock.shelfExternalId})}"
+               th:href="@{/stocks(shelf=${stock.shelfExternalId})}"
                class="inline-flex max-w-full items-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 ring-1 ring-inset ring-teal-100 hover:bg-teal-100 transition">
                 <span class="truncate" th:text="${stock.shelfName}">선반</span>
             </a>
             <a th:if="${stock.boxName != null}"
-               th:href="@{/stocks(boxExternalId=${stock.boxExternalId})}"
+               th:href="@{/stocks(box=${stock.boxExternalId})}"
                class="inline-flex max-w-full items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-100 hover:bg-amber-100 transition">
                 <span class="truncate" th:text="${stock.boxName}">박스</span>
             </a>

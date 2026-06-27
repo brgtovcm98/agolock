@@ -15,7 +15,7 @@
     </li>
 
     <th:block th:each="box : ${boxes}">
-        <th:block th:replace="~{boxes/fragments/tree-item :: tree-item(box=${box}, spaceExternalId=${spaceExternalId}, shelfExternalId=${shelf.externalId})}"></th:block>
+        <th:block th:replace="~{boxes/fragments/tree-item :: tree-item(box=${box}, space=${space}, shelf=${shelf.externalId})}"></th:block>
     </th:block>
 </th:block>
 

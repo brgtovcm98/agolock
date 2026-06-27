@@ -4,14 +4,14 @@
 
 <div th:fragment="modal"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
         <h2 class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.shelf.modal.add.title}">선반 추가</h2>
 
         <form th:object="${form}"
               method="post"
-              th:attr="hx-post=@{/spaces/{id}/shelves(id=${spaceExternalId})}"
+              th:attr="hx-post=@{/spaces/{id}/shelves(id=${space})}"
               hx-target="#modal"
               hx-swap="outerHTML">
 
@@ -56,7 +56,7 @@
 
         <form th:object="${form}"
               method="post"
-              th:attr="hx-patch=@{/spaces/{sid}/shelves/{id}(sid=${spaceExternalId},id=${shelfExternalId})}"
+              th:attr="hx-patch=@{/spaces/{sid}/shelves/{id}(sid=${space},id=${shelf})}"
               hx-target="#modal"
               hx-swap="outerHTML">
 
