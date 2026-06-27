@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.MessageSource;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -35,11 +36,17 @@ class GlobalExceptionHandlerTest {
   private MessageSource messageSource;
   private GlobalExceptionHandler handler;
   private final Model model = new ExtendedModelMap();
+  private MockHttpServletRequest htmxReq;
+  private MockHttpServletRequest plainReq;
 
   @BeforeEach
   void setUp() {
     messageSource = mock(MessageSource.class);
     handler = new GlobalExceptionHandler(messageSource);
+
+    htmxReq = new MockHttpServletRequest();
+    htmxReq.addHeader("HX-Request", "true");
+    plainReq = new MockHttpServletRequest();
 
     when(messageSource.getMessage(eq("error.404.title"), any(), any(Locale.class)))
         .thenReturn("항목을 찾을 수 없습니다");
@@ -57,7 +64,7 @@ class GlobalExceptionHandlerTest {
   @DisplayName("NoSuchElementException + HX-Request:true → 에러 모달 프래그먼트 반환")
   void handleNotFound_withHxRequest_returnsErrorModalFragment() {
     String view =
-        handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), "true", model);
+        handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), htmxReq, model);
 
     assertThat(view).isEqualTo("fragments/error-modal :: modal");
     assertThat(model.asMap().get("statusCode")).isEqualTo(404);
@@ -68,7 +75,7 @@ class GlobalExceptionHandlerTest {
   @Test
   @DisplayName("NoSuchElementException, HX-Request 없음 → error/404 전체 페이지 반환")
   void handleNotFound_withoutHxRequest_returnsFullErrorPage() {
-    String view = handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), null, model);
+    String view = handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), plainReq, model);
 
     assertThat(view).isEqualTo("error/404");
   }
@@ -76,8 +83,10 @@ class GlobalExceptionHandlerTest {
   @Test
   @DisplayName("NoSuchElementException, HX-Request:false → error/404 전체 페이지 반환")
   void handleNotFound_withHxRequestFalse_returnsFullErrorPage() {
+    MockHttpServletRequest falseReq = new MockHttpServletRequest();
+    falseReq.addHeader("HX-Request", "false");
     String view =
-        handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), "false", model);
+        handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), falseReq, model);
 
     assertThat(view).isEqualTo("error/404");
   }
@@ -87,7 +96,7 @@ class GlobalExceptionHandlerTest {
   @Test
   @DisplayName("SecurityException + HX-Request:true → 에러 모달 프래그먼트 반환")
   void handleForbidden_withHxRequest_returnsErrorModalFragment() {
-    String view = handler.handleForbidden(new SecurityException("접근 권한이 없습니다."), "true", model);
+    String view = handler.handleForbidden(new SecurityException("접근 권한이 없습니다."), htmxReq, model);
 
     assertThat(view).isEqualTo("fragments/error-modal :: modal");
     assertThat(model.asMap().get("statusCode")).isEqualTo(403);
@@ -97,7 +106,7 @@ class GlobalExceptionHandlerTest {
   @Test
   @DisplayName("SecurityException, HX-Request 없음 → error/403 전체 페이지 반환")
   void handleForbidden_withoutHxRequest_returnsFullErrorPage() {
-    String view = handler.handleForbidden(new SecurityException("접근 권한이 없습니다."), null, model);
+    String view = handler.handleForbidden(new SecurityException("접근 권한이 없습니다."), plainReq, model);
 
     assertThat(view).isEqualTo("error/403");
   }
@@ -108,7 +117,7 @@ class GlobalExceptionHandlerTest {
   @DisplayName("IllegalArgumentException + HX-Request:true → 에러 모달 프래그먼트 반환")
   void handleBadRequest_withIllegalArgument_andHxRequest_returnsErrorModalFragment() {
     String view =
-        handler.handleBadRequest(new IllegalArgumentException("잘못된 요청입니다."), "true", model);
+        handler.handleBadRequest(new IllegalArgumentException("잘못된 요청입니다."), htmxReq, model);
 
     assertThat(view).isEqualTo("fragments/error-modal :: modal");
     assertThat(model.asMap().get("statusCode")).isEqualTo(400);
@@ -120,7 +129,7 @@ class GlobalExceptionHandlerTest {
   void handleBadRequest_withIllegalState_andHxRequest_returnsErrorModalFragment() {
     String view =
         handler.handleBadRequest(
-            new IllegalStateException("재고가 있는 공간은 삭제할 수 없습니다."), "true", model);
+            new IllegalStateException("재고가 있는 공간은 삭제할 수 없습니다."), htmxReq, model);
 
     assertThat(view).isEqualTo("fragments/error-modal :: modal");
     assertThat(model.asMap().get("errorMessage")).isEqualTo("재고가 있는 공간은 삭제할 수 없습니다.");
@@ -129,7 +138,7 @@ class GlobalExceptionHandlerTest {
   @Test
   @DisplayName("IllegalArgumentException, HX-Request 없음 → error/400 전체 페이지 반환")
   void handleBadRequest_withoutHxRequest_returnsFullErrorPage() {
-    String view = handler.handleBadRequest(new IllegalArgumentException("bad"), null, model);
+    String view = handler.handleBadRequest(new IllegalArgumentException("bad"), plainReq, model);
 
     assertThat(view).isEqualTo("error/400");
   }
@@ -141,7 +150,7 @@ class GlobalExceptionHandlerTest {
   void handleMaxUploadSizeExceeded_withHxRequest_returnsErrorModalFragment() {
     String view =
         handler.handleMaxUploadSizeExceeded(
-            new MaxUploadSizeExceededException(10 * 1024 * 1024), "true", model);
+            new MaxUploadSizeExceededException(10 * 1024 * 1024), htmxReq, model);
 
     assertThat(view).isEqualTo("fragments/error-modal :: modal");
     assertThat(model.asMap().get("statusCode")).isEqualTo(400);
@@ -154,7 +163,7 @@ class GlobalExceptionHandlerTest {
   void handleMaxUploadSizeExceeded_withoutHxRequest_returnsFullErrorPage() {
     String view =
         handler.handleMaxUploadSizeExceeded(
-            new MaxUploadSizeExceededException(10 * 1024 * 1024), null, model);
+            new MaxUploadSizeExceededException(10 * 1024 * 1024), plainReq, model);
 
     assertThat(view).isEqualTo("error/400");
     assertThat(model.asMap().get("errorMessage")).isEqualTo("업로드 파일 크기 제한(10MB)을 초과했습니다.");

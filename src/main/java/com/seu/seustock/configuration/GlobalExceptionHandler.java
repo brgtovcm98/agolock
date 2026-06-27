@@ -1,5 +1,6 @@
 package com.seu.seustock.configuration;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import org.springframework.context.MessageSource;
@@ -8,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
@@ -25,11 +25,11 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public String handleNotFound(
       NoSuchElementException ex,
-      @RequestHeader(value = "HX-Request", required = false) String hxRequest,
+      HttpServletRequest request,
       Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     model.addAttribute("errorMessage", ex.getMessage());
-    if (isHtmxRequest(hxRequest)) {
+    if (isHtmxRequest(request.getHeader("HX-Request"))) {
       model.addAttribute("statusCode", 404);
       model.addAttribute("errorTitle", messageSource.getMessage("error.404.title", null, locale));
       return "fragments/error-modal :: modal";
@@ -41,11 +41,11 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.FORBIDDEN)
   public String handleForbidden(
       SecurityException ex,
-      @RequestHeader(value = "HX-Request", required = false) String hxRequest,
+      HttpServletRequest request,
       Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     model.addAttribute("errorMessage", ex.getMessage());
-    if (isHtmxRequest(hxRequest)) {
+    if (isHtmxRequest(request.getHeader("HX-Request"))) {
       model.addAttribute("statusCode", 403);
       model.addAttribute("errorTitle", messageSource.getMessage("error.403.title", null, locale));
       return "fragments/error-modal :: modal";
@@ -57,11 +57,11 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public String handleBadRequest(
       RuntimeException ex,
-      @RequestHeader(value = "HX-Request", required = false) String hxRequest,
+      HttpServletRequest request,
       Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     model.addAttribute("errorMessage", ex.getMessage());
-    if (isHtmxRequest(hxRequest)) {
+    if (isHtmxRequest(request.getHeader("HX-Request"))) {
       model.addAttribute("statusCode", 400);
       model.addAttribute("errorTitle", messageSource.getMessage("error.400.title", null, locale));
       return "fragments/error-modal :: modal";
@@ -73,14 +73,14 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public String handleMaxUploadSizeExceeded(
       MaxUploadSizeExceededException ex,
-      @RequestHeader(value = "HX-Request", required = false) String hxRequest,
+      HttpServletRequest request,
       Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     String errorMessage =
         messageSource.getMessage(
             "error.image.sizeExceeded", null, "업로드 파일 크기 제한(10MB)을 초과했습니다.", locale);
     model.addAttribute("errorMessage", errorMessage);
-    if (isHtmxRequest(hxRequest)) {
+    if (isHtmxRequest(request.getHeader("HX-Request"))) {
       model.addAttribute("statusCode", 400);
       model.addAttribute("errorTitle", messageSource.getMessage("error.400.title", null, locale));
       return "fragments/error-modal :: modal";
