@@ -1,0 +1,167 @@
+:root {
+    --ui-page-background: #f8fafc;
+    --ui-surface: #ffffff;
+    --ui-surface-muted: #f8fafc;
+    --ui-border: #e2e8f0;
+    --ui-text: #1e293b;
+    --ui-text-muted: #64748b;
+    --ui-primary: #2563eb;
+    --ui-primary-hover: #1d4ed8;
+    --ui-danger: #dc2626;
+    --ui-focus: rgba(37, 99, 235, 0.28);
+    --ui-radius: 0.5rem;
+    --ui-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.10), 0 4px 6px -4px rgba(15, 23, 42, 0.10);
+}
+
+/* Shared primitives. Keep semantic ui-* classes on new templates instead of reassembling utilities. */
+.ui-page {
+    background: var(--ui-page-background);
+    color: var(--ui-text);
+}
+
+.ui-page-main {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+}
+
+.ui-page-header {
+    margin-bottom: 1.5rem;
+}
+
+.ui-page-title {
+    color: var(--ui-text);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 2rem;
+}
+
+.ui-card,
+.ui-list,
+.ui-filter-panel {
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-surface);
+}
+
+.ui-filter-panel {
+    padding: 1rem;
+}
+
+.ui-list {
+    overflow: hidden;
+}
+
+.ui-button {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ui-radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.ui-button:focus-visible,
+.ui-input:focus-visible,
+.ui-select:focus-visible,
+.ui-textarea:focus-visible,
+.ui-icon-button:focus-visible {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px var(--ui-focus);
+}
+
+.ui-button-primary {
+    background: var(--ui-primary);
+    color: #ffffff;
+}
+
+.ui-button-primary:hover { background: var(--ui-primary-hover); }
+
+.ui-button-secondary {
+    border: 1px solid #cbd5e1;
+    background: var(--ui-surface);
+    color: #475569;
+}
+
+.ui-button-secondary:hover { background: var(--ui-surface-muted); }
+
+.ui-button-danger {
+    border: 1px solid #fecaca;
+    background: #ffffff;
+    color: var(--ui-danger);
+}
+
+.ui-button-danger:hover { background: #fef2f2; }
+
+.ui-icon-button {
+    display: inline-flex;
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+}
+
+.ui-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    color: #334155;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.ui-input,
+.ui-select,
+.ui-textarea {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--ui-radius);
+    background: #ffffff;
+    color: var(--ui-text);
+    font-size: 0.875rem;
+}
+
+.ui-input,
+.ui-select { min-height: 2.5rem; padding: 0.5rem 0.75rem; }
+.ui-textarea { padding: 0.625rem 0.75rem; }
+.ui-input:focus, .ui-select:focus, .ui-textarea:focus { border-color: var(--ui-primary); outline: none; }
+.ui-field-error { margin-top: 0.25rem; display: block; color: #dc2626; font-size: 0.75rem; }
+
+.ui-alert { border-radius: var(--ui-radius); border: 1px solid; padding: 0.75rem 1rem; font-size: 0.875rem; }
+.ui-alert-success { border-color: #a7f3d0; background: #ecfdf5; color: #047857; }
+.ui-alert-error { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+
+.ui-modal-overlay {
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.ui-modal-overlay > .ui-modal-dialog {
+    width: 100%;
+    max-height: min(90vh, 48rem);
+    overflow-y: auto;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 0.75rem;
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow);
+}
+
+.ui-modal-header { margin-bottom: 1.25rem; }
+.ui-modal-title { color: var(--ui-text); font-size: 1.125rem; font-weight: 600; line-height: 1.5rem; }
+.ui-modal-description { margin-top: 0.25rem; color: var(--ui-text-muted); font-size: 0.875rem; }
+.ui-modal-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+
+.ui-badge { display: inline-flex; align-items: center; border-radius: 9999px; padding: 0.125rem 0.5rem; font-size: 0.75rem; font-weight: 500; line-height: 1rem; }
+.ui-empty-state { padding: 2.5rem 1rem; text-align: center; color: #94a3b8; font-size: 0.875rem; }
+
+@media (max-width: 640px) {
+    .ui-page-main { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    .ui-page-title { font-size: 1.25rem; }
+    .ui-modal-overlay { align-items: flex-end; }
+    .ui-modal-overlay > .ui-modal-dialog { max-height: calc(100vh - 1rem); }
+    .ui-button { flex: 1 1 auto; }
+}

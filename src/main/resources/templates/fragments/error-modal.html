@@ -5,8 +5,8 @@
 <div th:fragment="modal"
      id="modal"
      data-error-modal
-     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-    <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
+    <div class="ui-modal-dialog w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4 flex items-start gap-3">
             <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-red-600"
                  th:text="${statusCode}">400</div>

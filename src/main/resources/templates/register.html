@@ -3,14 +3,14 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="#{view.register.title}">회원가입 · SeuStock</title>
 </head>
-<body class="min-h-screen bg-slate-50 flex flex-col">
+<body class="ui-page min-h-screen bg-slate-50 flex flex-col">
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
-<main class="flex flex-1 items-center justify-center px-4 py-12">
-    <div class="w-full max-w-sm">
+<main class="ui-page-main flex flex-1 items-center justify-center px-4 py-12">
+    <div class="ui-card w-full max-w-sm p-6">
 
-        <h1 class="mb-6 text-2xl font-bold text-slate-800" th:text="#{view.register.header}">회원가입</h1>
+        <h1 class="ui-page-title mb-6 text-2xl font-bold text-slate-800" th:text="#{view.register.header}">회원가입</h1>
 
         <!-- 가입 완료 메시지 -->
         <div th:if="${success}"
