@@ -1,6 +1,7 @@
 package com.seu.seustock.configuration;
 
 import java.security.Principal;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -8,6 +9,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 @ControllerAdvice
 public class GlobalModelAttributes {
+
+  @Value("${seustock.features.lot-serial-enabled:false}")
+  private boolean lotSerialEnabled;
+
+  @ModelAttribute("lotSerialEnabled")
+  public boolean lotSerialEnabled() {
+    return lotSerialEnabled;
+  }
 
   /** 로그인 식별자(이메일). */
   @ModelAttribute("currentUsername")

@@ -4,8 +4,8 @@
 
 <div th:fragment="modal"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
         <h2 class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.stock.modal.add.title}">재고 추가</h2>
 
@@ -76,7 +76,7 @@
                       class="mt-1 block text-xs text-red-500"></span>
             </div>
 
-            <div class="mb-3" data-serial-single-field>
+            <div class="mb-3" data-serial-single-field th:if="${lotSerialEnabled}">
                 <label class="block text-sm font-medium text-slate-700 mb-1">
                     <span th:text="#{view.stock.form.serial.label}">시리얼 번호</span>
                     <span class="text-slate-400 font-normal" th:text="#{view.stock.form.serial.hint}">(선택, 수량 1일 때)</span>
@@ -87,7 +87,7 @@
                        th:placeholder="#{view.stock.form.serial.placeholder}">
             </div>
 
-            <div class="mb-3 hidden" data-serial-manual-field>
+            <div class="mb-3 hidden" data-serial-manual-field th:if="${lotSerialEnabled}">
                 <label class="block text-sm font-medium text-slate-700 mb-1">
                     <span th:text="#{view.stock.form.serials.label}">시리얼 번호 목록</span>
                 </label>
@@ -97,7 +97,7 @@
                           th:placeholder="#{view.stock.form.serials.placeholder}"></textarea>
             </div>
 
-            <div class="mb-3" data-lot-manual-field>
+            <div class="mb-3" data-lot-manual-field th:if="${lotSerialEnabled}">
                 <label class="block text-sm font-medium text-slate-700 mb-1">
                     <span th:text="#{view.stock.form.lot.label}">로트 번호</span>
                     <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>

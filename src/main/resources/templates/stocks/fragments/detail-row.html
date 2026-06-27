@@ -52,11 +52,11 @@
     </div>
 
     <div class="text-sm text-slate-600">
-        <p>
+        <p th:if="${lotSerialEnabled}">
             <span class="text-xs text-slate-400">SN</span>
             <span th:text="${stock.serialNumber != null and !stock.serialNumber.isEmpty()} ? ${stock.serialNumber} : '-'"></span>
         </p>
-        <p class="mt-0.5">
+        <p class="mt-0.5" th:if="${lotSerialEnabled}">
             <span class="text-xs text-slate-400">LOT</span>
             <button th:if="${stock.lotExternalId != null}"
                     type="button"
@@ -175,14 +175,14 @@
     </div>
 
     <div class="space-y-2">
-        <div>
+        <div th:if="${lotSerialEnabled}">
             <label class="mb-1 block text-xs font-medium text-slate-500" th:text="#{view.stock.form.serial.label}">시리얼 번호</label>
             <input type="text" th:field="*{serialNumber}"
                    class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <p th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"
                class="mt-1 text-xs text-red-500"></p>
         </div>
-        <div>
+        <div th:if="${lotSerialEnabled}">
             <label class="mb-1 block text-xs font-medium text-slate-500" th:text="#{view.stock.form.lot.label}">로트 번호</label>
             <input type="text" th:field="*{lotNumber}"
                    th:readonly="${stock.lotExternalId != null}"

@@ -4,8 +4,8 @@
 
 <div th:fragment="modal"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
         <h2 class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.item.modal.add.title}">품목 추가</h2>
 
@@ -105,7 +105,7 @@
                    class="hidden mt-2 rounded-md bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"></p>
             </div>
 
-            <details class="mb-4">
+            <details class="mb-4" th:if="${lotSerialEnabled}">
                 <summary class="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-800 transition" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
                 <div class="mt-3 space-y-3">
                     <div>

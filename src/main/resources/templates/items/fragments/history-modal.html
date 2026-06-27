@@ -4,8 +4,8 @@
 
 <div th:fragment="modal"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[80vh] flex flex-col">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[80vh] flex flex-col">
 
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-slate-800">
@@ -83,7 +83,7 @@
                     </div>
 
                     <!-- 시리얼 / 로트 -->
-                    <div th:if="${tx.serialNumber != null or tx.lotNumber != null}"
+                    <div th:if="${lotSerialEnabled and (tx.serialNumber != null or tx.lotNumber != null)}"
                          class="mt-1 flex items-start gap-2 text-sm">
                         <span class="shrink-0 w-20 text-xs font-medium text-slate-400" th:text="#{view.item.history.serialLot}">시리얼/로트</span>
                         <span class="text-slate-600">
