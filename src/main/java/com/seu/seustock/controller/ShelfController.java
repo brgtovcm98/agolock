@@ -36,7 +36,7 @@ public class ShelfController {
       Principal principal,
       Model model) {
     String username = principal.getName();
-    model.addAttribute("spaceExternalId", spaceExternalId);
+    model.addAttribute("space", spaceExternalId);
     model.addAttribute(
         "shelf", shelfService.findByExternalId(spaceExternalId, shelfExternalId, username));
     model.addAttribute(
@@ -54,8 +54,8 @@ public class ShelfController {
     var shelf = shelfService.findByExternalId(spaceExternalId, shelfExternalId, username);
     ShelfForm form = new ShelfForm();
     form.setName(shelf.getName());
-    model.addAttribute("spaceExternalId", spaceExternalId);
-    model.addAttribute("shelfExternalId", shelfExternalId);
+    model.addAttribute("space", spaceExternalId);
+    model.addAttribute("shelf", shelfExternalId);
     model.addAttribute("form", form);
     return "shelves/fragments/modal :: edit-modal";
   }
@@ -77,12 +77,12 @@ public class ShelfController {
           shelfExternalId,
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
-      model.addAttribute("spaceExternalId", spaceExternalId);
-      model.addAttribute("shelfExternalId", shelfExternalId);
+      model.addAttribute("space", spaceExternalId);
+      model.addAttribute("shelf", shelfExternalId);
       return "shelves/fragments/modal :: edit-modal";
     }
     shelfService.rename(spaceExternalId, shelfExternalId, form, username);
-    model.addAttribute("spaceExternalId", spaceExternalId);
+    model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelves", shelfService.findAllBySpaceId(spaceExternalId, username));
     HtmxResponse.success(response, getMsg("toast.shelf.updated"));
     return "spaces/fragments/shelf-list-response :: shelf-list-response";
@@ -90,7 +90,7 @@ public class ShelfController {
 
   @GetMapping("/spaces/{spaceExternalId}/shelves/new")
   public String newModal(@PathVariable UUID spaceExternalId, Model model) {
-    model.addAttribute("spaceExternalId", spaceExternalId);
+    model.addAttribute("space", spaceExternalId);
     model.addAttribute("form", new ShelfForm());
     return "shelves/fragments/modal :: modal";
   }
@@ -110,11 +110,11 @@ public class ShelfController {
           spaceExternalId,
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
-      model.addAttribute("spaceExternalId", spaceExternalId);
+      model.addAttribute("space", spaceExternalId);
       return "shelves/fragments/modal :: modal";
     }
     shelfService.create(spaceExternalId, form, username);
-    model.addAttribute("spaceExternalId", spaceExternalId);
+    model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelves", shelfService.findAllBySpaceId(spaceExternalId, username));
     HtmxResponse.success(response, getMsg("toast.shelf.created"));
     return "spaces/fragments/shelf-list-response :: shelf-list-response";
@@ -129,7 +129,7 @@ public class ShelfController {
       HttpServletResponse response) {
     String username = principal.getName();
     shelfService.delete(spaceExternalId, shelfExternalId, username);
-    model.addAttribute("spaceExternalId", spaceExternalId);
+    model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelves", shelfService.findAllBySpaceId(spaceExternalId, username));
     HtmxResponse.success(response, getMsg("toast.shelf.deleted"));
     return "spaces/detail :: shelf-list";

@@ -52,10 +52,10 @@ public class StockController {
 
   @GetMapping("/stocks")
   public String list(
-      @RequestParam(required = false) UUID itemExternalId,
-      @RequestParam(required = false) UUID spaceExternalId,
-      @RequestParam(required = false) UUID shelfExternalId,
-      @RequestParam(required = false) UUID boxExternalId,
+      @RequestParam(name = "item", required = false) UUID itemExternalId,
+      @RequestParam(name = "space", required = false) UUID spaceExternalId,
+      @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
+      @RequestParam(name = "box", required = false) UUID boxExternalId,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -76,10 +76,10 @@ public class StockController {
             page);
     model.addAttribute("stocks", stocksPage.content());
     model.addAttribute("page", stocksPage);
-    model.addAttribute("itemExternalId", itemExternalId);
-    model.addAttribute("spaceExternalId", spaceExternalId);
-    model.addAttribute("shelfExternalId", shelfExternalId);
-    model.addAttribute("boxExternalId", boxExternalId);
+    model.addAttribute("item", itemExternalId);
+    model.addAttribute("space", spaceExternalId);
+    model.addAttribute("shelf", shelfExternalId);
+    model.addAttribute("box", boxExternalId);
     model.addAttribute("keyword", keyword);
     model.addAttribute("searchType", searchType);
     model.addAttribute("sortBy", sortBy);
@@ -243,7 +243,7 @@ public class StockController {
     model.addAttribute("stocks", stocksPage.content());
     model.addAttribute("page", stocksPage);
     model.addAttribute("breadcrumb", getMsg("view.stock.breadcrumb.all", space.getName()));
-    model.addAttribute("spaceExternalId", spaceExternalId);
+    model.addAttribute("space", spaceExternalId);
     model.addAttribute("isAllView", true);
     model.addAttribute("keyword", keyword);
     model.addAttribute("sortBy", sortBy);
@@ -266,7 +266,7 @@ public class StockController {
     model.addAttribute("stocks", stocksPage.content());
     model.addAttribute("page", stocksPage);
     model.addAttribute("breadcrumb", getMsg("view.stock.breadcrumb.loose", space.getName()));
-    model.addAttribute("spaceExternalId", spaceExternalId);
+    model.addAttribute("space", spaceExternalId);
     model.addAttribute("isAllView", false);
     if (append) {
       return "stocks/fragments/panel :: stock-panel-more-response";
@@ -289,8 +289,8 @@ public class StockController {
     model.addAttribute("stocks", stocksPage.content());
     model.addAttribute("page", stocksPage);
     model.addAttribute("breadcrumb", shelf.getName());
-    model.addAttribute("spaceExternalId", spaceExternalId);
-    model.addAttribute("shelfExternalId", shelfExternalId);
+    model.addAttribute("space", spaceExternalId);
+    model.addAttribute("shelf", shelfExternalId);
     model.addAttribute("isAllView", false);
     if (append) {
       return "stocks/fragments/panel :: stock-panel-more-response";
@@ -318,9 +318,9 @@ public class StockController {
         boxService
             .findByExternalId(spaceExternalId, shelfExternalId, boxExternalId, username)
             .getName());
-    model.addAttribute("spaceExternalId", spaceExternalId);
-    model.addAttribute("shelfExternalId", shelfExternalId);
-    model.addAttribute("boxExternalId", boxExternalId);
+    model.addAttribute("space", spaceExternalId);
+    model.addAttribute("shelf", shelfExternalId);
+    model.addAttribute("box", boxExternalId);
     model.addAttribute("isAllView", false);
     if (append) {
       return "stocks/fragments/panel :: stock-panel-more-response";
@@ -428,10 +428,10 @@ public class StockController {
 
   @DeleteMapping("/stocks")
   public String delete(
-      @RequestParam UUID itemExternalId,
-      @RequestParam UUID spaceExternalId,
-      @RequestParam(required = false) UUID shelfExternalId,
-      @RequestParam(required = false) UUID boxExternalId,
+      @RequestParam(name = "item") UUID itemExternalId,
+      @RequestParam(name = "space") UUID spaceExternalId,
+      @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
+      @RequestParam(name = "box", required = false) UUID boxExternalId,
       Principal principal,
       Model model,
       HttpServletResponse response) {
@@ -456,20 +456,20 @@ public class StockController {
 
   @GetMapping("/stocks/action-form")
   public String actionForm(
-      @RequestParam UUID itemExternalId,
+      @RequestParam(name = "item") UUID itemExternalId,
       @RequestParam String itemName,
-      @RequestParam UUID spaceExternalId,
-      @RequestParam(required = false) UUID shelfExternalId,
-      @RequestParam(required = false) UUID boxExternalId,
+      @RequestParam(name = "space") UUID spaceExternalId,
+      @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
+      @RequestParam(name = "box", required = false) UUID boxExternalId,
       @RequestParam(defaultValue = "0") Integer count,
       Principal principal,
       Model model) {
     String username = principal.getName();
     model.addAttribute("itemName", itemName);
-    model.addAttribute("itemExternalId", itemExternalId);
-    model.addAttribute("spaceExternalId", spaceExternalId);
-    model.addAttribute("shelfExternalId", shelfExternalId);
-    model.addAttribute("boxExternalId", boxExternalId);
+    model.addAttribute("item", itemExternalId);
+    model.addAttribute("space", spaceExternalId);
+    model.addAttribute("shelf", shelfExternalId);
+    model.addAttribute("box", boxExternalId);
     model.addAttribute("currentCount", count);
     model.addAttribute(
         "inMemoSuggestions", stockService.findMemoSuggestions(TransactionType.IN, username));
@@ -482,10 +482,10 @@ public class StockController {
 
   @GetMapping("/stocks/in-form")
   public String inForm(
-      @RequestParam UUID itemExternalId,
-      @RequestParam UUID spaceExternalId,
-      @RequestParam(required = false) UUID shelfExternalId,
-      @RequestParam(required = false) UUID boxExternalId,
+      @RequestParam(name = "item") UUID itemExternalId,
+      @RequestParam(name = "space") UUID spaceExternalId,
+      @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
+      @RequestParam(name = "box", required = false) UUID boxExternalId,
       Principal principal,
       Model model) {
     StockInOutForm form = new StockInOutForm();
@@ -535,10 +535,10 @@ public class StockController {
 
   @GetMapping("/stocks/out-form")
   public String outForm(
-      @RequestParam UUID itemExternalId,
-      @RequestParam UUID spaceExternalId,
-      @RequestParam(required = false) UUID shelfExternalId,
-      @RequestParam(required = false) UUID boxExternalId,
+      @RequestParam(name = "item") UUID itemExternalId,
+      @RequestParam(name = "space") UUID spaceExternalId,
+      @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
+      @RequestParam(name = "box", required = false) UUID boxExternalId,
       Model model) {
     StockInOutForm form = new StockInOutForm();
     form.setItemExternalId(itemExternalId);
@@ -649,9 +649,9 @@ public class StockController {
     model.addAttribute("stocks", page.content());
     model.addAttribute("page", page);
     model.addAttribute("breadcrumb", breadcrumb);
-    model.addAttribute("spaceExternalId", spaceExternalId);
-    model.addAttribute("shelfExternalId", shelfExternalId);
-    model.addAttribute("boxExternalId", boxExternalId);
+    model.addAttribute("space", spaceExternalId);
+    model.addAttribute("shelf", shelfExternalId);
+    model.addAttribute("box", boxExternalId);
     model.addAttribute("isAllView", false);
     return "stocks/fragments/panel :: stock-panel-response";
   }

@@ -136,19 +136,16 @@ class StockControllerTest extends AbstractControllerTest {
         Arguments.of("GET", "/stocks/quick?spaceId=" + SPACE_ID),
         Arguments.of("POST", "/stocks/quick"),
         Arguments.of(
-            "DELETE", "/stocks?itemExternalId=" + ITEM_ID + "&spaceExternalId=" + SPACE_ID),
+            "DELETE", "/stocks?item=" + ITEM_ID + "&space=" + SPACE_ID),
         Arguments.of("DELETE", "/stocks/" + STOCK_ID),
         Arguments.of(
             "GET",
-            "/stocks/action-form?itemExternalId="
-                + ITEM_ID
-                + "&itemName=test&spaceExternalId="
-                + SPACE_ID),
+            "/stocks/action-form?item=" + ITEM_ID + "&itemName=test&space=" + SPACE_ID),
         Arguments.of(
-            "GET", "/stocks/in-form?itemExternalId=" + ITEM_ID + "&spaceExternalId=" + SPACE_ID),
+            "GET", "/stocks/in-form?item=" + ITEM_ID + "&space=" + SPACE_ID),
         Arguments.of("POST", "/stocks/in"),
         Arguments.of(
-            "GET", "/stocks/out-form?itemExternalId=" + ITEM_ID + "&spaceExternalId=" + SPACE_ID),
+            "GET", "/stocks/out-form?item=" + ITEM_ID + "&space=" + SPACE_ID),
         Arguments.of("POST", "/stocks/out"),
         Arguments.of("GET", "/stocks/move-form"),
         Arguments.of("POST", "/stocks/move"));
@@ -328,9 +325,9 @@ class StockControllerTest extends AbstractControllerTest {
         .perform(
             get("/stocks/action-form")
                 .with(user("testuser"))
-                .param("itemExternalId", ITEM_ID.toString())
+                .param("item", ITEM_ID.toString())
                 .param("itemName", "테스트 품목")
-                .param("spaceExternalId", SPACE_ID.toString()))
+                .param("space", SPACE_ID.toString()))
         .andExpect(status().isOk())
         .andExpect(view().name("stocks/fragments/action-modal :: modal"));
   }
@@ -342,8 +339,8 @@ class StockControllerTest extends AbstractControllerTest {
         .perform(
             get("/stocks/in-form")
                 .with(user("testuser"))
-                .param("itemExternalId", ITEM_ID.toString())
-                .param("spaceExternalId", SPACE_ID.toString()))
+                .param("item", ITEM_ID.toString())
+                .param("space", SPACE_ID.toString()))
         .andExpect(status().isOk())
         .andExpect(view().name("stocks/fragments/in-modal :: modal"));
   }
@@ -355,8 +352,8 @@ class StockControllerTest extends AbstractControllerTest {
         .perform(
             get("/stocks/out-form")
                 .with(user("testuser"))
-                .param("itemExternalId", ITEM_ID.toString())
-                .param("spaceExternalId", SPACE_ID.toString()))
+                .param("item", ITEM_ID.toString())
+                .param("space", SPACE_ID.toString()))
         .andExpect(status().isOk())
         .andExpect(view().name("stocks/fragments/out-modal :: modal"));
   }
@@ -415,8 +412,8 @@ class StockControllerTest extends AbstractControllerTest {
             delete("/stocks")
                 .with(user("testuser"))
                 .with(csrf())
-                .param("itemExternalId", ITEM_ID.toString())
-                .param("spaceExternalId", SPACE_ID.toString()))
+                .param("item", ITEM_ID.toString())
+                .param("space", SPACE_ID.toString()))
         .andExpect(status().isOk())
         .andExpect(view().name("stocks/fragments/panel :: stock-panel-response"))
         .andExpect(hasToastTrigger());
