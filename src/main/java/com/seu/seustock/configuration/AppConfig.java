@@ -1,7 +1,5 @@
 package com.seu.seustock.configuration;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.Executor;
@@ -11,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -57,15 +54,9 @@ public class AppConfig {
   }
 
   // Java 직렬화 대신 JSON 직렬화로 배포 간 세션 호환성 확보
-  // GenericJackson2JsonRedisSerializer 대신 default typing ObjectMapper 사용 (Spring Data Redis 4.x 권장)
   @Bean
   public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.activateDefaultTyping(
-        mapper.getPolymorphicTypeValidator(),
-        ObjectMapper.DefaultTyping.NON_FINAL,
-        JsonTypeInfo.As.PROPERTY);
-    return new Jackson2JsonRedisSerializer<>(mapper, Object.class);
+    return RedisSerializer.json();
   }
 
   @Bean(name = "aiAnalysisExecutor")
