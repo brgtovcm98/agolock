@@ -3,7 +3,6 @@ package com.seu.seustock.service;
 import com.seu.seustock.mapper.*;
 import com.seu.seustock.model.dto.*;
 import com.seu.seustock.model.enumeration.StockStatus;
-import com.seu.seustock.model.enumeration.TrackingMode;
 import com.seu.seustock.model.enumeration.TransactionMemoMaster;
 import com.seu.seustock.model.enumeration.TransactionType;
 import com.seu.seustock.model.form.QuickStockForm;
@@ -13,14 +12,9 @@ import com.seu.seustock.model.form.StockMoveForm;
 import com.seu.seustock.model.form.StockUpdateForm;
 import com.seu.seustock.model.pagination.PageRequest;
 import com.seu.seustock.model.pagination.PageResult;
-import java.time.Clock;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -38,40 +32,14 @@ public class StockService {
   private final StockMapper stockMapper;
   private final StockTransactionMapper transactionMapper;
   private final ItemMapper itemMapper;
-  private final ItemLotMapper itemLotMapper;
   private final ItemImageMapper itemImageMapper;
-  private final SpaceMapper spaceMapper;
-  private final ShelfMapper shelfMapper;
-  private final BoxMapper boxMapper;
   private final UserMapper userMapper;
   private final ImageStorageService imageStorageService;
-  private final SerialNumberGenerator serialNumberGenerator;
-  private final LotNumberGenerator lotNumberGenerator;
-  private final Clock clock;
+  private final StockLocationVerifier locationVerifier;
+  private final StockInboundPreparer inboundPreparer;
+  private final StockTransactionRecorder transactionRecorder;
   private final MessageSource messageSource;
   private static final int MEMO_SUGGESTION_LIMIT = 4;
-  private static final int MAX_INBOUND_COUNT = 50;
-
-  private record VerifiedLocation(SpaceDTO space, ShelfDTO shelf, BoxDTO box) {
-    Long shelfId() {
-      return shelf == null ? null : shelf.getId();
-    }
-
-    Long boxId() {
-      return box == null ? null : box.getId();
-    }
-  }
-
-  private record LotResolution(Long lotId, String lotNumber, LocalDate expirationDate) {}
-
-  private record InboundSpec(
-      int count,
-      String serialNumber,
-      String serialNumbersText,
-      String lotNumber,
-      LocalDate expirationDate,
-      java.math.BigDecimal price,
-      String memo) {}
 
   private String getMsg(String key, Object... args) {
     return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
@@ -84,7 +52,7 @@ public class StockService {
   public PageResult<StockPanelDTO> findPanelPageBySpace(
       UUID spaceExternalId, String username, Integer page) {
     UserDTO user = getUser(username);
-    SpaceDTO space = getVerifiedSpace(spaceExternalId, user);
+    SpaceDTO space = locationVerifier.getVerifiedSpace(spaceExternalId, user);
     int totalCount = stockMapper.countPanelBySpaceDirectOnly(space.getId());
     PageRequest pageRequest = PageRequest.of(page, totalCount);
     List<StockPanelDTO> stocks =
@@ -101,7 +69,7 @@ public class StockService {
   public PageResult<StockPanelDTO> findPanelPageBySpaceAll(
       UUID spaceExternalId, String keyword, String sortBy, String username, Integer page) {
     UserDTO user = getUser(username);
-    SpaceDTO space = getVerifiedSpace(spaceExternalId, user);
+    SpaceDTO space = locationVerifier.getVerifiedSpace(spaceExternalId, user);
     String effectiveKeyword = normalizeKeyword(keyword);
     int totalCount = stockMapper.countPanelBySpaceAllWithOptions(space.getId(), effectiveKeyword);
     PageRequest pageRequest = PageRequest.of(page, totalCount);
@@ -123,14 +91,9 @@ public class StockService {
   public PageResult<StockPanelDTO> findPanelPageByShelf(
       UUID spaceExternalId, UUID shelfExternalId, String username, Integer page) {
     UserDTO user = getUser(username);
-    SpaceDTO space = getVerifiedSpace(spaceExternalId, user);
-    ShelfDTO shelf =
-        shelfMapper
-            .findByExternalId(shelfExternalId)
-            .orElseThrow(() -> new NoSuchElementException(getMsg("error.shelf.notFound")));
-    if (!shelf.getSpaceId().equals(space.getId())) {
-      throw new SecurityException(getMsg("error.403.title"));
-    }
+    VerifiedStockLocation location =
+        locationVerifier.resolve(spaceExternalId, shelfExternalId, null, user);
+    ShelfDTO shelf = location.shelf();
     int totalCount = stockMapper.countPanelByShelfDirectOnly(shelf.getId());
     PageRequest pageRequest = PageRequest.of(page, totalCount);
     List<StockPanelDTO> stocks =
@@ -152,21 +115,9 @@ public class StockService {
       String username,
       Integer page) {
     UserDTO user = getUser(username);
-    SpaceDTO space = getVerifiedSpace(spaceExternalId, user);
-    ShelfDTO shelf =
-        shelfMapper
-            .findByExternalId(shelfExternalId)
-            .orElseThrow(() -> new NoSuchElementException(getMsg("error.shelf.notFound")));
-    if (!shelf.getSpaceId().equals(space.getId())) {
-      throw new SecurityException(getMsg("error.403.title"));
-    }
-    BoxDTO box =
-        boxMapper
-            .findByExternalId(boxExternalId)
-            .orElseThrow(() -> new NoSuchElementException(getMsg("error.box.notFound")));
-    if (!box.getShelfId().equals(shelf.getId())) {
-      throw new SecurityException(getMsg("error.403.title"));
-    }
+    VerifiedStockLocation location =
+        locationVerifier.resolve(spaceExternalId, shelfExternalId, boxExternalId, user);
+    BoxDTO box = location.box();
     int totalCount = stockMapper.countPanelByBoxId(box.getId());
     PageRequest pageRequest = PageRequest.of(page, totalCount);
     List<StockPanelDTO> stocks =
@@ -288,15 +239,15 @@ public class StockService {
   public void create(StockForm form, String username) {
     UserDTO user = getUser(username);
     ItemDTO item = getVerifiedItem(form.getItemExternalId(), user);
-    VerifiedLocation location =
-        resolveVerifiedLocation(
+    VerifiedStockLocation location =
+        locationVerifier.resolve(
             form.getSpaceExternalId(), form.getShelfExternalId(), form.getBoxExternalId(), user);
 
     List<StockDTO> units =
-        prepareInboundUnits(
+        inboundPreparer.prepareInboundUnits(
             item,
             location,
-            new InboundSpec(
+            new StockInboundSpec(
                 form.getCount(),
                 form.getSerialNumber(),
                 form.getSerialNumbersText(),
@@ -306,7 +257,7 @@ public class StockService {
                 form.getMemo()));
 
     String memo = form.getMemo() != null ? form.getMemo() : getMsg("stock.memo.initial");
-    insertInboundTransactions(units, memo);
+    transactionRecorder.recordInbound(units, memo);
     log.info(
         "stock units created userId={} itemId={} spaceId={} shelfId={} boxId={} count={}",
         user.getId(),
@@ -329,18 +280,18 @@ public class StockService {
     itemMapper.insertItem(item);
     attachPrimaryImageIfPresent(item.getId(), user, form);
 
-    VerifiedLocation location =
-        resolveVerifiedLocation(
+    VerifiedStockLocation location =
+        locationVerifier.resolve(
             form.getSpaceExternalId(), form.getShelfExternalId(), form.getBoxExternalId(), user);
 
     List<StockDTO> units =
-        prepareInboundUnits(
+        inboundPreparer.prepareInboundUnits(
             item,
             location,
-            new InboundSpec(form.getCount(), null, null, null, null, null, form.getMemo()));
+            new StockInboundSpec(form.getCount(), null, null, null, null, null, form.getMemo()));
 
     String memo = form.getMemo() != null ? form.getMemo() : getMsg("stock.memo.quick");
-    insertInboundTransactions(units, memo);
+    transactionRecorder.recordInbound(units, memo);
     log.info(
         "quick stock created userId={} itemId={} spaceId={} shelfId={} boxId={} count={}",
         user.getId(),
@@ -355,15 +306,15 @@ public class StockService {
   public void addUnits(StockInOutForm form, String username) {
     UserDTO user = getUser(username);
     ItemDTO item = getVerifiedItem(form.getItemExternalId(), user);
-    VerifiedLocation location =
-        resolveVerifiedLocation(
+    VerifiedStockLocation location =
+        locationVerifier.resolve(
             form.getSpaceExternalId(), form.getShelfExternalId(), form.getBoxExternalId(), user);
 
     List<StockDTO> units =
-        prepareInboundUnits(
+        inboundPreparer.prepareInboundUnits(
             item,
             location,
-            new InboundSpec(
+            new StockInboundSpec(
                 form.getCount(),
                 null,
                 form.getSerialNumbersText(),
@@ -372,7 +323,7 @@ public class StockService {
                 form.getPrice(),
                 form.getMemo()));
 
-    insertInboundTransactions(units, form.getMemo());
+    transactionRecorder.recordInbound(units, form.getMemo());
     log.info(
         "stock units added userId={} itemId={} spaceId={} shelfId={} boxId={} count={}",
         user.getId(),
@@ -387,8 +338,8 @@ public class StockService {
   public void dispatchUnits(StockInOutForm form, String username) {
     UserDTO user = getUser(username);
     ItemDTO item = getVerifiedItem(form.getItemExternalId(), user);
-    VerifiedLocation location =
-        resolveVerifiedLocation(
+    VerifiedStockLocation location =
+        locationVerifier.resolve(
             form.getSpaceExternalId(), form.getShelfExternalId(), form.getBoxExternalId(), user);
 
     List<StockDTO> units;
@@ -427,11 +378,7 @@ public class StockService {
         throw new IllegalStateException(getMsg("error.stock.statusChanged"));
       }
 
-      StockTransactionDTO tx = new StockTransactionDTO();
-      tx.setStockId(unit.getId());
-      tx.setTransactionType(TransactionType.OUT);
-      tx.setMemo(form.getMemo());
-      transactionMapper.insertTransaction(tx);
+      transactionRecorder.recordOutbound(unit, form.getMemo());
     }
     log.info(
         "stock units dispatched userId={} itemId={} spaceId={} shelfId={} boxId={} count={} includeKept={}",
@@ -473,11 +420,7 @@ public class StockService {
       throw new NoSuchElementException(getMsg("error.stock.notFound"));
     }
 
-    StockTransactionDTO tx = new StockTransactionDTO();
-    tx.setStockId(stock.getId());
-    tx.setTransactionType(TransactionType.ADJUST);
-    tx.setMemo(kept ? "보관 설정" : "보관 해제");
-    transactionMapper.insertTransaction(tx);
+    transactionRecorder.recordAdjustment(stock.getId(), kept ? "보관 설정" : "보관 해제");
 
     log.info(
         "stock keep status updated userId={} stockExternalId={} kept={}",
@@ -517,12 +460,10 @@ public class StockService {
       throw new NoSuchElementException(getMsg("error.stock.notFound"));
     }
 
-    StockTransactionDTO tx = new StockTransactionDTO();
-    tx.setStockId(stock.getId());
-    tx.setTransactionType(
-        status == StockStatus.DISPATCHED ? TransactionType.OUT : TransactionType.ADJUST);
-    tx.setMemo((memo != null && !memo.isBlank()) ? memo.strip() : status.getLabel());
-    transactionMapper.insertTransaction(tx);
+    transactionRecorder.recordStatusChange(
+        stock.getId(),
+        status == StockStatus.DISPATCHED ? TransactionType.OUT : TransactionType.ADJUST,
+        (memo != null && !memo.isBlank()) ? memo.strip() : status.getLabel());
 
     log.info(
         "stock status changed userId={} stockExternalId={} status={}",
@@ -545,20 +486,20 @@ public class StockService {
   @Transactional
   public void moveUnits(StockMoveForm form, String username) {
     UserDTO user = getUser(username);
-    VerifiedLocation source =
-        resolveVerifiedLocation(
+    VerifiedStockLocation source =
+        locationVerifier.resolve(
             form.getSourceSpaceExternalId(),
             form.getSourceShelfExternalId(),
             form.getSourceBoxExternalId(),
             user);
-    VerifiedLocation target =
-        resolveVerifiedLocation(
+    VerifiedStockLocation target =
+        locationVerifier.resolve(
             form.getTargetSpaceExternalId(),
             form.getTargetShelfExternalId(),
             form.getTargetBoxExternalId(),
             user);
 
-    if (isSameLocation(source, target)) {
+    if (locationVerifier.isSameLocation(source, target)) {
       log.warn(
           "stock move rejected userId={} reason=same_location spaceId={} shelfId={} boxId={}",
           user.getId(),
@@ -600,17 +541,7 @@ public class StockService {
       movedUnitCount += updated;
 
       for (StockDTO unit : selected) {
-        StockTransactionDTO tx = new StockTransactionDTO();
-        tx.setStockId(unit.getId());
-        tx.setTransactionType(TransactionType.MOVE);
-        tx.setFromSpaceId(source.space().getId());
-        tx.setFromShelfId(source.shelfId());
-        tx.setFromBoxId(source.boxId());
-        tx.setToSpaceId(target.space().getId());
-        tx.setToShelfId(target.shelfId());
-        tx.setToBoxId(target.boxId());
-        tx.setMemo(form.getMemo());
-        transactionMapper.insertTransaction(tx);
+        transactionRecorder.recordMove(unit, source, target, form.getMemo());
       }
     }
     log.info(
@@ -635,8 +566,8 @@ public class StockService {
       String username) {
     UserDTO user = getUser(username);
     ItemDTO item = getVerifiedItem(itemExternalId, user);
-    VerifiedLocation location =
-        resolveVerifiedLocation(spaceExternalId, shelfExternalId, boxExternalId, user);
+    VerifiedStockLocation location =
+        locationVerifier.resolve(spaceExternalId, shelfExternalId, boxExternalId, user);
 
     if (location.box() != null) {
       stockMapper.deleteInStockByItemAndBox(item.getId(), location.box().getId());
@@ -691,54 +622,7 @@ public class StockService {
     }
   }
 
-  private VerifiedLocation resolveVerifiedLocation(
-      UUID spaceExternalId, UUID shelfExternalId, UUID boxExternalId, UserDTO user) {
-    SpaceDTO space = getVerifiedSpace(spaceExternalId, user);
-    ShelfDTO shelf = null;
-    BoxDTO box = null;
-
-    if (boxExternalId != null && shelfExternalId == null) {
-      log.warn(
-          "location rejected userId={} reason=box_requires_shelf boxExternalId={}",
-          user.getId(),
-          boxExternalId);
-      throw new IllegalArgumentException(getMsg("error.box.requiresShelf"));
-    }
-
-    if (shelfExternalId != null) {
-      shelf =
-          shelfMapper
-              .findByExternalId(shelfExternalId)
-              .orElseThrow(() -> new NoSuchElementException(getMsg("error.shelf.notFound")));
-      if (!shelf.getSpaceId().equals(space.getId())) {
-        log.warn(
-            "access denied userId={} resource=shelf resourceId={} spaceId={}",
-            user.getId(),
-            shelf.getId(),
-            space.getId());
-        throw new SecurityException(getMsg("error.403.title"));
-      }
-    }
-
-    if (boxExternalId != null) {
-      box =
-          boxMapper
-              .findByExternalId(boxExternalId)
-              .orElseThrow(() -> new NoSuchElementException(getMsg("error.box.notFound")));
-      if (!box.getShelfId().equals(shelf.getId())) {
-        log.warn(
-            "access denied userId={} resource=box resourceId={} shelfId={}",
-            user.getId(),
-            box.getId(),
-            shelf.getId());
-        throw new SecurityException(getMsg("error.403.title"));
-      }
-    }
-
-    return new VerifiedLocation(space, shelf, box);
-  }
-
-  private List<StockDTO> findInStockUnits(Long itemId, VerifiedLocation location) {
+  private List<StockDTO> findInStockUnits(Long itemId, VerifiedStockLocation location) {
     if (location.box() != null) {
       return stockMapper.findInStockByItemAndBox(itemId, location.box().getId());
     }
@@ -746,174 +630,6 @@ public class StockService {
       return stockMapper.findInStockByItemAndShelf(itemId, location.shelf().getId());
     }
     return stockMapper.findInStockByItemAndSpace(itemId, location.space().getId());
-  }
-
-  private List<StockDTO> prepareInboundUnits(
-      ItemDTO item, VerifiedLocation location, InboundSpec spec) {
-    List<String> serialNumbers = resolveSerialNumbers(item, spec);
-    TrackingMode serialMode =
-        item.getSerialMode() == null ? TrackingMode.NONE : item.getSerialMode();
-    int count = serialMode == TrackingMode.MANUAL ? serialNumbers.size() : spec.count();
-    validateInboundCount(count);
-    LotResolution lot = resolveLot(item, spec);
-    List<StockDTO> units = new ArrayList<>(count);
-    for (int i = 0; i < count; i++) {
-      StockDTO unit = new StockDTO();
-      unit.setItemId(item.getId());
-      unit.setSpaceId(location.space().getId());
-      unit.setShelfId(location.shelfId());
-      unit.setBoxId(location.boxId());
-      unit.setLotId(lot.lotId());
-      unit.setLotNumber(lot.lotNumber());
-      unit.setExpirationDate(lot.expirationDate());
-      unit.setSerialNumber(serialNumbers.get(i));
-      unit.setPrice(spec.price());
-      unit.setMemo(spec.memo());
-      units.add(unit);
-    }
-    stockMapper.insertStocks(units);
-    return units;
-  }
-
-  private List<String> resolveSerialNumbers(ItemDTO item, InboundSpec spec) {
-    TrackingMode mode = item.getSerialMode() == null ? TrackingMode.NONE : item.getSerialMode();
-    if (mode == TrackingMode.NONE) {
-      List<String> serialNumbers = new ArrayList<>(spec.count());
-      String singleSerial = blankToNull(spec.serialNumber());
-      for (int i = 0; i < spec.count(); i++) {
-        serialNumbers.add(spec.count() == 1 ? singleSerial : null);
-      }
-      if (singleSerial != null) {
-        rejectExistingSerials(item.getId(), List.of(singleSerial));
-      }
-      return serialNumbers;
-    }
-    if (mode == TrackingMode.MANUAL) {
-      List<String> serialNumbers = parseManualSerials(spec.serialNumbersText());
-      validateInboundCount(serialNumbers.size());
-      rejectDuplicateSerials(serialNumbers);
-      rejectExistingSerials(item.getId(), serialNumbers);
-      return serialNumbers;
-    }
-    validateInboundCount(spec.count());
-    SerialNumberGenerator.Result result =
-        serialNumberGenerator.generate(
-            item.getSerialPrefix(),
-            item.getSerialPaddingLength(),
-            item.getSerialIncrementUnit(),
-            item.getSerialNextSequence(),
-            spec.count());
-    rejectExistingSerials(item.getId(), result.serialNumbers());
-    itemMapper.updateSerialNextSequence(item.getId(), result.nextSequence());
-    return result.serialNumbers();
-  }
-
-  private LotResolution resolveLot(ItemDTO item, InboundSpec spec) {
-    TrackingMode mode = item.getLotMode() == null ? TrackingMode.NONE : item.getLotMode();
-    if (mode == TrackingMode.NONE) {
-      String legacyLotNumber = blankToNull(spec.lotNumber());
-      LocalDate expirationDate = resolveExpirationDate(item, spec.expirationDate());
-      return new LotResolution(null, legacyLotNumber, expirationDate);
-    }
-    String lotNumber;
-    if (mode == TrackingMode.AUTO) {
-      LotNumberGenerator.Result generated = lotNumberGenerator.generate(item, LocalDate.now(clock));
-      lotNumber = generated.lotNumber();
-      itemMapper.updateLotSequence(item.getId(), generated.sequenceKey(), generated.nextSequence());
-    } else {
-      lotNumber = blankToNull(spec.lotNumber());
-      if (lotNumber == null) {
-        throw new IllegalArgumentException(getMsg("error.lot.numberRequired"));
-      }
-    }
-    ItemLotDTO lot =
-        itemLotMapper
-            .findByItemIdAndLotNumber(item.getId(), lotNumber)
-            .orElseGet(() -> createLot(item, lotNumber, spec.expirationDate()));
-    return new LotResolution(lot.getId(), lot.getLotNumber(), lot.getExpirationDate());
-  }
-
-  private ItemLotDTO createLot(ItemDTO item, String lotNumber, LocalDate formExpirationDate) {
-    ItemLotDTO lot = new ItemLotDTO();
-    lot.setItemId(item.getId());
-    lot.setLotNumber(lotNumber);
-    lot.setExpirationDate(resolveExpirationDate(item, formExpirationDate));
-    itemLotMapper.insertLot(lot);
-    return itemLotMapper.findById(lot.getId()).orElse(lot);
-  }
-
-  private LocalDate resolveExpirationDate(ItemDTO item, LocalDate formExpirationDate) {
-    if (item.getExpirationPeriodDays() != null) {
-      return LocalDate.now(clock).plusDays(item.getExpirationPeriodDays());
-    }
-    return formExpirationDate;
-  }
-
-  private List<String> parseManualSerials(String serialNumbersText) {
-    if (serialNumbersText == null || serialNumbersText.isBlank()) {
-      throw new IllegalArgumentException(getMsg("error.serial.required"));
-    }
-    return serialNumbersText.lines().map(String::trim).filter(line -> !line.isBlank()).toList();
-  }
-
-  private void validateInboundCount(int count) {
-    if (count < 1 || count > MAX_INBOUND_COUNT) {
-      throw new IllegalArgumentException(getMsg("error.stock.countRange", MAX_INBOUND_COUNT));
-    }
-  }
-
-  private void rejectDuplicateSerials(List<String> serialNumbers) {
-    Set<String> seen = new HashSet<>();
-    for (String serialNumber : serialNumbers) {
-      if (!seen.add(serialNumber)) {
-        throw new IllegalArgumentException(getMsg("error.serial.duplicate", serialNumber));
-      }
-    }
-  }
-
-  private void rejectExistingSerials(Long itemId, List<String> serialNumbers) {
-    List<String> nonBlankSerials =
-        serialNumbers.stream()
-            .filter(Objects::nonNull)
-            .filter(serial -> !serial.isBlank())
-            .toList();
-    if (nonBlankSerials.isEmpty()) {
-      return;
-    }
-    List<String> existing = stockMapper.findExistingSerialNumbers(itemId, nonBlankSerials);
-    if (!existing.isEmpty()) {
-      throw new IllegalArgumentException(getMsg("error.serial.exists", existing.get(0)));
-    }
-  }
-
-  private void insertInboundTransactions(List<StockDTO> units, String memo) {
-    List<StockTransactionDTO> txs = new ArrayList<>(units.size());
-    for (StockDTO unit : units) {
-      StockTransactionDTO tx = new StockTransactionDTO();
-      tx.setStockId(unit.getId());
-      tx.setTransactionType(TransactionType.IN);
-      tx.setMemo(memo);
-      txs.add(tx);
-    }
-    transactionMapper.insertTransactions(txs);
-  }
-
-  private boolean isSameLocation(VerifiedLocation source, VerifiedLocation target) {
-    return Objects.equals(source.space().getId(), target.space().getId())
-        && Objects.equals(source.shelfId(), target.shelfId())
-        && Objects.equals(source.boxId(), target.boxId());
-  }
-
-  private SpaceDTO getVerifiedSpace(UUID spaceExternalId, UserDTO user) {
-    SpaceDTO space =
-        spaceMapper
-            .findByExternalId(spaceExternalId)
-            .orElseThrow(() -> new NoSuchElementException(getMsg("error.space.notFound")));
-    if (!space.getUserId().equals(user.getId())) {
-      log.warn("access denied userId={} resource=space resourceId={}", user.getId(), space.getId());
-      throw new SecurityException(getMsg("error.403.title"));
-    }
-    return space;
   }
 
   private UserDTO getUser(String username) {

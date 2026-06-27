@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -77,7 +76,10 @@ class StockServiceTest {
   @Spy
   private Clock clock = Clock.fixed(Instant.parse("2026-05-31T00:00:00Z"), ZoneId.systemDefault());
 
-  @InjectMocks private StockService stockService;
+  private StockLocationVerifier locationVerifier;
+  private StockInboundPreparer inboundPreparer;
+  private StockTransactionRecorder transactionRecorder;
+  private StockService stockService;
 
   private UserDTO user;
   private ItemDTO item;
@@ -120,6 +122,31 @@ class StockServiceTest {
     otherShelfBox = box(10001L, OTHER_BOX_EXTERNAL_ID, otherSpaceShelf.getId());
 
     when(userMapper.findByEmail(USERNAME)).thenReturn(Optional.of(user));
+
+    locationVerifier =
+        new StockLocationVerifier(spaceMapper, shelfMapper, boxMapper, messageSource);
+    inboundPreparer =
+        new StockInboundPreparer(
+            stockMapper,
+            itemMapper,
+            itemLotMapper,
+            serialNumberGenerator,
+            lotNumberGenerator,
+            clock,
+            messageSource);
+    transactionRecorder = new StockTransactionRecorder(transactionMapper);
+    stockService =
+        new StockService(
+            stockMapper,
+            transactionMapper,
+            itemMapper,
+            itemImageMapper,
+            userMapper,
+            imageStorageService,
+            locationVerifier,
+            inboundPreparer,
+            transactionRecorder,
+            messageSource);
   }
 
   @Test
