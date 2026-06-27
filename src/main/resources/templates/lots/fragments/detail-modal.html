@@ -3,9 +3,10 @@
 <body>
 
 <div th:fragment="modal"
+     th:if="${lotSerialEnabled}"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
         <div class="mb-4 flex items-start justify-between gap-3">
             <div>
                 <h2 class="text-lg font-semibold text-slate-800" th:text="#{view.lot.detail.title}">로트 상세</h2>

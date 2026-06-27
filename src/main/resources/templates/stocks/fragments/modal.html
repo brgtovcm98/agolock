@@ -32,8 +32,6 @@
                     <label th:each="item : ${items}"
                            class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer">
                         <input type="radio" name="itemExternalId" th:value="${item.externalId}"
-                               th:data-serial-mode="${item.serialMode}"
-                               th:data-lot-mode="${item.lotMode}"
                                class="text-blue-600 focus:ring-blue-500">
                         <img th:if="${item.primaryImageExternalId != null}"
                              th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
@@ -146,7 +144,7 @@
         </div>
     </div>
 
-    <script>
+    <script th:if="${lotSerialEnabled}">
     (function () {
         var modal = document.getElementById('modal');
         if (!modal) return;

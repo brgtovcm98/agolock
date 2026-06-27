@@ -5,8 +5,8 @@
 <!-- 단위(unit) 이력 타임라인 모달 -->
 <div th:fragment="modal"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[80vh] flex flex-col">
+     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[80vh] flex flex-col">
 
         <div class="flex items-start justify-between mb-4">
             <div class="min-w-0">
@@ -14,11 +14,11 @@
                     <span th:text="#{view.stock.history.title(${stock.itemName})}">단위 이력</span>
                 </h2>
                 <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
-                    <span th:if="${stock.serialNumber != null and !stock.serialNumber.isEmpty()}">
+                    <span th:if="${lotSerialEnabled and stock.serialNumber != null and !stock.serialNumber.isEmpty()}">
                         <span class="text-slate-300">SN</span>
                         <span class="text-slate-500" th:text="${stock.serialNumber}"></span>
                     </span>
-                    <span th:if="${stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
+                    <span th:if="${lotSerialEnabled and stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
                         <span class="text-slate-300">LOT</span>
                         <span class="text-slate-500" th:text="${stock.lotNumber}"></span>
                     </span>
