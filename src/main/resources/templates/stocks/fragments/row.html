@@ -6,7 +6,7 @@
   view: 패널 내 각 재고 카드 렌더링용 (panel.html에서 th:each로 호출)
         stock 파라미터를 받아 렌더링. 위치 변수(spaceExternalId 등)는 모델에서 자동 참조.
 -->
-<div th:fragment="view(stock)"
+<div th:fragment="view(stock)" data-component-id="stocks.panel-row"
      th:id="'item-' + ${stock.itemExternalId}"
      th:data-item-external-id="${stock.itemExternalId}"
      th:data-current-count="${stock.count}"

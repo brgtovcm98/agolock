@@ -26,6 +26,7 @@
 
                 container = document.createElement('div');
                 container.id = 'toast-container';
+                container.setAttribute('data-component-id', 'feedback.toast-container');
                 container.className = 'fixed right-4 top-4 z-60 flex toast-width flex-col gap-2';
                 document.body.appendChild(container);
                 return container;
@@ -36,6 +37,7 @@
                 var type = detail && detail.type ? detail.type : 'success';
                 var isError = type === 'error';
                 var toast = document.createElement('div');
+                toast.setAttribute('data-component-id', 'feedback.toast');
                 toast.className = 'rounded-lg border px-4 py-3 text-sm shadow-xl transition flex items-center gap-2 ' +
                     (isError
                         ? 'border-red-200 bg-red-50 text-red-700'
@@ -110,7 +112,7 @@
 </head>
 
 <!--/* 공통 네비게이션 바 */-->
-<nav th:fragment="nav" class="border-b border-slate-200 bg-white">
+<nav th:fragment="nav" data-component-id="layout.nav" class="border-b border-slate-200 bg-white">
     <div class="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
         <a href="/" class="text-lg font-semibold text-slate-800 tracking-tight">SeuStock</a>
 
@@ -183,7 +185,7 @@
 </nav>
 
 <!--/* 공통 푸터 */-->
-<footer th:fragment="footer" class="border-t border-slate-200 bg-white mt-auto">
+<footer th:fragment="footer" data-component-id="layout.footer" class="border-t border-slate-200 bg-white mt-auto">
     <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between">
         <div class="flex flex-col gap-2">
             <p class="text-sm text-slate-500">

@@ -15,10 +15,10 @@
 </th:block>
 
 <th:block th:fragment="shelf-list-response">
-    <ul id="shelf-list" hx-swap-oob="true">
+    <ul id="shelf-list" data-component-id="space-detail.shelf-list-response" hx-swap-oob="true">
         <th:block th:replace="~{:: shelf-list-content}"></th:block>
     </ul>
-    <div id="modal"></div>
+    <div id="modal" data-component-id="space-detail.modal-mount"></div>
 </th:block>
 
 </body>

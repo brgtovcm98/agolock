@@ -2,7 +2,7 @@
 <html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<li th:fragment="tree-item(box, space, shelf)"
+<li th:fragment="tree-item(box, space, shelf)" data-component-id="boxes.tree-item"
     th:id="'box-' + ${box.externalId}"
     class="tree-item-container flex items-center gap-1 px-3 py-2.5 hover:bg-slate-50 active:bg-slate-200 transition cursor-pointer group">
 

@@ -4,7 +4,7 @@
 
 <!-- 상태 변경 모달 -->
 <div th:fragment="modal"
-     id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     id="modal" data-component-id="stocks.modal.status" role="dialog" aria-modal="true" aria-labelledby="modal-title"
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
@@ -47,7 +47,7 @@
 </div>
 
 <!-- 변경 완료: 행 제거 + 모달 닫기 -->
-<th:block th:fragment="removed"><div id="modal" hx-swap-oob="true"></div></th:block>
+<th:block th:fragment="removed"><div id="modal" data-component-id="stocks.modal-mount" hx-swap-oob="true"></div></th:block>
 
 </body>
 </html>

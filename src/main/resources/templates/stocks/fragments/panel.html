@@ -9,7 +9,7 @@
 -->
 
 <th:block th:fragment="stock-panel-response">
-    <div id="modal" hx-swap-oob="true"></div>
+    <div id="modal" data-component-id="stocks.modal-mount" hx-swap-oob="true"></div>
     <div id="stock-panel" class="rounded-lg border border-slate-200 bg-white overflow-hidden">
         <th:block th:replace="~{:: panel-content}"></th:block>
     </div>
@@ -17,6 +17,7 @@
 
 <div th:fragment="stock-panel"
      id="stock-panel"
+     data-component-id="stocks.panel"
      class="rounded-lg border border-slate-200 bg-white overflow-hidden">
     <th:block th:replace="~{:: panel-content}"></th:block>
 </div>
@@ -144,7 +145,7 @@
 
     </div>
 
-    <div id="stock-panel-more" th:fragment="stock-panel-more" class="border-t border-slate-100 px-4 py-3 text-center">
+    <div id="stock-panel-more" data-component-id="stocks.panel-more" th:fragment="stock-panel-more" class="border-t border-slate-100 px-4 py-3 text-center">
         <button th:if="${page.hasNext() and isAllView}"
                 th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
                 hx-target="#stock-panel-more"

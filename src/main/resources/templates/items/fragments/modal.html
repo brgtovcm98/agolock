@@ -3,7 +3,7 @@
 <body>
 
 <div th:fragment="modal"
-     id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     id="modal" data-component-id="items.modal.create" role="dialog" aria-modal="true" aria-labelledby="modal-title"
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
@@ -239,7 +239,7 @@
         <div th:replace="~{items/fragments/card :: view}"></div>
     </div>
     <p id="item-empty-msg" hx-swap-oob="true"></p>
-    <div id="modal"></div>
+    <div id="modal" data-component-id="items.modal-mount"></div>
 </th:block>
 
 </body>

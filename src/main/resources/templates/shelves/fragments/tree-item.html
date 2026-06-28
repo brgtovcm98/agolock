@@ -2,7 +2,7 @@
 <html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<li th:fragment="tree-item(shelf, space)"
+<li th:fragment="tree-item(shelf, space)" data-component-id="shelves.tree-item"
     th:id="'shelf-' + ${shelf.externalId}"
     class="border-b border-slate-100 last:border-0">
 
@@ -60,7 +60,7 @@
     </div>
 
     <!-- Box 목록 컨테이너 (HTMX가 innerHTML로 채움) -->
-    <ul th:id="'box-list-' + ${shelf.externalId}"
+    <ul data-component-id="shelves.box-list" th:id="'box-list-' + ${shelf.externalId}"
         class="hidden ml-4 border-l border-slate-100">
     </ul>
 

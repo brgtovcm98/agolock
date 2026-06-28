@@ -7,9 +7,9 @@
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
-<div id="modal"></div>
+<div id="modal" data-component-id="space-detail.modal-mount"></div>
 
-<main class="page-main mx-auto w-full max-w-5xl px-4 py-10 flex-1">
+<main data-component-id="page.space-detail" class="page-main mx-auto w-full max-w-5xl px-4 py-10 flex-1">
 
     <!-- 헤더 -->
     <div class="mb-6 flex items-center gap-2 text-sm text-slate-500">
@@ -34,7 +34,7 @@
                 </button>
             </div>
 
-            <ul id="shelf-list" th:fragment="shelf-list">
+            <ul id="shelf-list" data-component-id="space-detail.shelf-list" th:fragment="shelf-list">
                 <th:block th:replace="~{spaces/fragments/shelf-list-response :: shelf-list-content}"></th:block>
             </ul>
 
@@ -64,6 +64,7 @@
         <!-- 오른쪽: 재고 패널 -->
         <div class="w-full lg:flex-1 lg:min-w-0">
             <div id="stock-panel"
+                 data-component-id="space-detail.stock-panel-mount"
                  th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space})}"
                  hx-trigger="load"
                  hx-swap="outerHTML">

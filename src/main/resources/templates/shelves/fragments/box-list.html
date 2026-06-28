@@ -24,19 +24,19 @@
     </th:block>
 </th:block>
 
-<ul th:fragment="box-list-container"
+<ul th:fragment="box-list-container" data-component-id="shelves.box-list-container"
     th:id="'box-list-' + ${shelf.externalId}"
     class="ml-4 border-l border-slate-100">
     <th:block th:replace="~{:: box-list-content}"></th:block>
 </ul>
 
 <th:block th:fragment="box-list-response">
-    <ul th:id="'box-list-' + ${shelf.externalId}"
+    <ul data-component-id="shelves.box-list-response" th:id="'box-list-' + ${shelf.externalId}"
         class="ml-4 border-l border-slate-100"
         hx-swap-oob="true">
         <th:block th:replace="~{:: box-list-content}"></th:block>
     </ul>
-    <div id="modal"></div>
+    <div id="modal" data-component-id="shelves.modal-mount"></div>
 </th:block>
 
 </body>

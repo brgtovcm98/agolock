@@ -3,7 +3,7 @@
 <body>
 
 <!-- 새 박스 행 -->
-<li th:fragment="created"
+<li th:fragment="created" data-component-id="boxes.tree-item.created"
     th:id="'box-' + ${box.externalId}"
     class="flex items-center gap-1 px-3 py-1.5 hover:bg-slate-50 transition cursor-pointer group">
 
@@ -35,7 +35,7 @@
 </li>
 
 <!-- OOB: 모달 닫기 -->
-<div id="modal" hx-swap-oob="true"></div>
+<div id="modal" data-component-id="boxes.modal-mount" hx-swap-oob="true"></div>
 
 </body>
 </html>

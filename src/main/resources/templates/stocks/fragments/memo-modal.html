@@ -4,7 +4,7 @@
 
 <!-- 메모 보기 모달 -->
 <div th:fragment="view(stock)"
-     id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     id="modal" data-component-id="stocks.modal.memo-view" role="dialog" aria-modal="true" aria-labelledby="modal-title"
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
         
@@ -42,6 +42,7 @@
 <!-- 메모 작성/수정 모달 -->
 <div th:fragment="edit(stock)"
      id="modal"
+     data-component-id="stocks.modal.memo-edit"
      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 

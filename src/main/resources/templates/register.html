@@ -7,8 +7,8 @@
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
-<main class="page-main flex flex-1 items-center justify-center px-4 py-12">
-    <div class="card w-full max-w-sm p-6">
+<main data-component-id="page.register" class="page-main flex flex-1 items-center justify-center px-4 py-12">
+    <div data-component-id="register.card" class="card w-full max-w-sm p-6">
 
         <h1 class="page-title mb-6" th:text="#{view.register.header}">회원가입</h1>
 
@@ -19,7 +19,7 @@
             회원가입이 완료되었습니다.
         </div>
 
-        <form th:action="@{/register}" th:object="${form}" method="post" class="space-y-4">
+        <form data-component-id="register.form" th:action="@{/register}" th:object="${form}" method="post" class="space-y-4">
 
             <!-- 이메일 -->
             <div>

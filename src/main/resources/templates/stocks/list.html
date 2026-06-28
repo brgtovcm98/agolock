@@ -7,7 +7,7 @@
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
-<main class="page-main mx-auto w-full max-w-5xl px-4 py-10 flex-1">
+<main data-component-id="page.stocks-list" class="page-main mx-auto w-full max-w-5xl px-4 py-10 flex-1">
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -23,9 +23,9 @@
         </a>
     </div>
 
-    <div id="stock-detail-section" aria-live="polite" th:fragment="stock-detail-section" class="space-y-3">
-        <div class="card p-4 space-y-2">
-            <form hx-get="/stocks"
+    <div id="stock-detail-section" data-component-id="stocks.detail-section" aria-live="polite" th:fragment="stock-detail-section" class="space-y-3">
+        <div data-component-id="stocks.filter-card" class="card p-4 space-y-2">
+            <form data-component-id="stocks.search-form" hx-get="/stocks"
                   hx-target="#stock-detail-section"
                   hx-select="#stock-detail-section"
                   hx-swap="outerHTML"
@@ -56,7 +56,7 @@
                     검색
                 </button>
             </form>
-            <div class="flex flex-wrap gap-1">
+            <div data-component-id="stocks.sort-controls" class="flex flex-wrap gap-1">
                 <button th:attr="hx-get=@{/stocks(sortBy='newest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'newest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
@@ -82,6 +82,7 @@
         </div>
 
         <div id="stock-detail-list"
+             data-component-id="stocks.detail-list"
              class="card overflow-hidden">
             <div class="hidden md:grid stock-row gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <div th:text="#{view.stock.table.itemAndId}">품목 · 식별정보</div>
@@ -127,7 +128,7 @@
             </button>
         </div>
     </div>
-    <div id="modal"></div>
+    <div id="modal" data-component-id="stocks.modal-mount"></div>
 
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

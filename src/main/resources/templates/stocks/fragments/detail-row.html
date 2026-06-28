@@ -4,6 +4,7 @@
 
 <!-- 읽기 모드: 개선된 stock-row -->
 <div th:fragment="view(stock)"
+     data-component-id="stocks.detail-row.view"
      th:id="'stock-' + ${stock.externalId}"
      class="stock-row">
 
@@ -89,6 +90,7 @@
 </div>
 
 <div th:fragment="edit"
+     data-component-id="stocks.detail-row.edit"
      th:id="'stock-' + ${stock.externalId}"
      th:object="${form}"
      class="grid gap-3 border-l-4 border-blue-500 bg-blue-50-40 px-4 py-4 md:grid-stock-row md:items-start">
@@ -201,7 +203,7 @@
 
 <th:block th:fragment="view-with-modal-close">
     <th:block th:replace="~{stocks/fragments/detail-row :: view(stock=${stock})}"></th:block>
-    <div id="modal" hx-swap-oob="true"></div>
+    <div id="modal" data-component-id="stocks.modal-mount" hx-swap-oob="true"></div>
 </th:block>
 
 </body>
