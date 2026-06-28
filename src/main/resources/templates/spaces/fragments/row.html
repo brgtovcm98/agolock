@@ -4,56 +4,56 @@
 
 <!-- 읽기 모드 카드 (컴팩트 집계 스트립) -->
 <div th:fragment="view" th:id="'space-' + ${space.externalId}"
-     class="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between">
-    <div class="min-w-0 flex-1"
+     class="ui-flex ui-flex-col ui-gap-3 ui-px-4 ui-py-4 ui-sm-flex-row sm:items-start sm:justify-between">
+    <div class="ui-min-w-0 ui-flex-1"
          th:with="sm=${summaries != null ? summaries.get(space.externalId) : null}">
-        <div class="flex flex-wrap items-baseline gap-x-2">
+        <div class="ui-flex ui-flex-wrap items-baseline ui-gap-x-2">
             <a th:href="@{/spaces/{id}(id=${space.externalId})}"
-               class="truncate text-sm font-medium text-blue-600 hover:underline"
+               class="ui-truncate ui-text-sm ui-font-medium ui-text-blue-600 ui-hover-underline"
                th:text="${space.name}"></a>
-            <span class="text-xs text-slate-400"
+            <span class="ui-text-xs ui-text-slate-400"
                   th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}"></span>
         </div>
 
         <!-- 집계 지표 (요약이 있을 때만) -->
-        <div th:if="${sm != null}" class="mt-1.5 space-y-1">
-            <p class="text-xs text-slate-600">
+        <div th:if="${sm != null}" class="ui-mt-1-5 ui-space-y-1">
+            <p class="ui-text-xs ui-text-slate-600">
                 <span th:text="|#{view.space.list.summary.items} ${sm.itemCount}|"></span>
-                <span class="text-slate-300"> · </span>
+                <span class="ui-text-slate-300"> · </span>
                 <span th:text="|#{view.space.list.summary.stocks} ${sm.stockCount}|"></span>
-                <span class="text-slate-300"> · </span>
-                <span class="font-medium text-slate-700"
+                <span class="ui-text-slate-300"> · </span>
+                <span class="ui-font-medium ui-text-slate-700"
                       th:text="|₩ ${#numbers.formatInteger(sm.totalValue, 1, 'COMMA')}|"></span>
             </p>
 
-            <p class="text-xs text-slate-400">
+            <p class="ui-text-xs ui-text-slate-400">
                 <span th:text="|#{view.space.list.summary.shelves} ${sm.shelfCount}|"></span>
-                <span class="text-slate-300"> · </span>
+                <span class="ui-text-slate-300"> · </span>
                 <span th:text="|#{view.space.list.summary.boxes} ${sm.boxCount}|"></span>
                 <span th:if="${sm.lastActivityAt != null}">
-                    <span class="text-slate-300"> · </span>
+                    <span class="ui-text-slate-300"> · </span>
                     <span th:text="|#{view.space.list.summary.lastActivity} ${#temporals.format(sm.lastActivityAt, 'MM-dd')}|"></span>
                 </span>
             </p>
 
             <!-- 주의 배지 (값이 0이면 숨김) -->
             <div th:if="${sm.expiringCount > 0 or sm.expiredCount > 0 or sm.damagedLostCount > 0}"
-                 class="flex flex-wrap gap-1">
+                 class="ui-flex ui-flex-wrap ui-gap-1">
                 <span th:if="${sm.expiringCount > 0}"
-                      class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200"
+                      class="ui-inline-flex ui-items-center ui-rounded-full ui-bg-amber-100 ui-px-2 ui-py-0-5 ui-text-xs ui-font-medium ui-text-amber-700 ui-ring-1 ui-ring-amber-200"
                       th:text="|⚠ #{view.space.list.summary.alert.expiring} ${sm.expiringCount}|"></span>
                 <span th:if="${sm.expiredCount > 0}"
-                      class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200"
+                      class="ui-inline-flex ui-items-center ui-rounded-full ui-bg-red-100 ui-px-2 ui-py-0-5 ui-text-xs ui-font-medium ui-text-red-700 ui-ring-1 ui-ring-red-200"
                       th:text="|#{view.space.list.summary.alert.expired} ${sm.expiredCount}|"></span>
                 <span th:if="${sm.damagedLostCount > 0}"
-                      class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200"
+                      class="ui-inline-flex ui-items-center ui-rounded-full ui-bg-slate-100 ui-px-2 ui-py-0-5 ui-text-xs ui-font-medium ui-text-slate-600 ui-ring-1 ui-ring-slate-200"
                       th:text="|#{view.space.list.summary.alert.damagedLost} ${sm.damagedLostCount}|"></span>
             </div>
         </div>
     </div>
 
-    <div class="flex shrink-0 items-center gap-2 sm:justify-end">
-        <button class="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+    <div class="ui-flex ui-shrink-0 ui-items-center ui-gap-2 sm:justify-end">
+        <button class="ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
                 th:attr="hx-get=@{/spaces/{id}/edit(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                 hx-swap="outerHTML" th:text="#{view.common.edit}">수정</button>
     </div>
@@ -61,22 +61,22 @@
 
 <!-- 수정 모드 카드 -->
 <div th:fragment="edit" th:id="'space-' + ${space.externalId}"
-     class="grid gap-3 border-l-4 border-blue-500 bg-blue-50/40 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_14rem] md:items-center">
+     class="ui-grid ui-gap-3 ui-border-l-4 ui-border-blue-500 ui-bg-blue-50-40 ui-px-4 ui-py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_14rem] ui-md-items-center">
     <input type="text" name="name" th:value="${space.name}"
-           class="flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-    <p class="text-sm text-slate-500"
+           class="ui-flex-1 ui-rounded-md ui-border ui-border-slate-300 ui-px-2 ui-py-1 ui-text-sm
+                  ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500">
+    <p class="ui-text-sm ui-text-slate-500"
        th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}"></p>
-    <div class="flex items-center gap-2 md:justify-end">
-        <button class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+    <div class="ui-flex ui-items-center ui-gap-2 md:justify-end">
+        <button class="ui-rounded-md ui-bg-blue-600 ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
                 th:attr="hx-put=@{/spaces/{id}(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                 hx-swap="outerHTML"
                 hx-include="closest div[id]" th:text="#{view.common.save}">저장</button>
-        <button class="rounded-md border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition"
+        <button class="ui-rounded-md ui-border ui-border-red-200 ui-bg-white ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-text-red-500 ui-hover-bg-red-50 ui-transition"
                 th:attr="hx-delete=@{/spaces/{id}(id=${space.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.space.list.deleteConfirm(${space.name})}"
                 hx-target="#space-list-section"
                 hx-swap="outerHTML" th:text="#{view.common.delete}">삭제</button>
-        <button class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+        <button class="ui-rounded-md ui-border ui-border-slate-300 ui-bg-white ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
                 th:attr="hx-get=@{/spaces/{id}/cancel(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                 hx-swap="outerHTML" th:text="#{view.common.cancel}">취소</button>
     </div>

@@ -9,7 +9,7 @@
 
 <th:block th:fragment="box-list-content">
     <li th:if="${boxes.empty}"
-        class="px-3 py-2 text-xs text-slate-400"
+        class="ui-px-3 ui-py-2 ui-text-xs ui-text-slate-400"
         th:text="#{view.shelf.list.empty}">
         박스가 없습니다.
     </li>
@@ -21,13 +21,13 @@
 
 <ul th:fragment="box-list-container"
     th:id="'box-list-' + ${shelf.externalId}"
-    class="ml-4 border-l border-slate-100">
+    class="ml-4 border-l ui-border-slate-100">
     <th:block th:replace="~{:: box-list-content}"></th:block>
 </ul>
 
 <th:block th:fragment="box-list-response">
     <ul th:id="'box-list-' + ${shelf.externalId}"
-        class="ml-4 border-l border-slate-100"
+        class="ml-4 border-l ui-border-slate-100"
         hx-swap-oob="true">
         <th:block th:replace="~{:: box-list-content}"></th:block>
     </ul>

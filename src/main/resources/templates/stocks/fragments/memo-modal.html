@@ -4,26 +4,26 @@
 
 <!-- 메모 보기 모달 -->
 <div th:fragment="view(stock)"
-     id="modal"
-     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     class="ui-modal-overlay ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
+    <div class="ui-modal-dialog ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full max-w-md ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
         
-        <h2 class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.memo.viewTitle}">메모 보기</h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+        <h2 id="modal-title" class="ui-text-lg ui-font-semibold ui-text-slate-800 ui-mb-1" th:text="#{view.stock.modal.memo.viewTitle}">메모 보기</h2>
+        <p class="ui-text-xs ui-text-slate-400 ui-mb-4" th:text="${stock.itemName}">품목명</p>
 
-        <div class="flex-1 mb-6">
-            <div class="rounded-lg bg-slate-50 border border-slate-100 p-4 min-h-[8rem] text-sm text-slate-700 whitespace-pre-wrap"
+        <div class="ui-flex-1 ui-mb-6">
+            <div class="ui-rounded-lg ui-bg-slate-50 ui-border ui-border-slate-100 p-4 min-h-[8rem] ui-text-sm ui-text-slate-700 whitespace-pre-wrap"
                  th:text="${stock.memo != null and !stock.memo.isEmpty()} ? ${stock.memo} : '-'">
                 메모 내용이 없습니다.
             </div>
         </div>
 
-        <div class="flex gap-2 justify-end">
+        <div class="ui-flex ui-gap-2 ui-justify-end">
             <button type="button"
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                    class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
                     th:text="#{view.common.close}">
                 닫기
             </button>
@@ -31,7 +31,7 @@
                     th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                    class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
                     th:text="#{view.common.edit}">
                 수정
             </button>
@@ -42,37 +42,37 @@
 <!-- 메모 작성/수정 모달 -->
 <div th:fragment="edit(stock)"
      id="modal"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
+    <div class="ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full max-w-md ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
 
-        <h2 class="text-lg font-semibold text-slate-800 mb-1"
+        <h2 class="ui-text-lg ui-font-semibold ui-text-slate-800 ui-mb-1"
             th:text="${stock.memo != null and !stock.memo.isEmpty()} ? #{view.stock.modal.memo.editTitle} : #{view.stock.modal.memo.writeTitle}">
             메모 작성
         </h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+        <p class="ui-text-xs ui-text-slate-400 ui-mb-4" th:text="${stock.itemName}">품목명</p>
 
         <form th:attr="hx-put=@{/stocks/{id}/memo(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
               hx-swap="outerHTML">
             
-            <div class="mb-6">
+            <div class="ui-mb-6">
                 <textarea name="memo" rows="4"
-                          class="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          class="ui-w-full ui-resize-y ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
                           th:text="${stock.memo}"
                           th:placeholder="#{view.stock.form.memo.placeholder}"
                           autofocus></textarea>
             </div>
 
-            <div class="flex gap-2 justify-end">
+            <div class="ui-flex ui-gap-2 ui-justify-end">
                 <button type="button"
                         th:attr="hx-get=${stock.memo != null and !stock.memo.isEmpty()} ? @{/stocks/{id}/memo(id=${stock.externalId})} : '/empty'"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
                         th:text="#{view.common.edit}">
                     수정
                 </button>

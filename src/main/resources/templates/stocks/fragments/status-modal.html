@@ -4,42 +4,42 @@
 
 <!-- 상태 변경 모달 -->
 <div th:fragment="modal"
-     id="modal"
-     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     class="ui-modal-overlay ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
+    <div class="ui-modal-dialog ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full max-w-md ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
 
-        <h2 class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.status.title}">상태 변경</h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+        <h2 id="modal-title" class="ui-text-lg ui-font-semibold ui-text-slate-800 ui-mb-1" th:text="#{view.stock.modal.status.title}">상태 변경</h2>
+        <p class="ui-text-xs ui-text-slate-400 ui-mb-4" th:text="${stock.itemName}">품목명</p>
 
         <form th:attr="hx-put=@{/stocks/{id}/status(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
               hx-swap="outerHTML">
 
-            <div class="space-y-1.5 mb-4">
+            <div class="space-y-1.5 ui-mb-4">
                 <label th:each="s : ${statuses}"
-                       class="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 transition">
+                       class="ui-flex ui-items-center ui-gap-2 ui-rounded-md ui-border ui-border-slate-200 ui-px-3 ui-py-2 ui-text-sm ui-text-slate-700 ui-cursor-pointer ui-hover-bg-slate-50 ui-transition">
                     <input type="radio" name="status" th:value="${s.name()}" required
-                           class="text-blue-600 focus:ring-blue-500">
+                           class="ui-text-blue-600 ui-focus-ring-blue-500">
                     <span th:text="#{${'enum.StockStatus.' + s.name()}}">상태</span>
                 </label>
             </div>
 
-            <div class="mb-6">
-                <label class="mb-1 block text-xs font-medium text-slate-500"
+            <div class="ui-mb-6">
+                <label class="ui-mb-1 ui-block ui-text-xs ui-font-medium ui-text-slate-500"
                        th:text="#{view.stock.modal.status.memoLabel}">사유 메모 (선택)</label>
                 <textarea name="memo" rows="3"
-                          class="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          class="ui-w-full ui-resize-y ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
                           th:placeholder="#{view.stock.modal.status.memoPlaceholder}"></textarea>
             </div>
 
-            <div class="flex gap-2 justify-end">
+            <div class="ui-flex ui-gap-2 ui-justify-end">
                 <button type="button"
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
                         th:text="#{view.common.cancel}">취소</button>
                 <button type="submit"
-                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
                         th:text="#{view.stock.modal.status.confirm}">변경</button>
             </div>
         </form>

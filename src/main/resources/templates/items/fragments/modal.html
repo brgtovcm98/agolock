@@ -3,11 +3,11 @@
 <body>
 
 <div th:fragment="modal"
-     id="modal"
-     class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+     class="ui-modal-overlay ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
+    <div class="ui-modal-dialog ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full ui-max-w-sm ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
 
-        <h2 class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.item.modal.add.title}">품목 추가</h2>
+        <h2 id="modal-title" class="ui-text-lg ui-font-semibold ui-text-slate-800 ui-mb-4" th:text="#{view.item.modal.add.title}">품목 추가</h2>
 
         <form th:object="${form}"
               method="post"
@@ -18,14 +18,14 @@
               hx-swap="outerHTML">
 
             <div class="mb-3">
-                <label class="block text-sm font-medium text-slate-700 mb-1">
-                    <span th:text="#{view.item.modal.image.label}">사진</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1">
+                    <span th:text="#{view.item.modal.image.label}">사진</span> <span class="ui-text-slate-400 ui-font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
-                <label class="flex items-center gap-2 cursor-pointer w-full rounded-md border border-dashed
-                              border-slate-300 px-3 py-2 text-sm text-slate-500
-                              hover:border-blue-400 hover:text-blue-500 transition"
+                <label class="ui-flex ui-items-center ui-gap-2 ui-cursor-pointer ui-w-full ui-rounded-md ui-border ui-border-dashed
+                              ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-text-slate-500
+                              ui-hover-border-blue-400 ui-hover-text-blue-500 ui-transition"
                        id="item-modal-image-label">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none"
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ui-shrink-0" fill="none"
                          viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -33,107 +33,107 @@
                     <span id="item-modal-image-label-text" th:text="#{view.item.modal.image.placeholder}">사진을 선택하세요</span>
                     <input type="file" th:field="*{imageFile}"
                            accept="image/jpeg,image/png,image/webp,image/gif"
-                           class="sr-only">
+                           class="ui-sr-only">
                 </label>
                 <img id="item-modal-preview"
-                     class="hidden mt-2 w-full aspect-square rounded-md object-cover border border-slate-200"
+                     class="ui-hidden ui-mt-2 ui-w-full ui-aspect-square ui-rounded-md ui-object-cover ui-border ui-border-slate-200"
                      th:alt="#{view.item.modal.image.previewAlt}">
                 <span id="item-modal-analysis-status"
-                      class="hidden mt-1 block text-xs text-blue-500" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
+                      class="ui-hidden ui-mt-1 ui-block ui-text-xs ui-text-blue-500" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"
                         id="item-modal-analysis-retry-btn"
-                        class="hidden mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+                        class="ui-hidden ui-mt-2 ui-text-xs ui-font-semibold ui-text-blue-600 ui-hover-text-blue-800 ui-transition"
                         th:text="#{view.item.card.aiRetry}">
                     다시 분석
                 </button>
             </div>
 
             <div class="mb-3">
-                <label class="block text-sm font-medium text-slate-700 mb-1" th:text="#{view.item.card.nameLabel}">품목명 *</label>
+                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1" th:text="#{view.item.card.nameLabel}">품목명 *</label>
                 <input type="text" th:field="*{name}"
-                       th:classappend="${#fields.hasErrors('name')} ? 'border-red-400'"
-                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:classappend="${#fields.hasErrors('name')} ? 'ui-border-red-400'"
+                       class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
+                              ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
                        th:placeholder="#{view.item.modal.namePlaceholder}">
                 <span th:if="${#fields.hasErrors('name')}"
                       th:errors="*{name}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="ui-mt-1 ui-block ui-text-xs ui-text-red-500"></span>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 mb-1">
-                    <span th:text="#{view.item.card.descLabel}">설명</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+            <div class="ui-mb-4">
+                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1">
+                    <span th:text="#{view.item.card.descLabel}">설명</span> <span class="ui-text-slate-400 ui-font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{description}"
-                       th:classappend="${#fields.hasErrors('description')} ? 'border-red-400'"
-                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:classappend="${#fields.hasErrors('description')} ? 'ui-border-red-400'"
+                       class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
+                              ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
                        th:placeholder="#{view.item.card.descPlaceholder}">
                 <span th:if="${#fields.hasErrors('description')}"
                       th:errors="*{description}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="ui-mt-1 ui-block ui-text-xs ui-text-red-500"></span>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 mb-1">
-                    <span th:text="#{view.item.card.priceLabel}">가격</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+            <div class="ui-mb-4">
+                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1">
+                    <span th:text="#{view.item.card.priceLabel}">가격</span> <span class="ui-text-slate-400 ui-font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
-                       th:classappend="${#fields.hasErrors('price')} ? 'border-red-400'"
-                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:classappend="${#fields.hasErrors('price')} ? 'ui-border-red-400'"
+                       class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
+                              ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
                        th:placeholder="#{view.stock.form.price.placeholder}">
                 <span th:if="${#fields.hasErrors('price')}"
                       th:errors="*{price}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="ui-mt-1 ui-block ui-text-xs ui-text-red-500"></span>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 mb-1">
+            <div class="ui-mb-4">
+                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1">
                     <span th:text="#{view.item.policy.expirationDays}">유통기한(일)</span>
                 </label>
                 <input type="number" min="1" th:field="*{expirationPeriodDays}"
-                       th:classappend="${#fields.hasErrors('expirationPeriodDays')} ? 'border-red-400'"
-                       class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       th:classappend="${#fields.hasErrors('expirationPeriodDays')} ? 'ui-border-red-400'"
+                       class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
+                              ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
                        th:placeholder="#{view.item.policy.expirationDays}">
                 <span th:if="${#fields.hasErrors('expirationPeriodDays')}"
                       th:errors="*{expirationPeriodDays}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="ui-mt-1 ui-block ui-text-xs ui-text-red-500"></span>
                 <p data-expiration-preview
                    th:data-label="#{view.item.policy.expirationPreview}"
-                   class="hidden mt-2 rounded-md bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"></p>
+                   class="ui-hidden ui-mt-2 ui-rounded-md ui-bg-emerald-50 ui-px-3 ui-py-2 ui-text-xs ui-font-medium ui-text-emerald-700"></p>
             </div>
 
-            <details class="mb-4" th:if="${lotSerialEnabled}">
-                <summary class="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-800 transition" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
-                <div class="mt-3 space-y-3">
+            <details class="ui-mb-4" th:if="${lotSerialEnabled}">
+                <summary class="ui-cursor-pointer ui-text-sm ui-font-semibold ui-text-blue-600 ui-hover-text-blue-800 ui-transition" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
+                <div class="mt-3 ui-space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1" th:text="#{view.item.policy.serialMode}">시리얼 모드</label>
+                        <label class="ui-block ui-text-xs ui-font-medium ui-text-slate-500 ui-mb-1" th:text="#{view.item.policy.serialMode}">시리얼 모드</label>
                         <select th:field="*{serialMode}"
-                                class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition">
                             <option value="NONE" th:text="#{enum.TrackingMode.NONE}">없음</option>
                             <option value="AUTO" th:text="#{enum.TrackingMode.AUTO}">자동</option>
                             <option value="MANUAL" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
                         </select>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="ui-grid ui-grid-cols-3 ui-gap-2">
                         <input type="text" th:field="*{serialPrefix}" th:placeholder="#{view.item.policy.serialPrefix}"
-                               class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                               class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition ui-disabled-bg-slate-100 ui-disabled-text-slate-400 ui-disabled-cursor-not-allowed">
                         <input type="number" min="0" max="16" th:field="*{serialPaddingLength}" th:placeholder="#{view.item.policy.serialPadding}"
-                               class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                               class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition ui-disabled-bg-slate-100 ui-disabled-text-slate-400 ui-disabled-cursor-not-allowed">
                         <input type="number" min="0" th:field="*{serialNextSequence}" th:placeholder="#{view.item.policy.serialNext}"
-                               class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                               class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition ui-disabled-bg-slate-100 ui-disabled-text-slate-400 ui-disabled-cursor-not-allowed">
                     </div>
                     <p data-serial-preview
                        th:data-label="#{view.item.policy.serialPreview}"
-                       class="hidden rounded-md bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700"></p>
-                    <input type="hidden" th:field="*{serialIncrementUnit}" value="1">
+                       class="ui-hidden ui-rounded-md ui-bg-blue-50 ui-px-3 ui-py-2 ui-text-xs ui-font-medium ui-text-blue-700"></p>
+                    <input type="ui-hidden" th:field="*{serialIncrementUnit}" value="1">
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1" th:text="#{view.item.policy.lotMode}">로트 모드</label>
+                        <label class="ui-block ui-text-xs ui-font-medium ui-text-slate-500 ui-mb-1" th:text="#{view.item.policy.lotMode}">로트 모드</label>
                         <select th:field="*{lotMode}"
-                                class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition">
                             <option value="NONE" th:text="#{enum.TrackingMode.NONE}">없음</option>
                             <option value="AUTO" th:text="#{enum.TrackingMode.AUTO}">자동</option>
                             <option value="MANUAL" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
@@ -141,33 +141,33 @@
                     </div>
                     <div>
                         <input type="text" th:field="*{lotVendorCode}" th:placeholder="#{view.item.policy.lotVendorCode}"
-                               class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                               class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition ui-disabled-bg-slate-100 ui-disabled-text-slate-400 ui-disabled-cursor-not-allowed">
                     </div>
                     <p data-lot-preview
                        th:data-label="#{view.item.policy.lotPreview}"
-                       class="hidden rounded-md bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700"></p>
-                    <input type="hidden" th:field="*{lotDateFormat}" value="yyyyMMdd">
-                    <input type="hidden" th:field="*{lotIncludeSequence}" value="true">
-                    <input type="hidden" th:field="*{lotNextSequence}" value="0">
+                       class="ui-hidden ui-rounded-md ui-bg-blue-50 ui-px-3 ui-py-2 ui-text-xs ui-font-medium ui-text-blue-700"></p>
+                    <input type="ui-hidden" th:field="*{lotDateFormat}" value="yyyyMMdd">
+                    <input type="ui-hidden" th:field="*{lotIncludeSequence}" value="true">
+                    <input type="ui-hidden" th:field="*{lotNextSequence}" value="0">
                 </div>
             </details>
 
-            <input type="hidden" th:field="*{imageHash}" id="item-modal-image-hash">
+            <input type="ui-hidden" th:field="*{imageHash}" id="item-modal-image-hash">
 
-            <div class="flex gap-2 justify-end">
+            <div class="ui-flex ui-gap-2 ui-justify-end">
                 <button type="button"
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600
-                               hover:bg-slate-50 transition"
+                        class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600
+                               ui-hover-bg-slate-50 ui-transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
                         id="item-modal-submit-btn"
-                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white
-                               hover:bg-blue-700 transition"
+                        class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white
+                               ui-hover-bg-blue-700 ui-transition"
                         th:text="#{view.common.add}">
                     추가
                 </button>

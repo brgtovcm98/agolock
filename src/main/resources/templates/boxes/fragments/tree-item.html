@@ -4,29 +4,29 @@
 
 <li th:fragment="tree-item(box, space, shelf)"
     th:id="'box-' + ${box.externalId}"
-    class="tree-item-container flex items-center gap-1 px-3 py-2.5 hover:bg-slate-50 active:bg-slate-200 transition cursor-pointer group">
+    class="tree-item-container ui-flex ui-items-center ui-gap-1 ui-px-3 ui-py-2-5 ui-hover-bg-slate-50 active:bg-slate-200 ui-transition ui-cursor-pointer group">
 
-    <span class="text-xs text-slate-300 w-3 shrink-0">□</span>
+    <span class="ui-text-xs ui-text-slate-300 w-3 ui-shrink-0">□</span>
 
     <!-- Box명 클릭 → 박스 재고 패널 로드 -->
     <button type="button"
-            class="tree-item-trigger tree-item-text flex-1 text-left text-sm text-slate-600 truncate"
+            class="tree-item-trigger tree-item-text ui-flex-1 ui-text-left ui-text-sm ui-text-slate-600 ui-truncate"
             th:text="${box.name}"
             th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/stocks(sid=${space},shid=${shelf},id=${box.externalId})}"
             hx-target="#stock-panel"
             hx-swap="outerHTML"></button>
 
-    <span class="flex items-center shrink-0">
+    <span class="ui-flex ui-items-center ui-shrink-0">
         <!-- QR 코드 버튼 -->
         <button type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                class="ui-inline-flex h-8 w-8 ui-items-center ui-justify-center rounded ui-text-sm ui-text-slate-400 ui-hover-bg-slate-100 ui-hover-text-slate-600"
                 th:attr="hx-get=@{/api/qr/modal(type='box',externalId=${box.externalId},name=${box.name})}"
                 hx-target="#modal"
                 hx-swap="outerHTML"
                 th:title="#{view.box.tree.qrTitle}">📷</button>
         <!-- Box 수정 버튼 -->
         <button type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                class="ui-inline-flex h-8 w-8 ui-items-center ui-justify-center rounded ui-text-sm ui-text-slate-400 ui-hover-bg-slate-100 ui-hover-text-slate-600"
                 th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/edit(sid=${space},shid=${shelf},id=${box.externalId})}"
                 hx-target="#modal"
                 hx-swap="outerHTML"

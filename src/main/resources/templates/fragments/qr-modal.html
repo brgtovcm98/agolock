@@ -2,30 +2,30 @@
 <html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<div th:fragment="modal(title, qrUrl)" id="modal" class="ui-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-    <div class="ui-modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
-        <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-lg font-bold text-slate-800" th:text="${title} ?: #{view.qr.modal.title}">QR 코드</h3>
+<div th:fragment="modal(title, qrUrl)" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" class="ui-modal-overlay ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-slate-900-50 ui-backdrop-blur-sm ui-animate-in fade-in ui-duration-200">
+    <div class="ui-modal-dialog ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full ui-max-w-sm ui-mx-4 ui-p-6">
+        <div class="ui-mb-4 ui-flex ui-items-center ui-justify-between">
+            <h3 class="ui-text-lg ui-font-bold ui-text-slate-800" th:text="${title} ?: #{view.qr.modal.title}">QR 코드</h3>
             <button type="button"
                     hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                    class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
-                <span class="text-2xl">&times;</span>
+                    class="ui-rounded-lg ui-p-1 ui-text-slate-400 ui-hover-bg-slate-100 ui-hover-text-slate-600">
+                <span class="ui-text-2xl">&times;</span>
             </button>
         </div>
 
-        <div class="flex flex-col items-center gap-4 py-4">
-            <div class="rounded-lg border-4 border-slate-100 p-2 bg-white">
+        <div class="ui-flex ui-flex-col ui-items-center ui-gap-4 ui-py-4">
+            <div class="ui-rounded-lg ui-border-4 ui-border-slate-100 ui-p-2 ui-bg-white">
                 <img th:src="@{/api/qr/generate(content=${qrUrl})}"
                      alt="QR Code"
-                     class="h-64 w-64 block">
+                     class="ui-h-64 ui-w-64 ui-block">
             </div>
-            <p class="text-xs text-slate-400 text-center" th:text="#{view.qr.modal.description}">
+            <p class="ui-text-xs ui-text-slate-400 ui-text-center" th:text="#{view.qr.modal.description}">
                 스캔하면 해당 위치의 재고 관리 화면으로 이동합니다.
             </p>
-            <div class="mt-2 w-full">
+            <div class="ui-mt-2 ui-w-full">
                 <button type="button"
                         onclick="window.print()"
-                        class="w-full rounded-lg bg-slate-800 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
+                        class="ui-w-full ui-rounded-lg ui-bg-slate-800 ui-py-2-5 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-slate-700 ui-transition"
                         th:text="#{view.qr.modal.print}">
                     인쇄하기
                 </button>
