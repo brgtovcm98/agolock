@@ -6,7 +6,7 @@
 <div th:fragment="modal"
      id="modal" data-component-id="stocks.modal.status" role="dialog" aria-modal="true" aria-labelledby="modal-title"
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+    <div class="modal-dialog max-w-md mx-4 p-6 flex flex-col">
 
         <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.status.title}">상태 변경</h2>
         <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
@@ -27,7 +27,7 @@
                 <label class="field-label field-label-sm"
                        th:text="#{view.stock.modal.status.memoLabel}">사유 메모 (선택)</label>
                 <textarea name="memo" rows="3"
-                          class="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          class="field-input resize-y"
                           th:placeholder="#{view.stock.modal.status.memoPlaceholder}"></textarea>
             </div>
 
@@ -36,10 +36,10 @@
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        class="btn-secondary"
                         th:text="#{view.common.cancel}">취소</button>
                 <button type="submit"
-                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        class="btn-primary"
                         th:text="#{view.stock.modal.status.confirm}">변경</button>
             </div>
         </form>

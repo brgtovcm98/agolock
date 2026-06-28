@@ -5,9 +5,9 @@
 <div th:fragment="modal"
      id="modal" data-component-id="stocks.modal.create" role="dialog" aria-modal="true" aria-labelledby="modal-title"
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+    <div class="modal-dialog max-w-sm mx-4 p-6 flex flex-col">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.stock.modal.add.title}">재고 추가</h2>
+        <h2 id="modal-title" class="modal-title mb-4" th:text="#{view.stock.modal.add.title}">재고 추가</h2>
 
         <!-- 품목 없음 안내 -->
         <div th:if="${items.empty}" class="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
@@ -44,7 +44,7 @@
                 </div>
                 <span th:if="${#fields.hasErrors('itemExternalId')}"
                       th:errors="*{itemExternalId}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-3" data-count-field>
@@ -53,11 +53,10 @@
                     <span class="text-slate-400 font-normal" th:text="#{view.stock.form.count.maxHint}">(최대 50개)</span>
                 </label>
                 <input type="number" th:field="*{count}" min="1" max="50"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                       class="field-input">
                 <span th:if="${#fields.hasErrors('count')}"
                       th:errors="*{count}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-3">
@@ -66,12 +65,11 @@
                     <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        th:placeholder="#{view.stock.form.price.placeholder}">
                 <span th:if="${#fields.hasErrors('price')}"
                       th:errors="*{price}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-3" data-serial-single-field th:if="${lotSerialEnabled}">
@@ -80,8 +78,7 @@
                     <span class="text-slate-400 font-normal" th:text="#{view.stock.form.serial.hint}">(선택, 수량 1일 때)</span>
                 </label>
                 <input type="text" th:field="*{serialNumber}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        th:placeholder="#{view.stock.form.serial.placeholder}">
             </div>
 
@@ -90,8 +87,7 @@
                     <span th:text="#{view.stock.form.serials.label}">시리얼 번호 목록</span>
                 </label>
                 <textarea th:field="*{serialNumbersText}" rows="4"
-                          class="field-input
-                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          class="field-input"
                           th:placeholder="#{view.stock.form.serials.placeholder}"></textarea>
             </div>
 
@@ -101,8 +97,7 @@
                     <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="text" th:field="*{lotNumber}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                       class="field-input">
             </div>
 
             <div class="mb-4">
@@ -111,8 +106,7 @@
                     <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="date" th:field="*{expirationDate}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                       class="field-input">
             </div>
 
             <div class="flex gap-2 justify-end">
@@ -120,12 +114,12 @@
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        class="btn-secondary"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        class="btn-primary"
                         th:text="#{view.common.add}">
                     추가
                 </button>
@@ -137,7 +131,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                    class="btn-secondary"
                     th:text="#{view.common.close}">
                 닫기
             </button>

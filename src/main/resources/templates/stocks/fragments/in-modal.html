@@ -5,7 +5,7 @@
 <div th:fragment="modal"
      id="modal" data-component-id="stocks.modal.in" role="dialog" aria-modal="true" aria-labelledby="modal-title"
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+    <div class="modal-dialog max-w-sm mx-4 p-6 flex flex-col">
 
         <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.in.title}">입고 처리</h2>
         <p class="text-sm text-slate-500 mb-4" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>
@@ -24,34 +24,30 @@
             <div class="mb-3">
                 <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
                 <input type="number" th:field="*{count}" min="1" max="50"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        autofocus>
                 <span th:if="${#fields.hasErrors('count')}"
                       th:errors="*{count}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-3" th:if="${lotSerialEnabled and item.serialMode.name() == 'MANUAL'}">
                 <label class="field-label" th:text="#{view.stock.form.serials.label}">시리얼 번호 목록</label>
                 <textarea th:field="*{serialNumbersText}" rows="4"
-                          class="field-input
-                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          class="field-input"
                           th:placeholder="#{view.stock.form.serials.placeholder}"></textarea>
             </div>
 
             <div class="mb-3" th:if="${lotSerialEnabled and item.lotMode.name() == 'MANUAL'}">
                 <label class="field-label" th:text="#{view.stock.form.lot.label}">로트 번호</label>
                 <input type="text" th:field="*{lotNumber}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                       class="field-input">
             </div>
 
             <div class="mb-3" th:if="${lotSerialEnabled and item.lotMode.name() != 'NONE' and item.expirationPeriodDays == null}">
                 <label class="field-label" th:text="#{view.stock.form.expiration.label}">유통기한</label>
                 <input type="date" th:field="*{expirationDate}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                       class="field-input">
             </div>
 
             <div class="mb-3">
@@ -60,12 +56,11 @@
                     <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        th:placeholder="#{view.stock.form.price.placeholder}">
                 <span th:if="${#fields.hasErrors('price')}"
                       th:errors="*{price}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-4">
@@ -74,8 +69,7 @@
                     <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="text" th:field="*{memo}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        th:placeholder="#{view.stock.modal.in.memoPlaceholder}">
             </div>
 
@@ -84,12 +78,12 @@
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        class="btn-secondary"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        class="btn-primary"
                         th:text="#{view.stock.modal.in.title}">
                     입고
                 </button>
