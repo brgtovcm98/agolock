@@ -1,1 +1,1 @@
-rootProject.name = "SeuStock"
+rootProject.name = "agolock"

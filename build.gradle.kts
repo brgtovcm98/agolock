@@ -10,7 +10,7 @@ val springAiVersion by extra("2.0.0-M6")
 
 group = "com.seu"
 version = "0.0.1-SNAPSHOT"
-description = "SeuStock"
+description = "agolock"
 
 java {
     toolchain {

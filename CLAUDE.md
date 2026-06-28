@@ -19,6 +19,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Run all mapper tests
 ./gradlew test --tests "com.seu.seustock.mapper.*"
+
+# Auto-format Java with google-java-format (run before committing)
+./gradlew spotlessApply
+
+# Generate JaCoCo coverage report (output: build/reports/jacoco/)
+./gradlew jacocoTestReport
 ```
 
 The `spring-boot-docker-compose` dependency automatically starts `compose.yaml` when running via Gradle. Docker must be running. `compose.yaml` starts PostgreSQL (port 5433), MinIO (ports 9000/9001), and Redis (port 6379). The app runs on port **8080**.
@@ -180,6 +186,25 @@ Inventory model:
 
 If `box_id` is set, `shelf_id` must also be set. The schema enforces this with `chk_box_requires_shelf`.
 
+**CSS design system**
+- Styles are authored in `static/css/input.css` (Tailwind v4 `@layer components`) and compiled into `static/css/main.css`. **Never edit `main.css` directly.**
+- Use the semantic component classes defined there rather than raw Tailwind utility strings:
+  - Buttons: `btn-primary`, `btn-secondary`, `btn-danger`, `btn-search`, `btn-icon`, `btn-sm`, `btn--cta`
+  - Form fields: `field-label`, `field-input`, `field-error`
+  - Badges: `badge-blue`, `badge-green`, `badge-amber`, `badge-red`, `badge-sky`, `badge-orange`, `badge-slate`
+  - Modals: `modal-overlay`, `modal-dialog`, `modal-header`, `modal-title`, `modal-footer`
+  - Lists: `stock-row` (with child classes `stock-item`, `stock-actions`, etc.), `item-row`, `space-card`
+  - Layout: `page`, `page-main`, `page-title`, `card`, `empty-state`
+- CSS theme tokens (colors, spacing, radius, shadow) are defined in the `@theme` block of `input.css`. Reference them as Tailwind utilities (e.g., `bg-primary`, `text-accent-text`, `rounded-card`).
+
+**Commit conventions**
+- Use Conventional Commits: `feat:`, `fix:`, `refactor:`, `style(ui):`, `docs:`, `test:`, `chore:`. Keep each commit focused on one feature or layer.
+
+**Feature flags**
+- `seustock.features.lot-serial-enabled` — gates serial/lot tracking UI (default `false` in `application.properties`).
+- `seustock.datainit.enabled` — controls seed data generation (default `true` in `local` profile, `false` in `prod`). Seed credentials use `seustock.datainit.seed-email` / `seed-password`.
+- `seustock.image-storage.type` — `local` (default in local profile) or `minio` (default in prod). Controls which `ImageStorageService` implementation is active.
+
 ## Testing
 
 **Mapper tests** use `@MybatisTest` (MyBatis slice — no full application context):
@@ -210,3 +235,22 @@ class SomeServiceTest {
 ```
 
 Service tests verify ownership checks, cross-entity validation, and business rules without a database. Use fixed `UUID` constants for external IDs in test fixtures to keep assertions readable.
+
+**Controller tests** use `AbstractControllerTest` (full Spring context with MockMvc):
+
+```java
+class SomeControllerTest extends AbstractControllerTest {
+    @MockitoBean SomeService service;
+
+    @Test
+    void someTest() throws Exception {
+        mockMvc.perform(get("/some/path"))
+               .andExpect(status().isOk());
+    }
+}
+```
+
+- `AbstractControllerTest` is `@SpringBootTest` + `@AutoConfigureMockMvc` + `@ActiveProfiles("test")` + `@Transactional`.
+- Services are replaced with `@MockitoBean` so tests verify HTTP routing, security constraints, validation, and HTMX response shape — not business logic.
+- Use the provided `hasToastTrigger()` matcher to assert that `HX-Trigger` headers carry an `app:toast` event.
+- Fixed UUID constants (`SPACE_ID`, `SHELF_ID`, `BOX_ID`, `ITEM_ID`, `STOCK_ID`, `IMAGE_ID`) are available from the base class for use as path variables.
