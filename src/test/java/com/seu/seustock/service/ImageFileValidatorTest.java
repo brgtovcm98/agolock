@@ -2,17 +2,39 @@ package com.seu.seustock.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.mock.web.MockMultipartFile;
 
+@ExtendWith(MockitoExtension.class)
 class ImageFileValidatorTest {
 
-  private final ImageFileValidator validator = new ImageFileValidator();
+  @Mock private MessageSource messageSource;
+
+  private ImageFileValidator validator;
+
+  @BeforeEach
+  void setUp() {
+    lenient()
+        .when(messageSource.getMessage(eq("error.image.invalidFormat"), any(), any()))
+        .thenReturn("지원하지 않는 이미지 형식입니다.");
+    lenient()
+        .when(messageSource.getMessage(eq("error.image.readFailed"), any(), any()))
+        .thenReturn("이미지 파일을 읽을 수 없습니다.");
+    validator = new ImageFileValidator(messageSource);
+  }
 
   @ParameterizedTest(name = "{1}")
   @MethodSource("validImages")

@@ -5,13 +5,14 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class ImageFileValidator {
 
-  private static final String INVALID_IMAGE_FORMAT_MESSAGE = "지원하지 않는 이미지 형식입니다.";
   private static final int SIGNATURE_BYTES = 12;
   private static final Set<String> ALLOWED_CONTENT_TYPES =
       Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
@@ -21,6 +22,12 @@ public class ImageFileValidator {
           "png", "image/png",
           "webp", "image/webp",
           "gif", "image/gif");
+
+  private final MessageSource messageSource;
+
+  public ImageFileValidator(MessageSource messageSource) {
+    this.messageSource = messageSource;
+  }
 
   public String validateAndNormalizeContentType(MultipartFile file) {
     String declaredContentType = normalize(file.getContentType());
@@ -48,7 +55,9 @@ public class ImageFileValidator {
     try (InputStream inputStream = file.getInputStream()) {
       bytesRead = inputStream.readNBytes(header, 0, header.length);
     } catch (IOException e) {
-      throw new IllegalStateException("이미지 파일을 읽을 수 없습니다.", e);
+      throw new IllegalStateException(
+          messageSource.getMessage("error.image.readFailed", null, LocaleContextHolder.getLocale()),
+          e);
     }
 
     String signature = detectSignature(header, bytesRead);
@@ -104,6 +113,8 @@ public class ImageFileValidator {
   }
 
   private IllegalArgumentException invalidImageFormat() {
-    return new IllegalArgumentException(INVALID_IMAGE_FORMAT_MESSAGE);
+    return new IllegalArgumentException(
+        messageSource.getMessage(
+            "error.image.invalidFormat", null, LocaleContextHolder.getLocale()));
   }
 }

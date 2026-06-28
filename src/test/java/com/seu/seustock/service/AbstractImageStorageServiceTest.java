@@ -2,12 +2,15 @@ package com.seu.seustock.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.seu.seustock.mapper.ImageMapper;
 import com.seu.seustock.mapper.UserMapper;
 import com.seu.seustock.model.dto.UserDTO;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.MessageSource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +20,7 @@ class AbstractImageStorageServiceTest {
   void store_rejectsSpoofedImageBeforeWritingToStorage() {
     TestImageStorageService service =
         new TestImageStorageService(
-            mock(ImageMapper.class), mock(UserMapper.class), new ImageFileValidator());
+            mock(ImageMapper.class), mock(UserMapper.class), new ImageFileValidator(mockMessageSource()));
     UserDTO owner = new UserDTO();
     owner.setId(1L);
     MultipartFile file =
@@ -29,6 +32,12 @@ class AbstractImageStorageServiceTest {
         .hasMessage("지원하지 않는 이미지 형식입니다.");
 
     assertThat(service.writeCalled).isFalse();
+  }
+
+  private static MessageSource mockMessageSource() {
+    MessageSource ms = mock(MessageSource.class);
+    when(ms.getMessage(any(), any(), any())).thenReturn("지원하지 않는 이미지 형식입니다.");
+    return ms;
   }
 
   private static class TestImageStorageService extends AbstractImageStorageService {

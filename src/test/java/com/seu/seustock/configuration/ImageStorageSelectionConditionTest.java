@@ -12,6 +12,7 @@ import com.seu.seustock.service.MinioImageStorageService;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -67,8 +68,13 @@ class ImageStorageSelectionConditionTest {
     }
 
     @Bean
+    MessageSource messageSource() {
+      return mock(MessageSource.class);
+    }
+
+    @Bean
     ImageFileValidator imageFileValidator() {
-      return new ImageFileValidator();
+      return new ImageFileValidator(messageSource());
     }
   }
 }

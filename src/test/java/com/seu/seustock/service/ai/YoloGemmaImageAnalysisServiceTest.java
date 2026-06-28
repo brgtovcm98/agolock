@@ -3,14 +3,17 @@ package com.seu.seustock.service.ai;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.seu.seustock.service.ImageFileValidator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -19,12 +22,20 @@ class YoloGemmaImageAnalysisServiceTest {
   @Mock private ImageResizeService imageResizeService;
   @Mock private YoloDetectionClient yoloDetectionClient;
   @Mock private GemmaVisionClient gemmaVisionClient;
+  @Mock private MessageSource messageSource;
+
+  @BeforeEach
+  void setUp() {
+    lenient()
+        .when(messageSource.getMessage(any(), any(), any()))
+        .thenReturn("지원하지 않는 이미지 형식입니다.");
+  }
 
   @Test
   void analyze_rejectsSpoofedImageBeforeCallingClients() throws Exception {
     YoloGemmaImageAnalysisService service =
         new YoloGemmaImageAnalysisService(
-            new ImageFileValidator(), imageResizeService, yoloDetectionClient, gemmaVisionClient);
+            new ImageFileValidator(messageSource), imageResizeService, yoloDetectionClient, gemmaVisionClient);
     MockMultipartFile file =
         new MockMultipartFile(
             "imageFile", "spoof.jpg", "image/jpeg", new byte[] {0x01, 0x02, 0x03});
