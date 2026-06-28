@@ -7,7 +7,7 @@
     class="border-b border-slate-100 last:border-0">
 
     <!-- Shelf 헤더: 클릭 첫 번째→HTMX로 Box 목록 로드, 이후→JS 토글 -->
-    <div class="tree-item-container flex items-center gap-1 px-3 py-3 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 transition cursor-pointer group" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){this.click()}"
+    <div class="tree-item-container flex items-center gap-1 px-3 py-3 hover:bg-slate-50 active:bg-slate-100 transition cursor-pointer group" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){this.click()}"
          th:attr="onclick='toggleBoxList(\'' + ${shelf.externalId} + '\', this)',
                   hx-get=@{/spaces/{sid}/shelves/{id}/boxes(sid=${space},id=${shelf.externalId})},
                   hx-target='#box-list-' + ${shelf.externalId}"
@@ -25,43 +25,38 @@
                 hx-swap="outerHTML"
                 onclick="event.stopPropagation()"></button>
 
-        <span class="flex items-center gap-0.5 shrink-0">
-            <!-- QR 코드 버튼 -->
-            <button type="button"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                    th:attr="hx-get=@{/api/qr/modal(type='shelf',externalId=${shelf.externalId},name=${shelf.name})}"
-                    hx-target="#modal"
-                    hx-swap="outerHTML"
-                    onclick="event.stopPropagation()"
-                    th:title="#{view.box.tree.qrTitle}">📷</button>
-            <!-- Shelf 수정 버튼 -->
-            <button type="button"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                    th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/edit(sid=${space},id=${shelf.externalId})}"
-                    hx-target="#modal"
-                    hx-swap="outerHTML"
-                    onclick="event.stopPropagation()"
-                    th:title="#{view.box.tree.editTitle}">✏</button>
+        <span th:if="${shelf.stockCount > 0}" class="count shrink-0" th:text="${shelf.stockCount}" onclick="event.stopPropagation()">5</span>
 
-            <!-- Box 추가 버튼 -->
-            <button type="button"
-                    class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-blue-500 hover:bg-blue-50 hover:text-blue-700"
-                    th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/boxes/new(sid=${space},id=${shelf.externalId})}"
-                    hx-target="#modal"
-                    hx-swap="outerHTML"
-                    onclick="event.stopPropagation()"
-                    th:title="#{view.shelf.created.addBox}">+</button>
-
-            <!-- Shelf 삭제 버튼 -->
-            <button type="button"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-red-50 hover:text-red-500"
-                    th:attr="hx-delete=@{/spaces/{sid}/shelves/{id}(sid=${space},id=${shelf.externalId})},
-                             hx-confirm=#{view.shelf.created.deleteConfirm}"
-                    hx-target="#shelf-list"
-                    hx-swap="outerHTML"
-                    onclick="event.stopPropagation()"
-                    th:title="#{view.common.delete}">×</button>
-        </span>
+        <details class="relative shrink-0" data-dropdown-menu>
+            <summary class="dots inline-flex h-8 w-8 items-center justify-center rounded text-base text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer list-none select-none" aria-label="더보기" onclick="event.stopPropagation()">⋯</summary>
+            <div class="absolute right-0 top-full mt-1 rounded-lg border border-slate-200 bg-white shadow-lg py-1 z-[100] text-sm">
+                <button type="button"
+                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                        th:attr="hx-get=@{/api/qr/modal(type='shelf',externalId=${shelf.externalId},name=${shelf.name})}"
+                        hx-target="#modal" hx-swap="outerHTML">
+                    📷 <span th:text="#{view.box.tree.qrTitle}">QR 코드</span>
+                </button>
+                <button type="button"
+                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                        th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/edit(sid=${space},id=${shelf.externalId})}"
+                        hx-target="#modal" hx-swap="outerHTML">
+                    ✏ <span th:text="#{view.box.tree.editTitle}">이름 수정</span>
+                </button>
+                <button type="button"
+                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                        th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/boxes/new(sid=${space},id=${shelf.externalId})}"
+                        hx-target="#modal" hx-swap="outerHTML">
+                    + <span th:text="#{view.shelf.created.addBox}">박스 추가</span>
+                </button>
+                <button type="button"
+                        class="flex w-full items-center text-red-500 hover:bg-red-50 transition text-left"
+                        th:attr="hx-delete=@{/spaces/{sid}/shelves/{id}(sid=${space},id=${shelf.externalId})},
+                                 hx-confirm=#{view.shelf.created.deleteConfirm}"
+                        hx-target="#shelf-list" hx-swap="outerHTML">
+                    × <span th:text="#{view.common.delete}">삭제</span>
+                </button>
+            </div>
+        </details>
     </div>
 
     <!-- Box 목록 컨테이너 (HTMX가 innerHTML로 채움) -->

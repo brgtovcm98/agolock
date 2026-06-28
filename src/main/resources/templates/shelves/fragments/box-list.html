@@ -9,9 +9,14 @@
 
 <th:block th:fragment="box-list-content">
     <li th:if="${boxes.empty}"
-        class="px-3 py-2 text-xs text-slate-400"
-        th:text="#{view.shelf.list.empty}">
-        박스가 없습니다.
+        class="px-3 py-2">
+        <button type="button"
+                class="btn--cta cursor-pointer"
+                th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/new(sid=${space},shid=${shelf.externalId})},hx-target='#modal'"
+                hx-swap="outerHTML"
+                th:text="|+ #{view.shelf.created.addBox}|">
+            + 박스 추가
+        </button>
     </li>
 
     <th:block th:each="box : ${boxes}">

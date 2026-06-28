@@ -11,27 +11,31 @@
     <!-- Box명 클릭 → 박스 재고 패널 로드 -->
     <button type="button"
             class="tree-item-trigger tree-item-text flex-1 text-left text-sm text-slate-600 truncate"
+            th:classappend="${box.stockCount == 0} ? 'text-slate-400' : ''"
             th:text="${box.name}"
             th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/stocks(sid=${space},shid=${shelf},id=${box.externalId})}"
             hx-target="#stock-panel"
             hx-swap="outerHTML"></button>
 
-    <span class="flex items-center shrink-0">
-        <!-- QR 코드 버튼 -->
-        <button type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                th:attr="hx-get=@{/api/qr/modal(type='box',externalId=${box.externalId},name=${box.name})}"
-                hx-target="#modal"
-                hx-swap="outerHTML"
-                th:title="#{view.box.tree.qrTitle}">📷</button>
-        <!-- Box 수정 버튼 -->
-        <button type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/edit(sid=${space},shid=${shelf},id=${box.externalId})}"
-                hx-target="#modal"
-                hx-swap="outerHTML"
-                th:title="#{view.box.tree.editTitle}">✏</button>
-    </span>
+    <span class="count shrink-0" th:text="${box.stockCount}" onclick="event.stopPropagation()">3</span>
+
+    <details class="relative shrink-0" data-dropdown-menu>
+        <summary class="dots inline-flex h-8 w-8 items-center justify-center rounded text-base text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer list-none select-none" aria-label="더보기" onclick="event.stopPropagation()">⋯</summary>
+        <div class="absolute right-0 top-full mt-1 rounded-lg border border-slate-200 bg-white shadow-lg py-1 z-[100] text-sm">
+            <button type="button"
+                    class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                    th:attr="hx-get=@{/api/qr/modal(type='box',externalId=${box.externalId},name=${box.name})}"
+                    hx-target="#modal" hx-swap="outerHTML">
+                📷 <span th:text="#{view.box.tree.qrTitle}">QR 코드</span>
+            </button>
+            <button type="button"
+                    class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                    th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/edit(sid=${space},shid=${shelf},id=${box.externalId})}"
+                    hx-target="#modal" hx-swap="outerHTML">
+                ✏ <span th:text="#{view.box.tree.editTitle}">이름 수정</span>
+            </button>
+        </div>
+    </details>
 
 </li>
 

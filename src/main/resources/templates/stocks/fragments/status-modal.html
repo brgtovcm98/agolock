@@ -5,8 +5,8 @@
 <!-- 상태 변경 모달 -->
 <div th:fragment="modal"
      id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="modal-dialog bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
+    <div class="modal-dialog max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
         <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.status.title}">상태 변경</h2>
         <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
@@ -24,7 +24,7 @@
             </div>
 
             <div class="mb-6">
-                <label class="field-label text-xs text-slate-500"
+                <label class="field-label field-label-sm"
                        th:text="#{view.stock.modal.status.memoLabel}">사유 메모 (선택)</label>
                 <textarea name="memo" rows="3"
                           class="w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"

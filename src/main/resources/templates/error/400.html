@@ -7,9 +7,9 @@
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 <main class="page-main mx-auto max-w-5xl px-4 py-16 text-center flex-1">
     <p class="text-5xl font-bold text-slate-300 mb-4">400</p>
-    <h1 class="page-title text-xl font-semibold text-slate-700 mb-2" th:text="#{view.error.400.header}">잘못된 요청입니다</h1>
+    <h1 class="page-title mb-2" th:text="#{view.error.400.header}">잘못된 요청입니다</h1>
     <p class="text-slate-500 mb-8" th:text="${errorMessage} ?: #{view.error.400.defaultMessage}">요청을 처리할 수 없습니다.</p>
-    <button type="button" onclick="history.back()" class="btn btn-secondary" th:text="#{view.error.back}">돌아가기</button>
+    <button type="button" onclick="history.back()" class="btn-secondary" th:text="#{view.error.back}">돌아가기</button>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

@@ -10,7 +10,7 @@
 <main class="page-main flex flex-1 items-center justify-center px-4 py-12">
     <div class="card w-full max-w-sm p-6">
 
-        <h1 class="page-title mb-6 text-2xl font-bold text-slate-800" th:text="#{view.register.header}">회원가입</h1>
+        <h1 class="page-title mb-6" th:text="#{view.register.header}">회원가입</h1>
 
         <!-- 가입 완료 메시지 -->
         <div th:if="${success}"
@@ -28,9 +28,7 @@
                 </label>
                 <input type="email" id="email" th:field="*{email}"
                        th:classappend="${#fields.hasErrors('email')} ? 'border-red-400 focus:ring-red-400'"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                              transition"
+                       class="field-input"
                        th:placeholder="#{view.register.emailPlaceholder}"
                        placeholder="example@email.com"
                        hx-get="/register/check-email"
@@ -52,9 +50,7 @@
                 </label>
                 <input type="text" id="nickname" th:field="*{nickname}"
                        th:classappend="${#fields.hasErrors('nickname')} ? 'border-red-400 focus:ring-red-400'"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                              transition"
+                       class="field-input"
                        th:placeholder="#{view.register.nicknamePlaceholder}"
                        placeholder="표시될 이름 2~20자"
                        autocomplete="nickname">
@@ -70,9 +66,7 @@
                 </label>
                 <input type="password" id="password" th:field="*{password}"
                        th:classappend="${#fields.hasErrors('password')} ? 'border-red-400 focus:ring-red-400'"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                              transition"
+                       class="field-input"
                        th:placeholder="#{view.register.passwordPlaceholder}"
                        placeholder="8자 이상"
                        autocomplete="new-password">
@@ -88,9 +82,7 @@
                 </label>
                 <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}"
                        th:classappend="${#fields.hasErrors('passwordConfirm')} ? 'border-red-400 focus:ring-red-400'"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                              transition"
+                       class="field-input"
                        autocomplete="new-password">
                 <span th:if="${#fields.hasErrors('passwordConfirm')}"
                       th:errors="*{passwordConfirm}"

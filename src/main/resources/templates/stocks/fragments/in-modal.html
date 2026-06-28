@@ -4,8 +4,8 @@
 
 <div th:fragment="modal"
      id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
+    <div class="modal-dialog max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
         <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.in.title}">입고 처리</h2>
         <p class="text-sm text-slate-500 mb-4" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>

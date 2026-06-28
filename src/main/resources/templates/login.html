@@ -10,7 +10,7 @@
 <main class="page-main flex flex-1 items-center justify-center px-4 py-12">
     <div class="card w-full max-w-sm p-6">
 
-        <h1 class="page-title mb-6 text-2xl font-bold text-slate-800" th:text="#{view.login.header}">로그인</h1>
+        <h1 class="page-title mb-6" th:text="#{view.login.header}">로그인</h1>
 
         <form th:action="@{/login}" th:object="${form}" method="post" class="space-y-4">
 
@@ -35,9 +35,7 @@
                 </label>
                 <input type="email" id="email" th:field="*{email}"
                        th:classappend="${#fields.hasErrors('email')} ? 'border-red-400 focus:ring-red-400'"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                              transition"
+                       class="field-input"
                        autocomplete="email">
                 <span th:if="${#fields.hasErrors('email')}"
                       th:errors="*{email}"
@@ -51,9 +49,7 @@
                 </label>
                 <input type="password" id="password" th:field="*{password}"
                        th:classappend="${#fields.hasErrors('password')} ? 'border-red-400 focus:ring-red-400'"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                              transition"
+                       class="field-input"
                        autocomplete="current-password">
                 <span th:if="${#fields.hasErrors('password')}"
                       th:errors="*{password}"

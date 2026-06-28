@@ -17,6 +17,7 @@
     <script src="/js/csrf.js"></script>
     <script src="/js/image-upload.js"></script>
     <script src="/js/tracking-policy-preview.js"></script>
+    <script src="/js/dropdown-menu.js"></script>
     <script>
         (function () {
             function ensureToastContainer() {
@@ -117,13 +118,19 @@
         <div class="hidden md:flex items-center gap-x-4 text-sm">
             <th:block th:if="${currentUsername != null}">
                 <a href="/spaces"
-                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.mySpaces}">내 공간</a>
+                   class="text-slate-600 hover:text-slate-900 transition"
+                   th:classappend="${activeNav == 'spaces'} ? 'font-semibold text-indigo-600'"
+                   th:text="#{view.nav.mySpaces}">내 공간</a>
                 <span class="text-slate-300">|</span>
                 <a href="/items"
-                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.myItems}">내 품목</a>
+                   class="text-slate-600 hover:text-slate-900 transition"
+                   th:classappend="${activeNav == 'items'} ? 'font-semibold text-indigo-600'"
+                   th:text="#{view.nav.myItems}">내 품목</a>
                 <span class="text-slate-300">|</span>
                 <a href="/stocks"
-                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.myStocks}">내 재고</a>
+                   class="text-slate-600 hover:text-slate-900 transition"
+                   th:classappend="${activeNav == 'stocks'} ? 'font-semibold text-indigo-600'"
+                   th:text="#{view.nav.myStocks}">내 재고</a>
                 <span class="text-slate-300">|</span>
                 <span class="text-slate-500" th:text="${currentNickname}"></span>
                 <form th:action="@{/logout}" method="post" class="inline">
@@ -141,7 +148,7 @@
         </div>
 
         <!--/* 모바일: md 미만에서 드롭다운 */-->
-        <details class="relative md:hidden text-sm" aria-label="메뉴">
+        <details class="relative md:hidden text-sm" aria-label="메뉴" data-dropdown-menu>
             <summary class="list-none cursor-pointer select-none rounded px-3 py-1.5
                             text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition" th:text="|#{view.nav.menu} ▾|">
                 메뉴 ▾
