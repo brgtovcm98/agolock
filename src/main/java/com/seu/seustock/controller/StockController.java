@@ -438,7 +438,7 @@ public class StockController {
     String username = principal.getName();
     stockService.deleteUnits(
         itemExternalId, spaceExternalId, shelfExternalId, boxExternalId, username);
-    HtmxResponse.success(response, "재고가 삭제되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.stock.deleted"));
     return buildPanelResponse(spaceExternalId, shelfExternalId, boxExternalId, username, model);
   }
 
@@ -448,7 +448,7 @@ public class StockController {
       @PathVariable UUID stockExternalId, Principal principal, HttpServletResponse response) {
     String username = principal.getName();
     stockService.deleteUnit(stockExternalId, username);
-    HtmxResponse.success(response, "재고가 삭제되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.stock.deleted"));
     return "";
   }
 
@@ -522,7 +522,7 @@ public class StockController {
     }
     String username = principal.getName();
     stockService.addUnits(form, username);
-    HtmxResponse.success(response, "입고되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.stock.in"));
     return buildPanelResponse(
         form.getSpaceExternalId(),
         form.getShelfExternalId(),
@@ -569,7 +569,7 @@ public class StockController {
     }
     String username = principal.getName();
     stockService.dispatchUnits(form, username);
-    HtmxResponse.success(response, "출고되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.stock.out"));
     return buildPanelResponse(
         form.getSpaceExternalId(),
         form.getShelfExternalId(),
@@ -611,7 +611,7 @@ public class StockController {
       return "stocks/fragments/move-modal :: modal";
     }
     stockService.moveUnits(form, username);
-    HtmxResponse.success(response, "재고가 이동되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.stock.moved"));
     return buildPanelResponse(
         form.getSourceSpaceExternalId(),
         form.getSourceShelfExternalId(),
@@ -644,7 +644,7 @@ public class StockController {
           shelfService.findByExternalId(spaceExternalId, shelfExternalId, username).getName();
     } else {
       SpaceDTO space = spaceService.findByExternalId(spaceExternalId, username);
-      breadcrumb = space.getName() + "에 대충 던져놓은 물건들";
+      breadcrumb = getMsg("view.stock.breadcrumb.loose", space.getName());
     }
     model.addAttribute("stocks", page.content());
     model.addAttribute("page", page);
