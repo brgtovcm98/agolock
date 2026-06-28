@@ -45,8 +45,7 @@
                     <input type="number" name="count" value="1" min="1"
                            id="in-count-input"
                            th:data-current-count="${currentCount}"
-                           class="field-input
-                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                           class="field-input">
                     <p id="in-count-msg" class="mt-1 text-xs text-slate-500"></p>
                 </div>
                 <div class="mb-4">
@@ -56,8 +55,7 @@
                     </label>
                     <input type="text" name="memo"
                            id="in-memo-input"
-                           class="field-input
-                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                           class="field-input"
                            th:placeholder="#{view.stock.modal.in.memoPlaceholder}">
                     <div class="mt-2 flex flex-wrap gap-1.5" th:if="${inMemoSuggestions != null and !inMemoSuggestions.isEmpty()}">
                         <button type="button"
@@ -73,7 +71,7 @@
                 <div class="flex gap-2 justify-end">
                     <button type="button"
                             hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                            class="btn-secondary"
                             th:text="#{view.common.cancel}">
                         취소
                     </button>
@@ -83,7 +81,7 @@
                             hx-target="#stock-panel"
                             hx-swap="outerHTML"
                             th:attr="hx-confirm=#{view.stock.modal.in.confirm}"
-                            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                            class="btn-primary"
                             th:text="#{view.stock.modal.in.title}">
                         입고
                     </button>
@@ -142,7 +140,7 @@
                 <div class="flex gap-2 justify-end">
                     <button type="button"
                             hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                            class="btn-secondary"
                             th:text="#{view.common.cancel}">
                         취소
                     </button>
@@ -167,7 +165,7 @@
             <div class="flex gap-2 justify-end">
                 <button type="button"
                         hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        class="btn-secondary"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>

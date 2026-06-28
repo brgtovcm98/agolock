@@ -53,12 +53,11 @@
             <div class="mb-3">
                 <label class="field-label" th:text="#{view.item.card.nameLabel}">품목명</label>
                 <input type="text" th:field="*{name}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        th:placeholder="#{view.item.modal.namePlaceholder}">
                 <span th:if="${#fields.hasErrors('name')}"
                       th:errors="*{name}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-3">
@@ -66,12 +65,11 @@
                     <span th:text="#{view.item.card.descLabel}">설명</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{description}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        th:placeholder="#{view.item.modal.descPlaceholder}">
                 <span th:if="${#fields.hasErrors('description')}"
                       th:errors="*{description}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-3">
@@ -79,11 +77,10 @@
                     <span th:text="#{view.stock.form.count.label}">수량</span> <span class="text-slate-400 font-normal" th:text="|#{view.stock.modal.quick.max}|">(최대 50개)</span>
                 </label>
                 <input type="number" th:field="*{count}" min="1" max="50"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                       class="field-input">
                 <span th:if="${#fields.hasErrors('count')}"
                       th:errors="*{count}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-3">
@@ -91,12 +88,11 @@
                     <span th:text="#{view.stock.form.price.label}">가격</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       class="field-input"
                        th:placeholder="#{view.stock.form.price.placeholder}">
                 <span th:if="${#fields.hasErrors('price')}"
                       th:errors="*{price}"
-                      class="mt-1 block text-xs text-red-500"></span>
+                      class="field-error"></span>
             </div>
 
             <div class="mb-4">
@@ -104,8 +100,7 @@
                     <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{memo}"
-                       class="field-input
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                       class="field-input">
             </div>
 
             <input type="hidden" th:field="*{imageHash}" id="quick-image-hash">
@@ -115,13 +110,13 @@
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                        class="btn-secondary"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
                         id="quick-submit-btn"
-                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        class="btn-primary"
                         th:text="#{view.common.add}">
                     등록
                 </button>

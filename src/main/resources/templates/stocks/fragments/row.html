@@ -40,12 +40,12 @@
                    min="1"
                    th:max="${stock.count}"
                    th:value="${stock.count}"
-                   class="stock-move-count w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   class="stock-move-count field-input w-20"
                    oninput="syncStockMoveControls()">
             <span class="text-xs text-slate-400">/ <span th:text="${stock.count}"></span><span th:text="#{view.item.card.unit}">개</span></span>
         </div>
         <a th:href="@{/stocks(item=${stock.itemExternalId},space=${space},shelf=${shelf},box=${box})}"
-           class="stock-default-only rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+           class="stock-default-only btn-secondary btn-sm"
            th:text="#{view.common.list}">
             목록
         </a>

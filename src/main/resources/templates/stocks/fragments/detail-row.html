@@ -177,14 +177,14 @@
             <button type="button"
                     th:attr="hx-put=@{/stocks/{id}(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId},hx-include='#stock-' + ${stock.externalId}"
                     hx-swap="outerHTML"
-                    class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                    class="btn-primary btn-sm"
                     th:text="#{view.common.save}">
                 저장
             </button>
             <button type="button"
                     th:attr="hx-get=@{/stocks/{id}/cancel(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
                     hx-swap="outerHTML"
-                    class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                    class="btn-secondary btn-sm"
                     th:text="#{view.common.cancel}">
                 취소
             </button>
