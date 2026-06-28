@@ -4,11 +4,11 @@
 
 <div th:fragment="modal"
      id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="ui-modal-overlay ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
-    <div class="ui-modal-dialog ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full max-w-md ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
+     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="modal-dialog bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
-        <h2 id="modal-title" class="ui-text-lg ui-font-semibold ui-text-slate-800 ui-mb-1" th:text="#{view.stock.modal.move.title}">물품 이동</h2>
-        <p class="ui-text-xs ui-text-slate-400 ui-mb-4" th:text="#{view.stock.modal.move.description}">선택한 물품을 같은 위치로 이동합니다.</p>
+        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.move.title}">물품 이동</h2>
+        <p class="text-xs text-slate-400 mb-4" th:text="#{view.stock.modal.move.description}">선택한 물품을 같은 위치로 이동합니다.</p>
 
         <form th:object="${form}"
               method="post"
@@ -16,31 +16,31 @@
               hx-target="#stock-panel"
               hx-swap="outerHTML">
 
-            <input type="ui-hidden" th:field="*{sourceSpaceExternalId}">
-            <input type="ui-hidden" th:field="*{sourceShelfExternalId}">
-            <input type="ui-hidden" th:field="*{sourceBoxExternalId}">
+            <input type="hidden" th:field="*{sourceSpaceExternalId}">
+            <input type="hidden" th:field="*{sourceShelfExternalId}">
+            <input type="hidden" th:field="*{sourceBoxExternalId}">
 
-            <input type="ui-hidden" th:field="*{targetSpaceExternalId}" id="move-target-space">
-            <input type="ui-hidden" th:field="*{targetShelfExternalId}" id="move-target-shelf">
-            <input type="ui-hidden" th:field="*{targetBoxExternalId}" id="move-target-box">
+            <input type="hidden" th:field="*{targetSpaceExternalId}" id="move-target-space">
+            <input type="hidden" th:field="*{targetShelfExternalId}" id="move-target-shelf">
+            <input type="hidden" th:field="*{targetBoxExternalId}" id="move-target-box">
 
             <th:block th:each="item, stat : *{items}">
-                <input type="ui-hidden" th:field="*{items[__${stat.index}__].itemExternalId}">
-                <input type="ui-hidden" th:field="*{items[__${stat.index}__].count}">
+                <input type="hidden" th:field="*{items[__${stat.index}__].itemExternalId}">
+                <input type="hidden" th:field="*{items[__${stat.index}__].count}">
             </th:block>
 
             <div th:if="${#fields.hasAnyErrors()}"
-                 class="mb-3 ui-rounded-md ui-border ui-border-red-200 ui-bg-red-50 ui-px-3 ui-py-2 ui-text-sm ui-text-red-600"
+                 class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
                  th:text="#{view.common.error.checkInput}">
                 입력값을 확인해주세요.
             </div>
 
-            <div class="ui-mb-4">
-                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-2" th:text="#{view.stock.form.target.label}">이동할 장소</label>
-                <div class="max-h-72 ui-overflow-y-auto ui-rounded-md ui-border ui-border-slate-200 ui-divide-y ui-divide-slate-100">
+            <div class="mb-4">
+                <label class="field-label" th:text="#{view.stock.form.target.label}">이동할 장소</label>
+                <div class="max-h-72 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
                     <label th:each="option : ${locationOptions}"
-                           class="ui-flex ui-items-center ui-gap-3 ui-px-3 ui-py-2 ui-text-sm"
-                           th:classappend="${option.current} ? 'cursor-not-allowed ui-bg-slate-50 text-slate-400' : 'cursor-pointer ui-hover-bg-slate-50 ui-text-slate-700'">
+                           class="flex items-center gap-3 px-3 py-2 text-sm"
+                           th:classappend="${option.current} ? 'cursor-not-allowed bg-slate-50 text-slate-400' : 'cursor-pointer hover:bg-slate-50 text-slate-700'">
                         <input type="radio"
                                name="moveTargetOption"
                                required
@@ -49,37 +49,37 @@
                                th:data-shelf-id="${option.shelfExternalId}"
                                th:data-box-id="${option.boxExternalId}"
                                onchange="setStockMoveTarget(this)"
-                               class="ui-text-blue-600 ui-focus-ring-blue-500">
+                               class="text-blue-600 focus:ring-blue-500">
                         <span th:text="${option.label}">위치</span>
-                        <span th:if="${option.current}" class="ml-auto ui-text-xs ui-text-slate-400" th:text="#{view.stock.form.target.current}">현재 위치</span>
+                        <span th:if="${option.current}" class="ml-auto text-xs text-slate-400" th:text="#{view.stock.form.target.current}">현재 위치</span>
                     </label>
                 </div>
                 <span th:if="${#fields.hasErrors('targetSpaceExternalId')}"
                       th:errors="*{targetSpaceExternalId}"
-                      class="ui-mt-1 ui-block ui-text-xs ui-text-red-500"></span>
+                      class="mt-1 block text-xs text-red-500"></span>
             </div>
 
-            <div class="ui-mb-4">
-                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1">
-                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="ui-text-slate-400 ui-font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+            <div class="mb-4">
+                <label class="field-label">
+                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{memo}"
-                       class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
-                              ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
+                       class="field-input
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                        th:placeholder="#{view.stock.form.memo.placeholder}">
             </div>
 
-            <div class="ui-flex ui-gap-2 ui-justify-end">
+            <div class="flex gap-2 justify-end">
                 <button type="button"
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
                         th:text="#{view.stock.modal.move.button}">
                     이동
                 </button>

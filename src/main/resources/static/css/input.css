@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ── Design Tokens ── */
+@theme {
+    --color-primary: #2563eb;
+    --color-primary-hover: #1d4ed8;
+    --color-danger: #dc2626;
+    --color-focus: rgba(37, 99, 235, 0.28);
+
+    --spacing-0-5: 0.125rem;
+    --spacing-1-5: 0.375rem;
+    --spacing-2-5: 0.625rem;
+
+    --radius-card: 0.5rem;
+    --radius-modal: 0.75rem;
+
+    --shadow-card: 0 10px 15px -3px rgba(15, 23, 42, 0.10), 0 4px 6px -4px rgba(15, 23, 42, 0.10);
+    --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+    --font-sans: "Noto Sans KR", "Noto Sans JP", "Noto Sans SC", "Noto Sans", sans-serif;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* ── Component layer ── */
+@layer components {
+    /* Page layout */
+    .page              { @apply bg-slate-50 text-slate-800; }
+    .page-main         { @apply pt-10 pb-10 max-sm:pt-6 max-sm:pb-6; }
+    .page-title        { @apply text-2xl font-bold tracking-tight text-slate-800 max-sm:text-xl; }
+    .card              { @apply border border-slate-200 rounded-lg bg-white; }
+
+    /* Buttons — base */
+    .btn, .btn-primary, .btn-secondary, .btn-danger, .btn-search {
+        @apply inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2
+               text-sm font-semibold leading-5 transition border;
+    }
+    .btn:focus-visible, .btn-primary:focus-visible, .btn-secondary:focus-visible,
+    .btn-danger:focus-visible, .btn-search:focus-visible {
+        @apply outline-hidden ring-3 ring-focus;
+    }
+    .btn:disabled, .btn-primary:disabled, .btn-secondary:disabled,
+    .btn-danger:disabled, .btn-search:disabled {
+        @apply bg-slate-100 text-slate-400 cursor-not-allowed;
+    }
+    .btn               { @apply border-transparent; }
+    .btn-primary       { @apply border-transparent bg-primary text-white hover:bg-primary-hover; }
+    .btn-secondary     { @apply border-slate-300 bg-white text-slate-600 hover:bg-slate-50; }
+    .btn-danger        { @apply border-red-200 bg-white text-danger hover:bg-red-50; }
+    .btn-search        { @apply border-0 bg-slate-600 text-white hover:bg-slate-700; }
+
+    .btn-icon {
+        @apply inline-flex min-h-9 min-w-9 items-center justify-center rounded-md
+               focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-focus;
+    }
+
+    /* Form fields */
+    .field-label       { @apply block mb-1.5 text-sm font-medium text-slate-700; }
+    .field-input       { @apply w-full min-h-10 rounded-lg border border-slate-300 bg-white
+                                px-3 py-2 text-sm text-slate-800
+                                focus:border-primary focus:outline-hidden focus:ring-3 focus:ring-focus
+                                disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed; }
+    .field-error       { @apply mt-1 block text-sm text-danger; }
+
+    /* Alerts */
+    .alert, .alert-success, .alert-error, .alert-warning {
+        @apply rounded-lg border px-4 py-3 text-sm mb-5;
+    }
+    .alert-success     { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
+    .alert-error       { @apply border-red-200 bg-red-50 text-red-700; }
+    .alert-warning     { @apply border-amber-200 bg-amber-50 text-amber-700; }
+
+    /* Badges */
+    .badge, .badge-blue, .badge-green, .badge-amber, .badge-red, .badge-sky, .badge-orange, .badge-slate {
+        @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium leading-4;
+    }
+    .badge-blue        { @apply bg-blue-50 text-blue-700; }
+    .badge-green       { @apply bg-green-50 text-green-600; }
+    .badge-amber       { @apply bg-amber-50 text-amber-700; }
+    .badge-red         { @apply bg-red-50 text-red-600; }
+    .badge-sky         { @apply bg-sky-50 text-sky-700; }
+    .badge-orange      { @apply bg-orange-50 text-orange-700; }
+    .badge-slate       { @apply bg-slate-50 text-slate-500; }
+
+    /* Modal */
+    .modal-overlay     { @apply p-4 bg-slate-900/50; }
+    .modal-dialog      { @apply w-full max-h-[min(90vh,48rem)] overflow-y-auto rounded-xl
+                                border border-slate-200/90 bg-white shadow-card; }
+    .modal-header      { @apply mb-5; }
+    .modal-title       { @apply text-lg font-semibold leading-6 text-slate-800; }
+    .modal-description { @apply mt-1 text-sm text-slate-500; }
+    .modal-footer      { @apply flex flex-wrap justify-end gap-2 mt-6; }
+
+    /* Empty state */
+    .empty-state       { @apply py-10 px-4 text-center text-slate-500 text-sm; }
+
+    /* Tree item selected */
+    .tree-item-selected {
+        @apply bg-blue-50;
+        & .tree-item-text { @apply text-blue-700 font-semibold; }
+    }
+
+    /* Grid layouts */
+    .grid-item-card {
+        @apply grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, 0.7fr) minmax(0, 0.8fr) 10rem;
+    }
+    .grid-stock-row {
+        @apply grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 1fr) 18rem;
+    }
+}
+
+@layer utilities {
+    .toast-width  { width: min(24rem, calc(100vw - 2rem)); }
+    .animate-in   { animation: fade-in 150ms ease-out; }
+}
+
+/* ── Animations ── */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile modal adjustments ── */
+@media (max-width: 640px) {
+    .modal-overlay { align-items: flex-end; }
+    .modal-dialog  { max-height: calc(100vh - 1rem); }
+    .btn, .btn-primary, .btn-secondary, .btn-danger, .btn-search { flex: 1 1 auto; }
+}

@@ -4,29 +4,29 @@
 
 <div th:fragment="modal"
      id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="ui-modal-overlay ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
-    <div class="ui-modal-dialog ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full ui-max-w-sm ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
+     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
         <!-- 헤더 -->
-        <div class="ui-mb-4">
-            <h2 id="modal-title" class="ui-text-lg ui-font-semibold ui-text-slate-800" th:text="${itemName}">품목명</h2>
-            <p class="ui-text-sm ui-text-slate-500" th:text="#{view.stock.modal.action.subtitle}">재고 조작</p>
+        <div class="mb-4">
+            <h2 id="modal-title" class="text-lg font-semibold text-slate-800" th:text="${itemName}">품목명</h2>
+            <p class="text-sm text-slate-500" th:text="#{view.stock.modal.action.subtitle}">재고 조작</p>
         </div>
 
         <!-- 탭 -->
-        <div class="ui-flex ui-gap-1 mb-5 ui-bg-slate-100 ui-rounded-lg ui-p-1">
+        <div class="flex gap-1 mb-5 bg-slate-100 rounded-lg p-1">
             <button type="button" onclick="switchActionTab('in')" id="action-tab-in"
-                    class="ui-flex-1 ui-rounded-md ui-py-1-5 ui-text-sm ui-font-medium ui-bg-white ui-shadow-sm ui-text-blue-600 ui-transition"
+                    class="flex-1 rounded-lg py-1.5 text-sm font-medium bg-white shadow-sm text-blue-600 transition"
                     th:text="#{view.stock.modal.in.title}">
                 입고
             </button>
             <button type="button" onclick="switchActionTab('out')" id="action-tab-out"
-                    class="ui-flex-1 ui-rounded-md ui-py-1-5 ui-text-sm ui-font-medium ui-text-slate-500 ui-transition"
+                    class="flex-1 rounded-lg py-1.5 text-sm font-medium text-slate-500 transition"
                     th:text="#{view.stock.modal.out.title}">
                 출고
             </button>
             <button type="button" onclick="switchActionTab('del')" id="action-tab-del"
-                    class="ui-flex-1 ui-rounded-md ui-py-1-5 ui-text-sm ui-font-medium ui-text-slate-500 ui-transition"
+                    class="flex-1 rounded-lg py-1.5 text-sm font-medium text-slate-500 transition"
                     th:text="#{view.common.delete}">
                 삭제
             </button>
@@ -34,46 +34,46 @@
 
         <!-- 입고 섹션 -->
         <div id="action-section-in">
-            <p class="ui-text-sm ui-text-slate-500 mb-3" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>
+            <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>
             <form id="in-form">
-                <input type="ui-hidden" name="itemExternalId"  th:value="${item}">
-                <input type="ui-hidden" name="spaceExternalId" th:value="${space}">
-                <input type="ui-hidden" name="shelfExternalId" th:value="${shelf}">
-                <input type="ui-hidden" name="boxExternalId"   th:value="${box}">
+                <input type="hidden" name="itemExternalId"  th:value="${item}">
+                <input type="hidden" name="spaceExternalId" th:value="${space}">
+                <input type="hidden" name="shelfExternalId" th:value="${shelf}">
+                <input type="hidden" name="boxExternalId"   th:value="${box}">
                 <div class="mb-3">
-                    <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1" th:text="#{view.stock.form.count.label}">수량</label>
+                    <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
                     <input type="number" name="count" value="1" min="1"
                            id="in-count-input"
                            th:data-current-count="${currentCount}"
-                           class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
-                                  ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition">
-                    <p id="in-count-msg" class="ui-mt-1 ui-text-xs ui-text-slate-500"></p>
+                           class="field-input
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <p id="in-count-msg" class="mt-1 text-xs text-slate-500"></p>
                 </div>
-                <div class="ui-mb-4">
-                    <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1">
+                <div class="mb-4">
+                    <label class="field-label">
                         <span th:text="#{view.stock.form.memo.label}">메모</span>
-                        <span class="ui-text-slate-400 ui-font-normal" th:text="#{view.common.optional}">(선택)</span>
+                        <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
                     </label>
                     <input type="text" name="memo"
                            id="in-memo-input"
-                           class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
-                                  ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
+                           class="field-input
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                            th:placeholder="#{view.stock.modal.in.memoPlaceholder}">
-                    <div class="ui-mt-2 ui-flex ui-flex-wrap gap-1.5" th:if="${inMemoSuggestions != null and !inMemoSuggestions.isEmpty()}">
+                    <div class="mt-2 flex flex-wrap gap-1.5" th:if="${inMemoSuggestions != null and !inMemoSuggestions.isEmpty()}">
                         <button type="button"
                                 th:each="memo : ${inMemoSuggestions}"
                                 th:data-memo="${memo}"
                                 onclick="setTransactionMemo('in', this.dataset.memo)"
-                                class="ui-rounded-full ui-border ui-border-blue-200 ui-bg-blue-50 ui-px-2-5 ui-py-1 ui-text-xs ui-font-medium ui-text-blue-700 ui-hover-bg-blue-100 ui-transition"
+                                class="rounded-full border border-blue-200 bg-blue-50 px-2-5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition"
                                 th:text="${memo}">
                             구매 입고
                         </button>
                     </div>
                 </div>
-                <div class="ui-flex ui-gap-2 ui-justify-end">
+                <div class="flex gap-2 justify-end">
                     <button type="button"
                             hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                            class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
                             th:text="#{view.common.cancel}">
                         취소
                     </button>
@@ -83,7 +83,7 @@
                             hx-target="#stock-panel"
                             hx-swap="outerHTML"
                             th:attr="hx-confirm=#{view.stock.modal.in.confirm}"
-                            class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
+                            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
                             th:text="#{view.stock.modal.in.title}">
                         입고
                     </button>
@@ -92,57 +92,57 @@
         </div>
 
         <!-- 출고 섹션 -->
-        <div id="action-section-out" class="ui-hidden">
-            <p class="ui-text-sm ui-text-slate-500 mb-3" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
+        <div id="action-section-out" class="hidden">
+            <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
             <form id="out-form">
-                <input type="ui-hidden" name="itemExternalId"  th:value="${item}">
-                <input type="ui-hidden" name="spaceExternalId" th:value="${space}">
-                <input type="ui-hidden" name="shelfExternalId" th:value="${shelf}">
-                <input type="ui-hidden" name="boxExternalId"   th:value="${box}">
+                <input type="hidden" name="itemExternalId"  th:value="${item}">
+                <input type="hidden" name="spaceExternalId" th:value="${space}">
+                <input type="hidden" name="shelfExternalId" th:value="${shelf}">
+                <input type="hidden" name="boxExternalId"   th:value="${box}">
                 <div class="mb-3">
-                    <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1" th:text="#{view.stock.form.count.label}">수량</label>
+                    <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
                     <input type="number" name="count" value="1" min="1"
                            id="out-count-input"
                            th:data-current-count="${currentCount}"
-                           class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
-                                  ui-focus-outline-none ui-focus-ring-2 focus:ring-orange-500 focus:border-orange-500 ui-transition">
-                    <p id="out-count-msg" class="ui-mt-1 ui-text-xs ui-text-slate-500"></p>
+                           class="field-input
+                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition">
+                    <p id="out-count-msg" class="mt-1 text-xs text-slate-500"></p>
                 </div>
-                <div class="ui-mb-4">
-                    <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1">
+                <div class="mb-4">
+                    <label class="field-label">
                         <span th:text="#{view.stock.form.memo.label}">메모</span>
-                        <span class="ui-text-slate-400 ui-font-normal" th:text="#{view.common.optional}">(선택)</span>
+                        <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
                     </label>
                     <input type="text" name="memo"
                            id="out-memo-input"
-                           class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
-                                  ui-focus-outline-none ui-focus-ring-2 focus:ring-orange-500 focus:border-orange-500 ui-transition"
+                           class="field-input
+                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
                            th:placeholder="#{view.stock.modal.out.memoPlaceholder}">
-                    <div class="ui-mt-2 ui-flex ui-flex-wrap gap-1.5" th:if="${outMemoSuggestions != null and !outMemoSuggestions.isEmpty()}">
+                    <div class="mt-2 flex flex-wrap gap-1.5" th:if="${outMemoSuggestions != null and !outMemoSuggestions.isEmpty()}">
                         <button type="button"
                                 th:each="memo : ${outMemoSuggestions}"
                                 th:data-memo="${memo}"
                                 onclick="setTransactionMemo('out', this.dataset.memo)"
-                                class="ui-rounded-full ui-border ui-border-orange-200 ui-bg-orange-50 ui-px-2-5 ui-py-1 ui-text-xs ui-font-medium ui-text-orange-700 ui-hover-bg-orange-100 ui-transition"
+                                class="rounded-full border border-orange-200 bg-orange-50 px-2-5 py-1 text-xs font-medium text-orange-700 hover:bg-orange-100 transition"
                                 th:text="${memo}">
                             사용 출고
                         </button>
                     </div>
                 </div>
-                <div class="mb-3 ui-flex ui-items-center ui-gap-2">
+                <div class="mb-3 flex items-center gap-2">
                     <input type="checkbox"
                            id="out-include-kept"
                            name="includeKept"
                            value="true"
-                           class="h-4 w-4 rounded ui-border-slate-300 ui-text-orange-600 focus:ring-orange-500">
+                           class="h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
                     <label for="out-include-kept"
-                           class="ui-text-sm ui-text-slate-600"
+                           class="text-sm text-slate-600"
                            th:text="#{view.stock.modal.out.includeKept}">보관 품목 포함</label>
                 </div>
-                <div class="ui-flex ui-gap-2 ui-justify-end">
+                <div class="flex gap-2 justify-end">
                     <button type="button"
                             hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                            class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
                             th:text="#{view.common.cancel}">
                         취소
                     </button>
@@ -152,7 +152,7 @@
                             hx-target="#stock-panel"
                             hx-swap="outerHTML"
                             th:attr="hx-confirm=#{view.stock.modal.out.confirm}"
-                            class="ui-rounded-md bg-orange-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-orange-700 ui-transition"
+                            class="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition"
                             th:text="#{view.stock.modal.out.title}">
                         출고
                     </button>
@@ -161,13 +161,13 @@
         </div>
 
         <!-- 삭제 섹션 -->
-        <div id="action-section-del" class="ui-hidden">
-            <p class="ui-text-sm ui-font-medium ui-text-red-600 ui-mb-2" th:text="#{view.stock.modal.delete.warning}">⚠ 이 위치의 재고를 모두 삭제합니다.</p>
-            <p class="ui-text-sm ui-text-slate-500 ui-mb-6" th:text="#{view.stock.modal.delete.message}">삭제된 재고는 복구할 수 없습니다.</p>
-            <div class="ui-flex ui-gap-2 ui-justify-end">
+        <div id="action-section-del" class="hidden">
+            <p class="text-sm font-medium text-red-600 mb-2" th:text="#{view.stock.modal.delete.warning}">⚠ 이 위치의 재고를 모두 삭제합니다.</p>
+            <p class="text-sm text-slate-500 mb-6" th:text="#{view.stock.modal.delete.message}">삭제된 재고는 복구할 수 없습니다.</p>
+            <div class="flex gap-2 justify-end">
                 <button type="button"
                         hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                        class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
@@ -175,7 +175,7 @@
                         th:attr="hx-delete=@{/stocks(item=${item},space=${space},shelf=${shelf},box=${box})},hx-confirm=#{view.stock.modal.delete.confirm}"
                         hx-target="#stock-panel"
                         hx-swap="outerHTML"
-                        class="ui-rounded-md ui-bg-red-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-red-700 ui-transition"
+                        class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition"
                         th:text="#{view.common.delete}">
                     삭제
                 </button>
@@ -193,18 +193,18 @@
     const minTotalErrorMsg = /*[[#{view.stock.modal.js.minTotalError}]]*/ '재고의 총 수량은 0개 이하가 될 수 없습니다';
 
     function switchActionTab(tab) {
-        const tabColors = { in: 'ui-text-blue-600', out: 'ui-text-orange-600', del: 'ui-text-red-600' };
+        const tabColors = { in: 'text-blue-600', out: 'text-orange-600', del: 'text-red-600' };
         ['in', 'out', 'del'].forEach(function(t) {
             var section = document.getElementById('action-section-' + t);
             var btn = document.getElementById('action-tab-' + t);
             if (t === tab) {
                 section.classList.remove('hidden');
-                btn.classList.add('ui-bg-white', 'ui-shadow-sm', tabColors[t]);
-                btn.classList.remove('ui-text-slate-500');
+                btn.classList.add('bg-white', 'shadow-sm', tabColors[t]);
+                btn.classList.remove('text-slate-500');
             } else {
                 section.classList.add('hidden');
-                btn.classList.remove('ui-bg-white', 'ui-shadow-sm', 'ui-text-blue-600', 'ui-text-orange-600', 'ui-text-red-600');
-                btn.classList.add('ui-text-slate-500');
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600', 'text-orange-600', 'text-red-600');
+                btn.classList.add('text-slate-500');
             }
         });
         document.getElementById('in-count-msg').textContent = '';

@@ -4,10 +4,10 @@
 
 <div th:fragment="modal"
      id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="ui-modal-overlay ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
-    <div class="ui-modal-dialog ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full ui-max-w-sm ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
+     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="modal-dialog bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
-        <h2 id="modal-title" class="ui-text-lg ui-font-semibold ui-text-slate-800 ui-mb-4" th:text="#{view.shelf.modal.add.title}">선반 추가</h2>
+        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.shelf.modal.add.title}">선반 추가</h2>
 
         <form th:object="${form}"
               method="post"
@@ -15,29 +15,29 @@
               hx-target="#modal"
               hx-swap="outerHTML">
 
-            <div class="ui-mb-4">
-                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1" th:text="#{view.shelf.form.name.label}">선반 이름</label>
+            <div class="mb-4">
+                <label class="field-label" th:text="#{view.shelf.form.name.label}">선반 이름</label>
                 <input type="text" th:field="*{name}"
-                       th:classappend="${#fields.hasErrors('name')} ? 'ui-border-red-400'"
-                       class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
-                              ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
+                       th:classappend="${#fields.hasErrors('name')} ? 'border-red-400'"
+                       class="field-input
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                        th:placeholder="#{view.shelf.form.name.placeholder}" autofocus>
                 <span th:if="${#fields.hasErrors('name')}"
                       th:errors="*{name}"
-                      class="ui-mt-1 ui-block ui-text-xs ui-text-red-500"></span>
+                      class="mt-1 block text-xs text-red-500"></span>
             </div>
 
-            <div class="ui-flex ui-gap-2 ui-justify-end">
+            <div class="flex gap-2 justify-end">
                 <button type="button"
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
                         th:text="#{view.common.add}">
                     추가
                 </button>
@@ -49,10 +49,10 @@
 
 <div th:fragment="edit-modal"
      id="modal"
-     class="ui-fixed ui-inset-0 ui-z-50 ui-flex ui-items-center ui-justify-center ui-bg-black-40">
-    <div class="ui-bg-white ui-rounded-xl ui-shadow-xl ui-w-full ui-max-w-sm ui-mx-4 ui-p-6 ui-max-h-90vh ui-overflow-y-auto ui-flex ui-flex-col">
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
-        <h2 class="ui-text-lg ui-font-semibold ui-text-slate-800 ui-mb-4" th:text="#{view.shelf.modal.edit.title}">선반 이름 수정</h2>
+        <h2 class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.shelf.modal.edit.title}">선반 이름 수정</h2>
 
         <form th:object="${form}"
               method="post"
@@ -60,29 +60,29 @@
               hx-target="#modal"
               hx-swap="outerHTML">
 
-            <div class="ui-mb-4">
-                <label class="ui-block ui-text-sm ui-font-medium ui-text-slate-700 ui-mb-1" th:text="#{view.shelf.form.name.label}">선반 이름</label>
+            <div class="mb-4">
+                <label class="field-label" th:text="#{view.shelf.form.name.label}">선반 이름</label>
                 <input type="text" th:field="*{name}"
-                       th:classappend="${#fields.hasErrors('name')} ? 'ui-border-red-400'"
-                       class="ui-w-full ui-rounded-md ui-border ui-border-slate-300 ui-px-3 ui-py-2 ui-text-sm
-                              ui-focus-outline-none ui-focus-ring-2 ui-focus-ring-blue-500 ui-focus-border-blue-500 ui-transition"
+                       th:classappend="${#fields.hasErrors('name')} ? 'border-red-400'"
+                       class="field-input
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                        th:placeholder="#{view.shelf.form.name.placeholder}" autofocus>
                 <span th:if="${#fields.hasErrors('name')}"
                       th:errors="*{name}"
-                      class="ui-mt-1 ui-block ui-text-xs ui-text-red-500"></span>
+                      class="mt-1 block text-xs text-red-500"></span>
             </div>
 
-            <div class="ui-flex ui-gap-2 ui-justify-end">
+            <div class="flex gap-2 justify-end">
                 <button type="button"
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="ui-rounded-md ui-border ui-border-slate-300 ui-px-4 ui-py-2 ui-text-sm ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-blue-700 ui-transition"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
                         th:text="#{view.common.save}">
                     저장
                 </button>

@@ -3,13 +3,13 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="#{view.error.403.title}">접근 권한 없음 - SeuStock</title>
 </head>
-<body class="ui-page ui-bg-slate-50 ui-min-h-screen ui-flex ui-flex-col">
+<body class="page bg-slate-50 min-h-screen flex flex-col">
 <nav th:replace="~{fragments/layout :: nav}"></nav>
-<main class="ui-page-main ui-mx-auto ui-max-w-5xl ui-px-4 ui-py-16 ui-text-center ui-flex-1">
-    <p class="ui-text-5xl ui-font-bold ui-text-slate-300 ui-mb-4">403</p>
-    <h1 class="ui-page-title ui-text-xl ui-font-semibold ui-text-slate-700 ui-mb-2" th:text="#{view.error.403.header}">접근 권한이 없습니다</h1>
-    <p class="ui-text-slate-500 ui-mb-8" th:text="${errorMessage} ?: #{view.error.403.defaultMessage}">이 리소스에 접근할 수 없습니다.</p>
-    <button type="button" onclick="history.back()" class="ui-button ui-button-secondary" th:text="#{view.error.back}">돌아가기</button>
+<main class="page-main mx-auto max-w-5xl px-4 py-16 text-center flex-1">
+    <p class="text-5xl font-bold text-slate-300 mb-4">403</p>
+    <h1 class="page-title text-xl font-semibold text-slate-700 mb-2" th:text="#{view.error.403.header}">접근 권한이 없습니다</h1>
+    <p class="text-slate-500 mb-8" th:text="${errorMessage} ?: #{view.error.403.defaultMessage}">이 리소스에 접근할 수 없습니다.</p>
+    <button type="button" onclick="history.back()" class="btn btn-secondary" th:text="#{view.error.back}">돌아가기</button>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

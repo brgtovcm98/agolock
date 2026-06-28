@@ -3,39 +3,38 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="#{view.item.list.title}">내 품목 · SeuStock</title>
 </head>
-<body class="ui-page ui-min-h-screen ui-bg-slate-50 ui-flex ui-flex-col">
+<body class="page min-h-screen bg-slate-50 flex flex-col">
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
 <div id="modal"></div>
 
-<main class="ui-page-main ui-mx-auto ui-w-full ui-max-w-4xl ui-px-4 ui-py-10 ui-flex-1">
+<main class="page-main mx-auto w-full max-w-4xl px-4 py-10 flex-1">
 
-    <div class="ui-page-header ui-mb-6 ui-flex ui-flex-wrap ui-items-center ui-justify-between ui-gap-3">
-        <h1 class="ui-page-title ui-text-2xl ui-font-bold ui-text-slate-800" th:text="#{view.item.list.header}">내 품목</h1>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="page-title text-2xl font-bold text-slate-800" th:text="#{view.item.list.header}">내 품목</h1>
         <button type="button"
                 hx-get="/items/new"
                 hx-target="#modal"
                 hx-swap="outerHTML"
-                class="ui-button ui-button-primary ui-rounded-md ui-bg-blue-600 ui-px-4 ui-py-2 ui-text-sm ui-font-semibold ui-text-white
-                       ui-hover-bg-blue-700 ui-transition"
+                class="btn-primary"
                 th:text="#{view.item.list.add}">
             + 품목 추가
         </button>
     </div>
 
-    <div id="item-list-section" aria-live="polite" th:fragment="item-list-section" class="ui-space-y-3">
-        <div class="ui-filter-panel ui-rounded-lg ui-border ui-border-slate-200 ui-bg-white ui-px-4 ui-py-3 ui-space-y-2">
+    <div id="item-list-section" aria-live="polite" th:fragment="item-list-section" class="space-y-3">
+        <div class="card p-4 rounded-lg border border-slate-200 bg-white px-4 py-3 space-y-2">
             <form hx-get="/items"
                   hx-target="#item-list-section"
                   hx-select="#item-list-section"
                   hx-swap="outerHTML"
                   hx-push-url="true"
-                  class="ui-flex ui-items-stretch">
-                <input type="ui-hidden" name="sortBy" th:value="${sortBy}">
-                <input type="ui-hidden" name="page" value="1">
+                  class="flex items-stretch">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="page" value="1">
                 <select name="searchType"
-                        class="ui-shrink-0 ui-rounded-l-md ui-rounded-r-none ui-border ui-border-r-0 ui-border-slate-200 ui-bg-slate-50 ui-px-2 ui-py-1-5 ui-text-xs ui-font-medium ui-text-slate-500 ui-focus-z-10 ui-focus-border-blue-400 ui-focus-outline-none ui-focus-ring-1 ui-focus-ring-blue-400" th:attr="aria-label=#{aria.filter.searchType}">
+                        class="shrink-0 rounded-l-md rounded-r-none border border-r-0 border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-500 focus:z-10 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" th:attr="aria-label=#{aria.filter.searchType}">
                     <option value="name" th:selected="${searchType == null or searchType == 'name'}" th:text="#{view.item.list.searchType.name}">품목명</option>
                     <option value="description" th:selected="${searchType == 'description'}" th:text="#{view.item.list.searchType.description}">설명</option>
                 </select>
@@ -43,32 +42,32 @@
                        name="keyword"
                        th:value="${keyword}"
                        th:placeholder="#{view.item.list.search.placeholder}"
-                       class="ui-flex-1 ui-min-w-0 ui-rounded-none ui-border ui-border-slate-200 ui-px-3 ui-py-1-5 ui-text-sm ui-text-slate-700 ui-placeholder-slate-400 ui-focus-z-10 ui-focus-border-blue-400 ui-focus-outline-none ui-focus-ring-1 ui-focus-ring-blue-400">
+                       class="flex-1 min-w-0 rounded-none border border-slate-200 px-3 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 focus:z-10 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
                 <button type="submit"
-                        class="ui-shrink-0 ui-rounded-l-none ui-rounded-r-md ui-bg-slate-600 ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-text-white ui-hover-bg-slate-700 ui-transition"
+                        class="shrink-0 rounded-l-none rounded-r-md bg-slate-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
                         th:text="#{view.item.list.search.button}">
                     검색
                 </button>
             </form>
-            <div class="ui-flex ui-flex-wrap ui-gap-1">
+            <div class="flex flex-wrap gap-1">
                 <button th:attr="hx-get=@{/items(sortBy='newest',keyword=${keyword},searchType=${searchType})}"
                         hx-target="#item-list-section" hx-select="#item-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'newest'} ? 'ui-bg-blue-100 ui-text-blue-700 ui-ring-1 ui-ring-blue-300' : 'ui-bg-slate-100 ui-text-slate-500 ui-hover-bg-slate-200'"
-                        class="ui-rounded-full ui-px-2-5 ui-py-0-5 ui-text-xs ui-font-medium ui-transition"
+                        th:classappend="${sortBy == 'newest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
+                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
                         th:text="#{view.item.list.sort.newest}">
                     가장 최신 순
                 </button>
                 <button th:attr="hx-get=@{/items(sortBy='oldest',keyword=${keyword},searchType=${searchType})}"
                         hx-target="#item-list-section" hx-select="#item-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'oldest'} ? 'ui-bg-blue-100 ui-text-blue-700 ui-ring-1 ui-ring-blue-300' : 'ui-bg-slate-100 ui-text-slate-500 ui-hover-bg-slate-200'"
-                        class="ui-rounded-full ui-px-2-5 ui-py-0-5 ui-text-xs ui-font-medium ui-transition"
+                        th:classappend="${sortBy == 'oldest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
+                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
                         th:text="#{view.item.list.sort.oldest}">
                     가장 오래된 순
                 </button>
                 <button th:attr="hx-get=@{/items(sortBy='name',keyword=${keyword},searchType=${searchType})}"
                         hx-target="#item-list-section" hx-select="#item-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'name'} ? 'ui-bg-blue-100 ui-text-blue-700 ui-ring-1 ui-ring-blue-300' : 'ui-bg-slate-100 ui-text-slate-500 ui-hover-bg-slate-200'"
-                        class="ui-rounded-full ui-px-2-5 ui-py-0-5 ui-text-xs ui-font-medium ui-transition"
+                        th:classappend="${sortBy == 'name'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
+                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
                         th:text="#{view.item.list.sort.name}">
                     품목명 순
                 </button>
@@ -77,24 +76,24 @@
 
         <div id="item-list"
              th:fragment="item-list"
-             class="ui-list ui-overflow-hidden ui-rounded-lg ui-border ui-border-slate-200 ui-bg-white">
-            <div class="ui-hidden ui-md-grid ui-grid-item-card ui-gap-3 ui-border-b ui-border-slate-200 ui-bg-slate-50 ui-px-4 ui-py-3 ui-text-xs ui-font-semibold ui-uppercase ui-tracking-wide ui-text-slate-500">
+             class="card overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div class="hidden md:grid grid-item-card gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <div th:text="#{view.item.list.table.item}">품목</div>
                 <div th:text="#{view.item.list.table.description}">설명</div>
                 <div th:text="#{view.item.list.table.stock}">재고</div>
                 <div th:text="#{view.item.list.table.space}">공간</div>
-                <div class="ui-text-right" th:text="#{view.item.list.table.manage}">관리</div>
+                <div class="text-right" th:text="#{view.item.list.table.manage}">관리</div>
             </div>
 
             <p id="item-empty-msg"
                th:if="${items.empty}"
-               class="ui-empty-state ui-px-4 ui-py-10 ui-text-center ui-text-sm ui-text-slate-400"
+               class="empty-state px-4 py-10 text-center text-sm text-slate-400"
                th:text="#{view.item.list.empty}">
                 등록된 품목이 없습니다. 위 버튼으로 추가해보세요.
             </p>
 
             <div id="item-cards"
-                 class="ui-divide-y ui-divide-slate-100">
+                 class="divide-y divide-slate-100">
                 <th:block th:each="item : ${items}">
                     <div th:replace="~{items/fragments/card :: view}"></div>
                 </th:block>
@@ -102,25 +101,25 @@
         </div>
 
         <div th:if="${page.totalPages() > 1}"
-             class="ui-flex ui-items-center ui-justify-center ui-gap-1">
+             class="flex items-center justify-center gap-1">
             <button th:if="${page.hasPrevious()}"
                     th:attr="hx-get=@{/items(page=${page.previousPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType})}"
                     hx-target="#item-list-section" hx-select="#item-list-section" hx-swap="outerHTML" hx-push-url="true"
-                    class="ui-button ui-button-secondary ui-rounded-md ui-border ui-border-slate-300 ui-bg-white ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                    class="btn-secondary px-3 py-1.5"
                     th:text="#{view.common.pagination.prev}">
                 이전
             </button>
             <th:block th:each="pageNumber : ${#numbers.sequence(1, page.totalPages())}">
                 <button th:attr="hx-get=@{/items(page=${pageNumber},sortBy=${sortBy},keyword=${keyword},searchType=${searchType})}"
                         hx-target="#item-list-section" hx-select="#item-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${pageNumber == page.page()} ? 'ui-bg-blue-600 ui-text-white' : 'ui-border ui-border-slate-300 ui-bg-white ui-text-slate-600 ui-hover-bg-slate-50'"
-                        class="ui-min-w-9 ui-rounded-md ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-transition"
+                        th:classappend="${pageNumber == page.page()} ? 'bg-blue-600 text-white' : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'"
+                        class="min-w-9 rounded-lg px-3 py-1.5 text-sm font-semibold transition"
                         th:text="${pageNumber}">1</button>
             </th:block>
             <button th:if="${page.hasNext()}"
                     th:attr="hx-get=@{/items(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType})}"
                     hx-target="#item-list-section" hx-select="#item-list-section" hx-swap="outerHTML" hx-push-url="true"
-                    class="ui-rounded-md ui-border ui-border-slate-300 ui-bg-white ui-px-3 ui-py-1-5 ui-text-sm ui-font-semibold ui-text-slate-600 ui-hover-bg-slate-50 ui-transition"
+                    class="btn-secondary px-3 py-1.5"
                     th:text="#{view.common.pagination.next}">
                 다음
             </button>
