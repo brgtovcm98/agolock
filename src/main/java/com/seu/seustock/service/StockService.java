@@ -199,7 +199,9 @@ public class StockService {
             .map(this::displayMemo)
             .toList();
     List<String> masterMemos =
-        TransactionMemoMaster.messageKeysFor(transactionType).stream().map(helpers::getMsg).toList();
+        TransactionMemoMaster.messageKeysFor(transactionType).stream()
+            .map(helpers::getMsg)
+            .toList();
     return Stream.concat(frequentMemos.stream(), masterMemos.stream())
         .distinct()
         .limit(MEMO_SUGGESTION_LIMIT)

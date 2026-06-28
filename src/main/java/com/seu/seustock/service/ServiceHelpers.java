@@ -11,9 +11,8 @@ import org.springframework.stereotype.Component;
 /**
  * 서비스 계층 공통 헬퍼.
  *
- * <p>여러 서비스에서 반복되던 {@code getUser}, {@code getMsg}, {@code blankToNull}을
- * 한 곳으로 모아 중복을 제거합니다.
- * 각 서비스는 이 컴포넌트를 주입받아 사용합니다.
+ * <p>여러 서비스에서 반복되던 {@code getUser}, {@code getMsg}, {@code blankToNull}을 한 곳으로 모아 중복을 제거합니다. 각 서비스는
+ * 이 컴포넌트를 주입받아 사용합니다.
  */
 @Component
 @RequiredArgsConstructor

@@ -75,7 +75,8 @@ class GlobalExceptionHandlerTest {
   @Test
   @DisplayName("NoSuchElementException, HX-Request 없음 → error/404 전체 페이지 반환")
   void handleNotFound_withoutHxRequest_returnsFullErrorPage() {
-    String view = handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), plainReq, model);
+    String view =
+        handler.handleNotFound(new NoSuchElementException("공간을 찾을 수 없습니다."), plainReq, model);
 
     assertThat(view).isEqualTo("error/404");
   }

@@ -23,10 +23,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(NoSuchElementException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  public String handleNotFound(
-      NoSuchElementException ex,
-      HttpServletRequest request,
-      Model model) {
+  public String handleNotFound(NoSuchElementException ex, HttpServletRequest request, Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     model.addAttribute("errorMessage", ex.getMessage());
     if (isHtmxRequest(request.getHeader("HX-Request"))) {
@@ -39,10 +36,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(SecurityException.class)
   @ResponseStatus(HttpStatus.FORBIDDEN)
-  public String handleForbidden(
-      SecurityException ex,
-      HttpServletRequest request,
-      Model model) {
+  public String handleForbidden(SecurityException ex, HttpServletRequest request, Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     model.addAttribute("errorMessage", ex.getMessage());
     if (isHtmxRequest(request.getHeader("HX-Request"))) {
@@ -55,10 +49,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public String handleBadRequest(
-      RuntimeException ex,
-      HttpServletRequest request,
-      Model model) {
+  public String handleBadRequest(RuntimeException ex, HttpServletRequest request, Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     model.addAttribute("errorMessage", ex.getMessage());
     if (isHtmxRequest(request.getHeader("HX-Request"))) {
@@ -72,9 +63,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MaxUploadSizeExceededException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public String handleMaxUploadSizeExceeded(
-      MaxUploadSizeExceededException ex,
-      HttpServletRequest request,
-      Model model) {
+      MaxUploadSizeExceededException ex, HttpServletRequest request, Model model) {
     Locale locale = LocaleContextHolder.getLocale();
     String errorMessage =
         messageSource.getMessage(

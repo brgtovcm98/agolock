@@ -26,16 +26,17 @@ class YoloGemmaImageAnalysisServiceTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(messageSource.getMessage(any(), any(), any()))
-        .thenReturn("지원하지 않는 이미지 형식입니다.");
+    lenient().when(messageSource.getMessage(any(), any(), any())).thenReturn("지원하지 않는 이미지 형식입니다.");
   }
 
   @Test
   void analyze_rejectsSpoofedImageBeforeCallingClients() throws Exception {
     YoloGemmaImageAnalysisService service =
         new YoloGemmaImageAnalysisService(
-            new ImageFileValidator(messageSource), imageResizeService, yoloDetectionClient, gemmaVisionClient);
+            new ImageFileValidator(messageSource),
+            imageResizeService,
+            yoloDetectionClient,
+            gemmaVisionClient);
     MockMultipartFile file =
         new MockMultipartFile(
             "imageFile", "spoof.jpg", "image/jpeg", new byte[] {0x01, 0x02, 0x03});

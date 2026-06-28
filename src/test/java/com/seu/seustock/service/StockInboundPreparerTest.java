@@ -88,9 +88,7 @@ class StockInboundPreparerTest {
 
     List<StockDTO> units =
         preparer.prepareInboundUnits(
-            item,
-            location,
-            new StockInboundSpec(1, null, "S-1\nS-2", "LOT-1", null, null, "memo"));
+            item, location, new StockInboundSpec(1, null, "S-1\nS-2", "LOT-1", null, null, "memo"));
 
     assertThat(units).hasSize(2);
     assertThat(units).extracting(StockDTO::getSerialNumber).containsExactly("S-1", "S-2");
@@ -154,9 +152,7 @@ class StockInboundPreparerTest {
     assertThatThrownBy(
             () ->
                 preparer.prepareInboundUnits(
-                    item,
-                    location,
-                    new StockInboundSpec(1, null, "S-1", null, null, null, null)))
+                    item, location, new StockInboundSpec(1, null, "S-1", null, null, null, null)))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("error.serial.exists");
   }
@@ -166,9 +162,7 @@ class StockInboundPreparerTest {
     assertThatThrownBy(
             () ->
                 preparer.prepareInboundUnits(
-                    item,
-                    location,
-                    new StockInboundSpec(51, null, null, null, null, null, null)))
+                    item, location, new StockInboundSpec(51, null, null, null, null, null, null)))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("error.stock.countRange");
   }

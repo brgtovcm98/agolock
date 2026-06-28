@@ -9,8 +9,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 /**
  * 서비스 계층 공통 헬퍼를 제공하는 추상 기반 클래스.
  *
- * <p>{@code getUser}, {@code getMsg}, {@code blankToNull} 등 반복되던 보일러플레이트를 한 곳에
- * 모아 서비스 클래스의 가독성과 유지보수성을 높입니다.
+ * <p>{@code getUser}, {@code getMsg}, {@code blankToNull} 등 반복되던 보일러플레이트를 한 곳에 모아 서비스 클래스의 가독성과
+ * 유지보수성을 높입니다.
  */
 public abstract class BaseService {
 

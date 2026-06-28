@@ -135,17 +135,13 @@ class StockControllerTest extends AbstractControllerTest {
         Arguments.of("POST", "/stocks"),
         Arguments.of("GET", "/stocks/quick?spaceId=" + SPACE_ID),
         Arguments.of("POST", "/stocks/quick"),
-        Arguments.of(
-            "DELETE", "/stocks?item=" + ITEM_ID + "&space=" + SPACE_ID),
+        Arguments.of("DELETE", "/stocks?item=" + ITEM_ID + "&space=" + SPACE_ID),
         Arguments.of("DELETE", "/stocks/" + STOCK_ID),
         Arguments.of(
-            "GET",
-            "/stocks/action-form?item=" + ITEM_ID + "&itemName=test&space=" + SPACE_ID),
-        Arguments.of(
-            "GET", "/stocks/in-form?item=" + ITEM_ID + "&space=" + SPACE_ID),
+            "GET", "/stocks/action-form?item=" + ITEM_ID + "&itemName=test&space=" + SPACE_ID),
+        Arguments.of("GET", "/stocks/in-form?item=" + ITEM_ID + "&space=" + SPACE_ID),
         Arguments.of("POST", "/stocks/in"),
-        Arguments.of(
-            "GET", "/stocks/out-form?item=" + ITEM_ID + "&space=" + SPACE_ID),
+        Arguments.of("GET", "/stocks/out-form?item=" + ITEM_ID + "&space=" + SPACE_ID),
         Arguments.of("POST", "/stocks/out"),
         Arguments.of("GET", "/stocks/move-form"),
         Arguments.of("POST", "/stocks/move"));

@@ -102,7 +102,10 @@ public class DataInitializer implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) throws Exception {
-    if (seedEmail == null || seedEmail.isBlank() || seedPassword == null || seedPassword.isBlank()) {
+    if (seedEmail == null
+        || seedEmail.isBlank()
+        || seedPassword == null
+        || seedPassword.isBlank()) {
       log.info("[DataInitializer] 시드 계정 정보가 설정되지 않아 초기 데이터 생성을 건너뜁니다.");
       return;
     }

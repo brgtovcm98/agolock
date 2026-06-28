@@ -20,7 +20,9 @@ class AbstractImageStorageServiceTest {
   void store_rejectsSpoofedImageBeforeWritingToStorage() {
     TestImageStorageService service =
         new TestImageStorageService(
-            mock(ImageMapper.class), mock(UserMapper.class), new ImageFileValidator(mockMessageSource()));
+            mock(ImageMapper.class),
+            mock(UserMapper.class),
+            new ImageFileValidator(mockMessageSource()));
     UserDTO owner = new UserDTO();
     owner.setId(1L);
     MultipartFile file =
