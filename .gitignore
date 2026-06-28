@@ -48,3 +48,4 @@ out/
 .env.*.local
 
 /uploads/
+/node_modules/

@@ -1,0 +1,28 @@
+{
+  "name": "agolock",
+  "version": "1.0.0",
+  "description": "SeuStock은 **Team Ugui**가 개발하는 개인 또는 소규모 팀용 재고 관리 애플리케이션입니다. 공간, 선반, 박스 단위로 물품과 재고를 정밀하게 추적할 수 있도록 돕습니다. Spring Boot, Thymeleaf, HTMX 기반의 모던한 SSR 아키텍처를 채택하고 있습니다.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/main.css --minify",
+    "watch": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/main.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brgtovcm98/agolock.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brgtovcm98/agolock/issues"
+  },
+  "homepage": "https://github.com/brgtovcm98/agolock#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.3.1"
+  }
+}
