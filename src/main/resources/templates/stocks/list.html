@@ -17,7 +17,7 @@
         </div>
         <a th:if="${filtered}"
            href="/stocks"
-           class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+           class="btn-secondary"
            th:text="#{view.common.all}">
             전체 보기
         </a>
@@ -91,7 +91,7 @@
             </div>
 
             <p th:if="${stocks.empty}"
-               class="px-4 py-10 text-center text-sm text-slate-400"
+               class="empty-state"
                th:text="#{view.stock.list.empty}">
                 표시할 재고가 없습니다.
             </p>
@@ -108,7 +108,7 @@
             <button th:if="${page.hasPrevious()}"
                     th:attr="hx-get=@{/stocks(page=${page.previousPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                     hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                    class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                    class="btn-secondary btn-sm"
                     th:text="#{view.common.pagination.prev}">
                 이전
             </button>
@@ -122,7 +122,7 @@
             <button th:if="${page.hasNext()}"
                     th:attr="hx-get=@{/stocks(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                     hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                    class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                    class="btn-secondary btn-sm"
                     th:text="#{view.common.pagination.next}">
                 다음
             </button>

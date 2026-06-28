@@ -28,7 +28,7 @@
                 <button th:attr="hx-get=@{/spaces/{id}/shelves/new(id=${space})}"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                        class="btn-primary btn-sm"
                         th:text="#{view.space.detail.addShelf}">
                     + 선반
                 </button>
