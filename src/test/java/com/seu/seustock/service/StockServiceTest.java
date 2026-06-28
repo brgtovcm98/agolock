@@ -70,6 +70,8 @@ class StockServiceTest {
   @Mock private UserMapper userMapper;
   @Mock private ImageStorageService imageStorageService;
   @Mock private MessageSource messageSource;
+
+  private ServiceHelpers helpers;
   @Spy private SerialNumberGenerator serialNumberGenerator = new SerialNumberGenerator();
   @Spy private LotNumberGenerator lotNumberGenerator = new LotNumberGenerator();
 
@@ -135,18 +137,18 @@ class StockServiceTest {
             clock,
             messageSource);
     transactionRecorder = new StockTransactionRecorder(transactionMapper);
+    helpers = new ServiceHelpers(userMapper, messageSource);
     stockService =
         new StockService(
             stockMapper,
             transactionMapper,
             itemMapper,
             itemImageMapper,
-            userMapper,
             imageStorageService,
             locationVerifier,
             inboundPreparer,
             transactionRecorder,
-            messageSource);
+            helpers);
   }
 
   @Test
