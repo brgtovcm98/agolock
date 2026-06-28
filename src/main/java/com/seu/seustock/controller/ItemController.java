@@ -2,11 +2,18 @@ package com.seu.seustock.controller;
 
 import com.seu.seustock.configuration.HtmxResponse;
 import com.seu.seustock.model.dto.ItemDTO;
+import com.seu.seustock.model.dto.SpaceDTO;
 import com.seu.seustock.model.form.ItemForm;
+import com.seu.seustock.model.form.StockForm;
+import com.seu.seustock.service.BoxService;
 import com.seu.seustock.service.ItemService;
+import com.seu.seustock.service.ShelfService;
+import com.seu.seustock.service.SpaceService;
+import com.seu.seustock.service.StockService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.security.Principal;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +29,27 @@ import org.springframework.web.bind.annotation.*;
 public class ItemController {
 
   private final ItemService itemService;
+  private final SpaceService spaceService;
+  private final ShelfService shelfService;
+  private final BoxService boxService;
+  private final StockService stockService;
   private final org.springframework.context.MessageSource messageSource;
 
   private String getMsg(String key, Object... args) {
     return messageSource.getMessage(
         key, args, org.springframework.context.i18n.LocaleContextHolder.getLocale());
+  }
+
+  @org.springframework.web.bind.annotation.InitBinder
+  public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
+    binder.registerCustomEditor(
+        UUID.class,
+        new java.beans.PropertyEditorSupport() {
+          @Override
+          public void setAsText(String text) {
+            setValue(text == null || text.isBlank() ? null : UUID.fromString(text));
+          }
+        });
   }
 
   @GetMapping
@@ -44,6 +67,7 @@ public class ItemController {
     model.addAttribute("keyword", keyword);
     model.addAttribute("searchType", searchType);
     model.addAttribute("sortBy", sortBy);
+    model.addAttribute("activeNav", "items");
     return "items/list";
   }
 
@@ -121,6 +145,83 @@ public class ItemController {
     model.addAttribute("itemName", itemService.findByExternalId(externalId, username).getName());
     model.addAttribute("spaceStocks", itemService.findSpaceStock(externalId, username));
     return "items/fragments/space-stock-modal :: modal";
+  }
+
+  @GetMapping("/{externalId}/add-stock")
+  public String addStockModal(
+      @PathVariable UUID externalId,
+      @RequestParam(required = false) UUID spaceId,
+      @RequestParam(required = false) UUID shelfId,
+      @RequestParam(required = false, defaultValue = "false") boolean direct,
+      Principal principal,
+      Model model) {
+    String username = principal.getName();
+    var item = itemService.findByExternalId(externalId, username);
+    model.addAttribute("item", item);
+
+    if (spaceId == null) {
+      List<SpaceDTO> spaces = spaceService.findAllByUsername(username);
+      model.addAttribute("spaces", spaces);
+      model.addAttribute("form", new StockForm());
+      return "items/fragments/add-stock-modal :: unified-form";
+    }
+
+    model.addAttribute("spaceId", spaceId);
+    model.addAttribute("spaceName", spaceService.findByExternalId(spaceId, username).getName());
+
+    if (shelfId == null && !direct) {
+      model.addAttribute("shelves", shelfService.findAllBySpaceId(spaceId, username));
+      return "items/fragments/add-stock-modal :: shelf-oob";
+    }
+
+    // shelf selected or direct (공간 루트)
+    if (shelfId != null) {
+      model.addAttribute("shelfId", shelfId);
+      model.addAttribute(
+          "shelfName", shelfService.findByExternalId(spaceId, shelfId, username).getName());
+      model.addAttribute("boxes", boxService.findAllByShelfId(spaceId, shelfId, username));
+    }
+    return "items/fragments/add-stock-modal :: box-oob";
+  }
+
+  @PostMapping("/{externalId}/stocks")
+  public String addStock(
+      @PathVariable UUID externalId,
+      @Valid @ModelAttribute("form") StockForm form,
+      BindingResult result,
+      Principal principal,
+      Model model,
+      HttpServletResponse response) {
+    String username = principal.getName();
+    form.setItemExternalId(externalId);
+
+    if (result.hasErrors()) {
+      log.warn(
+          "request validation failed operation=item.addStock itemExternalId={} errorCount={}",
+          externalId,
+          result.getErrorCount());
+      model.addAttribute("item", itemService.findByExternalId(externalId, username));
+      model.addAttribute("spaces", spaceService.findAllByUsername(username));
+      if (form.getSpaceExternalId() != null) {
+        model.addAttribute("spaceId", form.getSpaceExternalId());
+        model.addAttribute(
+            "shelves", shelfService.findAllBySpaceId(form.getSpaceExternalId(), username));
+        if (form.getShelfExternalId() != null) {
+          model.addAttribute("shelfId", form.getShelfExternalId());
+          model.addAttribute(
+              "boxes",
+              boxService.findAllByShelfId(
+                  form.getSpaceExternalId(), form.getShelfExternalId(), username));
+        }
+      }
+      return "items/fragments/add-stock-modal :: unified-form";
+    }
+
+    stockService.create(form, username);
+    var item = itemService.findByExternalId(externalId, username);
+    model.addAttribute("item", item);
+    HtmxResponse.success(response, getMsg("toast.stock.created"));
+    return "items/fragments/add-stock-modal :: created";
   }
 
   @GetMapping("/{externalId}/history")
