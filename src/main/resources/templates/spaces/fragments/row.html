@@ -68,20 +68,19 @@
 <div th:fragment="edit" data-component-id="spaces.row.edit" th:id="'space-' + ${space.externalId}"
      class="grid gap-3 border-l-4 border-blue-500 bg-blue-50-40 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_14rem] md:items-center">
     <input type="text" name="name" th:value="${space.name}"
-           class="flex-1 rounded-lg border border-slate-300 px-2 py-1 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+           class="field-input flex-1">
     <p class="text-sm text-slate-500"
        th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}"></p>
     <div class="flex items-center gap-2 md:justify-end">
-        <button class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+        <button class="btn-primary btn-sm"
                 th:attr="hx-put=@{/spaces/{id}(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                 hx-swap="outerHTML"
                 hx-include="closest div[id]" th:text="#{view.common.save}">저장</button>
-        <button class="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition"
+        <button class="btn-danger btn-sm"
                 th:attr="hx-delete=@{/spaces/{id}(id=${space.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.space.list.deleteConfirm(${space.name})}"
                 hx-target="#space-list-section"
                 hx-swap="outerHTML" th:text="#{view.common.delete}">삭제</button>
-        <button class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+        <button class="btn-secondary btn-sm"
                 th:attr="hx-get=@{/spaces/{id}/cancel(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                 hx-swap="outerHTML" th:text="#{view.common.cancel}">취소</button>
     </div>
