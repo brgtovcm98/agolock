@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
@@ -53,9 +54,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
-  private static final String SEED_EMAIL = "test1234@test.com";
-  private static final String SEED_NICKNAME = "test1234";
-  private static final String SEED_PASSWORD = "test1234";
+  @Value("${seustock.datainit.seed-email:}")
+  private String seedEmail;
+
+  @Value("${seustock.datainit.seed-password:}")
+  private String seedPassword;
 
   private static final int SPACE_COUNT = 25;
   private static final int SHELF_COUNT = 5;
@@ -99,12 +102,17 @@ public class DataInitializer implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) throws Exception {
-    if (userMapper.findByEmail(SEED_EMAIL).isPresent()) {
-      log.info("[DataInitializer] '{}' 사용자 존재 - 초기 데이터 생성을 건너뜁니다.", SEED_EMAIL);
+    if (seedEmail == null || seedEmail.isBlank() || seedPassword == null || seedPassword.isBlank()) {
+      log.info("[DataInitializer] 시드 계정 정보가 설정되지 않아 초기 데이터 생성을 건너뜁니다.");
       return;
     }
 
-    log.info("[DataInitializer] '{}' 사용자가 없어 초기 더미 데이터를 생성합니다.", SEED_EMAIL);
+    if (userMapper.findByEmail(seedEmail).isPresent()) {
+      log.info("[DataInitializer] '{}' 사용자 존재 - 초기 데이터 생성을 건너뜁니다.", seedEmail);
+      return;
+    }
+
+    log.info("[DataInitializer] '{}' 사용자가 없어 초기 더미 데이터를 생성합니다.", seedEmail);
 
     UserDTO user = createUser();
     List<SpaceDTO> spaces = createSpaces(user);
@@ -123,11 +131,11 @@ public class DataInitializer implements CommandLineRunner {
 
   private UserDTO createUser() {
     UserDTO user = new UserDTO();
-    user.setEmail(SEED_EMAIL);
-    user.setNickname(SEED_NICKNAME);
-    user.setPassword(passwordEncoder.encode(SEED_PASSWORD));
+    user.setEmail(seedEmail);
+    user.setNickname(seedEmail.split("@")[0]);
+    user.setPassword(passwordEncoder.encode(seedPassword));
     userMapper.insertUser(user);
-    return userMapper.findByEmail(SEED_EMAIL).orElseThrow();
+    return userMapper.findByEmail(seedEmail).orElseThrow();
   }
 
   private List<SpaceDTO> createSpaces(UserDTO user) {
