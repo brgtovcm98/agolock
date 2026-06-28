@@ -37,9 +37,9 @@
     </select>
 
     <select id="findByUserIdWithOptions" resultMap="SpaceResultMap">
-        SELECT id, external_id, user_id, name, created_at
-        FROM spaces
-        WHERE user_id = #{userId}
+        SELECT s.id, s.external_id, s.user_id, s.name, s.created_at
+        FROM spaces s
+        WHERE s.user_id = #{userId}
         <if test="keyword != null and keyword != ''">
           AND name LIKE CONCAT('%', #{keyword}, '%')
         </if>
@@ -50,6 +50,16 @@
             </when>
             <when test="sortBy == 'name'">
                 name ASC, created_at DESC, id DESC
+            </when>
+            <when test="sortBy == 'most_stock'">
+                (SELECT COUNT(*) FROM stocks st WHERE st.space_id = s.id AND st.status = 'IN_STOCK') DESC,
+                created_at DESC, id DESC
+            </when>
+            <when test="sortBy == 'recent_activity'">
+                (SELECT MAX(t.created_at) FROM stock_transactions t
+                 JOIN stocks st ON t.stock_id = st.id
+                 WHERE st.space_id = s.id) DESC NULLS LAST,
+                created_at DESC, id DESC
             </when>
             <otherwise>
                 created_at DESC, id DESC

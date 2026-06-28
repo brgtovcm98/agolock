@@ -2,6 +2,7 @@ package com.seu.seustock.service;
 
 import com.seu.seustock.mapper.ShelfMapper;
 import com.seu.seustock.mapper.SpaceMapper;
+import com.seu.seustock.mapper.StockMapper;
 import com.seu.seustock.mapper.UserMapper;
 import com.seu.seustock.model.dto.ShelfDTO;
 import com.seu.seustock.model.dto.SpaceDTO;
@@ -23,6 +24,7 @@ public class ShelfService {
 
   private final ShelfMapper shelfMapper;
   private final SpaceMapper spaceMapper;
+  private final StockMapper stockMapper;
   private final UserMapper userMapper;
   private final MessageSource messageSource;
 
@@ -32,7 +34,11 @@ public class ShelfService {
 
   public List<ShelfDTO> findAllBySpaceId(UUID spaceExternalId, String username) {
     SpaceDTO space = getVerifiedSpace(spaceExternalId, username);
-    return shelfMapper.findBySpaceId(space.getId());
+    List<ShelfDTO> shelves = shelfMapper.findBySpaceId(space.getId());
+    for (ShelfDTO shelf : shelves) {
+      shelf.setStockCount(stockMapper.countInStockByShelfId(shelf.getId()));
+    }
+    return shelves;
   }
 
   public ShelfDTO findByExternalId(UUID spaceExternalId, UUID shelfExternalId, String username) {

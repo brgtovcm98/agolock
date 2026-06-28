@@ -572,6 +572,14 @@
           AND s.status = 'IN_STOCK'
     </select>
 
+    <select id="countInStockByShelfId" parameterType="long" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.shelf_id = #{shelfId}
+          AND s.status = 'IN_STOCK'
+    </select>
+
     <select id="findPanelBySpaceDirectOnly" parameterType="long" resultMap="StockPanelResultMap">
         SELECT i.external_id AS item_external_id,
                i.name AS item_name,

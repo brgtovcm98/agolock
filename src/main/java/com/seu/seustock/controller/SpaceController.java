@@ -38,7 +38,7 @@ public class SpaceController {
   @GetMapping
   public String list(
       @RequestParam(required = false) String keyword,
-      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false, defaultValue = "most_stock") String sortBy,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false, defaultValue = "false") boolean append,
       Principal principal,
@@ -50,6 +50,7 @@ public class SpaceController {
     model.addAttribute("form", new SpaceForm());
     model.addAttribute("keyword", keyword);
     model.addAttribute("sortBy", sortBy);
+    model.addAttribute("activeNav", "spaces");
     addSummaries(model, spacesPage.content());
     if (append) {
       return "spaces/fragments/list-response :: space-more-response";
@@ -65,6 +66,7 @@ public class SpaceController {
     model.addAttribute("space", externalId);
     model.addAttribute("shelves", shelfService.findAllBySpaceId(externalId, username));
     model.addAttribute("breadcrumb", space.getName());
+    model.addAttribute("activeNav", "spaces");
     return "spaces/detail";
   }
 
@@ -79,7 +81,7 @@ public class SpaceController {
       @Valid @ModelAttribute("form") SpaceForm form,
       BindingResult result,
       @RequestParam(required = false) String keyword,
-      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false, defaultValue = "most_stock") String sortBy,
       @RequestParam(required = false) Integer page,
       @RequestHeader(value = "HX-Request", required = false) String htmxRequest,
       Principal principal,
@@ -162,7 +164,7 @@ public class SpaceController {
   public String delete(
       @PathVariable UUID externalId,
       @RequestParam(required = false) String keyword,
-      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false, defaultValue = "most_stock") String sortBy,
       @RequestParam(required = false) Integer page,
       Principal principal,
       Model model,

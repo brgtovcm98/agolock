@@ -15,4 +15,5 @@ public class BoxDTO {
   private Long shelfId;
   private String name;
   private LocalDateTime createdAt;
+  private int stockCount;
 }

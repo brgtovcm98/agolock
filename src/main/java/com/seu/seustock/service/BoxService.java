@@ -3,6 +3,7 @@ package com.seu.seustock.service;
 import com.seu.seustock.mapper.BoxMapper;
 import com.seu.seustock.mapper.ShelfMapper;
 import com.seu.seustock.mapper.SpaceMapper;
+import com.seu.seustock.mapper.StockMapper;
 import com.seu.seustock.mapper.UserMapper;
 import com.seu.seustock.model.dto.BoxDTO;
 import com.seu.seustock.model.dto.ShelfDTO;
@@ -26,6 +27,7 @@ public class BoxService {
   private final BoxMapper boxMapper;
   private final ShelfMapper shelfMapper;
   private final SpaceMapper spaceMapper;
+  private final StockMapper stockMapper;
   private final UserMapper userMapper;
   private final MessageSource messageSource;
 
@@ -62,7 +64,11 @@ public class BoxService {
   public List<BoxDTO> findAllByShelfId(
       UUID spaceExternalId, UUID shelfExternalId, String username) {
     ShelfDTO shelf = getVerifiedShelf(spaceExternalId, shelfExternalId, username);
-    return boxMapper.findByShelfId(shelf.getId());
+    List<BoxDTO> boxes = boxMapper.findByShelfId(shelf.getId());
+    for (BoxDTO box : boxes) {
+      box.setStockCount(stockMapper.countPanelByBoxId(box.getId()));
+    }
+    return boxes;
   }
 
   public BoxDTO create(UUID spaceExternalId, UUID shelfExternalId, BoxForm form, String username) {

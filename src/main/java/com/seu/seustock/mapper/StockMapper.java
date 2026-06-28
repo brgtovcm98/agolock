@@ -106,6 +106,8 @@ public interface StockMapper {
 
   int countPanelByShelfDirectOnly(Long shelfId);
 
+  int countInStockByShelfId(Long shelfId);
+
   List<StockPanelDTO> findPanelBySpaceDirectOnly(Long spaceId);
 
   List<StockPanelDTO> findPanelBySpaceDirectOnlyPaged(

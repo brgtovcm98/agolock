@@ -145,7 +145,7 @@ public class SpaceService {
   }
 
   private String normalizeSort(String sortBy) {
-    return sortBy == null || sortBy.isBlank() ? "newest" : sortBy;
+    return sortBy == null || sortBy.isBlank() ? "most_stock" : sortBy;
   }
 
   private SpaceDTO getSpace(UUID externalId) {

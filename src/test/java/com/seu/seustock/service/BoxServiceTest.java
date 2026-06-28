@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 import com.seu.seustock.mapper.BoxMapper;
 import com.seu.seustock.mapper.ShelfMapper;
 import com.seu.seustock.mapper.SpaceMapper;
+import com.seu.seustock.mapper.StockMapper;
 import com.seu.seustock.mapper.UserMapper;
 import com.seu.seustock.model.dto.BoxDTO;
 import com.seu.seustock.model.dto.ShelfDTO;
@@ -41,6 +42,7 @@ class BoxServiceTest {
   @Mock private BoxMapper boxMapper;
   @Mock private ShelfMapper shelfMapper;
   @Mock private SpaceMapper spaceMapper;
+  @Mock private StockMapper stockMapper;
   @Mock private UserMapper userMapper;
   @Mock private MessageSource messageSource;
 

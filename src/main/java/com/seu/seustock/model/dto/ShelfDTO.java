@@ -15,4 +15,5 @@ public class ShelfDTO {
   private Long spaceId;
   private String name;
   private LocalDateTime createdAt;
+  private int stockCount;
 }
