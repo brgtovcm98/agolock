@@ -83,6 +83,7 @@ public class StockController {
     model.addAttribute("keyword", keyword);
     model.addAttribute("searchType", searchType);
     model.addAttribute("sortBy", sortBy);
+    model.addAttribute("activeNav", "stocks");
     model.addAttribute(
         "filtered",
         itemExternalId != null
