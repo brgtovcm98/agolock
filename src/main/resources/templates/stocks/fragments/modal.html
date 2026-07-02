@@ -10,7 +10,7 @@
         <h2 id="modal-title" class="modal-title mb-4" th:text="#{view.stock.modal.add.title}">재고 추가</h2>
 
         <!-- 품목 없음 안내 -->
-        <div th:if="${items.empty}" class="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
+        <div th:if="${items.empty}" class="alert-warning mb-4"
              th:text="#{view.stock.modal.emptyItems}">
             등록된 품목이 없습니다. 먼저 품목을 등록해주세요.
         </div>
@@ -32,7 +32,7 @@
                     <label th:each="item : ${items}"
                            class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer">
                         <input type="radio" name="itemExternalId" th:value="${item.externalId}"
-                               class="text-blue-600 focus:ring-blue-500">
+                               class="field-check">
                         <img th:if="${item.primaryImageExternalId != null}"
                              th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
                              alt=""

@@ -93,7 +93,7 @@
      data-component-id="stocks.detail-row.edit"
      th:id="'stock-' + ${stock.externalId}"
      th:object="${form}"
-     class="grid gap-3 border-l-4 border-blue-500 bg-blue-50-40 px-4 py-2.5 text-sm md:grid-stock-row md:items-start">
+     class="card-editing grid gap-3 px-4 py-2.5 text-sm md:grid-stock-row md:items-start">
 
     <div class="flex min-w-0 items-center gap-3">
         <img th:src="${stock.displayImageExternalId != null} ? @{/images/{id}(id=${stock.displayImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
@@ -147,7 +147,7 @@
             <input type="text" th:field="*{serialNumber}"
                    class="field-input">
             <p th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"
-               class="mt-1 text-xs text-red-500"></p>
+               class="field-error"></p>
         </div>
         <div th:if="${lotSerialEnabled}">
             <label class="field-label field-label-sm" th:text="#{view.stock.form.lot.label}">로트 번호</label>
@@ -156,14 +156,14 @@
                    th:classappend="${stock.lotExternalId != null} ? 'bg-slate-100 text-slate-500'"
                    class="field-input">
             <p th:if="${#fields.hasErrors('lotNumber')}" th:errors="*{lotNumber}"
-               class="mt-1 text-xs text-red-500"></p>
+               class="field-error"></p>
         </div>
         <div>
             <label class="field-label field-label-sm" th:text="#{view.stock.form.price.label}">가격</label>
             <input type="number" min="0" step="1" th:field="*{price}"
                    class="field-input">
             <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}"
-               class="mt-1 text-xs text-red-500"></p>
+               class="field-error"></p>
         </div>
         <div>
             <label class="field-label field-label-sm" th:text="#{view.stock.form.expiration.label}">유통기한</label>

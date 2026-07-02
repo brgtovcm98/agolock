@@ -30,7 +30,7 @@
             </th:block>
 
             <div th:if="${#fields.hasAnyErrors()}"
-                 class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+                 class="alert-error mb-3 px-3 py-2"
                  th:text="#{view.common.error.checkInput}">
                 입력값을 확인해주세요.
             </div>
@@ -49,7 +49,7 @@
                                th:data-shelf-id="${option.shelfExternalId}"
                                th:data-box-id="${option.boxExternalId}"
                                onchange="setStockMoveTarget(this)"
-                               class="text-blue-600 focus:ring-blue-500">
+                               class="field-check">
                         <span th:text="${option.label}">위치</span>
                         <span th:if="${option.current}" class="ml-auto text-xs text-slate-400" th:text="#{view.stock.form.target.current}">현재 위치</span>
                     </label>

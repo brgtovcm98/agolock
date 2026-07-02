@@ -66,7 +66,7 @@
 
 <!-- 수정 모드 카드 -->
 <div th:fragment="edit" data-component-id="spaces.row.edit" th:id="'space-' + ${space.externalId}"
-     class="grid gap-3 border-l-4 border-blue-500 bg-blue-50-40 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_14rem] md:items-center">
+     class="card-editing grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_14rem] md:items-center">
     <input type="text" name="name" th:value="${space.name}"
            class="field-input flex-1">
     <p class="text-sm text-slate-500"

@@ -18,7 +18,7 @@
             <div class="mb-4">
                 <label class="field-label" th:text="#{view.shelf.form.name.label}">선반 이름</label>
                 <input type="text" th:field="*{name}"
-                       th:classappend="${#fields.hasErrors('name')} ? 'border-red-400'"
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
                        class="field-input"
                        th:placeholder="#{view.shelf.form.name.placeholder}" autofocus>
                 <span th:if="${#fields.hasErrors('name')}"
@@ -63,7 +63,7 @@
             <div class="mb-4">
                 <label class="field-label" th:text="#{view.shelf.form.name.label}">선반 이름</label>
                 <input type="text" th:field="*{name}"
-                       th:classappend="${#fields.hasErrors('name')} ? 'border-red-400'"
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
                        class="field-input"
                        th:placeholder="#{view.shelf.form.name.placeholder}" autofocus>
                 <span th:if="${#fields.hasErrors('name')}"

@@ -20,7 +20,7 @@
                     공간명
                 </label>
                 <input type="text" th:field="*{name}"
-                       th:classappend="${#fields.hasErrors('name')} ? 'border-red-400'"
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
                        class="field-input"
                        th:placeholder="#{view.space.list.addPlaceholder}">
                 <span th:if="${#fields.hasErrors('name')}"

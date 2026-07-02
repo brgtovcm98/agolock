@@ -18,7 +18,7 @@
                 <label th:each="s : ${statuses}"
                        class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 transition">
                     <input type="radio" name="status" th:value="${s.name()}" required
-                           class="text-blue-600 focus:ring-blue-500">
+                           class="field-check">
                     <span th:text="#{${'enum.StockStatus.' + s.name()}}">상태</span>
                 </label>
             </div>

@@ -50,7 +50,7 @@
                      class="grid grid-cols-[minmax(0,1fr)_7rem] gap-2 px-3 py-2 text-sm">
                     <div class="min-w-0">
                         <a th:href="@{/stocks(keyword=${unit.serialNumber})}"
-                           class="truncate font-medium text-blue-700 hover:underline"
+                           class="link truncate hover:underline"
                            th:text="${unit.serialNumber != null and !unit.serialNumber.isBlank()} ? ${unit.serialNumber} : '-'">SN</a>
                         <p class="truncate text-xs text-slate-400">
                             <span th:text="${unit.spaceName}">공간</span>
@@ -63,7 +63,7 @@
                         </p>
                     </div>
                     <div>
-                        <span class="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700"
+                        <span class="badge-blue font-semibold"
                               th:text="#{${'enum.StockStatus.' + unit.status.name()}}">재고중</span>
                     </div>
                 </div>

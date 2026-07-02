@@ -52,15 +52,15 @@
             <ol th:unless="${history.empty}" class="relative border-l border-slate-200 ml-2">
                 <li th:each="tx : ${history}" class="ml-4 pb-5 last:pb-0">
                     <span class="absolute -left-1.5 mt-1-5 h-3 w-3 rounded-full border-2 border-white"
-                          th:classappend="${tx.transactionType.name() == 'IN'} ? 'bg-blue-400' :
-                                          (${tx.transactionType.name() == 'OUT'} ? 'bg-red-400' : 'bg-slate-300')"></span>
+                          th:classappend="${tx.transactionType.name() == 'IN'} ? 'bg-primary' :
+                                          (${tx.transactionType.name() == 'OUT'} ? 'bg-danger' : 'bg-slate-300')"></span>
 
                     <!-- 유형 badge + 일시 -->
                     <div class="flex items-center justify-between gap-2">
                         <span th:text="#{${'enum.TransactionType.' + tx.transactionType.name()}}"
-                              th:classappend="${tx.transactionType.name() == 'IN'} ? 'bg-blue-50 text-blue-600' :
-                                              (${tx.transactionType.name() == 'OUT'} ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-600')"
-                              class="inline-block rounded px-2 py-0.5 text-xs font-semibold"></span>
+                              th:classappend="${tx.transactionType.name() == 'IN'} ? 'badge-blue' :
+                                              (${tx.transactionType.name() == 'OUT'} ? 'badge-red' : 'badge-slate')"
+                              class="badge font-semibold"></span>
                         <span class="text-xs text-slate-400 whitespace-nowrap shrink-0"
                               th:text="${#temporals.format(tx.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
                     </div>
