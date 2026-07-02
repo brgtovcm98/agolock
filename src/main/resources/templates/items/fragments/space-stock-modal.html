@@ -28,8 +28,7 @@
                th:href="@{/stocks(item=${externalId},space=${ss.spaceExternalId})}"
                class="flex items-center justify-between py-2.5 hover:bg-slate-50 transition">
                 <span class="text-sm text-slate-700" th:text="${ss.spaceName}"></span>
-                <span class="inline-flex items-center rounded-full bg-blue-50 px-2-5 py-0.5
-                             text-xs font-semibold text-blue-700"
+                <span class="badge-blue"
                       th:text="|${ss.count}#{view.item.card.unit}|"></span>
             </a>
         </div>

@@ -23,7 +23,7 @@
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer w-full rounded-lg border border-dashed
                               border-slate-300 px-3 py-2 text-sm text-slate-500
-                              hover:border-blue-400 hover:text-blue-500 transition"
+                              hover:border-primary hover:text-primary transition"
                        id="item-modal-image-label">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none"
                          viewBox="0 0 24 24" stroke="currentColor">
@@ -39,10 +39,10 @@
                      class="hidden mt-2 w-full aspect-square rounded-lg object-cover border border-slate-200"
                      th:alt="#{view.item.modal.image.previewAlt}">
                 <span id="item-modal-analysis-status"
-                      class="hidden mt-1 block text-xs text-blue-500" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
+                      class="hidden mt-1 block text-xs text-primary" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"
                         id="item-modal-analysis-retry-btn"
-                        class="hidden mt-2 text-sm text-blue-600 hover:text-blue-800 transition"
+                        class="link hidden mt-2 text-sm"
                         th:text="#{view.item.card.aiRetry}">
                     다시 분석
                 </button>
@@ -51,7 +51,7 @@
             <div class="mb-3">
                 <label class="field-label" th:text="#{view.item.card.nameLabel}">품목명 *</label>
                 <input type="text" th:field="*{name}"
-                       th:classappend="${#fields.hasErrors('name')} ? 'border-red-400'"
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
                        class="field-input"
                        th:placeholder="#{view.item.modal.namePlaceholder}">
                 <span th:if="${#fields.hasErrors('name')}"
@@ -64,7 +64,7 @@
                     <span th:text="#{view.item.card.descLabel}">설명</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{description}"
-                       th:classappend="${#fields.hasErrors('description')} ? 'border-red-400'"
+                       th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
                        class="field-input"
                        th:placeholder="#{view.item.card.descPlaceholder}">
                 <span th:if="${#fields.hasErrors('description')}"
@@ -77,7 +77,7 @@
                     <span th:text="#{view.item.card.priceLabel}">가격</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
-                       th:classappend="${#fields.hasErrors('price')} ? 'border-red-400'"
+                       th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'"
                        class="field-input"
                        th:placeholder="#{view.stock.form.price.placeholder}">
                 <span th:if="${#fields.hasErrors('price')}"
@@ -90,7 +90,7 @@
                     <span th:text="#{view.item.policy.expirationDays}">유통기한(일)</span>
                 </label>
                 <input type="number" min="1" th:field="*{expirationPeriodDays}"
-                       th:classappend="${#fields.hasErrors('expirationPeriodDays')} ? 'border-red-400'"
+                       th:classappend="${#fields.hasErrors('expirationPeriodDays')} ? 'is-invalid'"
                        class="field-input"
                        th:placeholder="#{view.item.policy.expirationDays}">
                 <span th:if="${#fields.hasErrors('expirationPeriodDays')}"
@@ -102,7 +102,7 @@
             </div>
 
             <details class="mb-4" th:if="${lotSerialEnabled}">
-                <summary class="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-800 transition" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
+                <summary class="link cursor-pointer text-sm font-semibold" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
                 <div class="mt-3 space-y-3">
                     <div>
                         <label class="field-label field-label-sm" th:text="#{view.item.policy.serialMode}">시리얼 모드</label>
@@ -123,7 +123,7 @@
                     </div>
                     <p data-serial-preview
                        th:data-label="#{view.item.policy.serialPreview}"
-                       class="hidden rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700"></p>
+                       class="hidden rounded-lg bg-primary-bg px-3 py-2 text-xs font-medium text-primary-text"></p>
                     <input type="hidden" th:field="*{serialIncrementUnit}" value="1">
 
                     <div>
@@ -141,7 +141,7 @@
                     </div>
                     <p data-lot-preview
                        th:data-label="#{view.item.policy.lotPreview}"
-                       class="hidden rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700"></p>
+                       class="hidden rounded-lg bg-primary-bg px-3 py-2 text-xs font-medium text-primary-text"></p>
                     <input type="hidden" th:field="*{lotDateFormat}" value="yyyyMMdd">
                     <input type="hidden" th:field="*{lotIncludeSequence}" value="true">
                     <input type="hidden" th:field="*{lotNextSequence}" value="0">

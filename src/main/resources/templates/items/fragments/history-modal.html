@@ -34,9 +34,9 @@
                     <!-- 유형 badge + 날짜 -->
                     <div class="flex items-center justify-between gap-2">
                         <span th:text="#{${'enum.TransactionType.' + tx.transactionType.name()}}"
-                              th:classappend="${tx.transactionType.name() == 'IN'} ? 'bg-blue-50 text-blue-600' :
-                                              (${tx.transactionType.name() == 'OUT'} ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-600')"
-                              class="inline-block rounded px-2 py-0.5 text-xs font-semibold"></span>
+                              th:classappend="${tx.transactionType.name() == 'IN'} ? 'badge-blue' :
+                                              (${tx.transactionType.name() == 'OUT'} ? 'badge-red' : 'badge-slate')"
+                              class="badge font-semibold"></span>
                         <span class="text-xs text-slate-400 whitespace-nowrap shrink-0"
                               th:text="${#temporals.format(tx.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
                     </div>

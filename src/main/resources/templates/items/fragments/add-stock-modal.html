@@ -35,7 +35,7 @@
 
         <p class="text-sm text-slate-500" th:text="#{view.item.addStock.selectSpace}">재고를 추가할 공간을 선택하세요.</p>
 
-        <div th:if="${spaces.empty}" class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700"
+        <div th:if="${spaces.empty}" class="alert-warning mb-0"
              th:text="#{view.item.addStock.noSpace}">
             등록된 공간이 없습니다. 먼저 공간을 등록해주세요.
         </div>
@@ -147,17 +147,6 @@
     <div class="modal-dialog max-w-sm mx-4 p-4 flex flex-col gap-3"
          th:object="${form}">
 
-        <style>
-            .radio-pill:has(> input:checked) {
-                background-color: #eff6ff;
-                border-color: #93c5fd;
-                color: #1d4ed8;
-            }
-            .radio-pill:has(> input:checked) .radio-dot {
-                display: inline-block !important;
-            }
-        </style>
-
         <div class="flex items-center justify-between">
             <h2 id="modal-title" class="modal-title">
                 <span th:text="#{view.item.addStock.title(${item.name})}">재고 추가</span>
@@ -188,14 +177,14 @@
             <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectSpace}">공간 선택</p>
             <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
                 <label th:each="space : ${spaces}"
-                       class="radio-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 cursor-pointer select-none transition hover:bg-slate-50 flex-shrink-0">
+                       class="radio-pill">
                     <input type="radio" name="spaceExternalId" th:value="${space.externalId}" class="sr-only" form="stock-form"
                            th:checked="${form != null and form.spaceExternalId != null and form.spaceExternalId == space.externalId}"
                            th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${space.externalId})}"
                            hx-target="#shelf-radio-area"
                            hx-swap="innerHTML"
                            hx-trigger="change">
-                    <span class="radio-dot w-2 h-2 rounded-full bg-current" style="display:none"></span>
+                    <span class="radio-dot"></span>
                     <span th:text="${space.name}">공간명</span>
                 </label>
             </div>
@@ -203,7 +192,7 @@
                   th:errors="*{spaceExternalId}"
                   class="field-error"></span>
         </div>
-        <div th:if="${spaces == null || spaces.empty}" class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700"
+        <div th:if="${spaces == null || spaces.empty}" class="alert-warning mb-0 px-3 py-2 text-xs"
              th:text="#{view.item.addStock.noSpace}">
             등록된 공간이 없습니다.
         </div>
@@ -214,7 +203,7 @@
                 <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectShelf}">선반 선택</p>
                 <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
                     <label th:each="shelf : ${shelves}"
-                           class="radio-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 cursor-pointer select-none transition hover:bg-slate-50 flex-shrink-0">
+                           class="radio-pill">
                         <input type="radio" name="shelfExternalId" th:value="${shelf.externalId}" class="sr-only" form="stock-form"
                                data-deselectable data-clears-target="#box-radio-area"
                                th:checked="${form != null and form.shelfExternalId != null and form.shelfExternalId == shelf.externalId}"
@@ -222,7 +211,7 @@
                                hx-target="#box-radio-area"
                                hx-swap="innerHTML"
                                hx-trigger="change">
-                        <span class="radio-dot w-2 h-2 rounded-full bg-current" style="display:none"></span>
+                        <span class="radio-dot"></span>
                         <span th:text="${shelf.name}">선반명</span>
                     </label>
                 </div>
@@ -238,11 +227,11 @@
                 <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectBox}">박스 선택</p>
                 <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
                     <label th:each="box : ${boxes}"
-                           class="radio-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 cursor-pointer select-none transition hover:bg-slate-50 flex-shrink-0">
+                           class="radio-pill">
                         <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
                                data-single-select
                                th:checked="${form != null and form.boxExternalId != null and form.boxExternalId == box.externalId}">
-                        <span class="radio-dot w-2 h-2 rounded-full bg-current" style="display:none"></span>
+                        <span class="radio-dot"></span>
                         <span th:text="${box.name}">박스명</span>
                     </label>
                 </div>
@@ -343,14 +332,14 @@
         <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectShelf}">선반 선택</p>
         <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
             <label th:each="shelf : ${shelves}"
-                   class="radio-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 cursor-pointer select-none transition hover:bg-slate-50 flex-shrink-0">
+                   class="radio-pill">
                 <input type="radio" name="shelfExternalId" th:value="${shelf.externalId}" class="sr-only" form="stock-form"
                        data-deselectable data-clears-target="#box-radio-area"
                        th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
                        hx-target="#box-radio-area"
                        hx-swap="innerHTML"
                        hx-trigger="change">
-                <span class="radio-dot w-2 h-2 rounded-full bg-current" style="display:none"></span>
+                <span class="radio-dot"></span>
                 <span th:text="${shelf.name}">선반명</span>
             </label>
         </div>
@@ -366,10 +355,10 @@
         <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectBox}">박스 선택</p>
         <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
             <label th:each="box : ${boxes}"
-                   class="radio-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 cursor-pointer select-none transition hover:bg-slate-50 flex-shrink-0">
+                   class="radio-pill">
                 <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
                        data-single-select>
-                <span class="radio-dot w-2 h-2 rounded-full bg-current" style="display:none"></span>
+                <span class="radio-dot"></span>
                 <span th:text="${box.name}">박스명</span>
             </label>
         </div>
