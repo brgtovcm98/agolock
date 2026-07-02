@@ -162,7 +162,9 @@ public class ItemController {
     if (spaceId == null) {
       List<SpaceDTO> spaces = spaceService.findAllByUsername(username);
       model.addAttribute("spaces", spaces);
-      model.addAttribute("form", new StockForm());
+      StockForm form = new StockForm();
+      form.setItemExternalId(externalId);
+      model.addAttribute("form", form);
       return "items/fragments/add-stock-modal :: unified-form";
     }
 

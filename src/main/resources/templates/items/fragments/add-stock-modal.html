@@ -16,7 +16,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition">
+                    class="text-slate-400 hover:text-slate-600 transition text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -45,7 +45,7 @@
                     th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${space.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-slate-50 transition">
+                    class="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-slate-50 transition text-sm">
                 <span class="text-sm font-medium text-slate-800" th:text="${space.name}">공간명</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -59,7 +59,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="btn-secondary"
+                    class="btn-secondary text-sm"
                     th:text="#{view.common.close}">닫기</button>
         </div>
 
@@ -80,7 +80,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition">
+                    class="text-slate-400 hover:text-slate-600 transition text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -93,7 +93,7 @@
         <button th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},direct=true)}"
                 hx-target="#modal"
                 hx-swap="outerHTML"
-                class="flex items-center justify-between w-full px-4 py-3 text-left rounded-lg border border-slate-200 hover:bg-slate-50 transition">
+                class="flex items-center justify-between w-full px-4 py-3 text-left rounded-lg border border-slate-200 hover:bg-slate-50 transition text-sm">
             <span class="text-sm text-slate-500" th:text="#{view.item.addStock.spaceRoot}">공간 루트 (선반 없이 추가)</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -111,7 +111,7 @@
                     th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-slate-50 transition">
+                    class="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-slate-50 transition text-sm">
                 <span class="text-sm font-medium text-slate-800" th:text="${shelf.name}">선반명</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -131,7 +131,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="btn-secondary"
+                    class="btn-secondary text-sm"
                     th:text="#{view.common.close}">닫기</button>
         </div>
 
@@ -166,7 +166,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition">
+                    class="text-slate-400 hover:text-slate-600 transition text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -232,15 +232,15 @@
                th:text="#{view.item.addStock.noShelf}">등록된 선반이 없습니다.</p>
         </div>
 
-        <!-- ── 박스 영역 (선택 해제 가능) ── -->
+        <!-- ── 박스 영역 (선택사항: 하나만 선택 가능한 체크박스) ── -->
         <div id="box-radio-area">
             <th:block th:if="${boxes != null and !boxes.empty}">
                 <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectBox}">박스 선택</p>
                 <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
                     <label th:each="box : ${boxes}"
                            class="radio-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 cursor-pointer select-none transition hover:bg-slate-50 flex-shrink-0">
-                        <input type="radio" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
-                               data-deselectable
+                        <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
+                               data-single-select
                                th:checked="${form != null and form.boxExternalId != null and form.boxExternalId == box.externalId}">
                         <span class="radio-dot w-2 h-2 rounded-full bg-current" style="display:none"></span>
                         <span th:text="${box.name}">박스명</span>
@@ -252,9 +252,10 @@
         <form id="stock-form"
               method="post"
               th:action="@{/items/{id}/stocks(id=${item.externalId})}"
-              hx-post="@{/items/{id}/stocks(id=${item.externalId})}"
+              th:hx-post="@{/items/{id}/stocks(id=${item.externalId})}"
               hx-target="#modal"
               hx-swap="outerHTML">
+            <input type="hidden" th:field="*{itemExternalId}">
 
             <div class="mb-3">
                 <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
@@ -292,7 +293,7 @@
                         class="text-sm text-slate-500 hover:text-slate-700 transition"
                         th:text="#{view.common.cancel}">취소</button>
                 <button type="submit"
-                        class="btn-primary"
+                        class="btn-primary text-sm"
                         th:text="#{view.common.add}">추가</button>
             </div>
         </form>
@@ -323,6 +324,16 @@
             if (el) el.innerHTML = '';
         }
     }, true);
+
+    /* 신규: 체크박스 하나만 선택 가능 + 선택 해제 가능 */
+    modal.addEventListener('change', function (e) {
+        var cb = e.target.closest('input[type="checkbox"][data-single-select]');
+        if (!cb || !cb.checked) return;
+        // 동일 name의 다른 체크박스는 모두 해제
+        modal.querySelectorAll('input[type="checkbox"][name="' + cb.name + '"]').forEach(function (other) {
+            if (other !== cb) other.checked = false;
+        });
+    });
 })();
 </script>
 
@@ -356,8 +367,8 @@
         <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
             <label th:each="box : ${boxes}"
                    class="radio-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 cursor-pointer select-none transition hover:bg-slate-50 flex-shrink-0">
-                <input type="radio" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
-                       data-deselectable>
+                <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
+                       data-single-select>
                 <span class="radio-dot w-2 h-2 rounded-full bg-current" style="display:none"></span>
                 <span th:text="${box.name}">박스명</span>
             </label>
@@ -367,10 +378,10 @@
 
 <!-- ── 생성 완료 (OOB 응답) ── -->
 <th:block th:fragment="created">
-    <div id="modal" hx-swap-oob="true" data-component-id="items.modal-mount"></div>
     <div th:id="'item-' + ${item.externalId}" hx-swap-oob="outerHTML">
         <div th:replace="~{items/fragments/card :: view}"></div>
     </div>
+    <div id="modal" data-component-id="items.modal-mount"></div>
 </th:block>
 
 </body>
