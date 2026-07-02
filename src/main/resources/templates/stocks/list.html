@@ -38,7 +38,7 @@
                 <input th:if="${shelfExternalId != null}" type="hidden" name="shelf" th:value="${shelf}">
                 <input th:if="${boxExternalId != null}" type="hidden" name="box" th:value="${box}">
                 <select name="searchType"
-                        class="shrink-0 rounded-l-md rounded-r-none border border-r-0 border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-500 focus:z-10 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" th:attr="aria-label=#{aria.filter.searchType}">
+                        class="search-select rounded-l-md rounded-r-none border-r-0" th:attr="aria-label=#{aria.filter.searchType}">
                     <option value="all" th:selected="${searchType == null or searchType == 'all'}" th:text="#{view.stock.list.searchType.all}">전체</option>
                     <option value="item" th:selected="${searchType == 'item'}" th:text="#{view.stock.list.searchType.item}">품목명</option>
                     <option th:if="${lotSerialEnabled}" value="serial" th:selected="${searchType == 'serial'}" th:text="#{view.stock.list.searchType.serial}">시리얼</option>
@@ -49,9 +49,9 @@
                        name="keyword"
                        th:value="${keyword}"
                        th:placeholder="#{view.stock.list.searchPlaceholder}"
-                       class="flex-1 min-w-0 rounded-none border border-slate-200 px-3 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 focus:z-10 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+                       class="search-input rounded-none">
                 <button type="submit"
-                        class="shrink-0 rounded-l-none rounded-r-md bg-slate-600 px-3 py-1.5 text-sm text-white hover:bg-slate-700 transition"
+                        class="btn-search btn-sm shrink-0 rounded-l-none rounded-r-md"
                         th:text="#{view.common.search}">
                     검색
                 </button>
@@ -59,22 +59,22 @@
             <div data-component-id="stocks.sort-controls" class="flex flex-wrap gap-1">
                 <button th:attr="hx-get=@{/stocks(sortBy='newest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'newest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
+                        th:classappend="${sortBy == 'newest'} ? 'chip-active'"
+                        class="chip"
                         th:text="#{view.common.sort.newest}">
                     가장 최신 순
                 </button>
                 <button th:attr="hx-get=@{/stocks(sortBy='oldest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'oldest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
+                        th:classappend="${sortBy == 'oldest'} ? 'chip-active'"
+                        class="chip"
                         th:text="#{view.common.sort.oldest}">
                     가장 오래된 순
                 </button>
                 <button th:attr="hx-get=@{/stocks(sortBy='name',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'name'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
+                        th:classappend="${sortBy == 'name'} ? 'chip-active'"
+                        class="chip"
                         th:text="#{view.common.sort.name}">
                     품목명 순
                 </button>
@@ -115,8 +115,8 @@
             <th:block th:each="pageNumber : ${#numbers.sequence(1, page.totalPages())}">
                 <button th:attr="hx-get=@{/stocks(page=${pageNumber},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${pageNumber == page.page()} ? 'bg-blue-600 text-white' : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'"
-                        class="min-w-9 rounded-lg px-3 py-1.5 text-sm transition"
+                        th:classappend="${pageNumber == page.page()} ? 'page-link-active'"
+                        class="page-link"
                         th:text="${pageNumber}">1</button>
             </th:block>
             <button th:if="${page.hasNext()}"
