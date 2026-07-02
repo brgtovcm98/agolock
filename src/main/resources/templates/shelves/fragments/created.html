@@ -26,7 +26,7 @@
 
         <span class="hidden group-hover:flex items-center gap-1 shrink-0">
             <button type="button"
-                    class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-blue-500 hover:text-blue-700"
+                    class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-blue-500 hover:text-blue-700"
                     th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/boxes/new(sid=${space},id=${shelf.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
@@ -34,7 +34,7 @@
                     th:title="#{view.shelf.created.addBox}">+</button>
 
             <button type="button"
-                    class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-red-400 hover:text-red-600"
+                    class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-red-400 hover:text-red-600"
                     th:attr="hx-delete=@{/spaces/{sid}/shelves/{id}(sid=${space},id=${shelf.externalId})},
                              hx-confirm=#{view.shelf.created.deleteConfirm}"
                     hx-target="#shelf-list"

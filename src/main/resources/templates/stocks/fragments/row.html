@@ -50,7 +50,7 @@
             목록
         </a>
         <button type="button"
-                class="stock-default-only rounded-lg bg-slate-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
+                class="stock-default-only rounded-lg bg-slate-600 px-3 py-1.5 text-sm text-white hover:bg-slate-700 transition"
                 th:attr="hx-get=@{/stocks/action-form(item=${stock.itemExternalId},itemName=${stock.itemName},space=${space},shelf=${shelf},box=${box},count=${stock.count})}"
                 hx-target="#modal" hx-swap="outerHTML"
                 th:text="#{view.common.change}">변경</button>

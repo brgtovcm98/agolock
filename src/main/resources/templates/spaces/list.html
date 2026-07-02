@@ -9,7 +9,7 @@
 
 <div id="modal" data-component-id="spaces.modal-mount"></div>
 
-<main data-component-id="page.spaces-list" class="page-main mx-auto w-full max-w-3xl px-4 py-10 flex-1">
+<main data-component-id="page.spaces-list" class="page-main mx-auto w-full max-w-4xl px-4 py-10 flex-1">
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 class="page-title" th:text="#{view.space.list.title}">내 공간</h1>
@@ -18,7 +18,7 @@
                 hx-get="/spaces/new"
                 hx-target="#modal"
                 hx-swap="outerHTML"
-                class="btn-primary btn-header-action"
+                class="btn-primary btn-sm btn-header-action text-sm"
                 th:text="#{view.space.list.add}">
             + 공간 추가
         </button>
@@ -42,7 +42,7 @@
                        th:placeholder="#{view.space.list.searchPlaceholder}"
                        class="flex-1 min-w-0 rounded-none border border-slate-200 px-3 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 focus:z-10 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
                 <button type="submit"
-                        class="shrink-0 rounded-l-none rounded-r-md bg-slate-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
+                        class="shrink-0 rounded-l-none rounded-r-md bg-slate-600 px-3 py-1.5 text-sm text-white hover:bg-slate-700 transition"
                         th:text="#{view.common.search}">
                     검색
                 </button>
@@ -51,35 +51,35 @@
                 <button th:attr="hx-get=@{/spaces(sortBy='most_stock',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'most_stock'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                         th:text="#{view.common.sort.mostStock}">
                     재고 많은 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='recent_activity',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'recent_activity'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                         th:text="#{view.common.sort.recentActivity}">
                     최근 활동 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='newest',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'newest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                         th:text="#{view.common.sort.newest}">
                     가장 최신 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='oldest',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'oldest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                         th:text="#{view.common.sort.oldest}">
                     가장 오래된 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='name',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'name'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                        class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                        class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                         th:text="#{view.common.sort.name}">
                     공간명 순
                 </button>
@@ -111,7 +111,7 @@
                     th:attr="hx-get=@{/spaces(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
                     hx-target="#space-list-more"
                     hx-swap="outerHTML"
-                    class="btn-secondary"
+                    class="btn-secondary text-sm"
                     th:text="#{view.space.list.more}">
                 더 보기
             </button>

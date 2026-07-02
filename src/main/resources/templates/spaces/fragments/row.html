@@ -18,7 +18,7 @@
                       th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}">2026-06-21</span>
             </div>
             <div class="space-actions">
-                <button class="btn-secondary btn-sm"
+                <button class="btn-secondary btn-sm text-sm"
                         th:attr="hx-get=@{/spaces/{id}/edit(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                         hx-swap="outerHTML" th:text="#{view.common.edit}">수정</button>
             </div>
@@ -55,7 +55,7 @@
                 <a class="btn--cta"
                    th:href="@{/spaces/{id}(id=${space.externalId})}"
                    th:text="#{view.space.list.addItem}">+ 품목 담기</a>
-                <button class="btn-secondary btn-sm"
+                <button class="btn-secondary btn-sm text-sm"
                         th:attr="hx-get=@{/spaces/{id}/edit(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                         hx-swap="outerHTML" th:text="#{view.common.edit}">수정</button>
             </div>
@@ -72,15 +72,15 @@
     <p class="text-sm text-slate-500"
        th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}"></p>
     <div class="flex items-center gap-2 md:justify-end">
-        <button class="btn-primary btn-sm"
+        <button class="btn-primary btn-sm text-sm"
                 th:attr="hx-put=@{/spaces/{id}(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                 hx-swap="outerHTML"
                 hx-include="closest div[id]" th:text="#{view.common.save}">저장</button>
-        <button class="btn-danger btn-sm"
+        <button class="btn-danger btn-sm text-sm"
                 th:attr="hx-delete=@{/spaces/{id}(id=${space.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.space.list.deleteConfirm(${space.name})}"
                 hx-target="#space-list-section"
                 hx-swap="outerHTML" th:text="#{view.common.delete}">삭제</button>
-        <button class="btn-secondary btn-sm"
+        <button class="btn-secondary btn-sm text-sm"
                 th:attr="hx-get=@{/spaces/{id}/cancel(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                 hx-swap="outerHTML" th:text="#{view.common.cancel}">취소</button>
     </div>

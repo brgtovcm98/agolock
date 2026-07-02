@@ -11,7 +11,7 @@
     <li th:if="${boxes.empty}"
         class="px-3 py-2">
         <button type="button"
-                class="btn--cta cursor-pointer"
+                class="btn--cta cursor-pointer text-sm"
                 th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/new(sid=${space},shid=${shelf.externalId})},hx-target='#modal'"
                 hx-swap="outerHTML"
                 th:text="|+ #{view.shelf.created.addBox}|">

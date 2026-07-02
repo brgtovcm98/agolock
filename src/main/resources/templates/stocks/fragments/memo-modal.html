@@ -23,7 +23,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="btn-secondary"
+                    class="btn-secondary text-sm"
                     th:text="#{view.common.close}">
                 닫기
             </button>
@@ -31,7 +31,7 @@
                     th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="btn-primary"
+                    class="btn-primary text-sm"
                     th:text="#{view.common.edit}">
                 수정
             </button>
@@ -68,12 +68,12 @@
                         th:attr="hx-get=${stock.memo != null and !stock.memo.isEmpty()} ? @{/stocks/{id}/memo(id=${stock.externalId})} : '/empty'"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="btn-secondary"
+                        class="btn-secondary text-sm"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="btn-primary"
+                        class="btn-primary text-sm"
                         th:text="#{view.common.edit}">
                     수정
                 </button>

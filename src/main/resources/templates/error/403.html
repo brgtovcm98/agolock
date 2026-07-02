@@ -9,7 +9,7 @@
     <p class="text-5xl font-bold text-slate-300 mb-4">403</p>
     <h1 class="page-title mb-2" th:text="#{view.error.403.header}">접근 권한이 없습니다</h1>
     <p class="text-slate-500 mb-8" th:text="${errorMessage} ?: #{view.error.403.defaultMessage}">이 리소스에 접근할 수 없습니다.</p>
-    <button type="button" onclick="history.back()" class="btn-secondary" th:text="#{view.error.back}">돌아가기</button>
+    <button type="button" onclick="history.back()" class="btn-secondary text-sm" th:text="#{view.error.back}">돌아가기</button>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

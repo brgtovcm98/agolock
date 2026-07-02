@@ -62,7 +62,7 @@
                                 th:each="memo : ${inMemoSuggestions}"
                                 th:data-memo="${memo}"
                                 onclick="setTransactionMemo('in', this.dataset.memo)"
-                                class="rounded-full border border-blue-200 bg-blue-50 px-2-5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition"
+                                class="rounded-full border border-blue-200 bg-blue-50 px-2-5 py-1 text-sm font-medium text-blue-700 hover:bg-blue-100 transition"
                                 th:text="${memo}">
                             구매 입고
                         </button>
@@ -71,7 +71,7 @@
                 <div class="flex gap-2 justify-end">
                     <button type="button"
                             hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                            class="btn-secondary"
+                            class="btn-secondary text-sm"
                             th:text="#{view.common.cancel}">
                         취소
                     </button>
@@ -81,7 +81,7 @@
                             hx-target="#stock-panel"
                             hx-swap="outerHTML"
                             th:attr="hx-confirm=#{view.stock.modal.in.confirm}"
-                            class="btn-primary"
+                            class="btn-primary text-sm"
                             th:text="#{view.stock.modal.in.title}">
                         입고
                     </button>
@@ -121,7 +121,7 @@
                                 th:each="memo : ${outMemoSuggestions}"
                                 th:data-memo="${memo}"
                                 onclick="setTransactionMemo('out', this.dataset.memo)"
-                                class="rounded-full border border-orange-200 bg-orange-50 px-2-5 py-1 text-xs font-medium text-orange-700 hover:bg-orange-100 transition"
+                                class="rounded-full border border-orange-200 bg-orange-50 px-2-5 py-1 text-sm font-medium text-orange-700 hover:bg-orange-100 transition"
                                 th:text="${memo}">
                             사용 출고
                         </button>
@@ -140,7 +140,7 @@
                 <div class="flex gap-2 justify-end">
                     <button type="button"
                             hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                            class="btn-secondary"
+                            class="btn-secondary text-sm"
                             th:text="#{view.common.cancel}">
                         취소
                     </button>
@@ -150,7 +150,7 @@
                             hx-target="#stock-panel"
                             hx-swap="outerHTML"
                             th:attr="hx-confirm=#{view.stock.modal.out.confirm}"
-                            class="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition"
+                            class="rounded-lg bg-orange-600 px-4 py-2 text-sm text-white hover:bg-orange-600 transition"
                             th:text="#{view.stock.modal.out.title}">
                         출고
                     </button>
@@ -165,7 +165,7 @@
             <div class="flex gap-2 justify-end">
                 <button type="button"
                         hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
-                        class="btn-secondary"
+                        class="btn-secondary text-sm"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
@@ -173,7 +173,7 @@
                         th:attr="hx-delete=@{/stocks(item=${item},space=${space},shelf=${shelf},box=${box})},hx-confirm=#{view.stock.modal.delete.confirm}"
                         hx-target="#stock-panel"
                         hx-swap="outerHTML"
-                        class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition"
+                        class="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-600 transition"
                         th:text="#{view.common.delete}">
                     삭제
                 </button>

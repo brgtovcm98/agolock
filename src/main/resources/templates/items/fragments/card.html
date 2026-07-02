@@ -34,7 +34,7 @@
                         th:attr="hx-get=@{/items/{id}/spaces(id=${item.externalId})}"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="cursor-pointer hover:underline"
+                        class="cursor-pointer hover:underline text-sm"
                         th:text="#{view.item.card.spaceCount(${item.spaceCount})}">공간 2곳</button>
                 <span th:unless="${item.spaceCount > 0}" th:text="#{view.item.card.spaceCount(${item.spaceCount})}">0곳 공간</span>
         </th:block>
@@ -42,21 +42,18 @@
     </div>
 
     <div class="item-actions">
-        <th:block th:if="${item.stockCount > 0}">
-            <button class="btn-secondary btn-sm"
-                    th:attr="hx-get=@{/items/{id}/history(id=${item.externalId})}"
-                    hx-target="#modal"
-                    hx-swap="outerHTML"
-                    th:text="#{view.stock.action.history}">이력</button>
-        </th:block>
-        <th:block th:unless="${item.stockCount > 0}">
-            <button class="btn--cta"
-                    th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId})}"
-                    hx-target="#modal"
-                    hx-swap="outerHTML"
-                    th:text="#{view.item.card.addStock}">+ 재고</button>
-        </th:block>
-        <button class="btn-secondary btn-sm"
+        <button class="btn--cta text-sm"
+                th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId})}"
+                hx-target="#modal"
+                hx-swap="outerHTML"
+                th:text="#{view.item.card.addStock}">+ 재고</button>
+        <button th:if="${item.stockCount > 0}"
+                class="btn-secondary btn-sm text-sm"
+                th:attr="hx-get=@{/items/{id}/history(id=${item.externalId})}"
+                hx-target="#modal"
+                hx-swap="outerHTML"
+                th:text="#{view.stock.action.history}">이력</button>
+        <button class="btn-secondary btn-sm text-sm"
                 th:attr="hx-get=@{/items/{id}/edit(id=${item.externalId})},hx-target='#item-' + ${item.externalId}"
                 hx-swap="outerHTML"
                 th:text="#{view.common.edit}">수정</button>
@@ -85,12 +82,12 @@
                accept="image/jpeg,image/png,image/webp,image/gif"
                class="block w-full text-xs text-slate-500
                       file:mr-2 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2
-                      file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200">
+                      file:text-xs file:text-slate-700 hover:file:bg-slate-200">
         <span data-image-analysis-status
               class="hidden mt-1 block text-xs text-blue-500" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
         <button type="button"
                 data-image-analysis-retry
-                class="hidden mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+                class="hidden mt-2 text-sm text-blue-600 hover:text-blue-800 transition"
                 th:text="#{view.item.card.aiRetry}">
             다시 분석
         </button>
@@ -98,7 +95,7 @@
                 th:if="${item.primaryImageExternalId != null}"
                 th:attr="data-reanalyze-src=@{/images/{id}/analyze(id=${item.primaryImageExternalId})}"
                 data-image-reanalyze
-                class="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+                class="mt-2 text-sm text-blue-600 hover:text-blue-800 transition"
                 th:text="#{view.item.card.aiReanalyzeStored}">
             저장된 이미지 AI 분석
         </button>
@@ -195,7 +192,7 @@
                     th:attr="hx-get=@{/items/{id}/spaces(id=${item.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 font-medium hover:bg-emerald-100 transition"
+                    class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 font-medium hover:bg-emerald-100 transition text-sm"
                     th:text="#{view.item.card.spaceCount(${item.spaceCount})}"></button>
             <span th:if="${item.spaceCount == 0}"
                   class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-slate-500 font-medium"
@@ -204,18 +201,18 @@
     </div>
 
     <div class="flex flex-wrap gap-2 items-center md:justify-end">
-        <button class="btn-danger btn-sm md:order-last"
+        <button class="btn-danger btn-sm md:order-last text-sm"
                 th:attr="hx-delete=@{/items/{id}(id=${item.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.item.card.deleteConfirm(${item.name})}"
                 hx-target="#item-list-section"
                 hx-swap="outerHTML"
                 th:text="#{view.common.delete}">삭제</button>
-        <button class="btn-primary btn-sm"
+        <button class="btn-primary btn-sm text-sm"
                 th:attr="hx-put=@{/items/{id}(id=${item.externalId})},hx-target='#item-' + ${item.externalId},hx-include='#item-' + ${item.externalId}"
                 hx-swap="outerHTML"
                 hx-encoding="multipart/form-data"
                 data-submit-btn
                 th:text="#{view.common.save}">저장</button>
-        <button class="btn-secondary btn-sm"
+        <button class="btn-secondary btn-sm text-sm"
                 th:attr="hx-get=@{/items/{id}/cancel(id=${item.externalId})},hx-target='#item-' + ${item.externalId}"
                 hx-swap="outerHTML"
                 th:text="#{view.common.cancel}">취소</button>

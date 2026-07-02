@@ -42,7 +42,7 @@
                       class="hidden mt-1 block text-xs text-blue-500" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"
                         id="item-modal-analysis-retry-btn"
-                        class="hidden mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 transition"
+                        class="hidden mt-2 text-sm text-blue-600 hover:text-blue-800 transition"
                         th:text="#{view.item.card.aiRetry}">
                     다시 분석
                 </button>
@@ -155,13 +155,13 @@
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="btn-secondary"
+                        class="btn-secondary text-sm"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
                         id="item-modal-submit-btn"
-                        class="btn-primary"
+                        class="btn-primary text-sm"
                         th:text="#{view.common.add}">
                     추가
                 </button>

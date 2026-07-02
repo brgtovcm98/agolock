@@ -9,7 +9,7 @@
     <p class="text-5xl font-bold text-slate-300 mb-4">404</p>
     <h1 class="page-title mb-2" th:text="#{view.error.404.header}">찾을 수 없습니다</h1>
     <p class="text-slate-500 mb-8" th:text="${errorMessage} ?: #{view.error.404.defaultMessage}">요청하신 항목을 찾을 수 없습니다.</p>
-    <button type="button" onclick="history.back()" class="btn-secondary" th:text="#{view.error.back}">돌아가기</button>
+    <button type="button" onclick="history.back()" class="btn-secondary text-sm" th:text="#{view.error.back}">돌아가기</button>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

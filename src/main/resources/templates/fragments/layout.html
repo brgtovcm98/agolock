@@ -137,7 +137,7 @@
                 <span class="text-slate-500" th:text="${currentNickname}"></span>
                 <form th:action="@{/logout}" method="post" class="inline">
                     <button type="submit"
-                            class="text-slate-600 hover:text-slate-900 transition cursor-pointer bg-transparent border-0 p-0" th:text="#{view.nav.logout}">로그아웃</button>
+                            class="text-slate-600 hover:text-slate-900 transition cursor-pointer bg-transparent border-0 p-0 text-sm" th:text="#{view.nav.logout}">로그아웃</button>
                 </form>
             </th:block>
             <th:block th:if="${currentUsername == null}">
@@ -169,7 +169,7 @@
                     <hr class="border-slate-100 mx-2 my-1"/>
                     <form th:action="@{/logout}" method="post">
                         <button type="submit"
-                                class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition bg-transparent border-0 cursor-pointer" th:text="#{view.nav.logout}">로그아웃</button>
+                                class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition bg-transparent border-0 cursor-pointer text-sm" th:text="#{view.nav.logout}">로그아웃</button>
                     </form>
                 </th:block>
                 <th:block th:if="${currentUsername == null}">

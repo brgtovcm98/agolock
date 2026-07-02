@@ -31,25 +31,25 @@
             <summary class="dots inline-flex h-8 w-8 items-center justify-center rounded text-base text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer list-none select-none" aria-label="더보기" onclick="event.stopPropagation()">⋯</summary>
             <div class="absolute right-0 top-full mt-1 rounded-lg border border-slate-200 bg-white shadow-lg py-1 z-[100] text-sm">
                 <button type="button"
-                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left text-sm"
                         th:attr="hx-get=@{/api/qr/modal(type='shelf',externalId=${shelf.externalId},name=${shelf.name})}"
                         hx-target="#modal" hx-swap="outerHTML">
                     📷 <span th:text="#{view.box.tree.qrTitle}">QR 코드</span>
                 </button>
                 <button type="button"
-                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left text-sm"
                         th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/edit(sid=${space},id=${shelf.externalId})}"
                         hx-target="#modal" hx-swap="outerHTML">
                     ✏ <span th:text="#{view.box.tree.editTitle}">이름 수정</span>
                 </button>
                 <button type="button"
-                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left"
+                        class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left text-sm"
                         th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/boxes/new(sid=${space},id=${shelf.externalId})}"
                         hx-target="#modal" hx-swap="outerHTML">
                     + <span th:text="#{view.shelf.created.addBox}">박스 추가</span>
                 </button>
                 <button type="button"
-                        class="flex w-full items-center text-red-500 hover:bg-red-50 transition text-left"
+                        class="flex w-full items-center text-red-500 hover:bg-red-50 transition text-left text-sm"
                         th:attr="hx-delete=@{/spaces/{sid}/shelves/{id}(sid=${space},id=${shelf.externalId})},
                                  hx-confirm=#{view.shelf.created.deleteConfirm}"
                         hx-target="#shelf-list" hx-swap="outerHTML">

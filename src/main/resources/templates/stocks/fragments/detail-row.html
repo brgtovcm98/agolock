@@ -6,7 +6,7 @@
 <div th:fragment="view(stock)"
      data-component-id="stocks.detail-row.view"
      th:id="'stock-' + ${stock.externalId}"
-     class="stock-row">
+     class="stock-row border-l-4 border-white">
 
     <div class="stock-item">
         <img th:src="${stock.displayImageExternalId != null} ? @{/images/{id}(id=${stock.displayImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
@@ -58,7 +58,7 @@
         <button type="button"
                 th:attr="hx-get=@{/stocks/{id}/edit(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
                 hx-swap="outerHTML"
-                class="btn-secondary btn-sm"
+                class="btn-secondary btn-sm text-sm"
                 th:text="#{view.common.edit}">수정</button>
         <details class="relative" data-dropdown-menu>
             <summary class="btn-icon cursor-pointer list-none select-none"
@@ -67,22 +67,22 @@
                 <button type="button"
                         th:attr="hx-get=@{/stocks/{id}/memo(id=${stock.externalId})}"
                         hx-target="#modal"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition"
+                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="#{view.stock.action.viewMemo}">메모 보기</button>
                 <button type="button"
                         th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId})}"
                         hx-target="#modal"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition"
+                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="#{view.stock.action.writeMemo}">메모 작성</button>
                 <button type="button"
                         th:attr="hx-get=@{/stocks/{id}/history(id=${stock.externalId})}"
                         hx-target="#modal"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition"
+                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="#{view.stock.action.history}">이력 보기</button>
                 <button type="button"
                         th:attr="hx-post=@{/stocks/{id}/keep(id=${stock.externalId},kept=${!stock.kept})},hx-target='#stock-' + ${stock.externalId}"
                         hx-swap="outerHTML"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition"
+                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="${stock.kept} ? #{view.stock.action.unkeep} : #{view.stock.action.keep}">보관 처리</button>
             </div>
         </details>
@@ -93,7 +93,7 @@
      data-component-id="stocks.detail-row.edit"
      th:id="'stock-' + ${stock.externalId}"
      th:object="${form}"
-     class="grid gap-3 border-l-4 border-blue-500 bg-blue-50-40 px-4 py-4 md:grid-stock-row md:items-start">
+     class="grid gap-3 border-l-4 border-blue-500 bg-blue-50-40 px-4 py-2.5 text-sm md:grid-stock-row md:items-start">
 
     <div class="flex min-w-0 items-center gap-3">
         <img th:src="${stock.displayImageExternalId != null} ? @{/images/{id}(id=${stock.displayImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
@@ -101,7 +101,7 @@
              class="h-12 w-12 shrink-0 rounded-lg border border-slate-200 object-cover">
         <div class="min-w-0">
             <p class="truncate text-sm font-semibold text-slate-800" th:text="${stock.itemName}">품목명</p>
-            <div th:if="${lotSerialEnabled}" class="stock-id mt-0.5"
+            <div th:if="${lotSerialEnabled}" class="stock-id mt-0.5 truncate font-mono text-xs leading-5 text-slate-500"
                  th:classappend="${(stock.serialNumber == null or stock.serialNumber.isEmpty()) and (stock.lotNumber == null or stock.lotNumber.isEmpty())} ? 'muted'"
                  th:switch="${true}">
                 <th:block th:case="${stock.serialNumber != null and !stock.serialNumber.isEmpty() and stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
@@ -117,12 +117,12 @@
                 </th:block>
                 <th:block th:case="*" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</th:block>
             </div>
-            <div th:unless="${lotSerialEnabled}" class="stock-id muted mt-0.5" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</div>
+            <div th:unless="${lotSerialEnabled}" class="stock-id muted mt-0.5 truncate text-xs leading-5 text-slate-400" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</div>
         </div>
     </div>
 
     <div class="min-w-0">
-        <div class="stock-path">
+        <div class="stock-path text-xs leading-5 text-slate-500">
             <a th:href="@{/stocks(space=${stock.spaceExternalId})}" class="hover:underline"
                th:text="${stock.spaceName}">공간</a>
             <th:block th:if="${stock.shelfName != null}">
@@ -177,14 +177,14 @@
             <button type="button"
                     th:attr="hx-put=@{/stocks/{id}(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId},hx-include='#stock-' + ${stock.externalId}"
                     hx-swap="outerHTML"
-                    class="btn-primary btn-sm"
+                    class="btn-primary btn-sm text-sm"
                     th:text="#{view.common.save}">
                 저장
             </button>
             <button type="button"
                     th:attr="hx-get=@{/stocks/{id}/cancel(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
                     hx-swap="outerHTML"
-                    class="btn-secondary btn-sm"
+                    class="btn-secondary btn-sm text-sm"
                     th:text="#{view.common.cancel}">
                 취소
             </button>
@@ -193,7 +193,7 @@
             <button type="button"
                     th:attr="hx-delete=@{/stocks/{id}(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId},hx-confirm=#{view.stock.detail.deleteConfirm(${stock.itemName})}"
                     hx-swap="outerHTML"
-                    class="text-xs font-medium text-red-500 hover:text-red-700 transition bg-transparent border-0 cursor-pointer"
+                    class="text-sm font-medium text-red-500 hover:text-red-700 transition bg-transparent border-0 cursor-pointer"
                     th:text="#{view.common.delete}">
                 삭제
             </button>

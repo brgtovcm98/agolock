@@ -18,14 +18,14 @@
 
     <span class="hidden group-hover:flex items-center gap-1 shrink-0">
     <button type="button"
-            class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-blue-500 hover:text-blue-700"
+            class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-blue-500 hover:text-blue-700"
             th:attr="hx-get=@{/stocks/new(spaceId=${space},shelfId=${shelf},boxId=${box.externalId})}"
             hx-target="#modal"
             hx-swap="outerHTML"
             th:title="#{view.box.created.addStock}">📦</button>
 
     <button type="button"
-            class="inline-flex h-6 w-6 items-center justify-center rounded text-xs text-red-400 hover:text-red-600"
+            class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-red-400 hover:text-red-600"
             th:attr="hx-delete=@{/spaces/{sid}/shelves/{shid}/boxes/{id}(sid=${space},shid=${shelf},id=${box.externalId})},
                      hx-confirm=#{view.box.created.deleteConfirm},
                      hx-target='#box-list-' + ${shelf}"

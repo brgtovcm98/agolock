@@ -32,21 +32,21 @@
         <div class="flex gap-2">
             <button type="button"
                     onclick="startStockMoveMode()"
-                    class="stock-default-only btn-secondary btn-sm"
+                    class="stock-default-only btn-secondary btn-sm text-sm"
                     th:text="#{view.stock.modal.move.title}">
                 물품 이동
             </button>
             <button th:attr="hx-get=@{/stocks/quick(spaceId=${space},shelfId=${shelf},boxId=${box})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="stock-default-only rounded-lg bg-slate-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
+                    class="stock-default-only rounded-lg bg-slate-600 px-3 py-1.5 text-sm text-white hover:bg-slate-700 transition"
                     th:text="|+#{view.stock.list.quickAdd}|">
                 + 빠른 등록
             </button>
             <button th:attr="hx-get=@{/stocks/new(spaceId=${space},shelfId=${shelf},boxId=${box})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="stock-default-only btn-primary btn-sm"
+                    class="stock-default-only btn-primary btn-sm text-sm"
                     th:text="|+#{view.item.list.table.stock}|">
                 + 재고 추가
             </button>
@@ -68,7 +68,7 @@
                    th:placeholder="#{view.item.list.search.placeholder}"
                    class="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
             <button type="submit"
-                    class="shrink-0 rounded-lg bg-slate-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
+                    class="shrink-0 rounded-lg bg-slate-600 px-3 py-1.5 text-sm text-white hover:bg-slate-700 transition"
                     th:text="#{view.common.search}">
                 검색
             </button>
@@ -77,28 +77,28 @@
             <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='newest',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'newest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                    class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                    class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                     th:text="#{view.common.sort.newest}">
                 가장 최신 순
             </button>
             <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='oldest',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'oldest'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                    class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                    class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                     th:text="#{view.common.sort.oldest}">
                 가장 오래된 순
             </button>
             <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='inFreq',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'inFreq'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                    class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                    class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                     th:text="#{view.stock.list.sort.inFreq}">
                 입고 빈도 순
             </button>
             <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},sortBy='outFreq',keyword=${keyword})}"
                     hx-target="#stock-panel" hx-swap="outerHTML"
                     th:classappend="${sortBy == 'outFreq'} ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                    class="rounded-full px-2-5 py-0.5 text-xs font-medium transition"
+                    class="rounded-full px-2-5 py-0.5 text-sm font-medium transition"
                     th:text="#{view.stock.list.sort.outFreq}">
                 출고 빈도 순
             </button>
@@ -120,14 +120,14 @@
             <div class="flex gap-2">
                 <button type="button"
                         onclick="cancelStockMoveMode()"
-                        class="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50 transition"
+                        class="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50 transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
                         id="stock-move-submit"
                         disabled
-                        class="btn-primary btn-sm disabled:bg-slate-300"
+                        class="btn-primary btn-sm disabled:bg-slate-300 text-sm"
                         th:text="#{view.stock.modal.move.button.submit}">
                     이동하기
                 </button>
@@ -145,12 +145,16 @@
 
     </div>
 
-    <div id="stock-panel-more" data-component-id="stocks.panel-more" th:fragment="stock-panel-more" class="border-t border-slate-100 px-4 py-3 text-center">
+    <div th:if="${page.hasNext()}"
+         id="stock-panel-more"
+         data-component-id="stocks.panel-more"
+         th:fragment="stock-panel-more"
+         class="border-t border-slate-100 px-4 py-3 text-center">
         <button th:if="${page.hasNext() and isAllView}"
                 th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
-                class="btn-secondary"
+                class="btn-secondary text-sm"
                 th:text="#{view.space.list.more}">
             더 보기
         </button>
@@ -158,7 +162,7 @@
                 th:attr="hx-get=@{/spaces/{id}/stocks(id=${space},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
-                class="btn-secondary"
+                class="btn-secondary text-sm"
                 th:text="#{view.space.list.more}">
             더 보기
         </button>
@@ -166,7 +170,7 @@
                 th:attr="hx-get=@{/spaces/{id}/shelves/{id}/stocks(sid=${space},id=${shelf},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
-                class="btn-secondary"
+                class="btn-secondary text-sm"
                 th:text="#{view.space.list.more}">
             더 보기
         </button>
@@ -174,7 +178,7 @@
                 th:attr="hx-get=@{/spaces/{sid}/shelves/{shelfId}/boxes/{boxId}/stocks(sid=${space},shelfId=${shelf},boxId=${box},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
-                class="btn-secondary"
+                class="btn-secondary text-sm"
                 th:text="#{view.space.list.more}">
             더 보기
         </button>
