@@ -257,7 +257,6 @@
     .toast-width     { width: min(24rem, calc(100vw - 2rem)); }
     .animate-in      { animation: fade-in 150ms ease-out; }
     .z-60            { z-index: 60; }
-    .bg-blue-50-40   { background-color: rgba(239, 246, 255, 0.4); }
 }
 
 @keyframes fade-in {
