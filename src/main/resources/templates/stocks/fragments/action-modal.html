@@ -16,7 +16,7 @@
         <!-- 탭 -->
         <div class="flex gap-1 mb-5 bg-slate-100 rounded-lg p-1">
             <button type="button" onclick="switchActionTab('in')" id="action-tab-in"
-                    class="flex-1 rounded-lg py-1.5 text-sm font-medium bg-white shadow-sm text-blue-600 transition"
+                    class="flex-1 rounded-lg py-1.5 text-sm font-medium bg-white shadow-sm text-primary transition"
                     th:text="#{view.stock.modal.in.title}">
                 입고
             </button>
@@ -62,7 +62,7 @@
                                 th:each="memo : ${inMemoSuggestions}"
                                 th:data-memo="${memo}"
                                 onclick="setTransactionMemo('in', this.dataset.memo)"
-                                class="rounded-full border border-blue-200 bg-blue-50 px-2-5 py-1 text-sm font-medium text-blue-700 hover:bg-blue-100 transition"
+                                class="chip-suggest chip-suggest-in"
                                 th:text="${memo}">
                             구매 입고
                         </button>
@@ -102,8 +102,7 @@
                     <input type="number" name="count" value="1" min="1"
                            id="out-count-input"
                            th:data-current-count="${currentCount}"
-                           class="field-input
-                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition">
+                           class="field-input field-input--out">
                     <p id="out-count-msg" class="mt-1 text-xs text-slate-500"></p>
                 </div>
                 <div class="mb-4">
@@ -113,15 +112,14 @@
                     </label>
                     <input type="text" name="memo"
                            id="out-memo-input"
-                           class="field-input
-                                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
+                           class="field-input field-input--out"
                            th:placeholder="#{view.stock.modal.out.memoPlaceholder}">
                     <div class="mt-2 flex flex-wrap gap-1.5" th:if="${outMemoSuggestions != null and !outMemoSuggestions.isEmpty()}">
                         <button type="button"
                                 th:each="memo : ${outMemoSuggestions}"
                                 th:data-memo="${memo}"
                                 onclick="setTransactionMemo('out', this.dataset.memo)"
-                                class="rounded-full border border-orange-200 bg-orange-50 px-2-5 py-1 text-sm font-medium text-orange-700 hover:bg-orange-100 transition"
+                                class="chip-suggest chip-suggest-out"
                                 th:text="${memo}">
                             사용 출고
                         </button>
@@ -132,7 +130,7 @@
                            id="out-include-kept"
                            name="includeKept"
                            value="true"
-                           class="h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                           class="field-check field-check--out">
                     <label for="out-include-kept"
                            class="text-sm text-slate-600"
                            th:text="#{view.stock.modal.out.includeKept}">보관 품목 포함</label>
@@ -150,7 +148,7 @@
                             hx-target="#stock-panel"
                             hx-swap="outerHTML"
                             th:attr="hx-confirm=#{view.stock.modal.out.confirm}"
-                            class="rounded-lg bg-orange-600 px-4 py-2 text-sm text-white hover:bg-orange-600 transition"
+                            class="btn-out text-sm"
                             th:text="#{view.stock.modal.out.title}">
                         출고
                     </button>
@@ -160,7 +158,7 @@
 
         <!-- 삭제 섹션 -->
         <div id="action-section-del" class="hidden">
-            <p class="text-sm font-medium text-red-600 mb-2" th:text="#{view.stock.modal.delete.warning}">⚠ 이 위치의 재고를 모두 삭제합니다.</p>
+            <p class="text-sm font-medium text-danger mb-2" th:text="#{view.stock.modal.delete.warning}">⚠ 이 위치의 재고를 모두 삭제합니다.</p>
             <p class="text-sm text-slate-500 mb-6" th:text="#{view.stock.modal.delete.message}">삭제된 재고는 복구할 수 없습니다.</p>
             <div class="flex gap-2 justify-end">
                 <button type="button"
@@ -173,7 +171,7 @@
                         th:attr="hx-delete=@{/stocks(item=${item},space=${space},shelf=${shelf},box=${box})},hx-confirm=#{view.stock.modal.delete.confirm}"
                         hx-target="#stock-panel"
                         hx-swap="outerHTML"
-                        class="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-600 transition"
+                        class="btn-danger-solid text-sm"
                         th:text="#{view.common.delete}">
                     삭제
                 </button>
@@ -191,7 +189,7 @@
     const minTotalErrorMsg = /*[[#{view.stock.modal.js.minTotalError}]]*/ '재고의 총 수량은 0개 이하가 될 수 없습니다';
 
     function switchActionTab(tab) {
-        const tabColors = { in: 'text-blue-600', out: 'text-orange-600', del: 'text-red-600' };
+        const tabColors = { in: 'text-primary', out: 'text-out', del: 'text-danger' };
         ['in', 'out', 'del'].forEach(function(t) {
             var section = document.getElementById('action-section-' + t);
             var btn = document.getElementById('action-tab-' + t);
@@ -201,7 +199,7 @@
                 btn.classList.remove('text-slate-500');
             } else {
                 section.classList.add('hidden');
-                btn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600', 'text-orange-600', 'text-red-600');
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'text-out', 'text-danger');
                 btn.classList.add('text-slate-500');
             }
         });

@@ -38,10 +38,8 @@
                 var isError = type === 'error';
                 var toast = document.createElement('div');
                 toast.setAttribute('data-component-id', 'feedback.toast');
-                toast.className = 'rounded-lg border px-4 py-3 text-sm shadow-xl transition flex items-center gap-2 ' +
-                    (isError
-                        ? 'border-red-200 bg-red-50 text-red-700'
-                        : 'border-emerald-200 bg-emerald-50 text-emerald-700');
+                toast.className = 'flex items-center gap-2 shadow-xl transition mb-0 ' +
+                    (isError ? 'alert-error' : 'alert-success');
 
                 var msgSpan = document.createElement('span');
                 msgSpan.className = 'flex-1';
