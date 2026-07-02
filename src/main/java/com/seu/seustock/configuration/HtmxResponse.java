@@ -1,7 +1,9 @@
 package com.seu.seustock.configuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -10,7 +12,8 @@ import org.slf4j.LoggerFactory;
 public final class HtmxResponse {
 
   private static final Logger log = LoggerFactory.getLogger(HtmxResponse.class);
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper =
+      JsonMapper.builder().configure(JsonWriteFeature.ESCAPE_NON_ASCII, true).build();
 
   private HtmxResponse() {}
 

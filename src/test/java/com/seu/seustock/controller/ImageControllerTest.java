@@ -1,5 +1,6 @@
 package com.seu.seustock.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -88,6 +89,25 @@ class ImageControllerTest extends AbstractControllerTest {
         .andExpect(header().string("Cache-Control", containsString("max-age=604800")))
         .andExpect(header().exists("ETag"))
         .andExpect(content().bytes(new byte[] {1, 2, 3}));
+  }
+
+  @Test
+  @DisplayName("GET /images/{id} - 한글 파일명 → ASCII-safe Content-Disposition 헤더")
+  void show_withKoreanFilename_returnsAsciiSafeContentDisposition() throws Exception {
+    ImageDTO image = stubImage();
+    image.setOriginalFilename("한글 이미지.png");
+    given(imageStorageService.loadForUser(any(), anyString())).willReturn(image);
+
+    MvcResult result =
+        mockMvc
+            .perform(get(IMAGE_PATH).with(user("testuser")))
+            .andExpect(status().isOk())
+            .andExpect(header().exists("Content-Disposition"))
+            .andReturn();
+
+    String disposition = result.getResponse().getHeader("Content-Disposition");
+    assertThat(disposition).contains("filename*=UTF-8''");
+    assertThat(disposition.chars()).allMatch(c -> c <= 0x7f);
   }
 
   // ── Response Shape: POST /images/analyze (파일 업로드, 비동기) ────────────
