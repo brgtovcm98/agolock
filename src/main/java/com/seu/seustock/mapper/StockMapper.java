@@ -1,5 +1,6 @@
 package com.seu.seustock.mapper;
 
+import com.seu.seustock.model.dto.IdCountDTO;
 import com.seu.seustock.model.dto.ItemSpaceStockDTO;
 import com.seu.seustock.model.dto.StockDTO;
 import com.seu.seustock.model.dto.StockDetailDTO;
@@ -32,6 +33,8 @@ public interface StockMapper {
       @Param("itemId") Long itemId, @Param("serialNumbers") List<String> serialNumbers);
 
   List<StockDTO> findBySpaceId(Long spaceId);
+
+  int countBySpaceId(Long spaceId);
 
   List<StockDTO> findByBoxId(Long boxId);
 
@@ -107,6 +110,10 @@ public interface StockMapper {
   int countPanelByShelfDirectOnly(Long shelfId);
 
   int countInStockByShelfId(Long shelfId);
+
+  List<IdCountDTO> countInStockByShelfIds(@Param("shelfIds") List<Long> shelfIds);
+
+  List<IdCountDTO> countPanelByBoxIds(@Param("boxIds") List<Long> boxIds);
 
   List<StockPanelDTO> findPanelBySpaceDirectOnly(Long spaceId);
 

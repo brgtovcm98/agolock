@@ -8,34 +8,28 @@ import com.seu.seustock.model.dto.UserDTO;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class ItemLotService {
+public class ItemLotService extends BaseService {
 
   private final ItemLotMapper itemLotMapper;
-  private final UserMapper userMapper;
-  private final MessageSource messageSource;
+
+  public ItemLotService(
+      ItemLotMapper itemLotMapper, UserMapper userMapper, MessageSource messageSource) {
+    super(userMapper, messageSource);
+    this.itemLotMapper = itemLotMapper;
+  }
 
   public LotDetail findDetail(UUID externalId, String username) {
-    UserDTO user =
-        userMapper
-            .findByEmail(username)
-            .orElseThrow(() -> new NoSuchElementException(getMsg("error.user.notFound")));
+    UserDTO user = getUser(username);
     ItemLotDTO lot =
         itemLotMapper
             .findByExternalIdAndUserId(externalId, user.getId())
             .orElseThrow(() -> new NoSuchElementException(getMsg("error.lot.notFound")));
     List<ItemLotUnitDTO> units = itemLotMapper.findUnitsByLotExternalId(externalId, user.getId());
     return new LotDetail(lot, units);
-  }
-
-  private String getMsg(String key, Object... args) {
-    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
   }
 
   public record LotDetail(ItemLotDTO lot, List<ItemLotUnitDTO> units) {}

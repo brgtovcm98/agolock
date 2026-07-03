@@ -16,28 +16,30 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class SpaceService {
+public class SpaceService extends BaseService {
 
   private final SpaceMapper spaceMapper;
-  private final UserMapper userMapper;
   private final StockMapper stockMapper;
-  private final MessageSource messageSource;
 
   @Value("${seustock.space.expiring-soon-days:7}")
   private int expiringSoonDays;
 
-  private String getMsg(String key, Object... args) {
-    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+  public SpaceService(
+      SpaceMapper spaceMapper,
+      UserMapper userMapper,
+      StockMapper stockMapper,
+      MessageSource messageSource) {
+    super(userMapper, messageSource);
+    this.spaceMapper = spaceMapper;
+    this.stockMapper = stockMapper;
   }
 
   /**
@@ -98,6 +100,7 @@ public class SpaceService {
     return getUser(username).getId();
   }
 
+  @Transactional
   public SpaceDTO create(String username, SpaceForm form) {
     UserDTO user = getUser(username);
     SpaceDTO space = new SpaceDTO();
@@ -111,6 +114,7 @@ public class SpaceService {
     return spaceMapper.findById(space.getId()).orElse(space);
   }
 
+  @Transactional
   public SpaceDTO update(UUID externalId, SpaceForm form, String username) {
     SpaceDTO space = getSpace(externalId);
     verifyOwner(space, username);
@@ -120,10 +124,11 @@ public class SpaceService {
     return spaceMapper.findByExternalId(externalId).orElseThrow();
   }
 
+  @Transactional
   public void delete(UUID externalId, String username) {
     SpaceDTO space = getSpace(externalId);
     verifyOwner(space, username);
-    if (!stockMapper.findBySpaceId(space.getId()).isEmpty()) {
+    if (stockMapper.countBySpaceId(space.getId()) > 0) {
       log.warn(
           "space delete rejected userId={} spaceId={} reason=has_stock",
           getUser(username).getId(),
@@ -132,12 +137,6 @@ public class SpaceService {
     }
     spaceMapper.deleteById(space.getId());
     log.info("space deleted userId={} spaceId={}", getUser(username).getId(), space.getId());
-  }
-
-  private UserDTO getUser(String username) {
-    return userMapper
-        .findByEmail(username)
-        .orElseThrow(() -> new NoSuchElementException(getMsg("error.user.notFound")));
   }
 
   private String normalizeKeyword(String keyword) {

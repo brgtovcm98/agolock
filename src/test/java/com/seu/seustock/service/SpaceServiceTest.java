@@ -11,7 +11,6 @@ import com.seu.seustock.mapper.StockMapper;
 import com.seu.seustock.mapper.UserMapper;
 import com.seu.seustock.model.dto.SpaceDTO;
 import com.seu.seustock.model.dto.SpaceSummaryDTO;
-import com.seu.seustock.model.dto.StockDTO;
 import com.seu.seustock.model.dto.UserDTO;
 import com.seu.seustock.model.form.SpaceForm;
 import java.time.LocalDate;
@@ -63,7 +62,7 @@ class SpaceServiceTest {
 
     when(spaceMapper.findByExternalId(SPACE_EXTERNAL_ID)).thenReturn(Optional.of(space));
     when(userMapper.findByEmail(USERNAME)).thenReturn(Optional.of(user));
-    when(stockMapper.findBySpaceId(space.getId())).thenReturn(List.of(new StockDTO()));
+    when(stockMapper.countBySpaceId(space.getId())).thenReturn(1);
 
     assertThatThrownBy(() -> spaceService.delete(SPACE_EXTERNAL_ID, USERNAME))
         .isInstanceOf(IllegalStateException.class)
@@ -111,7 +110,7 @@ class SpaceServiceTest {
 
     when(spaceMapper.findByExternalId(SPACE_EXTERNAL_ID)).thenReturn(Optional.of(space));
     when(userMapper.findByEmail(USERNAME)).thenReturn(Optional.of(user));
-    when(stockMapper.findBySpaceId(space.getId())).thenReturn(List.of());
+    when(stockMapper.countBySpaceId(space.getId())).thenReturn(0);
 
     spaceService.delete(SPACE_EXTERNAL_ID, USERNAME);
 

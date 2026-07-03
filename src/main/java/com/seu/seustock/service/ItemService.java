@@ -17,28 +17,35 @@ import com.seu.seustock.model.pagination.PageResult;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class ItemService {
+public class ItemService extends BaseService {
 
   private final ItemMapper itemMapper;
-  private final UserMapper userMapper;
   private final StockMapper stockMapper;
   private final ItemImageMapper itemImageMapper;
   private final ImageStorageService imageStorageService;
   private final StockTransactionMapper transactionMapper;
-  private final MessageSource messageSource;
 
-  private String getMsg(String key, Object... args) {
-    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+  public ItemService(
+      ItemMapper itemMapper,
+      UserMapper userMapper,
+      StockMapper stockMapper,
+      ItemImageMapper itemImageMapper,
+      ImageStorageService imageStorageService,
+      StockTransactionMapper transactionMapper,
+      MessageSource messageSource) {
+    super(userMapper, messageSource);
+    this.itemMapper = itemMapper;
+    this.stockMapper = stockMapper;
+    this.itemImageMapper = itemImageMapper;
+    this.imageStorageService = imageStorageService;
+    this.transactionMapper = transactionMapper;
   }
 
   public List<ItemDTO> findAllByUsername(String username) {
@@ -144,12 +151,6 @@ public class ItemService {
     log.info("item deleted userId={} itemId={}", getUser(username).getId(), item.getId());
   }
 
-  private UserDTO getUser(String username) {
-    return userMapper
-        .findByEmail(username)
-        .orElseThrow(() -> new NoSuchElementException(getMsg("error.user.notFound")));
-  }
-
   private String normalizeKeyword(String keyword) {
     return keyword == null || keyword.isBlank() ? null : keyword.trim();
   }
@@ -216,12 +217,5 @@ public class ItemService {
   private String blankToDefault(String value, String defaultValue) {
     String normalized = blankToNull(value);
     return normalized == null ? defaultValue : normalized;
-  }
-
-  private String blankToNull(String value) {
-    if (value == null || value.isBlank()) {
-      return null;
-    }
-    return value.trim();
   }
 }

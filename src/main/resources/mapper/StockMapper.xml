@@ -148,6 +148,12 @@
         WHERE space_id = #{spaceId}
     </select>
 
+    <select id="countBySpaceId" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM stocks
+        WHERE space_id = #{spaceId}
+    </select>
+
     <select id="findInStockByItemAndBox" resultMap="StockResultMap">
         SELECT id, external_id, item_id, space_id, shelf_id, box_id, lot_id,
                serial_number, lot_number, expiration_date, memo, status, is_kept, price, created_at
@@ -578,6 +584,30 @@
         JOIN items i ON s.item_id = i.id
         WHERE s.shelf_id = #{shelfId}
           AND s.status = 'IN_STOCK'
+    </select>
+
+    <select id="countInStockByShelfIds" resultType="com.seu.seustock.model.dto.IdCountDTO">
+        SELECT s.shelf_id AS id, COUNT(DISTINCT i.id) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.shelf_id IN
+          <foreach collection="shelfIds" item="shelfId" open="(" separator="," close=")">
+              #{shelfId}
+          </foreach>
+          AND s.status = 'IN_STOCK'
+        GROUP BY s.shelf_id
+    </select>
+
+    <select id="countPanelByBoxIds" resultType="com.seu.seustock.model.dto.IdCountDTO">
+        SELECT s.box_id AS id, COUNT(DISTINCT i.id) AS count
+        FROM stocks s
+        JOIN items i ON s.item_id = i.id
+        WHERE s.box_id IN
+          <foreach collection="boxIds" item="boxId" open="(" separator="," close=")">
+              #{boxId}
+          </foreach>
+          AND s.status = 'IN_STOCK'
+        GROUP BY s.box_id
     </select>
 
     <select id="findPanelBySpaceDirectOnly" parameterType="long" resultMap="StockPanelResultMap">

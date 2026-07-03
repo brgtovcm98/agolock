@@ -6,33 +6,42 @@ import com.seu.seustock.mapper.SpaceMapper;
 import com.seu.seustock.mapper.StockMapper;
 import com.seu.seustock.mapper.UserMapper;
 import com.seu.seustock.model.dto.BoxDTO;
+import com.seu.seustock.model.dto.IdCountDTO;
 import com.seu.seustock.model.dto.ShelfDTO;
 import com.seu.seustock.model.dto.SpaceDTO;
 import com.seu.seustock.model.dto.UserDTO;
 import com.seu.seustock.model.form.BoxForm;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class BoxService {
+public class BoxService extends BaseService {
 
   private final BoxMapper boxMapper;
   private final ShelfMapper shelfMapper;
   private final SpaceMapper spaceMapper;
   private final StockMapper stockMapper;
-  private final UserMapper userMapper;
-  private final MessageSource messageSource;
 
-  private String getMsg(String key, Object... args) {
-    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+  public BoxService(
+      BoxMapper boxMapper,
+      ShelfMapper shelfMapper,
+      SpaceMapper spaceMapper,
+      StockMapper stockMapper,
+      UserMapper userMapper,
+      MessageSource messageSource) {
+    super(userMapper, messageSource);
+    this.boxMapper = boxMapper;
+    this.shelfMapper = shelfMapper;
+    this.spaceMapper = spaceMapper;
+    this.stockMapper = stockMapper;
   }
 
   public BoxDTO findByExternalId(
@@ -65,12 +74,20 @@ public class BoxService {
       UUID spaceExternalId, UUID shelfExternalId, String username) {
     ShelfDTO shelf = getVerifiedShelf(spaceExternalId, shelfExternalId, username);
     List<BoxDTO> boxes = boxMapper.findByShelfId(shelf.getId());
+    if (boxes.isEmpty()) {
+      return boxes;
+    }
+    List<Long> boxIds = boxes.stream().map(BoxDTO::getId).toList();
+    Map<Long, Integer> counts =
+        stockMapper.countPanelByBoxIds(boxIds).stream()
+            .collect(Collectors.toMap(IdCountDTO::getId, IdCountDTO::getCount));
     for (BoxDTO box : boxes) {
-      box.setStockCount(stockMapper.countPanelByBoxId(box.getId()));
+      box.setStockCount(counts.getOrDefault(box.getId(), 0));
     }
     return boxes;
   }
 
+  @Transactional
   public BoxDTO create(UUID spaceExternalId, UUID shelfExternalId, BoxForm form, String username) {
     ShelfDTO shelf = getVerifiedShelf(spaceExternalId, shelfExternalId, username);
     BoxDTO box = new BoxDTO();
@@ -85,6 +102,7 @@ public class BoxService {
     return boxMapper.findById(box.getId()).orElseThrow();
   }
 
+  @Transactional
   public void rename(
       UUID spaceExternalId,
       UUID shelfExternalId,
@@ -109,6 +127,7 @@ public class BoxService {
         box.getId());
   }
 
+  @Transactional
   public void delete(
       UUID spaceExternalId, UUID shelfExternalId, UUID boxExternalId, String username) {
     ShelfDTO shelf = getVerifiedShelf(spaceExternalId, shelfExternalId, username);
@@ -151,11 +170,5 @@ public class BoxService {
       throw new SecurityException(getMsg("error.403.title"));
     }
     return shelf;
-  }
-
-  private UserDTO getUser(String username) {
-    return userMapper
-        .findByEmail(username)
-        .orElseThrow(() -> new NoSuchElementException(getMsg("error.user.notFound")));
   }
 }
