@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,6 +23,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class UserController {
 
   private final UserService userService;
+  private final MessageSource messageSource;
+
+  private String getMsg(String key, Object... args) {
+    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+  }
 
   @GetMapping("/register")
   public String registerForm(@RequestParam(required = false) String success, Model model) {
@@ -32,14 +39,17 @@ public class UserController {
   @PostMapping("/register")
   public String register(
       @Valid @ModelAttribute("form") UserRegistrationForm form, BindingResult result) {
+    String normalizedEmail = normalizeEmail(form.getEmail());
+    form.setEmail(normalizedEmail);
+
     if (!form.getPassword().equals(form.getPasswordConfirm())) {
       log.warn("registration rejected reason=password_mismatch");
-      result.rejectValue("passwordConfirm", "match", "비밀번호가 일치하지 않습니다.");
+      result.rejectValue("passwordConfirm", "match", getMsg("error.password.mismatch"));
     }
 
-    if (!result.hasFieldErrors("email") && userService.existsByEmail(form.getEmail())) {
+    if (!result.hasFieldErrors("email") && userService.existsByEmail(normalizedEmail)) {
       log.warn("registration rejected reason=email_duplicate");
-      result.rejectValue("email", "duplicate", "이미 사용 중인 이메일입니다.");
+      result.rejectValue("email", "duplicate", getMsg("error.user.emailTaken"));
     }
 
     if (result.hasErrors()) {
@@ -56,10 +66,22 @@ public class UserController {
 
   @GetMapping("/register/check-email")
   public String checkEmail(@RequestParam(defaultValue = "") String email, Model model) {
-    model.addAttribute("email", email);
-    model.addAttribute("taken", !email.isBlank() && userService.existsByEmail(email));
-    model.addAttribute("empty", email.isBlank());
+    String normalizedEmail = normalizeEmail(email);
+    model.addAttribute("email", normalizedEmail);
+    model.addAttribute(
+        "taken",
+        normalizedEmail != null
+            && !normalizedEmail.isBlank()
+            && userService.existsByEmail(normalizedEmail));
+    model.addAttribute("empty", normalizedEmail == null || normalizedEmail.isBlank());
     return "fragments/email-check :: result";
+  }
+
+  private static String normalizeEmail(String email) {
+    if (email == null) {
+      return null;
+    }
+    return email.trim().toLowerCase();
   }
 
   @GetMapping("/login")

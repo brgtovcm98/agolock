@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,13 +32,18 @@ class PasswordResetServiceTest {
   @Mock private PasswordResetTokenStore tokenStore;
   @Mock private PasswordResetMailSender mailSender;
   @Mock private PasswordEncoder passwordEncoder;
+  @Mock private MessageSource messageSource;
 
   private PasswordResetService service;
 
   @BeforeEach
   void setUp() {
+    lenient()
+        .when(messageSource.getMessage(anyString(), any(), any()))
+        .thenReturn("유효하지 않거나 만료된 링크입니다.");
     service =
-        new PasswordResetService(userMapper, tokenStore, mailSender, passwordEncoder, BASE_URL);
+        new PasswordResetService(
+            userMapper, tokenStore, mailSender, passwordEncoder, messageSource, BASE_URL);
   }
 
   private UserDTO storedUser() {
@@ -85,6 +91,18 @@ class PasswordResetServiceTest {
 
     verify(tokenStore, never()).issue(anyString());
     verify(mailSender, never()).send(anyString(), anyString());
+  }
+
+  @Test
+  void requestReset_normalizesEmail() {
+    when(userMapper.findByEmail(EMAIL)).thenReturn(Optional.of(storedUser()));
+    when(tokenStore.onCooldown(EMAIL)).thenReturn(false);
+    when(tokenStore.issue(EMAIL)).thenReturn(TOKEN);
+
+    service.requestReset("  User@EXAMPLE.com  ");
+
+    verify(tokenStore).issue(EMAIL);
+    verify(mailSender).send(eq(EMAIL), anyString());
   }
 
   // ── resetPassword ─────────────────────────────────────────────────────────

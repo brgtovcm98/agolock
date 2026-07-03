@@ -15,6 +15,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.client.RestClient;
 
@@ -57,6 +59,14 @@ public class AppConfig {
   @Bean
   public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
     return RedisSerializer.json();
+  }
+
+  @Bean
+  public CookieSerializer cookieSerializer(
+      @Value("${seustock.security.cookie-secure:false}") boolean cookieSecure) {
+    DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+    serializer.setUseSecureCookie(cookieSecure);
+    return serializer;
   }
 
   @Bean(name = "aiAnalysisExecutor")

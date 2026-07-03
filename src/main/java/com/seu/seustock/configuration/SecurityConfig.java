@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -28,14 +29,16 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(
       HttpSecurity http,
       CustomUserDetailsService userDetailsService,
-      PasswordEncoder passwordEncoder)
+      PasswordEncoder passwordEncoder,
+      @Value("${seustock.security.cookie-secure:false}") boolean cookieSecure)
       throws Exception {
     CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
+    CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+    csrfTokenRepository.setCookieCustomizer(cookie -> cookie.secure(cookieSecure));
 
     http.csrf(
             csrf ->
-                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    .csrfTokenRequestHandler(csrfHandler))
+                csrf.csrfTokenRepository(csrfTokenRepository).csrfTokenRequestHandler(csrfHandler))
         .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
         .authorizeHttpRequests(
             auth ->
@@ -48,7 +51,6 @@ public class SecurityConfig {
                         "/css/**",
                         "/js/**",
                         "/static/**",
-                        "/api/qr/generate",
                         "/api/qr/modal")
                     .permitAll()
                     .anyRequest()

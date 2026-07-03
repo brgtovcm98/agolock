@@ -19,12 +19,12 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
 
   public boolean existsByEmail(String email) {
-    return userMapper.findByEmail(email).isPresent();
+    return userMapper.findByEmail(normalizeEmail(email)).isPresent();
   }
 
   public void register(UserRegistrationForm form) {
     UserDTO user = new UserDTO();
-    user.setEmail(form.getEmail());
+    user.setEmail(normalizeEmail(form.getEmail()));
     user.setNickname(form.getNickname());
     user.setPassword(passwordEncoder.encode(form.getPassword()));
     userMapper.insertUser(user);
@@ -33,7 +33,14 @@ public class UserService {
 
   public Optional<UserDTO> authenticate(LoginForm form) {
     return userMapper
-        .findByEmail(form.getEmail())
+        .findByEmail(normalizeEmail(form.getEmail()))
         .filter(user -> passwordEncoder.matches(form.getPassword(), user.getPassword()));
+  }
+
+  private static String normalizeEmail(String email) {
+    if (email == null) {
+      return null;
+    }
+    return email.trim().toLowerCase();
   }
 }

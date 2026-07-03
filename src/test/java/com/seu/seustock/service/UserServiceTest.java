@@ -48,6 +48,13 @@ class UserServiceTest {
     assertThat(userService.existsByEmail("ghost@test.com")).isFalse();
   }
 
+  @Test
+  void existsByEmail_normalizesCaseAndWhitespace() {
+    when(userMapper.findByEmail("alice@test.com")).thenReturn(Optional.of(new UserDTO()));
+
+    assertThat(userService.existsByEmail("  Alice@TEST.com  ")).isTrue();
+  }
+
   // ── register ──────────────────────────────────────────────────────────────
 
   @Test
@@ -82,6 +89,22 @@ class UserServiceTest {
     ArgumentCaptor<UserDTO> captor = ArgumentCaptor.forClass(UserDTO.class);
     verify(userMapper).insertUser(captor.capture());
     assertThat(captor.getValue().getPassword()).isNotEqualTo(RAW_PASSWORD);
+  }
+
+  @Test
+  void register_storesNormalizedEmail() {
+    when(passwordEncoder.encode(anyString())).thenReturn(ENCODED_PASSWORD);
+
+    UserRegistrationForm form = new UserRegistrationForm();
+    form.setEmail("  NewUser@TEST.COM  ");
+    form.setNickname("뉴비");
+    form.setPassword(RAW_PASSWORD);
+
+    userService.register(form);
+
+    ArgumentCaptor<UserDTO> captor = ArgumentCaptor.forClass(UserDTO.class);
+    verify(userMapper).insertUser(captor.capture());
+    assertThat(captor.getValue().getEmail()).isEqualTo("newuser@test.com");
   }
 
   // ── authenticate ──────────────────────────────────────────────────────────
@@ -135,5 +158,23 @@ class UserServiceTest {
 
     assertThat(result).isEmpty();
     verify(passwordEncoder, never()).matches(anyString(), anyString());
+  }
+
+  @Test
+  void authenticate_normalizesEmailBeforeLookup() {
+    UserDTO stored = new UserDTO();
+    stored.setEmail("alice@test.com");
+    stored.setPassword(ENCODED_PASSWORD);
+
+    when(userMapper.findByEmail("alice@test.com")).thenReturn(Optional.of(stored));
+    when(passwordEncoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).thenReturn(true);
+
+    LoginForm form = new LoginForm();
+    form.setEmail("  ALICE@TEST.COM  ");
+    form.setPassword(RAW_PASSWORD);
+
+    Optional<UserDTO> result = userService.authenticate(form);
+
+    assertThat(result).isPresent();
   }
 }

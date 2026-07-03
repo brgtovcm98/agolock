@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.test.context.ActiveProfiles;
@@ -143,5 +144,17 @@ class QrControllerIntegrationTest {
 
     String location = loginResult.getResponse().getRedirectedUrl();
     assertThat(location).contains(qrPath);
+  }
+
+  @Test
+  @DisplayName("미인증 상태에서 /api/qr/generate 호출 시 로그인 페이지로 리다이렉트된다")
+  void generateQr_unauthenticated_redirectsToLogin() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/qr/generate")
+                .param("content", "https://example.com")
+                .accept(MediaType.IMAGE_PNG_VALUE))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/login"));
   }
 }
