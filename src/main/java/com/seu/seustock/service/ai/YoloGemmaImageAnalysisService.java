@@ -7,6 +7,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +22,11 @@ public class YoloGemmaImageAnalysisService implements ImageAnalysisService {
   private final ImageResizeService imageResizeService;
   private final YoloDetectionClient yoloDetectionClient;
   private final GemmaVisionClient gemmaVisionClient;
+  private final MessageSource messageSource;
+
+  private String getMsg(String code, Object... args) {
+    return messageSource.getMessage(code, args, LocaleContextHolder.getLocale());
+  }
 
   @Override
   public ImageAnalysisDTO analyze(MultipartFile imageFile) {
@@ -51,17 +58,17 @@ public class YoloGemmaImageAnalysisService implements ImageAnalysisService {
             detections);
       } catch (RuntimeException e) {
         log.error("[YoloGemmaImageAnalysisService] LLM 이미지 분석 실패", e);
-        throw new AiServiceUnavailableException("현재 AI 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요.", e);
+        throw new AiServiceUnavailableException(getMsg("error.ai.unavailable"), e);
       }
     } catch (IOException e) {
       log.error("[YoloGemmaImageAnalysisService] 이미지 파일 읽기 실패", e);
-      throw new IllegalStateException("이미지 파일을 읽을 수 없습니다.", e);
+      throw new IllegalStateException(getMsg("error.image.readFailed"), e);
     }
   }
 
   private String validate(MultipartFile imageFile) {
     if (imageFile == null || imageFile.isEmpty()) {
-      throw new IllegalArgumentException("분석할 이미지 파일이 없습니다.");
+      throw new IllegalArgumentException(getMsg("error.image.noFileToAnalyze"));
     }
 
     return imageFileValidator.validateAndNormalizeContentType(imageFile);

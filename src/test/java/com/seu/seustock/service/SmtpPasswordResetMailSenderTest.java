@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +42,11 @@ class SmtpPasswordResetMailSenderTest {
   @BeforeEach
   void setUp() {
     sender = new SmtpPasswordResetMailSender(mailSender, templateEngine, messageSource, FROM);
+    lenient()
+        .when(
+            messageSource.getMessage(
+                eq("error.passwordReset.sendFailed"), isNull(), any(Locale.class)))
+        .thenReturn("Failed to send the password reset email.");
   }
 
   private MimeMessage emptyMimeMessage() {

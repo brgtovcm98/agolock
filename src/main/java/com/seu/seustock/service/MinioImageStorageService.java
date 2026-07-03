@@ -14,6 +14,7 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -37,8 +38,9 @@ public class MinioImageStorageService extends AbstractImageStorageService {
       ImageMapper imageMapper,
       UserMapper userMapper,
       ImageFileValidator imageFileValidator,
+      MessageSource messageSource,
       MinioClient minioClient) {
-    super(imageMapper, userMapper, imageFileValidator);
+    super(imageMapper, userMapper, imageFileValidator, messageSource);
     this.minioClient = minioClient;
   }
 
@@ -61,7 +63,7 @@ public class MinioImageStorageService extends AbstractImageStorageService {
               .stream(inputStream, file.getSize(), -1L)
               .build());
     } catch (Exception e) {
-      throw new IllegalStateException("이미지 파일을 MinIO에 저장할 수 없습니다.", e);
+      throw new IllegalStateException(getMessage("error.image.saveFailed"), e);
     }
     return objectKey;
   }
@@ -74,7 +76,7 @@ public class MinioImageStorageService extends AbstractImageStorageService {
               GetObjectArgs.builder().bucket(bucketName).object(image.getStoragePath()).build());
       return new InputStreamResource(stream);
     } catch (Exception e) {
-      throw new NoSuchElementException("이미지 파일을 MinIO에서 찾을 수 없습니다.");
+      throw new NoSuchElementException(getMessage("error.image.notFound"));
     }
   }
 

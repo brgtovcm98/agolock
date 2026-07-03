@@ -20,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
@@ -41,9 +43,14 @@ public class ImageController {
 
   private final ImageStorageService imageStorageService;
   private final ImageAnalysisService imageAnalysisService;
+  private final MessageSource messageSource;
 
   @Qualifier("aiAnalysisExecutor")
   private final Executor aiAnalysisExecutor;
+
+  private String getMsg(String key, Object... args) {
+    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+  }
 
   @GetMapping("/images/{externalId}")
   public ResponseEntity<Resource> show(@PathVariable UUID externalId, Principal principal) {
@@ -131,7 +138,7 @@ public class ImageController {
       log.warn("image analysis rejected operation={} reason=executor_saturated", operation, ex);
       return CompletableFuture.completedFuture(
           ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-              .body((Object) new ErrorResponse("이미지 AI 분석 요청이 많습니다. 잠시 후 다시 시도해주세요.")));
+              .body((Object) new ErrorResponse(getMsg("error.ai.rateLimit"))));
     }
   }
 
@@ -145,7 +152,7 @@ public class ImageController {
       return ResponseEntity.badRequest().body((Object) new ErrorResponse(cause.getMessage()));
     }
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body((Object) new ErrorResponse("이미지 AI 분석에 실패했습니다."));
+        .body((Object) new ErrorResponse(getMsg("error.ai.analysisFailed")));
   }
 
   private Throwable unwrap(Throwable ex) {

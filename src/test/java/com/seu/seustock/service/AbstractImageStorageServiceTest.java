@@ -22,7 +22,8 @@ class AbstractImageStorageServiceTest {
         new TestImageStorageService(
             mock(ImageMapper.class),
             mock(UserMapper.class),
-            new ImageFileValidator(mockMessageSource()));
+            new ImageFileValidator(mockMessageSource()),
+            mockMessageSource());
     UserDTO owner = new UserDTO();
     owner.setId(1L);
     MultipartFile file =
@@ -47,8 +48,11 @@ class AbstractImageStorageServiceTest {
     private boolean writeCalled;
 
     private TestImageStorageService(
-        ImageMapper imageMapper, UserMapper userMapper, ImageFileValidator imageFileValidator) {
-      super(imageMapper, userMapper, imageFileValidator);
+        ImageMapper imageMapper,
+        UserMapper userMapper,
+        ImageFileValidator imageFileValidator,
+        MessageSource messageSource) {
+      super(imageMapper, userMapper, imageFileValidator, messageSource);
     }
 
     @Override

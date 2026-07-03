@@ -36,7 +36,8 @@ class YoloGemmaImageAnalysisServiceTest {
             new ImageFileValidator(messageSource),
             imageResizeService,
             yoloDetectionClient,
-            gemmaVisionClient);
+            gemmaVisionClient,
+            messageSource);
     MockMultipartFile file =
         new MockMultipartFile(
             "imageFile", "spoof.jpg", "image/jpeg", new byte[] {0x01, 0x02, 0x03});

@@ -8,25 +8,34 @@ import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 public abstract class AbstractImageStorageService implements ImageStorageService {
-
-  private static final Logger log = LoggerFactory.getLogger(AbstractImageStorageService.class);
 
   protected final ImageMapper imageMapper;
   protected final UserMapper userMapper;
-  private final ImageFileValidator imageFileValidator;
+  protected final ImageFileValidator imageFileValidator;
+  protected final MessageSource messageSource;
 
   protected AbstractImageStorageService(
-      ImageMapper imageMapper, UserMapper userMapper, ImageFileValidator imageFileValidator) {
+      ImageMapper imageMapper,
+      UserMapper userMapper,
+      ImageFileValidator imageFileValidator,
+      MessageSource messageSource) {
     this.imageMapper = imageMapper;
     this.userMapper = userMapper;
     this.imageFileValidator = imageFileValidator;
+    this.messageSource = messageSource;
+  }
+
+  protected String getMessage(String code, Object... args) {
+    return messageSource.getMessage(code, args, LocaleContextHolder.getLocale());
   }
 
   @Override
@@ -34,13 +43,13 @@ public abstract class AbstractImageStorageService implements ImageStorageService
     UserDTO user =
         userMapper
             .findByEmail(username)
-            .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NoSuchElementException(getMessage("error.user.notFound")));
     ImageDTO image =
         imageMapper
             .findByExternalId(externalId)
-            .orElseThrow(() -> new NoSuchElementException("이미지를 찾을 수 없습니다."));
+            .orElseThrow(() -> new NoSuchElementException(getMessage("error.image.notFound")));
     if (!image.getUserId().equals(user.getId())) {
-      throw new SecurityException("접근 권한이 없습니다.");
+      throw new SecurityException(getMessage("error.image.accessDenied"));
     }
     return image;
   }
@@ -91,7 +100,7 @@ public abstract class AbstractImageStorageService implements ImageStorageService
           contentType,
           file.getSize(),
           e);
-      throw new IllegalStateException("이미지 파일을 저장할 수 없습니다.", e);
+      throw new IllegalStateException(getMessage("error.image.saveFailed"), e);
     }
 
     ImageDTO image = new ImageDTO();

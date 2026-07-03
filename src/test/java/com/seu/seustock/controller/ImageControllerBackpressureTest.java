@@ -12,10 +12,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.seu.seustock.service.ImageStorageService;
 import com.seu.seustock.service.ai.ImageAnalysisService;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
@@ -28,6 +32,16 @@ class ImageControllerBackpressureTest extends AbstractControllerTest {
 
   @MockitoBean(name = "aiAnalysisExecutor")
   private Executor aiAnalysisExecutor;
+
+  @BeforeEach
+  void setUp() {
+    LocaleContextHolder.setLocale(Locale.KOREAN);
+  }
+
+  @AfterEach
+  void tearDown() {
+    LocaleContextHolder.resetLocaleContext();
+  }
 
   @Test
   @DisplayName("POST /images/analyze - AI executor 포화 → 503 + 재시도 안내")

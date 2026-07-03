@@ -6,6 +6,8 @@ import com.seu.seustock.service.PasswordResetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,6 +23,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PasswordResetController {
 
   private final PasswordResetService passwordResetService;
+  private final MessageSource messageSource;
+
+  private String getMsg(String key, Object... args) {
+    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+  }
 
   // ── 비밀번호 찾기 (재설정 메일 요청) ──────────────────────────────────────
 
@@ -73,7 +80,7 @@ public class PasswordResetController {
       @Valid @ModelAttribute("form") ResetPasswordForm form, BindingResult result, Model model) {
     if (!form.getPassword().equals(form.getPasswordConfirm())) {
       log.warn("password reset rejected reason=password_mismatch");
-      result.rejectValue("passwordConfirm", "match", "비밀번호가 일치하지 않습니다.");
+      result.rejectValue("passwordConfirm", "match", getMsg("error.password.mismatch"));
     }
     if (result.hasErrors()) {
       log.warn(

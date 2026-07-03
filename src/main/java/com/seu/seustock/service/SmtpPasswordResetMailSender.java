@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,10 @@ public class SmtpPasswordResetMailSender implements PasswordResetMailSender {
       // 수신자/토큰은 로그에 남기지 않는다(기존 보안 규율 유지).
       log.info("password reset mail sent via smtp");
     } catch (MessagingException e) {
-      throw new RuntimeException("비밀번호 재설정 메일 발송에 실패했습니다.", e);
+      throw new RuntimeException(
+          messageSource.getMessage(
+              "error.passwordReset.sendFailed", null, LocaleContextHolder.getLocale()),
+          e);
     }
   }
 }

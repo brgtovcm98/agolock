@@ -78,7 +78,7 @@ public class BoxController {
         "shelf", shelfService.findByExternalId(spaceExternalId, shelfExternalId, username));
     model.addAttribute(
         "boxes", boxService.findAllByShelfId(spaceExternalId, shelfExternalId, username));
-    HtmxResponse.success(response, "박스가 변경되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.box.updated"));
     return "shelves/fragments/box-list :: box-list-response";
   }
 
@@ -118,7 +118,7 @@ public class BoxController {
         "shelf", shelfService.findByExternalId(spaceExternalId, shelfExternalId, username));
     model.addAttribute(
         "boxes", boxService.findAllByShelfId(spaceExternalId, shelfExternalId, username));
-    HtmxResponse.success(response, "박스가 추가되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.box.created"));
     return "shelves/fragments/box-list :: box-list-response";
   }
 
@@ -137,7 +137,7 @@ public class BoxController {
         "shelf", shelfService.findByExternalId(spaceExternalId, shelfExternalId, username));
     model.addAttribute(
         "boxes", boxService.findAllByShelfId(spaceExternalId, shelfExternalId, username));
-    HtmxResponse.success(response, "박스가 삭제되었습니다.");
+    HtmxResponse.success(response, getMsg("toast.box.deleted"));
     return "shelves/fragments/box-list :: box-list-container";
   }
 }

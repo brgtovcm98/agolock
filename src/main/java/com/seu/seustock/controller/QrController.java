@@ -14,6 +14,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,9 +32,14 @@ public class QrController {
   private final BoxService boxService;
   private final ShelfService shelfService;
   private final SpaceService spaceService;
+  private final MessageSource messageSource;
 
   @Value("${app.qr-base-url}")
   private String qrBaseUrl;
+
+  private String getMsg(String key, Object... args) {
+    return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+  }
 
   @GetMapping("/api/qr/modal")
   public String qrModal(
@@ -67,7 +74,7 @@ public class QrController {
           externalId,
           shelf.getId(),
           space.getId());
-      throw new SecurityException("해당 박스에 접근할 권한이 없습니다.");
+      throw new SecurityException(getMsg("error.qr.boxAccessDenied"));
     }
 
     return String.format(
@@ -88,7 +95,7 @@ public class QrController {
           userId,
           externalId,
           space.getId());
-      throw new SecurityException("해당 선반에 접근할 권한이 없습니다.");
+      throw new SecurityException(getMsg("error.qr.shelfAccessDenied"));
     }
 
     return String.format(

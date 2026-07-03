@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,11 @@ public class LocalImageStorageService extends AbstractImageStorageService {
   private String uploadDir;
 
   public LocalImageStorageService(
-      ImageMapper imageMapper, UserMapper userMapper, ImageFileValidator imageFileValidator) {
-    super(imageMapper, userMapper, imageFileValidator);
+      ImageMapper imageMapper,
+      UserMapper userMapper,
+      ImageFileValidator imageFileValidator,
+      MessageSource messageSource) {
+    super(imageMapper, userMapper, imageFileValidator, messageSource);
   }
 
   @Override
@@ -41,14 +45,14 @@ public class LocalImageStorageService extends AbstractImageStorageService {
     Path storedPath = uploadPath.resolve(storedFilename).normalize();
 
     if (!storedPath.startsWith(uploadPath)) {
-      throw new IllegalArgumentException("잘못된 파일 경로입니다.");
+      throw new IllegalArgumentException(getMessage("error.image.invalidPath"));
     }
 
     try {
       Files.createDirectories(uploadPath);
       file.transferTo(storedPath);
     } catch (IOException e) {
-      throw new IllegalStateException("이미지 파일을 저장할 수 없습니다.", e);
+      throw new IllegalStateException(getMessage("error.image.saveFailed"), e);
     }
 
     return storedFilename;
@@ -59,11 +63,11 @@ public class LocalImageStorageService extends AbstractImageStorageService {
     Path uploadPath = Path.of(uploadDir).toAbsolutePath().normalize();
     Path path = uploadPath.resolve(image.getStoragePath()).normalize();
     if (!path.startsWith(uploadPath)) {
-      throw new IllegalArgumentException("잘못된 파일 경로입니다.");
+      throw new IllegalArgumentException(getMessage("error.image.invalidPath"));
     }
     Resource resource = new FileSystemResource(path);
     if (!resource.exists() || !resource.isReadable()) {
-      throw new NoSuchElementException("이미지 파일을 찾을 수 없습니다.");
+      throw new NoSuchElementException(getMessage("error.image.notFound"));
     }
     return resource;
   }
