@@ -16,7 +16,7 @@
         <!-- 탭 -->
         <div class="flex gap-1 mb-5 bg-slate-100 rounded-lg p-1">
             <button type="button" onclick="switchActionTab('in')" id="action-tab-in"
-                    class="flex-1 rounded-lg py-1.5 text-sm font-medium bg-white shadow-sm text-primary transition"
+                    class="flex-1 rounded-lg py-1.5 text-sm font-medium bg-white shadow-sm text-in transition"
                     th:text="#{view.stock.modal.in.title}">
                 입고
             </button>
@@ -189,7 +189,7 @@
     const minTotalErrorMsg = /*[[#{view.stock.modal.js.minTotalError}]]*/ '재고의 총 수량은 0개 이하가 될 수 없습니다';
 
     function switchActionTab(tab) {
-        const tabColors = { in: 'text-primary', out: 'text-out', del: 'text-danger' };
+        const tabColors = { in: 'text-in', out: 'text-out', del: 'text-danger' };
         ['in', 'out', 'del'].forEach(function(t) {
             var section = document.getElementById('action-section-' + t);
             var btn = document.getElementById('action-tab-' + t);
@@ -199,7 +199,7 @@
                 btn.classList.remove('text-slate-500');
             } else {
                 section.classList.add('hidden');
-                btn.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'text-out', 'text-danger');
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-in', 'text-out', 'text-danger');
                 btn.classList.add('text-slate-500');
             }
         });

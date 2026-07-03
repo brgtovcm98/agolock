@@ -119,17 +119,17 @@
             <th:block th:if="${currentUsername != null}">
                 <a href="/spaces"
                    class="text-slate-600 hover:text-slate-900 transition"
-                   th:classappend="${activeNav == 'spaces'} ? 'font-semibold text-indigo-600'"
+                   th:classappend="${activeNav == 'spaces'} ? 'font-semibold text-primary'"
                    th:text="#{view.nav.mySpaces}">내 공간</a>
                 <span class="text-slate-300">|</span>
                 <a href="/items"
                    class="text-slate-600 hover:text-slate-900 transition"
-                   th:classappend="${activeNav == 'items'} ? 'font-semibold text-indigo-600'"
+                   th:classappend="${activeNav == 'items'} ? 'font-semibold text-primary'"
                    th:text="#{view.nav.myItems}">내 품목</a>
                 <span class="text-slate-300">|</span>
                 <a href="/stocks"
                    class="text-slate-600 hover:text-slate-900 transition"
-                   th:classappend="${activeNav == 'stocks'} ? 'font-semibold text-indigo-600'"
+                   th:classappend="${activeNav == 'stocks'} ? 'font-semibold text-primary'"
                    th:text="#{view.nav.myStocks}">내 재고</a>
                 <span class="text-slate-300">|</span>
                 <span class="text-slate-500" th:text="${currentNickname}"></span>
