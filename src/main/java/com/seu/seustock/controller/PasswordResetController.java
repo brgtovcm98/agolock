@@ -52,7 +52,14 @@ public class PasswordResetController {
           ControllerLogSupport.invalidFields(result));
       return "forgot-password";
     }
-    passwordResetService.requestReset(form.getEmail());
+    try {
+      passwordResetService.requestReset(form.getEmail());
+    } catch (RuntimeException e) {
+      log.error("password reset request failed email={}", form.getEmail(), e);
+      redirectAttributes.addFlashAttribute(
+          "errorMessage", getMsg("error.passwordReset.sendFailed"));
+      return "redirect:/password/forgot";
+    }
     // 재발송 버튼이 이메일을 다시 보낼 수 있도록 flash로 전달(URL에 노출하지 않음).
     redirectAttributes.addFlashAttribute("email", form.getEmail());
     return "redirect:/password/forgot?sent";

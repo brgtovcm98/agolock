@@ -55,8 +55,13 @@ public class QrController {
 
   @GetMapping(value = "/api/qr/generate", produces = MediaType.IMAGE_PNG_VALUE)
   @ResponseBody
-  public byte[] generateQr(@RequestParam String content) throws IOException, WriterException {
-    return qrCodeService.generateQrCodeImage(content, 300, 300);
+  public byte[] generateQr(@RequestParam String content) {
+    try {
+      return qrCodeService.generateQrCodeImage(content, 300, 300);
+    } catch (IOException | WriterException e) {
+      log.error("QR code generation failed contentLength={}", content.length(), e);
+      throw new IllegalStateException(getMsg("error.qr.generationFailed"), e);
+    }
   }
 
   @GetMapping("/qr/boxes/{externalId}")
