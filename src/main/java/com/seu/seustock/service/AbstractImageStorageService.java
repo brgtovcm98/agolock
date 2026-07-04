@@ -92,7 +92,7 @@ public abstract class AbstractImageStorageService implements ImageStorageService
           contentType,
           file.getSize(),
           e);
-      throw e;
+      throw new IllegalStateException(getMessage("error.image.saveFailed"), e);
     } catch (Exception e) {
       log.error(
           "image storage failed userId={} contentType={} sizeBytes={}",
@@ -128,7 +128,10 @@ public abstract class AbstractImageStorageService implements ImageStorageService
       }
       throw e;
     }
-    ImageDTO stored = imageMapper.findById(image.getId()).orElseThrow();
+    ImageDTO stored =
+        imageMapper
+            .findById(image.getId())
+            .orElseThrow(() -> new NoSuchElementException(getMessage("error.image.notFound")));
     log.info(
         "image stored userId={} imageId={} contentType={} sizeBytes={}",
         owner.getId(),
