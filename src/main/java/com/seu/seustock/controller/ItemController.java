@@ -10,6 +10,7 @@ import com.seu.seustock.service.ItemService;
 import com.seu.seustock.service.ShelfService;
 import com.seu.seustock.service.SpaceService;
 import com.seu.seustock.service.StockService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -42,12 +43,33 @@ public class ItemController {
 
   @org.springframework.web.bind.annotation.InitBinder
   public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
+    if (binder.getConversionService()
+        instanceof
+        org.springframework.core.convert.support.GenericConversionService conversionService) {
+      conversionService.addConverter(
+          String[].class,
+          UUID.class,
+          source ->
+              source == null || source.length == 0 || source[0] == null || source[0].isBlank()
+                  ? null
+                  : UUID.fromString(source[0]));
+    }
     binder.registerCustomEditor(
         UUID.class,
         new java.beans.PropertyEditorSupport() {
           @Override
           public void setAsText(String text) {
             setValue(text == null || text.isBlank() ? null : UUID.fromString(text));
+          }
+
+          @Override
+          public void setValue(Object value) {
+            if (value instanceof String[] values && values.length > 0) {
+              String first = values[0];
+              super.setValue(first == null || first.isBlank() ? null : UUID.fromString(first));
+            } else {
+              super.setValue(value);
+            }
           }
         });
   }
@@ -193,9 +215,14 @@ public class ItemController {
       BindingResult result,
       Principal principal,
       Model model,
+      HttpServletRequest request,
       HttpServletResponse response) {
     String username = principal.getName();
     form.setItemExternalId(externalId);
+
+    validateSingleSelect(
+        request, "shelfExternalId", result, "valid.stock.shelfExternalId.multiple");
+    validateSingleSelect(request, "boxExternalId", result, "valid.stock.boxExternalId.multiple");
 
     if (result.hasErrors()) {
       log.warn(
@@ -224,6 +251,14 @@ public class ItemController {
     model.addAttribute("item", item);
     HtmxResponse.success(response, getMsg("toast.stock.created"));
     return "items/fragments/add-stock-modal :: created";
+  }
+
+  private void validateSingleSelect(
+      HttpServletRequest request, String param, BindingResult result, String errorCode) {
+    String[] values = request.getParameterValues(param);
+    if (values != null && values.length > 1) {
+      result.rejectValue(param, errorCode);
+    }
   }
 
   @GetMapping("/{externalId}/history")
