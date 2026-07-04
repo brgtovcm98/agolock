@@ -44,8 +44,7 @@ class PasswordResetServiceTest {
   }
 
   private void stubMessageSource() {
-    when(messageSource.getMessage(anyString(), any(), any()))
-        .thenReturn("유효하지 않거나 만료된 링크입니다.");
+    when(messageSource.getMessage(anyString(), any(), any())).thenReturn("유효하지 않거나 만료된 링크입니다.");
   }
 
   private UserDTO storedUser() {

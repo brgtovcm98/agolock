@@ -101,7 +101,8 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(NoResourceFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  public String handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request, Model model) {
+  public String handleNoResourceFound(
+      NoResourceFoundException ex, HttpServletRequest request, Model model) {
     log.warn("Static resource not found: {}", request.getRequestURI());
     return "error/404";
   }
