@@ -107,10 +107,9 @@ public class SpaceController {
     }
     SpaceDTO created = spaceService.create(username, form);
     if ("true".equals(htmxRequest)) {
-      model.addAttribute("space", created);
-      addSummaries(model, List.of(created));
+      addSpaceListModel(model, username, keyword, sortBy, page);
       HtmxResponse.success(response, getMsg("toast.space.created"));
-      return "spaces/fragments/modal :: created";
+      return "spaces/list :: space-list-section";
     }
     redirectAttributes.addFlashAttribute("toastType", "success");
     redirectAttributes.addFlashAttribute("toastMessage", getMsg("toast.space.created"));
@@ -131,6 +130,9 @@ public class SpaceController {
       @PathVariable UUID externalId,
       @Valid SpaceForm form,
       BindingResult result,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "most_stock") String sortBy,
+      @RequestParam(required = false) Integer page,
       Principal principal,
       Model model,
       HttpServletResponse response) {
@@ -141,14 +143,17 @@ public class SpaceController {
           externalId,
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
-      model.addAttribute("space", spaceService.findByExternalId(externalId, username));
-      return "spaces/fragments/row :: edit";
+      SpaceDTO space = spaceService.findByExternalId(externalId, username);
+      space.setName(form.getName());
+      addSpaceListModel(model, username, keyword, sortBy, page);
+      model.addAttribute("editingSpaceId", externalId);
+      model.addAttribute("space", space);
+      return "spaces/list :: space-list-section";
     }
-    SpaceDTO updated = spaceService.update(externalId, form, username);
-    model.addAttribute("space", updated);
-    addSummaries(model, List.of(updated));
+    spaceService.update(externalId, form, username);
+    addSpaceListModel(model, username, keyword, sortBy, page);
     HtmxResponse.success(response, getMsg("toast.space.updated"));
-    return "spaces/fragments/row :: view";
+    return "spaces/list :: space-list-section";
   }
 
   @GetMapping("/{externalId}/cancel")
@@ -171,14 +176,21 @@ public class SpaceController {
       HttpServletResponse response) {
     String username = principal.getName();
     spaceService.delete(externalId, username);
+    addSpaceListModel(model, username, keyword, sortBy, page);
+    HtmxResponse.success(response, getMsg("toast.space.deleted"));
+    return "spaces/list :: space-list-section";
+  }
+
+  private void addSpaceListModel(
+      Model model, String username, String keyword, String sortBy, Integer page) {
     var spacesPage = spaceService.findPageByUsername(username, keyword, sortBy, page);
     model.addAttribute("spaces", spacesPage.content());
     model.addAttribute("page", spacesPage);
+    model.addAttribute("form", new SpaceForm());
     model.addAttribute("keyword", keyword);
     model.addAttribute("sortBy", sortBy);
+    model.addAttribute("activeNav", "spaces");
     addSummaries(model, spacesPage.content());
-    HtmxResponse.success(response, getMsg("toast.space.deleted"));
-    return "spaces/list :: space-list-section";
   }
 
   /**

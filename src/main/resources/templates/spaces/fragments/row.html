@@ -97,12 +97,12 @@
           method="post"
           th:attr="hx-put=@{/spaces/{id}(id=${space.externalId})}"
           hx-target="#space-list-section"
-          hx-select="#space-list-section"
           hx-swap="outerHTML"
           hx-encoding="multipart/form-data"
           class="flex flex-col gap-4 md:flex-row md:items-start">
         <input type="hidden" name="sortBy" th:value="${sortBy}">
         <input type="hidden" name="keyword" th:value="${keyword}">
+        <input type="hidden" name="page" th:value="${page != null ? page.page() : 1}">
 
         <div class="flex flex-1 gap-4">
             <div class="w-[132px] shrink-0">
@@ -146,8 +146,8 @@
                     class="btn-danger btn-sm"
                     th:attr="hx-delete=@{/spaces/{id}(id=${space.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.space.list.deleteConfirm(${space.name})}"
                     hx-target="#space-list-section"
-                    hx-select="#space-list-section"
-                    hx-swap="outerHTML" th:text="#{view.common.delete}">삭제</button>
+                    hx-swap="outerHTML"
+                    th:text="#{view.common.delete}">삭제</button>
             <button type="button"
                     class="btn-secondary btn-sm"
                     th:attr="hx-get=@{/spaces/{id}/cancel(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"

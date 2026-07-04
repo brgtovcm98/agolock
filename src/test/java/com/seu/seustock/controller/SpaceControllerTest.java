@@ -173,13 +173,13 @@ class SpaceControllerTest extends AbstractControllerTest {
   }
 
   @Test
-  @DisplayName("PUT /spaces/{id} - 정상 name → view 프래그먼트 + HX-Trigger")
-  void updateRow_withValidName_returnsViewFragmentWithToast() throws Exception {
+  @DisplayName("PUT /spaces/{id} - 정상 name → space-list-section 프래그먼트 + HX-Trigger")
+  void updateRow_withValidName_returnsListSectionWithToast() throws Exception {
     mockMvc
         .perform(
             put("/spaces/" + SPACE_ID).with(user("testuser")).with(csrf()).param("name", "수정된 창고"))
         .andExpect(status().isOk())
-        .andExpect(view().name("spaces/fragments/row :: view"))
+        .andExpect(view().name("spaces/list :: space-list-section"))
         .andExpect(hasToastTrigger());
   }
 
@@ -206,12 +206,12 @@ class SpaceControllerTest extends AbstractControllerTest {
   }
 
   @Test
-  @DisplayName("PUT /spaces/{id} - 빈 name → edit 프래그먼트 (유효성 실패, HX-Trigger 없음)")
-  void updateRow_withBlankName_returnsEditFragmentWithoutToast() throws Exception {
+  @DisplayName("PUT /spaces/{id} - 빈 name → space-list-section 프래그먼트 (유효성 실패, HX-Trigger 없음)")
+  void updateRow_withBlankName_returnsListSectionWithoutToast() throws Exception {
     mockMvc
         .perform(put("/spaces/" + SPACE_ID).with(user("testuser")).with(csrf()).param("name", ""))
         .andExpect(status().isOk())
-        .andExpect(view().name("spaces/fragments/row :: edit"))
+        .andExpect(view().name("spaces/list :: space-list-section"))
         .andExpect(header().doesNotExist("HX-Trigger"));
   }
 

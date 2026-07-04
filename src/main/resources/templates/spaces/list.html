@@ -104,7 +104,12 @@
                  class="flex flex-col gap-3">
                 <th:block th:each="space, iter : ${spaces}">
                     <th:block th:with="idx=${iter.index + 1 + (page != null ? (page.page() - 1) * page.size() : 0)}">
-                        <th:block th:replace="~{spaces/fragments/row :: view}"></th:block>
+                        <th:block th:if="${editingSpaceId != null and editingSpaceId == space.externalId}">
+                            <th:block th:replace="~{spaces/fragments/row :: edit}"></th:block>
+                        </th:block>
+                        <th:block th:unless="${editingSpaceId != null and editingSpaceId == space.externalId}">
+                            <th:block th:replace="~{spaces/fragments/row :: view}"></th:block>
+                        </th:block>
                     </th:block>
                 </th:block>
             </div>
