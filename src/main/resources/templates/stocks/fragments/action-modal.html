@@ -40,6 +40,9 @@
                 <input type="hidden" name="spaceExternalId" th:value="${space}">
                 <input type="hidden" name="shelfExternalId" th:value="${shelf}">
                 <input type="hidden" name="boxExternalId"   th:value="${box}">
+                <input type="hidden" name="allView" th:value="${allView}">
+                <input type="hidden" name="keyword" th:value="${keyword}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
                 <div class="mb-3">
                     <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
                     <input type="number" name="count" value="1" min="1"
@@ -97,6 +100,9 @@
                 <input type="hidden" name="spaceExternalId" th:value="${space}">
                 <input type="hidden" name="shelfExternalId" th:value="${shelf}">
                 <input type="hidden" name="boxExternalId"   th:value="${box}">
+                <input type="hidden" name="allView" th:value="${allView}">
+                <input type="hidden" name="keyword" th:value="${keyword}">
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
                 <div class="mb-3">
                     <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
                     <input type="number" name="count" value="1" min="1"
@@ -168,7 +174,7 @@
                     취소
                 </button>
                 <button type="button"
-                        th:attr="hx-delete=@{/stocks(item=${item},space=${space},shelf=${shelf},box=${box})},hx-confirm=#{view.stock.modal.delete.confirm}"
+                        th:attr="hx-delete=@{/stocks(item=${item},space=${space},shelf=${shelf},box=${box},allView=${allView},keyword=${keyword},sortBy=${sortBy})},hx-confirm=#{view.stock.modal.delete.confirm}"
                         hx-target="#stock-panel"
                         hx-swap="outerHTML"
                         class="btn-danger-solid text-sm"

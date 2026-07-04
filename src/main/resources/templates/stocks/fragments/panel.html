@@ -36,14 +36,14 @@
                     th:text="#{view.stock.modal.move.title}">
                 물품 이동
             </button>
-            <button th:attr="hx-get=@{/stocks/quick(spaceId=${space},shelfId=${shelf},boxId=${box})}"
+            <button th:attr="hx-get=@{/stocks/quick(spaceId=${space},shelfId=${shelf},boxId=${box},allView=${allView},keyword=${keyword},sortBy=${sortBy})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
                     class="stock-default-only btn-search btn-sm"
                     th:text="|+#{view.stock.list.quickAdd}|">
                 + 빠른 등록
             </button>
-            <button th:attr="hx-get=@{/stocks/new(spaceId=${space},shelfId=${shelf},boxId=${box})}"
+            <button th:attr="hx-get=@{/stocks/new(spaceId=${space},shelfId=${shelf},boxId=${box},allView=${allView},keyword=${keyword},sortBy=${sortBy})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
                     class="stock-default-only btn-primary btn-sm text-sm"
@@ -54,7 +54,7 @@
     </div>
 
     <!-- 검색바 + 정렬 뱃지 (전체보기 전용) -->
-    <div th:if="${isAllView}" class="px-4 py-3 border-b border-line-soft space-y-2">
+    <div th:if="${allView}" class="px-4 py-3 border-b border-line-soft space-y-2">
         <form th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space})}"
               hx-target="#stock-panel"
               hx-swap="outerHTML"
@@ -114,6 +114,9 @@
         <input type="hidden" name="sourceSpaceExternalId" th:value="${space}">
         <input type="hidden" name="sourceShelfExternalId" th:value="${shelf}">
         <input type="hidden" name="sourceBoxExternalId" th:value="${box}">
+        <input type="hidden" name="allView" th:value="${allView}">
+        <input type="hidden" name="keyword" th:value="${keyword}">
+        <input type="hidden" name="sortBy" th:value="${sortBy}">
         <div id="move-selection-fields"></div>
         <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="text-sm text-ink" th:text="#{view.stock.modal.move.instruction}">이동할 물품을 선택하고 수량을 조정하세요.</p>
@@ -150,7 +153,7 @@
          data-component-id="stocks.panel-more"
          th:fragment="stock-panel-more"
          class="border-t border-line-soft px-4 py-3 text-center">
-        <button th:if="${page.hasNext() and isAllView}"
+        <button th:if="${page.hasNext() and allView}"
                 th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
@@ -158,7 +161,7 @@
                 th:text="#{view.space.list.more}">
             더 보기
         </button>
-        <button th:if="${page.hasNext() and isAllView == false and shelfExternalId == null}"
+        <button th:if="${page.hasNext() and allView == false and shelfExternalId == null}"
                 th:attr="hx-get=@{/spaces/{id}/stocks(id=${space},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
@@ -166,7 +169,7 @@
                 th:text="#{view.space.list.more}">
             더 보기
         </button>
-        <button th:if="${page.hasNext() and isAllView == false and shelfExternalId != null and boxExternalId == null}"
+        <button th:if="${page.hasNext() and allView == false and shelfExternalId != null and boxExternalId == null}"
                 th:attr="hx-get=@{/spaces/{id}/shelves/{id}/stocks(sid=${space},id=${shelf},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"
@@ -174,7 +177,7 @@
                 th:text="#{view.space.list.more}">
             더 보기
         </button>
-        <button th:if="${page.hasNext() and isAllView == false and shelfExternalId != null and boxExternalId != null}"
+        <button th:if="${page.hasNext() and allView == false and shelfExternalId != null and boxExternalId != null}"
                 th:attr="hx-get=@{/spaces/{sid}/shelves/{shelfId}/boxes/{boxId}/stocks(sid=${space},shelfId=${shelf},boxId=${box},page=${page.nextPage()},append=true)}"
                 hx-target="#stock-panel-more"
                 hx-swap="outerHTML"

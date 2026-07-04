@@ -53,7 +53,7 @@ public class StockPanelController {
     model.addAttribute("page", stocksPage);
     model.addAttribute("breadcrumb", getMsg("view.stock.breadcrumb.all", space.getName()));
     model.addAttribute("space", spaceExternalId);
-    model.addAttribute("isAllView", true);
+    model.addAttribute("allView", true);
     model.addAttribute("keyword", keyword);
     model.addAttribute("sortBy", sortBy);
     if (append) {
@@ -76,7 +76,9 @@ public class StockPanelController {
     model.addAttribute("page", stocksPage);
     model.addAttribute("breadcrumb", getMsg("view.stock.breadcrumb.loose", space.getName()));
     model.addAttribute("space", spaceExternalId);
-    model.addAttribute("isAllView", false);
+    model.addAttribute("allView", false);
+    model.addAttribute("keyword", "");
+    model.addAttribute("sortBy", "newest");
     if (append) {
       return "stocks/fragments/panel :: stock-panel-more-response";
     }
@@ -100,7 +102,9 @@ public class StockPanelController {
     model.addAttribute("breadcrumb", shelf.getName());
     model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelf", shelfExternalId);
-    model.addAttribute("isAllView", false);
+    model.addAttribute("allView", false);
+    model.addAttribute("keyword", "");
+    model.addAttribute("sortBy", "newest");
     if (append) {
       return "stocks/fragments/panel :: stock-panel-more-response";
     }
@@ -130,7 +134,9 @@ public class StockPanelController {
     model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelf", shelfExternalId);
     model.addAttribute("box", boxExternalId);
-    model.addAttribute("isAllView", false);
+    model.addAttribute("allView", false);
+    model.addAttribute("keyword", "");
+    model.addAttribute("sortBy", "newest");
     if (append) {
       return "stocks/fragments/panel :: stock-panel-more-response";
     }

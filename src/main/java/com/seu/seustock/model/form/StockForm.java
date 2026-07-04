@@ -42,4 +42,10 @@ public class StockForm {
   private BigDecimal price;
 
   private String memo;
+
+  private boolean allView;
+
+  private String keyword;
+
+  private String sortBy;
 }

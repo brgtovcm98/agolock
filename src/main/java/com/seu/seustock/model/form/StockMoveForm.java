@@ -34,6 +34,12 @@ public class StockMoveForm {
 
   private String memo;
 
+  private boolean allView;
+
+  private String keyword;
+
+  private String sortBy;
+
   @Getter
   @Setter
   public static class Item {

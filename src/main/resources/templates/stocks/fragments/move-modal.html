@@ -20,6 +20,10 @@
             <input type="hidden" th:field="*{sourceShelfExternalId}">
             <input type="hidden" th:field="*{sourceBoxExternalId}">
 
+            <input type="hidden" name="allView" th:value="${allView}">
+            <input type="hidden" name="keyword" th:value="${keyword}">
+            <input type="hidden" name="sortBy" th:value="${sortBy}">
+
             <input type="hidden" th:field="*{targetSpaceExternalId}" id="move-target-space">
             <input type="hidden" th:field="*{targetShelfExternalId}" id="move-target-shelf">
             <input type="hidden" th:field="*{targetBoxExternalId}" id="move-target-box">

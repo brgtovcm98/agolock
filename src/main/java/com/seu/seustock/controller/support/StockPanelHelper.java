@@ -39,6 +39,9 @@ public class StockPanelHelper {
       UUID spaceExternalId,
       UUID shelfExternalId,
       UUID boxExternalId,
+      boolean isAllView,
+      String keyword,
+      String sortBy,
       String username,
       Model model) {
     String breadcrumb;
@@ -48,7 +51,10 @@ public class StockPanelHelper {
                 spaceExternalId, shelfExternalId, boxExternalId, username, 1)
             : shelfExternalId != null
                 ? stockService.findPanelPageByShelf(spaceExternalId, shelfExternalId, username, 1)
-                : stockService.findPanelPageBySpace(spaceExternalId, username, 1);
+                : isAllView
+                    ? stockService.findPanelPageBySpaceAll(
+                        spaceExternalId, keyword, sortBy, username, 1)
+                    : stockService.findPanelPageBySpace(spaceExternalId, username, 1);
     if (boxExternalId != null) {
       breadcrumb =
           boxService
@@ -59,7 +65,10 @@ public class StockPanelHelper {
           shelfService.findByExternalId(spaceExternalId, shelfExternalId, username).getName();
     } else {
       SpaceDTO space = spaceService.findByExternalId(spaceExternalId, username);
-      breadcrumb = getMsg("view.stock.breadcrumb.loose", space.getName());
+      breadcrumb =
+          isAllView
+              ? getMsg("view.stock.breadcrumb.all", space.getName())
+              : getMsg("view.stock.breadcrumb.loose", space.getName());
     }
     model.addAttribute("stocks", page.content());
     model.addAttribute("page", page);
@@ -67,7 +76,9 @@ public class StockPanelHelper {
     model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelf", shelfExternalId);
     model.addAttribute("box", boxExternalId);
-    model.addAttribute("isAllView", false);
+    model.addAttribute("allView", isAllView);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("sortBy", sortBy);
     return "stocks/fragments/panel :: stock-panel-response";
   }
 

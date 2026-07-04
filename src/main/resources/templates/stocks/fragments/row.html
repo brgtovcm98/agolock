@@ -51,7 +51,7 @@
         </a>
         <button type="button"
                 class="stock-default-only btn-search btn-sm"
-                th:attr="hx-get=@{/stocks/action-form(item=${stock.itemExternalId},itemName=${stock.itemName},space=${space},shelf=${shelf},box=${box},count=${stock.count})}"
+                th:attr="hx-get=@{/stocks/action-form(item=${stock.itemExternalId},itemName=${stock.itemName},space=${space},shelf=${shelf},box=${box},count=${stock.count},allView=${allView},keyword=${keyword},sortBy=${sortBy})}"
                 hx-target="#modal" hx-swap="outerHTML"
                 th:text="#{view.common.change}">변경</button>
     </div>

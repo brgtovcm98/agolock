@@ -41,4 +41,10 @@ public class StockInOutForm {
   private String memo;
 
   private boolean includeKept = false;
+
+  private boolean allView;
+
+  private String keyword;
+
+  private String sortBy;
 }

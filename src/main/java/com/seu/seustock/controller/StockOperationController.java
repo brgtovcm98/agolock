@@ -50,6 +50,9 @@ public class StockOperationController {
       @RequestParam UUID spaceId,
       @RequestParam(required = false) UUID shelfId,
       @RequestParam(required = false) UUID boxId,
+      @RequestParam(required = false, defaultValue = "false") boolean allView,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
       Principal principal,
       Model model) {
     String username = principal.getName();
@@ -57,7 +60,14 @@ public class StockOperationController {
     model.addAttribute("spaceId", spaceId);
     model.addAttribute("shelfId", shelfId);
     model.addAttribute("boxId", boxId);
-    model.addAttribute("form", new StockForm());
+    model.addAttribute("allView", allView);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("sortBy", sortBy);
+    StockForm form = new StockForm();
+    form.setAllView(allView);
+    form.setKeyword(keyword);
+    form.setSortBy(sortBy);
+    model.addAttribute("form", form);
     return "stocks/fragments/modal :: modal";
   }
 
@@ -81,6 +91,9 @@ public class StockOperationController {
       model.addAttribute("spaceId", form.getSpaceExternalId());
       model.addAttribute("shelfId", form.getShelfExternalId());
       model.addAttribute("boxId", form.getBoxExternalId());
+      model.addAttribute("allView", form.isAllView());
+      model.addAttribute("keyword", form.getKeyword());
+      model.addAttribute("sortBy", form.getSortBy());
       return "stocks/fragments/modal :: modal";
     }
     stockService.create(form, username);
@@ -89,6 +102,9 @@ public class StockOperationController {
         form.getSpaceExternalId(),
         form.getShelfExternalId(),
         form.getBoxExternalId(),
+        form.isAllView(),
+        form.getKeyword(),
+        form.getSortBy(),
         username,
         model);
   }
@@ -100,11 +116,21 @@ public class StockOperationController {
       @RequestParam UUID spaceId,
       @RequestParam(required = false) UUID shelfId,
       @RequestParam(required = false) UUID boxId,
+      @RequestParam(required = false, defaultValue = "false") boolean allView,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
       Model model) {
     model.addAttribute("spaceId", spaceId);
     model.addAttribute("shelfId", shelfId);
     model.addAttribute("boxId", boxId);
-    model.addAttribute("form", new QuickStockForm());
+    model.addAttribute("allView", allView);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("sortBy", sortBy);
+    QuickStockForm form = new QuickStockForm();
+    form.setAllView(allView);
+    form.setKeyword(keyword);
+    form.setSortBy(sortBy);
+    model.addAttribute("form", form);
     return "stocks/fragments/quick-modal :: modal";
   }
 
@@ -127,6 +153,9 @@ public class StockOperationController {
       model.addAttribute("spaceId", form.getSpaceExternalId());
       model.addAttribute("shelfId", form.getShelfExternalId());
       model.addAttribute("boxId", form.getBoxExternalId());
+      model.addAttribute("allView", form.isAllView());
+      model.addAttribute("keyword", form.getKeyword());
+      model.addAttribute("sortBy", form.getSortBy());
       return "stocks/fragments/quick-modal :: modal";
     }
     stockService.createWithNewItem(form, username);
@@ -135,6 +164,9 @@ public class StockOperationController {
         form.getSpaceExternalId(),
         form.getShelfExternalId(),
         form.getBoxExternalId(),
+        form.isAllView(),
+        form.getKeyword(),
+        form.getSortBy(),
         username,
         model);
   }
@@ -147,6 +179,9 @@ public class StockOperationController {
       @RequestParam(name = "space") UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false, defaultValue = "false") boolean allView,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
       Principal principal,
       Model model,
       HttpServletResponse response) {
@@ -155,17 +190,7 @@ public class StockOperationController {
         itemExternalId, spaceExternalId, shelfExternalId, boxExternalId, username);
     HtmxResponse.success(response, getMsg("toast.stock.deleted"));
     return stockPanelHelper.buildPanelResponse(
-        spaceExternalId, shelfExternalId, boxExternalId, username, model);
-  }
-
-  @DeleteMapping("/stocks/{stockExternalId}")
-  @ResponseBody
-  public String deleteRow(
-      @PathVariable UUID stockExternalId, Principal principal, HttpServletResponse response) {
-    String username = principal.getName();
-    stockService.deleteUnit(stockExternalId, username);
-    HtmxResponse.success(response, getMsg("toast.stock.deleted"));
-    return "";
+        spaceExternalId, shelfExternalId, boxExternalId, allView, keyword, sortBy, username, model);
   }
 
   /* ── 통합 액션 모달 ── */
@@ -178,6 +203,9 @@ public class StockOperationController {
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
       @RequestParam(defaultValue = "0") Integer count,
+      @RequestParam(required = false, defaultValue = "false") boolean allView,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
       Principal principal,
       Model model) {
     String username = principal.getName();
@@ -187,6 +215,9 @@ public class StockOperationController {
     model.addAttribute("shelf", shelfExternalId);
     model.addAttribute("box", boxExternalId);
     model.addAttribute("currentCount", count);
+    model.addAttribute("allView", allView);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("sortBy", sortBy);
     model.addAttribute(
         "inMemoSuggestions", stockService.findMemoSuggestions(TransactionType.IN, username));
     model.addAttribute(
@@ -202,6 +233,9 @@ public class StockOperationController {
       @RequestParam(name = "space") UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false, defaultValue = "false") boolean allView,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
       Principal principal,
       Model model) {
     StockInOutForm form = new StockInOutForm();
@@ -209,10 +243,16 @@ public class StockOperationController {
     form.setSpaceExternalId(spaceExternalId);
     form.setShelfExternalId(shelfExternalId);
     form.setBoxExternalId(boxExternalId);
+    form.setAllView(allView);
+    form.setKeyword(keyword);
+    form.setSortBy(sortBy);
     var item = itemService.findByExternalId(itemExternalId, principal.getName());
     form.setPrice(item.getPrice());
     model.addAttribute("item", item);
     model.addAttribute("form", form);
+    model.addAttribute("allView", allView);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("sortBy", sortBy);
     return "stocks/fragments/in-modal :: modal";
   }
 
@@ -234,6 +274,9 @@ public class StockOperationController {
           ControllerLogSupport.invalidFields(result));
       model.addAttribute(
           "item", itemService.findByExternalId(form.getItemExternalId(), principal.getName()));
+      model.addAttribute("allView", form.isAllView());
+      model.addAttribute("keyword", form.getKeyword());
+      model.addAttribute("sortBy", form.getSortBy());
       return "stocks/fragments/in-modal :: modal";
     }
     String username = principal.getName();
@@ -243,6 +286,9 @@ public class StockOperationController {
         form.getSpaceExternalId(),
         form.getShelfExternalId(),
         form.getBoxExternalId(),
+        form.isAllView(),
+        form.getKeyword(),
+        form.getSortBy(),
         username,
         model);
   }
@@ -255,13 +301,22 @@ public class StockOperationController {
       @RequestParam(name = "space") UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false, defaultValue = "false") boolean allView,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
       Model model) {
     StockInOutForm form = new StockInOutForm();
     form.setItemExternalId(itemExternalId);
     form.setSpaceExternalId(spaceExternalId);
     form.setShelfExternalId(shelfExternalId);
     form.setBoxExternalId(boxExternalId);
+    form.setAllView(allView);
+    form.setKeyword(keyword);
+    form.setSortBy(sortBy);
     model.addAttribute("form", form);
+    model.addAttribute("allView", allView);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("sortBy", sortBy);
     return "stocks/fragments/out-modal :: modal";
   }
 
@@ -281,6 +336,9 @@ public class StockOperationController {
           form.getBoxExternalId(),
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
+      model.addAttribute("allView", form.isAllView());
+      model.addAttribute("keyword", form.getKeyword());
+      model.addAttribute("sortBy", form.getSortBy());
       return "stocks/fragments/out-modal :: modal";
     }
     String username = principal.getName();
@@ -290,6 +348,9 @@ public class StockOperationController {
         form.getSpaceExternalId(),
         form.getShelfExternalId(),
         form.getBoxExternalId(),
+        form.isAllView(),
+        form.getKeyword(),
+        form.getSortBy(),
         username,
         model);
   }
@@ -298,8 +359,19 @@ public class StockOperationController {
 
   @GetMapping("/stocks/move-form")
   public String moveForm(
-      @ModelAttribute("form") StockMoveForm form, Principal principal, Model model) {
+      @ModelAttribute("form") StockMoveForm form,
+      @RequestParam(required = false, defaultValue = "false") boolean allView,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      Principal principal,
+      Model model) {
     String username = principal.getName();
+    form.setAllView(allView);
+    form.setKeyword(keyword);
+    form.setSortBy(sortBy);
+    model.addAttribute("allView", allView);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("sortBy", sortBy);
     model.addAttribute(
         "locationOptions", stockPanelHelper.buildMoveLocationOptions(form, username));
     return "stocks/fragments/move-modal :: modal";
@@ -324,6 +396,9 @@ public class StockOperationController {
           form.getTargetBoxExternalId(),
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
+      model.addAttribute("allView", form.isAllView());
+      model.addAttribute("keyword", form.getKeyword());
+      model.addAttribute("sortBy", form.getSortBy());
       model.addAttribute(
           "locationOptions", stockPanelHelper.buildMoveLocationOptions(form, username));
       return "stocks/fragments/move-modal :: modal";
@@ -334,6 +409,9 @@ public class StockOperationController {
         form.getSourceSpaceExternalId(),
         form.getSourceShelfExternalId(),
         form.getSourceBoxExternalId(),
+        form.isAllView(),
+        form.getKeyword(),
+        form.getSortBy(),
         username,
         model);
   }

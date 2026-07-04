@@ -36,4 +36,10 @@ public class QuickStockForm {
 
   private MultipartFile imageFile;
   private String imageHash;
+
+  private boolean allView;
+
+  private String keyword;
+
+  private String sortBy;
 }
