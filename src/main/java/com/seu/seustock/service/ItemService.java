@@ -99,7 +99,9 @@ public class ItemService extends BaseService {
     itemMapper.insertItem(item);
     attachPrimaryImageIfPresent(item.getId(), user, form);
     log.info("item created userId={} itemId={}", user.getId(), item.getId());
-    return itemMapper.findById(item.getId()).orElseThrow();
+    return itemMapper
+        .findById(item.getId())
+        .orElseThrow(() -> new NoSuchElementException(getMsg("error.item.notFound")));
   }
 
   @Transactional
@@ -113,7 +115,9 @@ public class ItemService extends BaseService {
     itemMapper.updateItem(item);
     attachPrimaryImageIfPresent(item.getId(), getUser(username), form);
     log.info("item updated userId={} itemId={}", getUser(username).getId(), item.getId());
-    return itemMapper.findByExternalId(externalId).orElseThrow();
+    return itemMapper
+        .findByExternalId(externalId)
+        .orElseThrow(() -> new NoSuchElementException(getMsg("error.item.notFound")));
   }
 
   public List<ItemSpaceStockDTO> findSpaceStock(UUID itemExternalId, String username) {

@@ -99,7 +99,9 @@ public class BoxService extends BaseService {
         getUser(username).getId(),
         shelf.getId(),
         box.getId());
-    return boxMapper.findById(box.getId()).orElseThrow();
+    return boxMapper
+        .findById(box.getId())
+        .orElseThrow(() -> new NoSuchElementException(getMsg("error.box.notFound")));
   }
 
   @Transactional

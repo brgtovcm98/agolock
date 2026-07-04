@@ -84,7 +84,9 @@ public class ShelfService extends BaseService {
         getUser(username).getId(),
         space.getId(),
         shelf.getId());
-    return shelfMapper.findById(shelf.getId()).orElseThrow();
+    return shelfMapper
+        .findById(shelf.getId())
+        .orElseThrow(() -> new NoSuchElementException(getMsg("error.shelf.notFound")));
   }
 
   @Transactional
@@ -100,7 +102,9 @@ public class ShelfService extends BaseService {
         getUser(username).getId(),
         space.getId(),
         shelf.getId());
-    return shelfMapper.findById(shelf.getId()).orElseThrow();
+    return shelfMapper
+        .findById(shelf.getId())
+        .orElseThrow(() -> new NoSuchElementException(getMsg("error.shelf.notFound")));
   }
 
   @Transactional
