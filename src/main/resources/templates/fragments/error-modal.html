@@ -8,12 +8,12 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-sm p-6">
         <div class="mb-4 flex items-start gap-3">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-red-600"
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center bg-surface-dim text-sm font-bold text-danger"
                  th:text="${statusCode}">400</div>
             <div class="min-w-0">
-                <h2 id="modal-title" class="text-base font-semibold text-slate-800"
+                <h2 id="modal-title" class="text-base font-semibold text-ink"
                     th:text="${errorTitle} ?: #{view.error.modal.defaultTitle}">요청을 처리할 수 없습니다</h2>
-                <p class="mt-1 text-sm text-slate-500"
+                <p class="mt-1 text-sm text-muted"
                    th:text="${errorMessage} ?: #{view.error.modal.defaultMessage}">잠시 후 다시 시도해주세요.</p>
             </div>
         </div>
@@ -22,7 +22,7 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="rounded-lg bg-slate-700 px-4 py-2 text-sm text-white hover:bg-slate-800 transition"
+                    class=" bg-ink px-4 py-2 text-sm text-white hover:bg-black transition"
                     th:text="#{view.common.confirm}">
                 확인
             </button>
