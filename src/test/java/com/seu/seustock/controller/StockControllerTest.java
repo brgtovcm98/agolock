@@ -44,8 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  *       items @NotEmpty, StockUpdateForm serialNumber 길이
  * </ul>
  *
- * 특이사항: {@code DELETE /stocks/{id}}는 {@code @ResponseBody}로 빈 문자열을 반환하므로 {@code view()} 대신 {@code
- * content().string("")}로 검증한다.
+ * 특이사항: 모든 변경 엔드포인트는 성공/실패 여부와 관계없이 HX-Trigger 헤더를 포함한 Thymeleaf 프래그먼트를 반환한다.
  */
 class StockControllerTest extends AbstractControllerTest {
 
@@ -180,19 +179,20 @@ class StockControllerTest extends AbstractControllerTest {
   }
 
   @Test
-  @DisplayName("PUT /stocks/{id} - 정상 → detail-row :: view + HX-Trigger")
-  void updateRow_withValidForm_returnsViewFragmentWithToast() throws Exception {
+  @DisplayName("PUT /stocks/{id} - 정상 → stock-detail-section 프래그먼트 + HX-Trigger")
+  void updateRow_withValidForm_returnsListSectionWithToast() throws Exception {
     mockMvc
         .perform(
             put(STOCK_PATH).with(user("testuser")).with(csrf()).param("serialNumber", "SN-001"))
         .andExpect(status().isOk())
-        .andExpect(view().name("stocks/fragments/detail-row :: view"))
+        .andExpect(view().name("stocks/list :: stock-detail-section"))
         .andExpect(hasToastTrigger());
   }
 
   @Test
-  @DisplayName("PUT /stocks/{id} - serialNumber 256자 → detail-row :: edit (유효성 실패, HX-Trigger 없음)")
-  void updateRow_withTooLongSerialNumber_returnsEditFragmentWithoutToast() throws Exception {
+  @DisplayName(
+      "PUT /stocks/{id} - serialNumber 256자 → stock-detail-section 프래그먼트 (유효성 실패, HX-Trigger 없음)")
+  void updateRow_withTooLongSerialNumber_returnsListSectionWithoutToast() throws Exception {
     mockMvc
         .perform(
             put(STOCK_PATH)
@@ -200,7 +200,7 @@ class StockControllerTest extends AbstractControllerTest {
                 .with(csrf())
                 .param("serialNumber", "a".repeat(256)))
         .andExpect(status().isOk())
-        .andExpect(view().name("stocks/fragments/detail-row :: edit"))
+        .andExpect(view().name("stocks/list :: stock-detail-section"))
         .andExpect(header().doesNotExist("HX-Trigger"));
   }
 
@@ -227,14 +227,13 @@ class StockControllerTest extends AbstractControllerTest {
   }
 
   @Test
-  @DisplayName("PUT /stocks/{id}/memo - 정상 → detail-row :: view-with-modal-close + HX-Trigger")
-  void updateMemo_withValidParam_returnsViewWithModalCloseFragmentWithToast() throws Exception {
+  @DisplayName("PUT /stocks/{id}/memo - 정상 → stock-detail-section 프래그먼트 + HX-Trigger")
+  void updateMemo_withValidParam_returnsListSectionWithToast() throws Exception {
     mockMvc
         .perform(
             put(STOCK_PATH + "/memo").with(user("testuser")).with(csrf()).param("memo", "새 메모 내용"))
         .andExpect(status().isOk())
-        .andExpect(view().name("stocks/fragments/detail-row :: view-with-modal-close"))
-        .andExpect(model().attributeExists("stock"))
+        .andExpect(view().name("stocks/list :: stock-detail-section"))
         .andExpect(hasToastTrigger());
   }
 
@@ -416,12 +415,12 @@ class StockControllerTest extends AbstractControllerTest {
   }
 
   @Test
-  @DisplayName("DELETE /stocks/{id} → 200, 빈 응답 본문 + HX-Trigger")
-  void deleteRow_returnsEmptyBodyWithToast() throws Exception {
+  @DisplayName("DELETE /stocks/{id} → stock-detail-section 프래그먼트 + HX-Trigger")
+  void deleteRow_returnsListSectionWithToast() throws Exception {
     mockMvc
         .perform(delete(STOCK_PATH).with(user("testuser")).with(csrf()))
         .andExpect(status().isOk())
-        .andExpect(content().string(""))
+        .andExpect(view().name("stocks/list :: stock-detail-section"))
         .andExpect(hasToastTrigger());
   }
 

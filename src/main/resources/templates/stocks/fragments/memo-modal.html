@@ -28,7 +28,7 @@
                 닫기
             </button>
             <button type="button"
-                    th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId})}"
+                    th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
                     class="btn-primary text-sm"
@@ -52,9 +52,18 @@
         </h2>
         <p class="text-xs text-faint mb-4" th:text="${stock.itemName}">품목명</p>
 
-        <form th:attr="hx-put=@{/stocks/{id}/memo(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
+        <form th:attr="hx-put=@{/stocks/{id}/memo(id=${stock.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
+              hx-target="#stock-detail-section"
               hx-swap="outerHTML">
-            
+            <input type="hidden" name="sortBy" th:value="${sortBy}">
+            <input type="hidden" name="keyword" th:value="${keyword}">
+            <input type="hidden" name="searchType" th:value="${searchType}">
+            <input type="hidden" name="page" th:value="${page != null ? page.page() : 1}">
+            <input th:if="${itemExternalId != null}" type="hidden" name="item" th:value="${item}">
+            <input th:if="${spaceExternalId != null}" type="hidden" name="space" th:value="${space}">
+            <input th:if="${shelfExternalId != null}" type="hidden" name="shelf" th:value="${shelf}">
+            <input th:if="${boxExternalId != null}" type="hidden" name="box" th:value="${box}">
+
             <div class="mb-6">
                 <textarea name="memo" rows="4"
                           class="field-input resize-y"

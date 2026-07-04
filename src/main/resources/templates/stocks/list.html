@@ -102,7 +102,12 @@
             <div th:if="${!stocks.empty}" class="divide-y divide-line-soft">
                 <th:block th:each="stock, iter : ${stocks}">
                     <th:block th:with="idx=${iter.index + 1 + (page != null ? (page.page() - 1) * page.size() : 0)}">
-                        <th:block th:replace="~{stocks/fragments/detail-row :: view(stock=${stock})}"></th:block>
+                        <th:block th:if="${editingStockId != null and editingStockId == stock.externalId}">
+                            <th:block th:replace="~{stocks/fragments/detail-row :: edit}"></th:block>
+                        </th:block>
+                        <th:block th:unless="${editingStockId != null and editingStockId == stock.externalId}">
+                            <th:block th:replace="~{stocks/fragments/detail-row :: view(stock=${stock})}"></th:block>
+                        </th:block>
                     </th:block>
                 </th:block>
             </div>

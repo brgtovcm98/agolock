@@ -66,11 +66,11 @@
                      aria-label="더보기">⋯</summary>
             <div class="z-50 min-w-[140px]">
                 <button type="button"
-                        th:attr="hx-get=@{/stocks/{id}/memo(id=${stock.externalId})}"
+                        th:attr="hx-get=@{/stocks/{id}/memo(id=${stock.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#modal"
                         th:text="#{view.stock.action.viewMemo}">메모 보기</button>
                 <button type="button"
-                        th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId})}"
+                        th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#modal"
                         th:text="#{view.stock.action.writeMemo}">메모 작성</button>
                 <button type="button"
@@ -78,7 +78,7 @@
                         hx-target="#modal"
                         th:text="#{view.stock.action.history}">이력 보기</button>
                 <button type="button"
-                        th:attr="hx-post=@{/stocks/{id}/keep(id=${stock.externalId},kept=${!stock.kept})},hx-target='#stock-' + ${stock.externalId}"
+                        th:attr="hx-post=@{/stocks/{id}/keep(id=${stock.externalId},kept=${!stock.kept},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})},hx-target='#stock-detail-section'"
                         hx-swap="outerHTML"
                         th:text="${stock.kept} ? #{view.stock.action.unkeep} : #{view.stock.action.keep}">보관 처리</button>
             </div>
@@ -95,12 +95,12 @@
     <form method="post"
           th:attr="hx-put=@{/stocks/{id}(id=${stock.externalId})}"
           hx-target="#stock-detail-section"
-          hx-select="#stock-detail-section"
           hx-swap="outerHTML"
           class="flex flex-col gap-4 md:flex-row md:items-start">
         <input type="hidden" name="sortBy" th:value="${sortBy}">
         <input type="hidden" name="keyword" th:value="${keyword}">
         <input type="hidden" name="searchType" th:value="${searchType}">
+        <input type="hidden" name="page" th:value="${page != null ? page.page() : 1}">
         <input th:if="${itemExternalId != null}" type="hidden" name="item" th:value="${item}">
         <input th:if="${spaceExternalId != null}" type="hidden" name="space" th:value="${space}">
         <input th:if="${shelfExternalId != null}" type="hidden" name="shelf" th:value="${shelf}">
@@ -194,7 +194,7 @@
             </div>
             <div class="text-right">
                 <button type="button"
-                        th:attr="hx-delete=@{/stocks/{id}(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId},hx-confirm=#{view.stock.detail.deleteConfirm(${stock.itemName})}"
+                        th:attr="hx-delete=@{/stocks/{id}(id=${stock.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})},hx-target='#stock-detail-section',hx-confirm=#{view.stock.detail.deleteConfirm(${stock.itemName})}"
                         hx-swap="outerHTML"
                         class="btn-danger btn-sm"
                         th:text="#{view.common.delete}">
