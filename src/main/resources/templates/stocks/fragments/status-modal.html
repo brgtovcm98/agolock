@@ -8,15 +8,15 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-md mx-4 p-6 flex flex-col">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.status.title}">상태 변경</h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+        <h2 id="modal-title" class="text-lg font-semibold text-ink mb-1" th:text="#{view.stock.modal.status.title}">상태 변경</h2>
+        <p class="text-xs text-faint mb-4" th:text="${stock.itemName}">품목명</p>
 
         <form th:attr="hx-put=@{/stocks/{id}/status(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
               hx-swap="outerHTML">
 
             <div class="space-y-1.5 mb-4">
                 <label th:each="s : ${statuses}"
-                       class="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 transition">
+                       class="flex items-center gap-2 border border-line-soft px-3 py-2 text-sm text-ink cursor-pointer hover:bg-surface-dim transition">
                     <input type="radio" name="status" th:value="${s.name()}" required
                            class="field-check">
                     <span th:text="#{${'enum.StockStatus.' + s.name()}}">상태</span>

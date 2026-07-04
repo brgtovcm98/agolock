@@ -7,8 +7,8 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-sm mx-4 p-6 flex flex-col">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.out.title}">출고 처리</h2>
-        <p class="text-sm text-slate-500 mb-4" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
+        <h2 id="modal-title" class="text-lg font-semibold text-ink mb-1" th:text="#{view.stock.modal.out.title}">출고 처리</h2>
+        <p class="text-sm text-muted mb-4" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
 
         <form th:object="${form}"
               method="post"
@@ -34,7 +34,7 @@
             <div class="mb-4">
                 <label class="field-label">
                     <span th:text="#{view.stock.form.memo.label}">메모</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                    <span class="text-faint font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="text" th:field="*{memo}"
                        class="field-input"

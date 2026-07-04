@@ -8,11 +8,11 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-md mx-4 p-6 flex flex-col">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.memo.viewTitle}">메모 보기</h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+        <h2 id="modal-title" class="text-lg font-semibold text-ink mb-1" th:text="#{view.stock.modal.memo.viewTitle}">메모 보기</h2>
+        <p class="text-xs text-faint mb-4" th:text="${stock.itemName}">품목명</p>
 
         <div class="flex-1 mb-6">
-            <div class="rounded-lg bg-slate-50 border border-slate-100 p-4 min-h-[8rem] text-sm text-slate-700 whitespace-pre-wrap"
+            <div class=" bg-surface-dim border border-line-soft p-4 min-h-[8rem] text-sm text-ink whitespace-pre-wrap"
                  th:text="${stock.memo != null and !stock.memo.isEmpty()} ? ${stock.memo} : '-'">
                 메모 내용이 없습니다.
             </div>
@@ -46,11 +46,11 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-md mx-4 p-6 flex flex-col">
 
-        <h2 class="text-lg font-semibold text-slate-800 mb-1"
+        <h2 class="text-lg font-semibold text-ink mb-1"
             th:text="${stock.memo != null and !stock.memo.isEmpty()} ? #{view.stock.modal.memo.editTitle} : #{view.stock.modal.memo.writeTitle}">
             메모 작성
         </h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="${stock.itemName}">품목명</p>
+        <p class="text-xs text-faint mb-4" th:text="${stock.itemName}">품목명</p>
 
         <form th:attr="hx-put=@{/stocks/{id}/memo(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
               hx-swap="outerHTML">

@@ -3,34 +3,35 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="|#{view.stock.list.title} · SeuStock|">내 재고 · SeuStock</title>
 </head>
-<body class="page min-h-screen bg-slate-50 flex flex-col">
+<body class="page min-h-screen flex flex-col">
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
-<main data-component-id="page.stocks-list" class="page-main mx-auto w-full max-w-4xl px-4 py-10 flex-1">
+<main data-component-id="page.stocks-list" class="page-main">
 
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
+            <p class="page-caption mb-2" th:text="|STOCKS / ${#numbers.formatInteger(page.totalCount(), 2)}|">STOCKS / 09</p>
             <h1 class="page-title" th:text="#{view.stock.list.header}">내 재고</h1>
-            <p class="mt-1 text-sm text-slate-500"
+            <p class="page-subtitle mt-1"
                th:text="${filtered} ? #{view.stock.list.description.filtered} : #{view.stock.list.description.all}"></p>
         </div>
         <a th:if="${filtered}"
            href="/stocks"
-           class="btn-secondary"
+           class="btn-secondary btn-sm"
            th:text="#{view.common.all}">
             전체 보기
         </a>
     </div>
 
     <div id="stock-detail-section" data-component-id="stocks.detail-section" aria-live="polite" th:fragment="stock-detail-section" class="space-y-3">
-        <div data-component-id="stocks.filter-card" class="card p-4 space-y-2">
+        <div data-component-id="stocks.filter-card" class="search-sort-block">
             <form data-component-id="stocks.search-form" hx-get="/stocks"
                   hx-target="#stock-detail-section"
                   hx-select="#stock-detail-section"
                   hx-swap="outerHTML"
                   hx-push-url="true"
-                  class="flex items-stretch">
+                  class="search-row">
                 <input type="hidden" name="sortBy" th:value="${sortBy}">
                 <input type="hidden" name="page" value="1">
                 <input th:if="${itemExternalId != null}" type="hidden" name="item" th:value="${item}">
@@ -38,7 +39,7 @@
                 <input th:if="${shelfExternalId != null}" type="hidden" name="shelf" th:value="${shelf}">
                 <input th:if="${boxExternalId != null}" type="hidden" name="box" th:value="${box}">
                 <select name="searchType"
-                        class="search-select rounded-l-md rounded-r-none border-r-0" th:attr="aria-label=#{aria.filter.searchType}">
+                        class="search-select border-r-0" th:attr="aria-label=#{aria.filter.searchType}">
                     <option value="all" th:selected="${searchType == null or searchType == 'all'}" th:text="#{view.stock.list.searchType.all}">전체</option>
                     <option value="item" th:selected="${searchType == 'item'}" th:text="#{view.stock.list.searchType.item}">품목명</option>
                     <option th:if="${lotSerialEnabled}" value="serial" th:selected="${searchType == 'serial'}" th:text="#{view.stock.list.searchType.serial}">시리얼</option>
@@ -49,32 +50,32 @@
                        name="keyword"
                        th:value="${keyword}"
                        th:placeholder="#{view.stock.list.searchPlaceholder}"
-                       class="search-input rounded-none">
+                       class="search-input border-r-0">
                 <button type="submit"
-                        class="btn-search btn-sm shrink-0 rounded-l-none rounded-r-md"
+                        class="btn-search shrink-0"
                         th:text="#{view.common.search}">
                     검색
                 </button>
             </form>
-            <div data-component-id="stocks.sort-controls" class="flex flex-wrap gap-1">
+            <div data-component-id="stocks.sort-controls" class="sort-row">
                 <button th:attr="hx-get=@{/stocks(sortBy='newest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'newest'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'newest'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.newest}">
                     가장 최신 순
                 </button>
                 <button th:attr="hx-get=@{/stocks(sortBy='oldest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'oldest'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'oldest'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.oldest}">
                     가장 오래된 순
                 </button>
                 <button th:attr="hx-get=@{/stocks(sortBy='name',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'name'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'name'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.name}">
                     품목명 순
                 </button>
@@ -83,8 +84,10 @@
 
         <div id="stock-detail-list"
              data-component-id="stocks.detail-list"
-             class="card overflow-hidden">
-            <div class="hidden md:grid stock-row gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+             class="table-container">
+            <div class="table-header stock-row">
+                <div class="index-col border-r border-line-soft"></div>
+                <div class="row-thumb-spacer" aria-hidden="true"></div>
                 <div th:text="#{view.stock.table.itemAndId}">품목 · 식별정보</div>
                 <div th:text="#{view.stock.table.location}">위치</div>
                 <div class="text-right" th:text="#{view.stock.table.manage}">관리</div>
@@ -96,9 +99,11 @@
                 표시할 재고가 없습니다.
             </p>
 
-            <div th:if="${!stocks.empty}" class="divide-y divide-slate-100">
-                <th:block th:each="stock : ${stocks}">
-                    <th:block th:replace="~{stocks/fragments/detail-row :: view(stock=${stock})}"></th:block>
+            <div th:if="${!stocks.empty}" class="divide-y divide-line-soft">
+                <th:block th:each="stock, iter : ${stocks}">
+                    <th:block th:with="idx=${iter.index + 1 + (page != null ? (page.page() - 1) * page.size() : 0)}">
+                        <th:block th:replace="~{stocks/fragments/detail-row :: view(stock=${stock})}"></th:block>
+                    </th:block>
                 </th:block>
             </div>
         </div>
@@ -108,7 +113,7 @@
             <button th:if="${page.hasPrevious()}"
                     th:attr="hx-get=@{/stocks(page=${page.previousPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                     hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                    class="btn-secondary btn-sm text-sm"
+                    class="btn-secondary btn-sm"
                     th:text="#{view.common.pagination.prev}">
                 이전
             </button>
@@ -122,7 +127,7 @@
             <button th:if="${page.hasNext()}"
                     th:attr="hx-get=@{/stocks(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
                     hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
-                    class="btn-secondary btn-sm text-sm"
+                    class="btn-secondary btn-sm"
                     th:text="#{view.common.pagination.next}">
                 다음
             </button>
