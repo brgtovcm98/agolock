@@ -57,10 +57,21 @@ public class ImageController {
     String username = principal.getName();
     ImageDTO image = imageStorageService.loadForUser(externalId, username);
     Resource resource = imageStorageService.load(image);
-    MediaType contentType =
-        image.getContentType() == null
-            ? MediaType.APPLICATION_OCTET_STREAM
-            : MediaType.parseMediaType(image.getContentType());
+    MediaType contentType;
+    if (image.getContentType() == null) {
+      contentType = MediaType.APPLICATION_OCTET_STREAM;
+    } else {
+      try {
+        contentType = MediaType.parseMediaType(image.getContentType());
+      } catch (org.springframework.http.InvalidMediaTypeException e) {
+        log.warn(
+            "invalid media type stored for image externalId={} contentType={}",
+            externalId,
+            image.getContentType(),
+            e);
+        contentType = MediaType.APPLICATION_OCTET_STREAM;
+      }
+    }
     String disposition =
         ContentDisposition.inline()
             .filename(
