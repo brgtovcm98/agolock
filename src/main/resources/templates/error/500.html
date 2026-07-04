@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(~{::title})}">
+    <title th:text="#{view.error.500.title}">서버 오류 - SeuStock</title>
+</head>
+<body class="page bg-surface-dim min-h-screen flex flex-col">
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+<main data-component-id="page.error-500" class="page-main mx-auto max-w-5xl px-4 py-16 text-center flex-1">
+    <p class="text-5xl font-bold text-disabled mb-4">500</p>
+    <h1 class="page-title mb-2" th:text="#{view.error.500.header}">서버 오류가 발생했습니다</h1>
+    <p class="text-muted mb-8" th:text="${errorMessage} ?: #{view.error.500.defaultMessage}">예기치 않은 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+    <button type="button" onclick="history.back()" class="btn-secondary text-sm" th:text="#{view.error.back}">돌아가기</button>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
