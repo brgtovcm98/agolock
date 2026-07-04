@@ -5,10 +5,10 @@
 <!-- ── 공간 선택 (legacy) ── -->
 <div th:fragment="space-list"
      id="modal" data-component-id="items.modal.add-stock-space" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-sm mx-4 p-6 flex flex-col gap-4">
+     class="modal-overlay">
+    <div class="modal-dialog modal-dialog-sm">
 
-        <div class="flex items-center justify-between">
+        <div class="modal-header">
             <h2 id="modal-title" class="modal-title">
                 <span th:text="#{view.item.addStock.title(${item.name})}">재고 추가</span>
             </h2>
@@ -16,7 +16,8 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition text-sm">
+                    class="modal-close"
+                    th:attr="aria-label=#{aria.modal.close}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -24,55 +25,56 @@
             </button>
         </div>
 
-        <div class="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
-            <img th:if="${item.primaryImageExternalId != null}"
-                 th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
-                 alt="" class="h-10 w-10 rounded-lg object-cover border border-slate-200">
-            <span th:unless="${item.primaryImageExternalId != null}"
-                  class="h-10 w-10 rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-400 text-xs">No img</span>
-            <span class="text-sm font-medium text-slate-800" th:text="${item.name}">품목명</span>
+        <div class="modal-body">
+            <div class="mb-5 flex items-center gap-3 border border-line-soft bg-surface-dim p-3">
+                <img th:if="${item.primaryImageExternalId != null}"
+                     th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
+                     alt="" class="h-12 w-12 border border-line-soft object-cover bg-surface">
+                <span th:unless="${item.primaryImageExternalId != null}"
+                      class="flex h-12 w-12 items-center justify-center border border-line-soft bg-surface text-xs text-faint">No img</span>
+                <span class="text-[15px] font-bold text-ink" th:text="${item.name}">품목명</span>
+            </div>
+
+            <p class="mb-3 text-sm text-muted" th:text="#{view.item.addStock.selectSpace}">재고를 추가할 공간을 선택하세요.</p>
+
+            <div th:if="${spaces.empty}" class="border border-line-soft bg-surface-dim px-4 py-3 text-sm text-muted"
+                 th:text="#{view.item.addStock.noSpace}">
+                등록된 공간이 없습니다. 먼저 공간을 등록해주세요.
+            </div>
+
+            <div th:unless="${spaces.empty}" class="border border-line">
+                <button th:each="space : ${spaces}"
+                        th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${space.externalId})}"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="flex w-full items-center justify-between border-b border-line-soft px-4 py-3 text-left text-sm transition-colors duration-120 ease-out hover:bg-surface-dim last:border-b-0">
+                    <span class="font-semibold text-ink" th:text="${space.name}">공간명</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-faint" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
         </div>
 
-        <p class="text-sm text-slate-500" th:text="#{view.item.addStock.selectSpace}">재고를 추가할 공간을 선택하세요.</p>
-
-        <div th:if="${spaces.empty}" class="alert-warning mb-0"
-             th:text="#{view.item.addStock.noSpace}">
-            등록된 공간이 없습니다. 먼저 공간을 등록해주세요.
-        </div>
-
-        <div th:unless="${spaces.empty}" class="divide-y divide-slate-100 border border-slate-200 rounded-lg max-h-56 overflow-y-auto">
-            <button th:each="space : ${spaces}"
-                    th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${space.externalId})}"
-                    hx-target="#modal"
-                    hx-swap="outerHTML"
-                    class="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-slate-50 transition text-sm">
-                <span class="text-sm font-medium text-slate-800" th:text="${space.name}">공간명</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
-            </button>
-        </div>
-
-        <div th:if="${spaces.empty}" class="flex justify-end">
+        <div th:if="${spaces.empty}" class="modal-footer">
             <button type="button"
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="btn-secondary text-sm"
+                    class="btn-secondary-strong btn-sm ml-auto"
                     th:text="#{view.common.close}">닫기</button>
         </div>
-
     </div>
 </div>
 
 <!-- ── 선반 선택 (legacy) ── -->
 <div th:fragment="shelf-list"
      id="modal" data-component-id="items.modal.add-stock-shelf" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-sm mx-4 p-6 flex flex-col gap-4">
+     class="modal-overlay">
+    <div class="modal-dialog modal-dialog-sm">
 
-        <div class="flex items-center justify-between">
+        <div class="modal-header">
             <h2 id="modal-title" class="modal-title">
                 <span th:text="#{view.item.addStock.title(${item.name})}">재고 추가</span>
             </h2>
@@ -80,7 +82,8 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition text-sm">
+                    class="modal-close"
+                    th:attr="aria-label=#{aria.modal.close}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -88,53 +91,54 @@
             </button>
         </div>
 
-        <p class="text-sm text-slate-500" th:text="#{view.item.addStock.selectShelf}">선반을 선택하세요.</p>
+        <div class="modal-body">
+            <p class="mb-3 text-sm text-muted" th:text="#{view.item.addStock.selectShelf}">선반을 선택하세요.</p>
 
-        <button th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},direct=true)}"
-                hx-target="#modal"
-                hx-swap="outerHTML"
-                class="flex items-center justify-between w-full px-4 py-3 text-left rounded-lg border border-slate-200 hover:bg-slate-50 transition text-sm">
-            <span class="text-sm text-slate-500" th:text="#{view.item.addStock.spaceRoot}">공간 루트 (선반 없이 추가)</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-            </svg>
-        </button>
-
-        <div th:if="${shelves.empty}" class="text-sm text-slate-400 text-center py-4"
-             th:text="#{view.item.addStock.noShelf}">
-            등록된 선반이 없습니다.
-        </div>
-
-        <div th:unless="${shelves.empty}" class="divide-y divide-slate-100 border border-slate-200 rounded-lg max-h-56 overflow-y-auto">
-            <button th:each="shelf : ${shelves}"
-                    th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
+            <button th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},direct=true)}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-slate-50 transition text-sm">
-                <span class="text-sm font-medium text-slate-800" th:text="${shelf.name}">선반명</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none"
+                    class="mb-3 flex w-full items-center justify-between border border-line px-4 py-3 text-left text-sm transition-colors duration-120 ease-out hover:bg-surface-dim">
+                <span class="text-muted" th:text="#{view.item.addStock.spaceRoot}">공간 루트 (선반 없이 추가)</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-faint" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
+
+            <div th:if="${shelves.empty}" class="border border-line-soft bg-surface-dim px-4 py-3 text-center text-sm text-muted"
+                 th:text="#{view.item.addStock.noShelf}">
+                등록된 선반이 없습니다.
+            </div>
+
+            <div th:unless="${shelves.empty}" class="border border-line">
+                <button th:each="shelf : ${shelves}"
+                        th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
+                        hx-target="#modal"
+                        hx-swap="outerHTML"
+                        class="flex w-full items-center justify-between border-b border-line-soft px-4 py-3 text-left text-sm transition-colors duration-120 ease-out hover:bg-surface-dim last:border-b-0">
+                    <span class="font-semibold text-ink" th:text="${shelf.name}">선반명</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-faint" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
         </div>
 
-        <div class="flex justify-between border-t border-slate-100 pt-2">
+        <div class="modal-footer">
             <button type="button"
                     th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-sm text-slate-500 hover:text-slate-700 transition"
+                    class="btn-text"
                     th:text="#{view.common.back}">← 뒤로</button>
             <button type="button"
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="btn-secondary text-sm"
+                    class="btn-secondary-strong btn-sm"
                     th:text="#{view.common.close}">닫기</button>
         </div>
-
     </div>
 </div>
 
@@ -143,11 +147,11 @@
 <!-- ════════════════════════════════════════════ -->
 <div th:fragment="unified-form"
      id="modal" data-component-id="items.modal.add-stock-form" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-sm mx-4 p-4 flex flex-col gap-3"
+     class="modal-overlay">
+    <div class="modal-dialog modal-dialog-sm"
          th:object="${form}">
 
-        <div class="flex items-center justify-between">
+        <div class="modal-header">
             <h2 id="modal-title" class="modal-title">
                 <span th:text="#{view.item.addStock.title(${item.name})}">재고 추가</span>
             </h2>
@@ -155,7 +159,8 @@
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition text-sm">
+                    class="modal-close"
+                    th:attr="aria-label=#{aria.modal.close}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -163,188 +168,191 @@
             </button>
         </div>
 
-        <div class="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
-            <img th:if="${item.primaryImageExternalId != null}"
-                 th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
-                 alt="" class="h-10 w-10 rounded-lg object-cover border border-slate-200">
-            <span th:unless="${item.primaryImageExternalId != null}"
-                  class="h-10 w-10 rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-400 text-xs">No img</span>
-            <span class="text-sm font-medium text-slate-800" th:text="${item.name}">품목명</span>
-        </div>
-
-        <!-- ── 공간 선택 ── -->
-        <div th:if="${spaces != null && !spaces.empty}">
-            <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectSpace}">공간 선택</p>
-            <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
-                <label th:each="space : ${spaces}"
-                       class="radio-pill">
-                    <input type="radio" name="spaceExternalId" th:value="${space.externalId}" class="sr-only" form="stock-form"
-                           th:checked="${form != null and form.spaceExternalId != null and form.spaceExternalId == space.externalId}"
-                           th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${space.externalId})}"
-                           hx-target="#shelf-radio-area"
-                           hx-swap="innerHTML"
-                           hx-trigger="change">
-                    <span class="radio-dot"></span>
-                    <span th:text="${space.name}">공간명</span>
-                </label>
+        <div class="modal-body">
+            <div class="mb-5 flex items-center gap-3 border border-line-soft bg-surface-dim p-3">
+                <img th:if="${item.primaryImageExternalId != null}"
+                     th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
+                     alt="" class="h-12 w-12 border border-line-soft object-cover bg-surface">
+                <span th:unless="${item.primaryImageExternalId != null}"
+                      class="flex h-12 w-12 items-center justify-center border border-line-soft bg-surface text-xs text-faint">No img</span>
+                <span class="text-[15px] font-bold text-ink" th:text="${item.name}">품목명</span>
             </div>
-            <span th:if="${#fields.hasErrors('spaceExternalId')}"
-                  th:errors="*{spaceExternalId}"
-                  class="field-error"></span>
-        </div>
-        <div th:if="${spaces == null || spaces.empty}" class="alert-warning mb-0 px-3 py-2 text-xs"
-             th:text="#{view.item.addStock.noSpace}">
-            등록된 공간이 없습니다.
-        </div>
 
-        <!-- ── 선반 영역 (선택 해제 가능) ── -->
-        <div id="shelf-radio-area">
-            <th:block th:if="${shelves != null and !shelves.empty}">
-                <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectShelf}">선반 선택</p>
-                <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
-                    <label th:each="shelf : ${shelves}"
-                           class="radio-pill">
-                        <input type="radio" name="shelfExternalId" th:value="${shelf.externalId}" class="sr-only" form="stock-form"
-                               data-deselectable data-clears-target="#box-radio-area"
-                               th:checked="${form != null and form.shelfExternalId != null and form.shelfExternalId == shelf.externalId}"
-                               th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
-                               hx-target="#box-radio-area"
+            <!-- ── 공간 선택 ── -->
+            <div th:if="${spaces != null && !spaces.empty}" class="mb-5">
+                <p class="field-label mb-2" th:text="#{view.item.addStock.selectSpace}">공간 선택</p>
+                <div class="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+                    <label th:each="space : ${spaces}" class="select-chip">
+                        <input type="radio" name="spaceExternalId" th:value="${space.externalId}" form="stock-form"
+                               th:checked="${form != null and form.spaceExternalId != null and form.spaceExternalId == space.externalId}"
+                               th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${space.externalId})}"
+                               hx-target="#shelf-radio-area"
                                hx-swap="innerHTML"
                                hx-trigger="change">
-                        <span class="radio-dot"></span>
-                        <span th:text="${shelf.name}">선반명</span>
+                        <span th:text="${space.name}">공간명</span>
                     </label>
                 </div>
-            </th:block>
-            <p th:if="${shelves != null and shelves.empty}"
-               class="text-xs text-slate-400 py-2"
-               th:text="#{view.item.addStock.noShelf}">등록된 선반이 없습니다.</p>
-        </div>
-
-        <!-- ── 박스 영역 (선택사항: 하나만 선택 가능한 체크박스) ── -->
-        <div id="box-radio-area">
-            <th:block th:if="${boxes != null and !boxes.empty}">
-                <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectBox}">박스 선택</p>
-                <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
-                    <label th:each="box : ${boxes}"
-                           class="radio-pill">
-                        <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
-                               data-single-select
-                               th:checked="${form != null and form.boxExternalId != null and form.boxExternalId == box.externalId}">
-                        <span class="radio-dot"></span>
-                        <span th:text="${box.name}">박스명</span>
-                    </label>
-                </div>
-            </th:block>
-        </div>
-
-        <form id="stock-form"
-              method="post"
-              th:action="@{/items/{id}/stocks(id=${item.externalId})}"
-              th:hx-post="@{/items/{id}/stocks(id=${item.externalId})}"
-              hx-target="#modal"
-              hx-swap="outerHTML">
-            <input type="hidden" th:field="*{itemExternalId}">
-
-            <div class="mb-3">
-                <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
-                <input type="number" th:field="*{count}" min="1" max="50"
-                       class="field-input">
-                <span th:if="${#fields.hasErrors('count')}"
-                      th:errors="*{count}"
+                <span th:if="${#fields.hasErrors('spaceExternalId')}"
+                      th:errors="*{spaceExternalId}"
                       class="field-error"></span>
             </div>
-
-            <div class="mb-3">
-                <label class="field-label">
-                    <span th:text="#{view.stock.form.price.label}">가격</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
-                </label>
-                <input type="number" min="0" step="1" th:field="*{price}"
-                       class="field-input"
-                       th:placeholder="#{view.stock.form.price.placeholder}">
+            <div th:if="${spaces == null || spaces.empty}" class="mb-5 border border-line-soft bg-surface-dim px-4 py-3 text-sm text-muted"
+                 th:text="#{view.item.addStock.noSpace}">
+                등록된 공간이 없습니다.
             </div>
 
-            <div class="mb-4">
-                <label class="field-label">
-                    <span th:text="#{view.stock.form.expiration.label}">유통기한</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
-                </label>
-                <input type="date" th:field="*{expirationDate}"
-                       class="field-input">
+            <!-- ── 선반 영역 (선택 해제 가능, 하나만 선택) ── -->
+            <div id="shelf-radio-area" class="mb-5">
+                <th:block th:if="${shelves != null and !shelves.empty}">
+                    <p class="field-label mb-2" th:text="#{view.item.addStock.selectShelf}">선반 선택</p>
+                    <div class="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+                        <label th:each="shelf : ${shelves}" class="select-chip">
+                            <input type="checkbox" name="shelfExternalId" th:value="${shelf.externalId}" form="stock-form"
+                                   data-single-select data-loads-on-check
+                                   th:attr="data-loads-url=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
+                                   data-loads-target="#box-radio-area"
+                                   data-clears-target="#box-radio-area"
+                                   th:checked="${form != null and form.shelfExternalId != null and form.shelfExternalId == shelf.externalId}">
+                            <span th:text="${shelf.name}">선반명</span>
+                        </label>
+                    </div>
+                    <span th:if="${#fields.hasErrors('shelfExternalId')}"
+                          th:errors="*{shelfExternalId}"
+                          class="field-error"></span>
+                </th:block>
+                <p th:if="${shelves != null and shelves.empty}"
+                   class="text-xs text-faint py-2"
+                   th:text="#{view.item.addStock.noShelf}">등록된 선반이 없습니다.</p>
             </div>
 
-            <div class="flex gap-2 justify-between">
-                <button type="button"
-                        hx-get="/empty"
-                        hx-target="#modal"
-                        hx-swap="outerHTML"
-                        class="text-sm text-slate-500 hover:text-slate-700 transition"
-                        th:text="#{view.common.cancel}">취소</button>
-                <button type="submit"
-                        class="btn-primary text-sm"
-                        th:text="#{view.common.add}">추가</button>
+            <!-- ── 박스 영역 (선택사항: 하나만 선택 가능한 체크박스) ── -->
+            <div id="box-radio-area" class="mb-5">
+                <th:block th:if="${boxes != null and !boxes.empty}">
+                    <p class="field-label mb-2">
+                        <span th:text="#{view.item.addStock.selectBox}">박스 선택</span>
+                        <span class="font-normal text-faint" th:text="|#{view.common.optional}|">(선택)</span>
+                    </p>
+                    <div class="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+                        <label th:each="box : ${boxes}" class="select-chip">
+                            <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" form="stock-form"
+                                   data-single-select
+                                   th:checked="${form != null and form.boxExternalId != null and form.boxExternalId == box.externalId}">
+                            <span th:text="${box.name}">박스명</span>
+                        </label>
+                    </div>
+                    <span th:if="${#fields.hasErrors('boxExternalId')}"
+                          th:errors="*{boxExternalId}"
+                          class="field-error"></span>
+                </th:block>
             </div>
-        </form>
 
+            <form id="stock-form"
+                  method="post"
+                  th:action="@{/items/{id}/stocks(id=${item.externalId})}"
+                  th:hx-post="@{/items/{id}/stocks(id=${item.externalId})}"
+                  hx-target="#modal"
+                  hx-swap="outerHTML">
+                <input type="hidden" th:field="*{itemExternalId}">
+
+                <div class="mb-5">
+                    <label class="field-label" th:text="#{view.stock.form.count.label}">수량</label>
+                    <input type="number" th:field="*{count}" min="1" max="50"
+                           class="field-input font-mono">
+                    <span th:if="${#fields.hasErrors('count')}"
+                          th:errors="*{count}"
+                          class="field-error"></span>
+                </div>
+
+                <div class="mb-5">
+                    <label class="field-label">
+                        <span th:text="#{view.stock.form.price.label}">가격</span>
+                        <span class="font-normal text-faint" th:text="#{view.common.optional}">(선택)</span>
+                    </label>
+                    <input type="number" min="0" step="1" th:field="*{price}"
+                           class="field-input font-mono"
+                           th:placeholder="#{view.stock.form.price.placeholder}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="field-label">
+                        <span th:text="#{view.stock.form.expiration.label}">유통기한</span>
+                        <span class="font-normal text-faint" th:text="#{view.common.optional}">(선택)</span>
+                    </label>
+                    <input type="date" th:field="*{expirationDate}"
+                           class="field-input font-mono">
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button"
+                    hx-get="/empty"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="btn-text"
+                    th:text="#{view.common.cancel}">취소</button>
+            <button type="submit"
+                    form="stock-form"
+                    class="btn-primary"
+                    th:text="#{view.common.add}">추가</button>
+        </div>
     </div>
-</div>
-<script th:inline="none">
-(function () {
-    var modal = document.getElementById('modal');
-    if (!modal) return;
-    /* mousedown fires before the browser updates checked state,
-       so we can snapshot whether the radio was already checked. */
-    modal.addEventListener('mousedown', function (e) {
-        var r = e.target.closest('input[type="radio"][data-deselectable]');
-        if (r) r._wasChecked = r.checked;
-    }, true);
-    /* On click, if the radio was already checked → uncheck it (deselect).
-       Programmatic uncheck does NOT fire 'change', so HTMX won't re-request.
-       We manually clear any dependent target instead. */
-    modal.addEventListener('click', function (e) {
-        var r = e.target.closest('input[type="radio"][data-deselectable]');
-        if (!r || !r._wasChecked) return;
-        r.checked = false;
-        r._wasChecked = false;
-        var targetSel = r.dataset.clearsTarget;
-        if (targetSel) {
-            var el = document.querySelector(targetSel);
-            if (el) el.innerHTML = '';
-        }
-    }, true);
+    <!-- fragment 안에 있어야 HTMX swap 시 함께 전달됨 (선반/박스 단일 선택 처리) -->
+    <script th:inline="none">
+    (function () {
+        var modal = document.getElementById('modal');
+        if (!modal) return;
 
-    /* 신규: 체크박스 하나만 선택 가능 + 선택 해제 가능 */
+    var handling = false;
     modal.addEventListener('change', function (e) {
         var cb = e.target.closest('input[type="checkbox"][data-single-select]');
-        if (!cb || !cb.checked) return;
-        // 동일 name의 다른 체크박스는 모두 해제
-        modal.querySelectorAll('input[type="checkbox"][name="' + cb.name + '"]').forEach(function (other) {
-            if (other !== cb) other.checked = false;
-        });
+        if (!cb || handling) return;
+
+        var name = cb.name;
+        var isShelf = name === 'shelfExternalId';
+
+        if (cb.checked) {
+            handling = true;
+            modal.querySelectorAll('input[type="checkbox"][name="' + name + '"]').forEach(function (other) {
+                if (other !== cb) other.checked = false;
+            });
+            handling = false;
+
+            if (isShelf && cb.dataset.loadsOnCheck !== undefined) {
+                var url = cb.dataset.loadsUrl;
+                var target = cb.dataset.loadsTarget;
+                if (url && target && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', url, {target: target, swap: 'innerHTML'});
+                }
+            }
+        } else if (isShelf) {
+            var clearsTarget = cb.dataset.clearsTarget;
+            if (clearsTarget) {
+                var el = document.querySelector(clearsTarget);
+                if (el) el.innerHTML = '';
+            }
+        }
     });
 })();
-</script>
+    </script>
+</div>
 
 <!-- ── 선반 응답 (HTMX 부분 응답) ── -->
 <div th:fragment="shelf-oob">
     <th:block th:if="${shelves != null && !shelves.empty}">
-        <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectShelf}">선반 선택</p>
-        <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
-            <label th:each="shelf : ${shelves}"
-                   class="radio-pill">
-                <input type="radio" name="shelfExternalId" th:value="${shelf.externalId}" class="sr-only" form="stock-form"
-                       data-deselectable data-clears-target="#box-radio-area"
-                       th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
-                       hx-target="#box-radio-area"
-                       hx-swap="innerHTML"
-                       hx-trigger="change">
-                <span class="radio-dot"></span>
+        <p class="field-label mb-2" th:text="#{view.item.addStock.selectShelf}">선반 선택</p>
+        <div class="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+            <label th:each="shelf : ${shelves}" class="select-chip">
+                <input type="checkbox" name="shelfExternalId" th:value="${shelf.externalId}" form="stock-form"
+                       data-single-select data-loads-on-check
+                       th:attr="data-loads-url=@{/items/{id}/add-stock(id=${item.externalId},spaceId=${spaceId},shelfId=${shelf.externalId})}"
+                       data-loads-target="#box-radio-area"
+                       data-clears-target="#box-radio-area">
                 <span th:text="${shelf.name}">선반명</span>
             </label>
         </div>
     </th:block>
-    <p th:if="${shelves == null || shelves.empty}" class="text-xs text-slate-400 py-2"
+    <p th:if="${shelves == null || shelves.empty}" class="text-xs text-faint py-2"
        th:text="#{view.item.addStock.noShelf}">등록된 선반이 없습니다.</p>
     <div id="box-radio-area" hx-swap-oob="true"><!-- clear --></div>
 </div>
@@ -352,13 +360,14 @@
 <!-- ── 박스 응답 (HTMX 부분 응답) ── -->
 <div th:fragment="box-oob">
     <th:block th:if="${boxes != null && !boxes.empty}">
-        <p class="text-xs font-medium text-slate-500 mb-1.5" th:text="#{view.item.addStock.selectBox}">박스 선택</p>
-        <div class="overflow-x-auto whitespace-nowrap flex gap-2 pb-1">
-            <label th:each="box : ${boxes}"
-                   class="radio-pill">
-                <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" class="sr-only" form="stock-form"
+        <p class="field-label mb-2">
+            <span th:text="#{view.item.addStock.selectBox}">박스 선택</span>
+            <span class="font-normal text-faint" th:text="|#{view.common.optional}|">(선택)</span>
+        </p>
+        <div class="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+            <label th:each="box : ${boxes}" class="select-chip">
+                <input type="checkbox" name="boxExternalId" th:value="${box.externalId}" form="stock-form"
                        data-single-select>
-                <span class="radio-dot"></span>
                 <span th:text="${box.name}">박스명</span>
             </label>
         </div>
