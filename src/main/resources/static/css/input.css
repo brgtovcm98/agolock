@@ -233,7 +233,7 @@
 
     /* ── Modal ── */
     .modal-overlay     { @apply fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-4; }
-    .modal-dialog      { @apply max-h-[min(90vh,48rem)] w-full overflow-y-auto border border-ink bg-surface; }
+    .modal-dialog      { @apply max-h-[min(90vh,48rem)] w-full overflow-y-auto border border-ink bg-white/75 backdrop-blur-sm; }
     .modal-dialog-sm   { @apply max-w-[560px]; }
     .modal-dialog-md   { @apply max-w-[640px]; }
     .modal-header      { @apply flex items-center justify-between border-b border-line-soft px-6 py-5; }

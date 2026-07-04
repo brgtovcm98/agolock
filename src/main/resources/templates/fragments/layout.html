@@ -40,8 +40,7 @@
                 var isError = type === 'error';
                 var toast = document.createElement('div');
                 toast.setAttribute('data-component-id', 'feedback.toast');
-                toast.className = 'flex items-center gap-2 border px-4 py-3 text-sm leading-5 transition-colors duration-120 ease-out mb-0 ' +
-                    (isError ? 'border-danger bg-surface text-danger' : 'border-ink bg-ink text-white');
+                toast.className = 'flex items-center gap-2 border px-4 py-3 text-sm leading-5 transition-colors duration-120 ease-out mb-0 border-ink bg-white/75 text-ink backdrop-blur-sm';
 
                 var msgSpan = document.createElement('span');
                 msgSpan.className = 'flex-1';
@@ -179,7 +178,7 @@
                 메뉴 ▾
             </summary>
             <div class="absolute right-0 top-full mt-1 min-w-[140px]
-                        border border-ink bg-surface py-1 z-50">
+                        border border-ink bg-white/75 py-1 z-50 text-ink backdrop-blur-sm">
                 <th:block th:if="${currentUsername != null}">
                     <div class="px-4 py-2 text-xs text-muted font-mono"
                          th:text="${currentNickname}"></div>

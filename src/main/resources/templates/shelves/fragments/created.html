@@ -7,7 +7,7 @@
     th:id="'shelf-' + ${shelf.externalId}"
     class="border-b border-line-soft last:border-0">
 
-    <div class="flex items-center gap-1 px-3 py-2 hover:bg-surface-dim transition cursor-pointer group"
+    <div class="flex items-center gap-1 px-3 hover:bg-surface-dim transition cursor-pointer group"
          th:attr="onclick='toggleBoxList(\'' + ${shelf.externalId} + '\', this)',
                   hx-get=@{/spaces/{sid}/shelves/{id}/boxes(sid=${space},id=${shelf.externalId})},
                   hx-target='#box-list-' + ${shelf.externalId}"

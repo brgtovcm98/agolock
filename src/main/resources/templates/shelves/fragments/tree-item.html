@@ -7,7 +7,7 @@
     class="border-b border-line-soft last:border-0">
 
     <!-- Shelf 헤더: 클릭 첫 번째→HTMX로 Box 목록 로드, 이후→JS 토글 -->
-    <div class="tree-item-container flex items-center gap-1 px-3 py-3 hover:bg-surface-dim active:bg-surface-dim transition cursor-pointer group" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){this.click()}"
+    <div class="tree-item-container flex items-center gap-1 px-3 hover:bg-surface-dim active:bg-surface-dim transition cursor-pointer group" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){this.click()}"
          th:attr="onclick='toggleBoxList(\'' + ${shelf.externalId} + '\', this)',
                   hx-get=@{/spaces/{sid}/shelves/{id}/boxes(sid=${space},id=${shelf.externalId})},
                   hx-target='#box-list-' + ${shelf.externalId}"
