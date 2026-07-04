@@ -145,6 +145,13 @@
                        th:text="#{view.nav.myStocks}">내 재고</a>
                 </div>
                 <span class="h-3.5 w-px bg-line"></span>
+                <div class="flex items-center">
+                    <a href="/account"
+                       th:classappend="${activeNav == 'account'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
+                       class="px-3 py-1.5 text-sm transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myAccount}">내 계정</a>
+                </div>
+                <span class="h-3.5 w-px bg-line"></span>
                 <span class="font-mono text-[12.5px] text-muted" th:text="${currentNickname}"></span>
                 <form th:action="@{/logout}" method="post" class="inline">
                     <button type="submit"
@@ -186,6 +193,9 @@
                     <a href="/stocks"
                        class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
                        th:text="#{view.nav.myStocks}">내 재고</a>
+                    <a href="/account"
+                       class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myAccount}">내 계정</a>
                     <hr class="border-line-soft mx-2 my-1"/>
                     <form th:action="@{/logout}" method="post">
                         <button type="submit"

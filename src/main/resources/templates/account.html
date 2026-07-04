@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head(~{::title})}">
+    <title th:text="#{view.account.title}">계정 관리 · SeuStock</title>
+</head>
+<body class="page min-h-screen flex flex-col">
+
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+
+<main data-component-id="page.account" class="page-main flex flex-1 items-start justify-center px-4 pt-[120px] pb-12">
+    <div data-component-id="account.card" class="w-full max-w-[440px] border border-ink bg-surface p-10">
+
+        <div class="mb-8">
+            <p class="page-caption mb-2">ACCOUNT</p>
+            <h1 class="text-2xl font-extrabold text-ink" th:text="#{view.account.header}">계정 관리</h1>
+        </div>
+
+        <!-- 닉네임 변경 -->
+        <section data-component-id="account.nickname" class="mb-10">
+            <h2 class="mb-4 text-base font-bold text-ink" th:text="#{view.account.nickname.title}">닉네임 변경</h2>
+
+            <form th:action="@{/account/nickname}" th:object="${nicknameForm}" method="post" class="space-y-4">
+                <div>
+                    <label for="nickname" class="field-label" th:text="#{view.account.nickname.label}">닉네임</label>
+                    <input type="text" id="nickname" th:field="*{nickname}"
+                           th:classappend="${#fields.hasErrors('nickname')} ? 'is-invalid'"
+                           class="field-input h-11"
+                           autocomplete="nickname">
+                    <span th:if="${#fields.hasErrors('nickname')}"
+                          th:errors="*{nickname}"
+                          class="field-error"></span>
+                </div>
+
+                <button type="submit"
+                        class="btn-primary h-11 w-full text-[14px] font-bold"
+                        th:text="#{view.account.nickname.button}">
+                    닉네임 변경
+                </button>
+            </form>
+        </section>
+
+        <hr class="border-line mb-10"/>
+
+        <!-- 비밀번호 변경 -->
+        <section data-component-id="account.password">
+            <h2 class="mb-4 text-base font-bold text-ink" th:text="#{view.account.password.title}">비밀번호 변경</h2>
+
+            <form th:action="@{/account/password}" th:object="${passwordForm}" method="post" class="space-y-4">
+                <div>
+                    <label for="currentPassword" class="field-label" th:text="#{view.account.password.current}">현재 비밀번호</label>
+                    <input type="password" id="currentPassword" th:field="*{currentPassword}"
+                           th:classappend="${#fields.hasErrors('currentPassword')} ? 'is-invalid'"
+                           class="field-input h-11"
+                           autocomplete="current-password">
+                    <span th:if="${#fields.hasErrors('currentPassword')}"
+                          th:errors="*{currentPassword}"
+                          class="field-error"></span>
+                </div>
+
+                <div>
+                    <label for="newPassword" class="field-label" th:text="#{view.account.password.new}">새 비밀번호</label>
+                    <input type="password" id="newPassword" th:field="*{newPassword}"
+                           th:classappend="${#fields.hasErrors('newPassword')} ? 'is-invalid'"
+                           class="field-input h-11"
+                           autocomplete="new-password">
+                    <span th:if="${#fields.hasErrors('newPassword')}"
+                          th:errors="*{newPassword}"
+                          class="field-error"></span>
+                </div>
+
+                <div>
+                    <label for="newPasswordConfirm" class="field-label" th:text="#{view.account.password.newConfirm}">새 비밀번호 확인</label>
+                    <input type="password" id="newPasswordConfirm" th:field="*{newPasswordConfirm}"
+                           th:classappend="${#fields.hasErrors('newPasswordConfirm')} ? 'is-invalid'"
+                           class="field-input h-11"
+                           autocomplete="new-password">
+                    <span th:if="${#fields.hasErrors('newPasswordConfirm')}"
+                          th:errors="*{newPasswordConfirm}"
+                          class="field-error"></span>
+                </div>
+
+                <button type="submit"
+                        class="btn-primary h-11 w-full text-[14px] font-bold"
+                        th:text="#{view.account.password.button}">
+                    비밀번호 변경
+                </button>
+            </form>
+        </section>
+
+    </div>
+</main>
+
+</body>
+</html>
