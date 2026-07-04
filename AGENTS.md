@@ -1,49 +1,205 @@
-# Repository Guidelines
+# SeuStock / Agolock — AI Agent Guidelines
 
-## Project Structure & Module Organization
+## 프로젝트 개요
 
-Agolock is a Java Spring Boot web application built with Gradle Kotlin DSL. Main code lives under `src/main/java/com/seu/seustock`: `controller` handles MVC and HTMX partial responses, `service` contains business logic (with `service/ai` for YOLO/Gemma image analysis), `mapper` defines MyBatis interfaces, `configuration` holds framework wiring (security, session, exception handling, type handlers), and `model` contains DTOs, forms, enums, and pagination types.
+**SeuStock**은 **Team Ugui**가 개발하는 개인 또는 소규모 팀용 재고 관리 애플리케이션입니다. 저장소 이름은 `agolock`이며, Spring Boot 애플리케이션 이름은 `Agolock`입니다. 사용자는 공간 → 선반 → 박스로 이루어진 계층적 위치에 품목과 개별 재고 단위를 등록·추적할 수 있습니다.
 
-SQL mapper XML files are in `src/main/resources/mapper`, Flyway migrations in `src/main/resources/db/migration`, Thymeleaf pages and HTMX fragments in `src/main/resources/templates`, static CSS/JS/images in `src/main/resources/static`, and localization files in `messages*.properties` (ko, en, ja, mn). The CSS design token system lives in `static/css/ui.css` and provides `ui-*` utility classes.
+## 기술 스택 및 아키텍처
 
-Tests mirror main packages under `src/test/java`; H2 test configuration and schema are in `src/test/resources`.
+| 구분 | 내용 |
+| --- | --- |
+| Language | Java 25 |
+| Build Tool | Gradle 9.5.0 (Kotlin DSL) |
+| Framework | Spring Boot 4.0.6 |
+| View | Thymeleaf (SSR), HTMX 2, Tailwind CSS v4 |
+| Persistence | MyBatis 4.0.1, Flyway |
+| Database | PostgreSQL (local/prod), H2 (test) |
+| Session | Spring Session Redis (prod 기본), `none` fallback (local) |
+| Image Storage | MinIO (`@Primary`), local file fallback |
+| AI | Spring AI Ollama (Gemma), YOLO HTTP 전처리 |
+| QR | ZXing |
+| 기타 | Lombok, Bean Validation, Spring Security, Spring Mail |
 
-## Build, Test, and Development Commands
+**요청 흐름:** HTTP → `@Controller` → `Service` → MyBatis `Mapper` 인터페이스 → XML 매퍼 → PostgreSQL
+**렌더링:** 전체 페이지는 Thymeleaf SSR, 모달·인라인 수정·토스트 알림 등 상호작용은 HTMX 부분 갱신.
 
-Use the Gradle wrapper rather than a system Gradle install.
+Tailwind CSS는 `package.json`에 등록된 `@tailwindcss/cli`로 컴파일합니다. 소스는 `src/main/resources/static/css/input.css`이며, 빌드 결과물은 `static/css/main.css`입니다.
 
-```bash
-./gradlew bootRun --args='--spring.profiles.active=local'
-./gradlew build
-./gradlew test
-./gradlew test --tests "com.seu.seustock.mapper.UserMapperTest"
-./gradlew spotlessApply          # Auto-format Java with google-java-format
-./gradlew jacocoTestReport       # Generate coverage report after tests
-./gradlew sonar                  # Run SonarQube static analysis
+## 프로젝트 구조
+
+```text
+src/main/java/com/seu/seustock
+├── configuration/   # SecurityConfig, WebMvcConfig, AppConfig, MinioConfig,
+│                    # UUIDTypeHandler, GlobalExceptionHandler, GlobalModelAttributes,
+│                    # HtmxResponse, AuthenticatedUser
+├── controller/      # Thymeleaf/HTMX 컨트롤러 (+ support/ 공통 헬퍼)
+├── mapper/          # MyBatis Mapper 인터페이스
+├── model/
+│   ├── dto/         # 쿼리 결과 DTO
+│   ├── enumeration/ # StockStatus, TransactionType, TrackingMode 등
+│   ├── form/        # 요청 폼 및 검증 모델
+│   └── pagination/  # PageRequest, PageResult<T>
+└── service/
+    ├── ai/          # ImageAnalysisService, YoloDetectionClient, GemmaVisionClient 등
+    └── (root)       # 비즈니스 로직 및 ImageStorageService 구현체
+
+src/main/resources
+├── db/migration/    # Flyway 마이그레이션 (V1 ~ V9)
+├── mapper/          # MyBatis XML 매핑 파일
+├── static/          # JS, CSS, 이미지 샘플
+├── templates/       # Thymeleaf 페이지 및 fragments
+└── messages*.properties  # 한국어(기본), 영어, 일본어, 중국어, 몽골어
+
+src/test
+├── java/            # Mapper, Service, Controller 테스트
+└── resources/       # application-test.properties, schema-test.sql
 ```
 
-`bootRun` starts the app on port `8080`. The `local` profile enables PostgreSQL, Redis, and MinIO via Docker Compose (`compose.yaml`). `build` compiles, runs tests with JaCoCo coverage, and packages the application. `test` runs JUnit 5 tests against H2 and does not require Docker.
+## 빌드, 실행, 테스트 명령어
 
-## Coding Style & Naming Conventions
+Gradle wrapper를 사용합니다.
 
-Spotless enforces google-java-format (1.27.0), removes unused imports, trims trailing whitespace, and adds a final newline. Use 4-space indentation for Java and lowercase package names. DTOs use Lombok `@Getter`, `@Setter`, and `@ToString`; avoid `@Data` for query result DTOs. External-facing identifiers in model attributes use short-form keys: `space`, `shelf`, `box`, `item` (not `spaceExternalId`, etc.). MyBatis XML namespaces must match mapper interface names, and database columns rely on underscore-to-camel-case mapping unless an existing mapper uses a `resultMap`.
+```bash
+# 로컬 개발 실행 (local 프로필)
+./gradlew bootRun --args='--spring.profiles.active=local'
 
-## Testing Guidelines
+# 또는 spring-boot-docker-compose 의존성이 compose.yaml을 자동 시작 (Docker 필요)
+./gradlew bootRun
 
-Mapper tests use `@MybatisTest`, `@ActiveProfiles("test")`, `@Sql("classpath:schema-test.sql")`, and H2 PostgreSQL compatibility. Service tests use Mockito with `@ExtendWith(MockitoExtension.class)` and should cover validation, ownership checks, and stock ledger behavior. Controller tests extend `AbstractControllerTest` for Spring MVC with Spring Security support. Name tests after the unit under test, such as `StockServiceTest` or `UserMapperTest`, and run focused tests with `./gradlew test --tests "...ClassName"`.
+# 전체 빌드 (컴파일 + 테스트 + JaCoCo 커버리지)
+./gradlew build
 
-## Commit & Pull Request Guidelines
+# 테스트만 실행 (H2 사용, Docker 불필요)
+./gradlew test
+./gradlew test --tests "com.seu.seustock.mapper.UserMapperTest"
+./gradlew test --tests "com.seu.seustock.mapper.*"
 
-Recent history uses Conventional Commit style subjects (e.g., `feat: ...`, `refactor: ...`, `fix: ...`, `style(ui): ...`, `docs: ...`). Keep commits focused on one feature or layer. Pull requests should include a short behavior summary, linked issue or plan when applicable, test commands run, screenshots for UI changes, and notes for schema, configuration, or localization updates.
+# 코드 포맷 (google-java-format)
+./gradlew spotlessApply
 
-## Security & Configuration Tips
+# 커버리지 리포트 생성
+./gradlew jacocoTestReport
 
-Do not commit credentials. Sensitive values use environment variables (gated by `MAIL_TYPE`, `MAIL_USERNAME`, `MAIL_PASSWORD`, etc.). Feature flags in `application.properties` control optional capabilities: `seustock.features.lot-serial-enabled` gates serial/lot tracking UI, `seustock.datainit.enabled` controls seed data generation, and `seustock.ai.yolo.enabled` toggles YOLO preprocessing. Persistence changes require a new Flyway migration plus updates to `src/test/resources/schema-test.sql` and relevant mapper tests.
+# SonarQube 정적 분석 (자체 호스팅/로컬, SONAR_HOST_URL/SONAR_TOKEN 환경변수)
+./gradlew sonar
+```
 
-## Key Dependencies & Architecture Notes
+`bootRun` 기본 포트는 `8080`입니다. `local` 프로필은 `application-local.properties`에서 PostgreSQL 포트 5433, local 파일 이미지 저장, 선택적 Redis 세션, Ollama/YOLO 엔드포인트를 설정합니다.
 
-- **Session**: Redis-backed via `RedisSerializer.json()`. Local profile can fall back to `none`.
-- **Image Storage**: MinIO (default) with `LocalImageStorageService` fallback. Configured via `seustock.image-storage.type`.
-- **AI Pipeline**: YOLO HTTP detection → Gemma/Ollama vision analysis, with graceful degradation when services are unavailable.
-- **QR Codes**: ZXing-based; `app.qr-base-url` must not change after QR codes are printed.
-- **Password Reset**: Redis-backed token store with configurable TTL and resend cooldown. Mail backend switches between `logging` (dev) and `smtp` (prod).
+Tailwind CSS 컴파일:
+
+```bash
+npm run build    # production minify
+npm run watch    # 개발 watch 모드
+```
+
+## 코드 스타일 및 명명 규칙
+
+- Spotless가 google-java-format 1.27.0을 적용하고, 미사용 import 제거, trailing whitespace 제거, 파일 끝 개행을 추가합니다.
+- Java 들여쓰기 4칸, 소문자 패키지명.
+- DTO에는 Lombok `@Getter`, `@Setter`, `@ToString` 사용. 쿼리 결과 DTO에는 `@Data` 사용 금지.
+- DB 컬럼은 `snake_case`, Java 필드는 `camelCase`. `mybatis.configuration.map-underscore-to-camel-case=true`가 자동 매핑합니다. 기존 `<resultMap>`이 없는 매퍼에서는 수동 alias를 추가하지 않습니다.
+- 모든 테이블은 내용 `id`(SERIAL)와 외부 노출용 `external_id`(UUID)를 가집니다. URL/응답에는 `external_id`만 사용합니다.
+- 외부 식별자 속성명은 짧은 형태 사용: `space`, `shelf`, `box`, `item` (`spaceExternalId` 등 사용 안 함).
+- MyBatis XML namespace는 매퍼 인터페이스 전체 클래스명과 정확히 일치해야 합니다.
+- UUID는 `UUIDTypeHandler`가 처리하며, `mybatis.type-handlers-package`에 등록되어 있습니다.
+
+## 데이터베이스 및 마이그레이션
+
+- 스키마 버전 관리는 `src/main/resources/db/migration/`의 Flyway 마이그레이션 파일(V1 ~ V9)이 담당합니다.
+- 테스트에서는 Flyway가 비활성화되고, `src/test/resources/schema-test.sql`(H2 호환 DDL)이 `@Sql`로 로드됩니다.
+- **스키마 변경 시 반드시** 새 Flyway 파일을 추가하고, `schema-test.sql`과 관련 매퍼 테스트를 함께 갱신하세요.
+- H2 테스트 스키마는 `BIGINT GENERATED BY DEFAULT AS IDENTITY`와 `RANDOM_UUID()`를 사용합니다.
+
+주요 엔티티:
+
+- `users` — 사용자 계정 (로그인 식별자는 `email`)
+- `spaces` — 사용자별 보관 공간
+- `shelves` — 공간 하위 선반
+- `boxes` — 선반 하위 박스
+- `items` — 품목 마스터 (가격, 시리얼/로트 추적 설정 포함)
+- `item_lots` — 품목별 로트/배치
+- `stocks` — 개별 물리적 재고 단위 (1 row = 1 unit)
+- `stock_transactions` — 입고/출고/이동/조정 이력
+- `images`, `item_images`, `stock_images` — 이미지 메타데이터 및 연결
+
+## 보안 및 인증
+
+- Spring Security가 모든 경로를 기본 보호합니다. 공개 경로는 `/login`, `/register`, `/register/check-email`, `/password/forgot`, `/password/reset`, 정적 리소스, `/api/qr/generate`, `/api/qr/modal` 등입니다.
+- 로그인 식별자는 **이메일**입니다. `Principal.getName()`은 이메일을 반환하며, 소유권 체크에 사용됩니다.
+- 비밀번호는 BCrypt로 해시하며, 강도는 `security.bcrypt.strength=10`입니다.
+- CSRF는 `CookieCsrfTokenRepository.withHttpOnlyFalse()`로 관리되며, HTMX 요청은 `X-XSRF-TOKEN` 헤더에 쿠키 값을 포함해야 합니다.
+- 세션은 운영 환경에서 Redis를 사용합니다. local 프로필 기본값은 `spring.session.store-type=none`입니다.
+- 민감 정보는 절대 커밋하지 않고 환경변수로 주입합니다. 운영 필수 환경변수: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `APP_BASE_URL`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `REDIS_HOST`, `OLLAMA_BASE_URL`.
+
+## 이미지 저장 및 AI 분석
+
+- `ImageStorageService` 인터페이스에 `MinioImageStorageService`(`@Primary`)와 `LocalImageStorageService`가 있습니다. `seustock.image-storage.type`으로 선택합니다.
+- 이미지는 `(user_id, content_hash)`로 중복 관리합니다. 업로드 시 `ImageFileValidator.validateAndNormalizeContentType()`으로 실제 magic bytes까지 검증합니다.
+- AI 분석 파이프라인: 이미지 리사이즈(1024px) → 선택적 YOLO 탐지 → Gemma(Ollama) 분석 → `ImageAnalysisDTO`.
+- YOLO 실패/비활성화 시 Gemma 단독 분석으로 fallback합니다. Gemma/Ollama 응답 실패 시 "현재 AI 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해주세요." 메시지를 반환합니다.
+- AI 기능은 `seustock.ai.yolo.enabled`로 제어합니다.
+
+## 국제화(i18n)
+
+- 기본 언어는 한국어입니다. 메시지 파일은 `messages.properties`, `messages_en.properties`, `messages_ja.properties`, `messages_mn.properties`, `messages_zh_CN.properties`입니다.
+- 새 UI 문자열을 추가할 때는 모든 locale 파일에 key를 추가하세요.
+- Enum 레이블은 `#{enum.<EnumName>.<CONSTANT>}` 형식의 메시지 키를 사용합니다.
+- 서비스 계층과 `GlobalExceptionHandler`는 `MessageSource` + `LocaleContextHolder.getLocale()`로 런타임에 메시지를 해석합니다.
+
+## 테스트 가이드
+
+**Mapper 테스트:**
+
+```java
+@MybatisTest
+@ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Sql("classpath:schema-test.sql")
+class SomeMapperTest { ... }
+```
+
+**Service 테스트:** Mockito 기반, `@ExtendWith(MockitoExtension.class)` 사용.
+
+**Controller 테스트:** `AbstractControllerTest`를 상속받아 `@MockitoBean`으로 서비스를 대체하고 HTTP 계약만 검증합니다. `hasToastTrigger()` matcher로 `HX-Trigger` 토스트 이벤트를 검증할 수 있습니다.
+
+## 주요 개발 규칙
+
+- **소유권 체크:** 사용자 데이터에 접근하는 모든 서비스 메서드는 엔티티 조회 → 소유 사용자 조회 → `Principal.getName()`과 이메일 비교 → 불일치 시 `SecurityException`을 던집니다.
+- **재고 트랜잭션:** `stocks` 행을 삽입/변경하는 서비스 메서드는 같은 `@Transactional` 메서드 안에서 대응하는 `stock_transactions` 행도 기록해야 합니다.
+- **위치 검증:** `StockService.resolveVerifiedLocation()`으로 공간→선반→박스 계층과 소유권을 한 번에 검증하세요.
+- **예외:** 서비스는 표준 예외(`NoSuchElementException`, `SecurityException`, `IllegalArgumentException`, `IllegalStateException`)를 사용합니다. `GlobalExceptionHandler`가 404/403/400 뷰로 매핑합니다.
+- **HTMX 응답:** `HtmxResponse.success()` / `HtmxResponse.error()`로 `HX-Trigger` 토스트 헤더를 설정합니다.
+- **Thymeleaf fragment:** HTMX 부분 응답은 `templates/<entity>/fragments/`에 위치하고, 컨트롤러는 `"<entity>/fragments/<file> :: <fragment-name>"` 형태로 반환합니다.
+- **CSS:** `static/css/input.css`만 수정하고, `main.css`는 직접 편집하지 마세요. 시맨틱 컴포넌트 클래스(`btn-primary`, `card`, `badge-blue` 등)를 사용합니다.
+
+## 기능 플래그
+
+| 플래그 | 설명 | 기본값 |
+| --- | --- | --- |
+| `seustock.features.lot-serial-enabled` | 시리얼/로트 추적 UI | `false` |
+| `seustock.datainit.enabled` | 로컬 시드 데이터 생성 | `local`에서 `true`, 그 외 `false` |
+| `seustock.ai.yolo.enabled` | YOLO 전처리 사용 | `false` (local에서 `true`) |
+| `seustock.image-storage.type` | 이미지 저장소 | `minio` (local에서 `local`) |
+
+## 배포 및 운영
+
+- 운영 실행: `SPRING_PROFILES_ACTIVE=prod java -jar build/libs/SeuStock-*.jar`
+- 운영 환경은 Redis와 MinIO(또는 S3 호환 오브젝트 스토리지)를 필수로 구성해야 합니다. local fallback은 세션 일관성 및 파일 유실 위험 때문에 운영에서 자동 적용되지 않습니다.
+- `app.qr-base-url`은 QR 코드 출력 후 변경하지 않아야 합니다. 서버 주소가 바뀌면 기존 URL에서 새 주소로 리다이렉트하도록 구성하세요.
+- HTTPS 리버스 프록시(Nginx 등) 사용을 권장합니다.
+- 이 저장소에는 `.github` 워크플로우나 CI/CD 설정 파일이 없습니다.
+
+## 커밋 컨벤션
+
+Conventional Commits 스타일을 사용합니다:
+
+- `feat:`
+- `fix:`
+- `refactor:`
+- `style(ui):`
+- `docs:`
+- `test:`
+- `chore:`
+
+각 커밋은 하나의 기능이나 계층에 집중하세요.
