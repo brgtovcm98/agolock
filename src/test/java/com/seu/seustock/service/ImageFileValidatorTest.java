@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +27,17 @@ class ImageFileValidatorTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(messageSource.getMessage(eq("error.image.invalidFormat"), any(), any()))
-        .thenReturn("지원하지 않는 이미지 형식입니다.");
-    lenient()
-        .when(messageSource.getMessage(eq("error.image.readFailed"), any(), any()))
-        .thenReturn("이미지 파일을 읽을 수 없습니다.");
     validator = new ImageFileValidator(messageSource);
+  }
+
+  private void stubMessageSource() {
+    when(messageSource.getMessage(eq("error.image.invalidFormat"), any(), any()))
+        .thenReturn("지원하지 않는 이미지 형식입니다.");
+  }
+
+  private void stubReadFailedMessage() {
+    when(messageSource.getMessage(eq("error.image.readFailed"), any(), any()))
+        .thenReturn("이미지 파일을 읽을 수 없습니다.");
   }
 
   @ParameterizedTest(name = "{1}")
@@ -58,6 +62,7 @@ class ImageFileValidatorTest {
 
   @Test
   void validateAndNormalizeContentType_rejectsMismatchedSignature() {
+    stubMessageSource();
     MockMultipartFile file =
         new MockMultipartFile("imageFile", "image.jpg", "image/jpeg", pngBytes());
 
@@ -68,6 +73,7 @@ class ImageFileValidatorTest {
 
   @Test
   void validateAndNormalizeContentType_rejectsUnsupportedDeclaredContentType() {
+    stubMessageSource();
     MockMultipartFile file =
         new MockMultipartFile("imageFile", "image.txt", "text/plain", jpegBytes());
 
@@ -78,6 +84,7 @@ class ImageFileValidatorTest {
 
   @Test
   void validateAndNormalizeContentType_rejectsUnknownSignature() {
+    stubMessageSource();
     MockMultipartFile file =
         new MockMultipartFile("imageFile", "image.jpg", "image/jpeg", "not an image".getBytes());
 
@@ -88,6 +95,7 @@ class ImageFileValidatorTest {
 
   @Test
   void validateAndNormalizeContentType_rejectsTruncatedSignature() {
+    stubMessageSource();
     MockMultipartFile file =
         new MockMultipartFile("imageFile", "image.png", "image/png", new byte[] {(byte) 0x89});
 

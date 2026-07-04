@@ -46,10 +46,12 @@ class SpaceServiceTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(messageSource.getMessage(anyString(), any(), any()))
-        .thenAnswer(invocation -> invocation.getArgument(0));
     ReflectionTestUtils.setField(spaceService, "expiringSoonDays", 7);
+  }
+
+  private void stubMessageSource() {
+    when(messageSource.getMessage(anyString(), any(), any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
   }
 
   @Test
@@ -61,6 +63,7 @@ class SpaceServiceTest {
     UserDTO user = new UserDTO();
     user.setId(1L);
 
+    stubMessageSource();
     when(spaceMapper.findByExternalId(SPACE_EXTERNAL_ID)).thenReturn(Optional.of(space));
     when(userMapper.findByEmail(USERNAME)).thenReturn(Optional.of(user));
     when(stockMapper.countBySpaceId(space.getId())).thenReturn(1);

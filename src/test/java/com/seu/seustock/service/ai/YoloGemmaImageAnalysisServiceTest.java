@@ -3,9 +3,9 @@ package com.seu.seustock.service.ai;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.seu.seustock.service.ImageFileValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ class YoloGemmaImageAnalysisServiceTest {
 
   @BeforeEach
   void setUp() {
-    lenient().when(messageSource.getMessage(any(), any(), any())).thenReturn("지원하지 않는 이미지 형식입니다.");
+    when(messageSource.getMessage(any(), any(), any())).thenReturn("지원하지 않는 이미지 형식입니다.");
   }
 
   @Test

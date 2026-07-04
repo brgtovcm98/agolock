@@ -38,12 +38,14 @@ class PasswordResetServiceTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(messageSource.getMessage(anyString(), any(), any()))
-        .thenReturn("유효하지 않거나 만료된 링크입니다.");
     service =
         new PasswordResetService(
             userMapper, tokenStore, mailSender, passwordEncoder, messageSource, BASE_URL);
+  }
+
+  private void stubMessageSource() {
+    when(messageSource.getMessage(anyString(), any(), any()))
+        .thenReturn("유효하지 않거나 만료된 링크입니다.");
   }
 
   private UserDTO storedUser() {
@@ -124,6 +126,7 @@ class PasswordResetServiceTest {
 
   @Test
   void resetPassword_invalidToken_throwsAndDoesNotUpdate() {
+    stubMessageSource();
     when(tokenStore.emailFor("BAD")).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.resetPassword("BAD", RAW_PASSWORD))

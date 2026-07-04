@@ -3,7 +3,6 @@ package com.seu.seustock.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.seu.seustock.mapper.ShelfMapper;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,13 +41,6 @@ class ShelfServiceTest {
   @Mock private MessageSource messageSource;
 
   @InjectMocks private ShelfService shelfService;
-
-  @BeforeEach
-  void setUp() {
-    lenient()
-        .when(messageSource.getMessage(anyString(), any(), any()))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-  }
 
   // ── findAllBySpaceId ──────────────────────────────────────────────────────
 

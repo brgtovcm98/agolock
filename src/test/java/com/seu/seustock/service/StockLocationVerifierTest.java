@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.seu.seustock.mapper.BoxMapper;
@@ -46,10 +45,6 @@ class StockLocationVerifierTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(messageSource.getMessage(anyString(), any(), any()))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-
     user = new UserDTO();
     user.setId(1L);
     space = new SpaceDTO();
@@ -63,6 +58,11 @@ class StockLocationVerifierTest {
     box.setShelfId(shelf.getId());
 
     verifier = new StockLocationVerifier(spaceMapper, shelfMapper, boxMapper, messageSource);
+  }
+
+  private void stubMessageSource() {
+    when(messageSource.getMessage(anyString(), any(), any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
   }
 
   @Test
@@ -83,6 +83,7 @@ class StockLocationVerifierTest {
 
   @Test
   void resolve_rejectsSpaceOwnedByAnotherUser() {
+    stubMessageSource();
     space.setUserId(2L);
     when(spaceMapper.findByExternalId(SPACE_EXTERNAL_ID)).thenReturn(Optional.of(space));
 
@@ -93,6 +94,7 @@ class StockLocationVerifierTest {
 
   @Test
   void resolve_rejectsShelfFromDifferentSpace() {
+    stubMessageSource();
     shelf.setSpaceId(20L);
     when(spaceMapper.findByExternalId(SPACE_EXTERNAL_ID)).thenReturn(Optional.of(space));
     when(shelfMapper.findByExternalId(SHELF_EXTERNAL_ID)).thenReturn(Optional.of(shelf));
@@ -104,6 +106,7 @@ class StockLocationVerifierTest {
 
   @Test
   void resolve_rejectsBoxWithoutShelf() {
+    stubMessageSource();
     when(spaceMapper.findByExternalId(SPACE_EXTERNAL_ID)).thenReturn(Optional.of(space));
 
     assertThatThrownBy(() -> verifier.resolve(SPACE_EXTERNAL_ID, null, BOX_EXTERNAL_ID, user))
@@ -113,6 +116,7 @@ class StockLocationVerifierTest {
 
   @Test
   void resolve_rejectsBoxFromDifferentShelf() {
+    stubMessageSource();
     box.setShelfId(200L);
     when(spaceMapper.findByExternalId(SPACE_EXTERNAL_ID)).thenReturn(Optional.of(space));
     when(shelfMapper.findByExternalId(SHELF_EXTERNAL_ID)).thenReturn(Optional.of(shelf));

@@ -3,7 +3,6 @@ package com.seu.seustock.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.seu.seustock.mapper.BoxMapper;
@@ -19,7 +18,6 @@ import com.seu.seustock.model.form.BoxForm;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -47,13 +45,6 @@ class BoxServiceTest {
   @Mock private MessageSource messageSource;
 
   @InjectMocks private BoxService boxService;
-
-  @BeforeEach
-  void setUp() {
-    lenient()
-        .when(messageSource.getMessage(anyString(), any(), any()))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-  }
 
   // ── findByExternalId ──────────────────────────────────────────────────────
 

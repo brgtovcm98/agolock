@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,10 +49,6 @@ class StockInboundPreparerTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(messageSource.getMessage(anyString(), any(), any()))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-
     item = new ItemDTO();
     item.setId(10L);
     item.setName("Item");
@@ -72,6 +67,11 @@ class StockInboundPreparerTest {
             lotNumberGenerator,
             clock,
             messageSource);
+  }
+
+  private void stubMessageSource() {
+    when(messageSource.getMessage(anyString(), any(), any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
   }
 
   @Test
@@ -131,6 +131,7 @@ class StockInboundPreparerTest {
 
   @Test
   void prepareInboundUnits_rejectsDuplicateManualSerials() {
+    stubMessageSource();
     item.setSerialMode(TrackingMode.MANUAL);
 
     assertThatThrownBy(
@@ -145,6 +146,7 @@ class StockInboundPreparerTest {
 
   @Test
   void prepareInboundUnits_rejectsExistingSerials() {
+    stubMessageSource();
     item.setSerialMode(TrackingMode.MANUAL);
     when(stockMapper.findExistingSerialNumbers(item.getId(), List.of("S-1")))
         .thenReturn(List.of("S-1"));
@@ -159,6 +161,7 @@ class StockInboundPreparerTest {
 
   @Test
   void prepareInboundUnits_rejectsCountOutOfRange() {
+    stubMessageSource();
     assertThatThrownBy(
             () ->
                 preparer.prepareInboundUnits(

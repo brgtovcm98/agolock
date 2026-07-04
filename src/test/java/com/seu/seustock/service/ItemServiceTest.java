@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,10 +45,8 @@ class ItemServiceTest {
 
   @InjectMocks private ItemService itemService;
 
-  @BeforeEach
-  void setUp() {
-    lenient()
-        .when(messageSource.getMessage(anyString(), any(), any()))
+  private void stubMessageSource() {
+    when(messageSource.getMessage(anyString(), any(), any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
   }
 
@@ -62,6 +59,7 @@ class ItemServiceTest {
     UserDTO user = new UserDTO();
     user.setId(1L);
 
+    stubMessageSource();
     when(itemMapper.findByExternalId(ITEM_EXTERNAL_ID)).thenReturn(Optional.of(item));
     when(userMapper.findByEmail(USERNAME)).thenReturn(Optional.of(user));
     when(stockMapper.countInStockByItemId(item.getId())).thenReturn(1);
