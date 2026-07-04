@@ -39,6 +39,7 @@ class SpaceServiceTest {
   @Mock private SpaceMapper spaceMapper;
   @Mock private UserMapper userMapper;
   @Mock private StockMapper stockMapper;
+  @Mock private ImageStorageService imageStorageService;
   @Mock private MessageSource messageSource;
 
   @InjectMocks private SpaceService spaceService;
