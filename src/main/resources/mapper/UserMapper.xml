@@ -19,11 +19,23 @@
         VALUES (#{email}, #{nickname}, #{password})
     </insert>
 
+    <select id="findById" parameterType="long" resultMap="UserResultMap">
+        SELECT id, external_id, email, nickname, password, created_at
+        FROM users
+        WHERE id = #{id}
+    </select>
+
     <select id="findByEmail" parameterType="string" resultMap="UserResultMap">
         SELECT id, external_id, email, nickname, password, created_at
         FROM users
         WHERE email = #{email}
     </select>
+
+    <update id="updateNickname" parameterType="UserDTO">
+        UPDATE users
+        SET nickname = #{nickname}
+        WHERE id = #{id}
+    </update>
 
     <update id="updatePassword" parameterType="UserDTO">
         UPDATE users
