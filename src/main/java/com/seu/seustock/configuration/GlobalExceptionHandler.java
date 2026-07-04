@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -96,6 +97,13 @@ public class GlobalExceptionHandler {
       return "fragments/error-modal :: modal";
     }
     return "error/400";
+  }
+
+  @ExceptionHandler(NoResourceFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public String handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request, Model model) {
+    log.warn("Static resource not found: {}", request.getRequestURI());
+    return "error/404";
   }
 
   @ExceptionHandler(Exception.class)
