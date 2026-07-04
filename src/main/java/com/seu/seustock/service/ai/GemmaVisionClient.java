@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeType;
@@ -19,9 +21,11 @@ public class GemmaVisionClient {
   private static final int MAX_RETRY_ATTEMPT = 3;
 
   private final ChatClient chatClient;
+  private final MessageSource messageSource;
 
-  public GemmaVisionClient(ChatClient.Builder chatClientBuilder) {
+  public GemmaVisionClient(ChatClient.Builder chatClientBuilder, MessageSource messageSource) {
     this.chatClient = chatClientBuilder.build();
+    this.messageSource = messageSource;
   }
 
   public ImageAnalysisDTO analyze(
@@ -66,7 +70,8 @@ public class GemmaVisionClient {
 
     log.info("[GemmaVisionClient] Ollama 응답 수신 - resultPresent={}", result != null);
     if (result == null) {
-      throw new IllegalStateException("이미지 분석 결과가 비어 있습니다.");
+      throw new IllegalStateException(
+          messageSource.getMessage("error.ai.emptyResult", null, LocaleContextHolder.getLocale()));
     }
     return result;
   }
