@@ -11,7 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Sans+KR:wght@100..900&family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+SC:wght@100..900&display=swap">
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Sans+KR:wght@100..900&family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+SC:wght@100..900&display=swap">
     <link rel="stylesheet" href="/css/main.css">
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="/js/csrf.js"></script>
@@ -38,8 +40,8 @@
                 var isError = type === 'error';
                 var toast = document.createElement('div');
                 toast.setAttribute('data-component-id', 'feedback.toast');
-                toast.className = 'flex items-center gap-2 shadow-xl transition mb-0 ' +
-                    (isError ? 'alert-error' : 'alert-success');
+                toast.className = 'flex items-center gap-2 border px-4 py-3 text-sm leading-5 transition-colors duration-120 ease-out mb-0 ' +
+                    (isError ? 'border-danger bg-surface text-danger' : 'border-ink bg-ink text-white');
 
                 var msgSpan = document.createElement('span');
                 msgSpan.className = 'flex-1';
@@ -48,7 +50,7 @@
                 var closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
                 closeBtn.textContent = '×';
-                closeBtn.className = 'ml-1 shrink-0 text-base leading-none opacity-50 hover:opacity-100 focus:outline-none';
+                closeBtn.className = 'ml-1 shrink-0 text-base leading-none opacity-60 hover:opacity-100 focus:outline-none';
 
                 function dismiss() {
                     window.clearTimeout(timerId);
@@ -110,71 +112,104 @@
 </head>
 
 <!--/* 공통 네비게이션 바 */-->
-<nav th:fragment="nav" data-component-id="layout.nav" class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-        <a href="/" class="text-lg font-semibold text-slate-800 tracking-tight">SeuStock</a>
+<nav th:fragment="nav" data-component-id="layout.nav" class="border-b-2 border-ink bg-surface">
+    <div class="mx-auto flex max-w-[960px] items-center justify-between px-4 py-4 md:px-6 lg:px-14">
+        <a href="/" class="flex items-center gap-2.5">
+            <span class="flex h-[22px] w-[22px] items-center justify-center bg-ink text-surface">
+                <span class="font-mono text-sm font-semibold">S</span>
+            </span>
+            <span class="font-mono text-base font-semibold tracking-[0.06em] text-ink">SEUSTOCK</span>
+        </a>
 
         <!--/* 데스크탑: md 이상에서 가로 나열 */-->
-        <div class="hidden md:flex items-center gap-x-4 text-sm">
+        <div class="hidden md:flex items-center gap-6 text-sm">
             <th:block th:if="${currentUsername != null}">
-                <a href="/spaces"
-                   class="text-slate-600 hover:text-slate-900 transition"
-                   th:classappend="${activeNav == 'spaces'} ? 'font-semibold text-primary'"
-                   th:text="#{view.nav.mySpaces}">내 공간</a>
-                <span class="text-slate-300">|</span>
-                <a href="/items"
-                   class="text-slate-600 hover:text-slate-900 transition"
-                   th:classappend="${activeNav == 'items'} ? 'font-semibold text-primary'"
-                   th:text="#{view.nav.myItems}">내 품목</a>
-                <span class="text-slate-300">|</span>
-                <a href="/stocks"
-                   class="text-slate-600 hover:text-slate-900 transition"
-                   th:classappend="${activeNav == 'stocks'} ? 'font-semibold text-primary'"
-                   th:text="#{view.nav.myStocks}">내 재고</a>
-                <span class="text-slate-300">|</span>
-                <span class="text-slate-500" th:text="${currentNickname}"></span>
+                <div class="flex items-center">
+                    <a href="/spaces"
+                       th:classappend="${activeNav == 'spaces'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
+                       class="px-3 py-1.5 text-sm transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.mySpaces}">내 공간</a>
+                </div>
+                <span class="h-3.5 w-px bg-line"></span>
+                <div class="flex items-center">
+                    <a href="/items"
+                       th:classappend="${activeNav == 'items'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
+                       class="px-3 py-1.5 text-sm transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myItems}">내 품목</a>
+                </div>
+                <span class="h-3.5 w-px bg-line"></span>
+                <div class="flex items-center">
+                    <a href="/stocks"
+                       th:classappend="${activeNav == 'stocks'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
+                       class="px-3 py-1.5 text-sm transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myStocks}">내 재고</a>
+                </div>
+                <span class="h-3.5 w-px bg-line"></span>
+                <div class="flex items-center">
+                    <a href="/account"
+                       th:classappend="${activeNav == 'account'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
+                       class="px-3 py-1.5 text-sm transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myAccount}">내 계정</a>
+                </div>
+                <span class="h-3.5 w-px bg-line"></span>
+                <span class="font-mono text-[12.5px] text-muted" th:text="${currentNickname}"></span>
                 <form th:action="@{/logout}" method="post" class="inline">
                     <button type="submit"
-                            class="text-slate-600 hover:text-slate-900 transition cursor-pointer bg-transparent border-0 p-0 text-sm" th:text="#{view.nav.logout}">로그아웃</button>
+                            class="text-[13px] text-muted hover:text-ink transition-colors duration-120 ease-out cursor-pointer bg-transparent border-0 p-0"
+                            th:text="#{view.nav.logout}">로그아웃</button>
                 </form>
             </th:block>
             <th:block th:if="${currentUsername == null}">
                 <a href="/login"
-                   class="text-slate-600 hover:text-slate-900 transition" th:text="#{view.nav.login}">로그인</a>
+                   th:classappend="${activeNav == 'login'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
+                   class="px-3 py-1.5 text-sm transition-colors duration-120 ease-out"
+                   th:text="#{view.nav.login}">로그인</a>
                 <a href="/register"
-                   class="btn-primary btn-sm" th:text="#{view.nav.register}">회원가입</a>
+                   th:classappend="${activeNav == 'register'} ? 'bg-ink text-white font-bold' : 'btn-primary btn-sm'"
+                   class="px-4 py-2 text-sm font-bold transition-colors duration-120 ease-out"
+                   th:text="#{view.nav.register}">회원가입</a>
             </th:block>
         </div>
 
         <!--/* 모바일: md 미만에서 드롭다운 */-->
         <details class="relative md:hidden text-sm" aria-label="메뉴" data-dropdown-menu>
-            <summary class="list-none cursor-pointer select-none rounded px-3 py-1.5
-                            text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition" th:text="|#{view.nav.menu} ▾|">
+            <summary class="list-none cursor-pointer select-none px-3 py-1.5
+                            text-muted hover:text-ink transition-colors duration-120 ease-out"
+                     th:text="|#{view.nav.menu} ▾|">
                 메뉴 ▾
             </summary>
-            <div class="absolute right-0 top-full mt-1 min-w-[120px] rounded-lg
-                        border border-slate-200 bg-white shadow-md py-1 z-50">
+            <div class="absolute right-0 top-full mt-1 min-w-[140px]
+                        border border-ink bg-surface py-1 z-50">
                 <th:block th:if="${currentUsername != null}">
-                    <div class="px-3 py-1.5 text-xs text-slate-400"
+                    <div class="px-4 py-2 text-xs text-muted font-mono"
                          th:text="${currentNickname}"></div>
-                    <hr class="border-slate-100 mx-2 my-1"/>
+                    <hr class="border-line-soft mx-2 my-1"/>
                     <a href="/spaces"
-                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.mySpaces}">내 공간</a>
+                       class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.mySpaces}">내 공간</a>
                     <a href="/items"
-                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.myItems}">내 품목</a>
+                       class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myItems}">내 품목</a>
                     <a href="/stocks"
-                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.myStocks}">내 재고</a>
-                    <hr class="border-slate-100 mx-2 my-1"/>
+                       class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myStocks}">내 재고</a>
+                    <a href="/account"
+                       class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.myAccount}">내 계정</a>
+                    <hr class="border-line-soft mx-2 my-1"/>
                     <form th:action="@{/logout}" method="post">
                         <button type="submit"
-                                class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition bg-transparent border-0 cursor-pointer text-sm" th:text="#{view.nav.logout}">로그아웃</button>
+                                class="block w-full text-left px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out bg-transparent border-0 cursor-pointer text-sm"
+                                th:text="#{view.nav.logout}">로그아웃</button>
                     </form>
                 </th:block>
                 <th:block th:if="${currentUsername == null}">
                     <a href="/login"
-                       class="block px-3 py-2 text-slate-700 hover:bg-slate-50 transition" th:text="#{view.nav.login}">로그인</a>
+                       class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.login}">로그인</a>
                     <a href="/register"
-                       class="block px-3 py-2 text-primary font-medium hover:bg-slate-50 transition" th:text="#{view.nav.register}">회원가입</a>
+                       class="block px-4 py-2 text-accent font-semibold hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="#{view.nav.register}">회원가입</a>
                 </th:block>
             </div>
         </details>
@@ -182,26 +217,26 @@
 </nav>
 
 <!--/* 공통 푸터 */-->
-<footer th:fragment="footer" data-component-id="layout.footer" class="border-t border-slate-200 bg-white mt-auto">
-    <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between">
+<footer th:fragment="footer" data-component-id="layout.footer" class="border-t border-line bg-surface mt-auto">
+    <div class="mx-auto flex max-w-[960px] flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between">
         <div class="flex flex-col gap-2">
-            <p class="text-sm text-slate-500">
-                &copy; 2026 <span class="font-medium text-slate-700">Team Ugui</span>. All rights reserved.
+            <p class="text-sm text-muted">
+                &copy; 2026 <span class="font-semibold text-ink">Team Ugui</span>. All rights reserved.
             </p>
-            <div class="flex flex-col gap-2 text-xs text-slate-400 sm:flex-row sm:items-center sm:gap-3">
+            <div class="flex flex-col gap-2 text-xs text-muted sm:flex-row sm:items-center sm:gap-3">
                 <div class="flex flex-wrap gap-x-2 gap-y-1">
-                    <a th:href="@{''(lang='ko')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'ko'} ? 'font-bold text-slate-600' : ''">한국어</a>
-                    <a th:href="@{''(lang='en')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'en'} ? 'font-bold text-slate-600' : ''">English</a>
-                    <a th:href="@{''(lang='ja')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'ja'} ? 'font-bold text-slate-600' : ''">日本語</a>
-                    <a th:href="@{''(lang='zh-CN')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'zh' && #locale.country == 'CN'} ? 'font-bold text-slate-600' : ''">简体中文</a>
-                    <a th:href="@{''(lang='mn')}" class="hover:text-slate-600 transition" th:classappend="${#locale.language == 'mn'} ? 'font-bold text-slate-600' : ''">Монгол</a>
+                    <a th:href="@{''(lang='ko')}" class="hover:text-ink transition-colors duration-120 ease-out" th:classappend="${#locale.language == 'ko'} ? 'font-bold text-ink' : ''">한국어</a>
+                    <a th:href="@{''(lang='en')}" class="hover:text-ink transition-colors duration-120 ease-out" th:classappend="${#locale.language == 'en'} ? 'font-bold text-ink' : ''">English</a>
+                    <a th:href="@{''(lang='ja')}" class="hover:text-ink transition-colors duration-120 ease-out" th:classappend="${#locale.language == 'ja'} ? 'font-bold text-ink' : ''">日本語</a>
+                    <a th:href="@{''(lang='zh-CN')}" class="hover:text-ink transition-colors duration-120 ease-out" th:classappend="${#locale.language == 'zh' && #locale.country == 'CN'} ? 'font-bold text-ink' : ''">简体中文</a>
+                    <a th:href="@{''(lang='mn')}" class="hover:text-ink transition-colors duration-120 ease-out" th:classappend="${#locale.language == 'mn'} ? 'font-bold text-ink' : ''">Монгол</a>
                 </div>
-                <span class="hidden text-slate-200 sm:inline">|</span>
-                <span>Released under the <a href="https://opensource.org/licenses/MIT" target="_blank" class="hover:text-slate-600 underline decoration-slate-300">MIT License</a>.</span>
+                <span class="hidden text-line sm:inline">|</span>
+                <span>Released under the <a href="https://opensource.org/licenses/MIT" target="_blank" class="hover:text-ink underline decoration-line">MIT License</a>.</span>
             </div>
         </div>
         <div class="flex items-center gap-6">
-            <a href="https://github.com/TeamUgui/SeuStock" target="_blank" class="text-slate-400 hover:text-slate-600 transition" aria-label="GitHub">
+            <a href="https://github.com/TeamUgui/SeuStock" target="_blank" class="text-muted hover:text-ink transition-colors duration-120 ease-out" aria-label="GitHub">
                 <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                     <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
                 </svg>

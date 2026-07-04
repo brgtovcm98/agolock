@@ -8,14 +8,14 @@
     <div class="modal-dialog max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col gap-4">
 
         <div class="flex items-center justify-between">
-            <h2 id="modal-title" class="text-lg font-semibold text-slate-800">
+            <h2 id="modal-title" class="text-lg font-semibold text-ink">
                 <span th:text="#{view.item.spaceStock.title(${itemName})}"></span>
             </h2>
             <button type="button"
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition text-sm">
+                    class="text-faint hover:text-ink transition text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -23,17 +23,17 @@
             </button>
         </div>
 
-        <div class="divide-y divide-slate-100">
+        <div class="divide-y divide-line-soft">
             <a th:each="ss : ${spaceStocks}"
                th:href="@{/stocks(item=${externalId},space=${ss.spaceExternalId})}"
-               class="flex items-center justify-between py-2.5 hover:bg-slate-50 transition">
-                <span class="text-sm text-slate-700" th:text="${ss.spaceName}"></span>
+               class="flex items-center justify-between py-2.5 hover:bg-surface-dim transition">
+                <span class="text-sm text-ink" th:text="${ss.spaceName}"></span>
                 <span class="badge-blue"
                       th:text="|${ss.count}#{view.item.card.unit}|"></span>
             </a>
         </div>
 
-        <div class="flex justify-end border-t border-slate-100 pt-2">
+        <div class="flex justify-end border-t border-line-soft pt-2">
             <button type="button"
                     hx-get="/empty"
                     hx-target="#modal"

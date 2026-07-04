@@ -5,39 +5,40 @@
 <mapper namespace="com.seu.seustock.mapper.SpaceMapper">
 
     <resultMap id="SpaceResultMap" type="SpaceDTO">
-        <id     property="id"         column="id"/>
-        <result property="externalId" column="external_id"/>
-        <result property="userId"     column="user_id"/>
-        <result property="name"       column="name"/>
-        <result property="createdAt"  column="created_at"/>
+        <id     property="id"              column="id"/>
+        <result property="externalId"      column="external_id"/>
+        <result property="userId"          column="user_id"/>
+        <result property="name"            column="name"/>
+        <result property="imageExternalId" column="image_external_id"/>
+        <result property="createdAt"       column="created_at"/>
     </resultMap>
 
     <insert id="insertSpace" parameterType="SpaceDTO"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO spaces (user_id, name)
-        VALUES (#{userId}, #{name})
+        INSERT INTO spaces (user_id, name, image_external_id)
+        VALUES (#{userId}, #{name}, #{imageExternalId})
     </insert>
 
     <select id="findByExternalId" parameterType="java.util.UUID" resultMap="SpaceResultMap">
-        SELECT id, external_id, user_id, name, created_at
+        SELECT id, external_id, user_id, name, image_external_id, created_at
         FROM spaces
         WHERE external_id = #{externalId}
     </select>
 
     <select id="findById" parameterType="long" resultMap="SpaceResultMap">
-        SELECT id, external_id, user_id, name, created_at
+        SELECT id, external_id, user_id, name, image_external_id, created_at
         FROM spaces
         WHERE id = #{id}
     </select>
 
     <select id="findByUserId" parameterType="long" resultMap="SpaceResultMap">
-        SELECT id, external_id, user_id, name, created_at
+        SELECT id, external_id, user_id, name, image_external_id, created_at
         FROM spaces
         WHERE user_id = #{userId}
     </select>
 
     <select id="findByUserIdWithOptions" resultMap="SpaceResultMap">
-        SELECT s.id, s.external_id, s.user_id, s.name, s.created_at
+        SELECT s.id, s.external_id, s.user_id, s.name, s.image_external_id, s.created_at
         FROM spaces s
         WHERE s.user_id = #{userId}
         <if test="keyword != null and keyword != ''">
@@ -79,7 +80,8 @@
 
     <update id="updateSpace" parameterType="SpaceDTO">
         UPDATE spaces
-        SET name = #{name}
+        SET name = #{name},
+            image_external_id = #{imageExternalId}
         WHERE id = #{id}
     </update>
 

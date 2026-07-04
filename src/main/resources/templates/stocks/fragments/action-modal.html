@@ -9,24 +9,24 @@
 
         <!-- 헤더 -->
         <div class="mb-4">
-            <h2 id="modal-title" class="text-lg font-semibold text-slate-800" th:text="${itemName}">품목명</h2>
-            <p class="text-sm text-slate-500" th:text="#{view.stock.modal.action.subtitle}">재고 조작</p>
+            <h2 id="modal-title" class="text-lg font-semibold text-ink" th:text="${itemName}">품목명</h2>
+            <p class="text-sm text-muted" th:text="#{view.stock.modal.action.subtitle}">재고 조작</p>
         </div>
 
         <!-- 탭 -->
-        <div class="flex gap-1 mb-5 bg-slate-100 rounded-lg p-1">
+        <div class="flex gap-1 mb-5 bg-surface-dim p-1">
             <button type="button" onclick="switchActionTab('in')" id="action-tab-in"
-                    class="flex-1 rounded-lg py-1.5 text-sm font-medium bg-white shadow-sm text-in transition"
+                    class="flex-1 py-1.5 text-sm font-medium bg-surface text-in transition"
                     th:text="#{view.stock.modal.in.title}">
                 입고
             </button>
             <button type="button" onclick="switchActionTab('out')" id="action-tab-out"
-                    class="flex-1 rounded-lg py-1.5 text-sm font-medium text-slate-500 transition"
+                    class="flex-1 py-1.5 text-sm font-medium text-muted transition"
                     th:text="#{view.stock.modal.out.title}">
                 출고
             </button>
             <button type="button" onclick="switchActionTab('del')" id="action-tab-del"
-                    class="flex-1 rounded-lg py-1.5 text-sm font-medium text-slate-500 transition"
+                    class="flex-1 py-1.5 text-sm font-medium text-muted transition"
                     th:text="#{view.common.delete}">
                 삭제
             </button>
@@ -34,7 +34,7 @@
 
         <!-- 입고 섹션 -->
         <div id="action-section-in">
-            <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>
+            <p class="text-sm text-muted mb-3" th:text="#{view.stock.modal.in.message}">입고할 수량을 입력해주세요.</p>
             <form id="in-form">
                 <input type="hidden" name="itemExternalId"  th:value="${item}">
                 <input type="hidden" name="spaceExternalId" th:value="${space}">
@@ -46,12 +46,12 @@
                            id="in-count-input"
                            th:data-current-count="${currentCount}"
                            class="field-input">
-                    <p id="in-count-msg" class="mt-1 text-xs text-slate-500"></p>
+                    <p id="in-count-msg" class="mt-1 text-xs text-muted"></p>
                 </div>
                 <div class="mb-4">
                     <label class="field-label">
                         <span th:text="#{view.stock.form.memo.label}">메모</span>
-                        <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                        <span class="text-faint font-normal" th:text="#{view.common.optional}">(선택)</span>
                     </label>
                     <input type="text" name="memo"
                            id="in-memo-input"
@@ -91,7 +91,7 @@
 
         <!-- 출고 섹션 -->
         <div id="action-section-out" class="hidden">
-            <p class="text-sm text-slate-500 mb-3" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
+            <p class="text-sm text-muted mb-3" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
             <form id="out-form">
                 <input type="hidden" name="itemExternalId"  th:value="${item}">
                 <input type="hidden" name="spaceExternalId" th:value="${space}">
@@ -103,12 +103,12 @@
                            id="out-count-input"
                            th:data-current-count="${currentCount}"
                            class="field-input field-input--out">
-                    <p id="out-count-msg" class="mt-1 text-xs text-slate-500"></p>
+                    <p id="out-count-msg" class="mt-1 text-xs text-muted"></p>
                 </div>
                 <div class="mb-4">
                     <label class="field-label">
                         <span th:text="#{view.stock.form.memo.label}">메모</span>
-                        <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                        <span class="text-faint font-normal" th:text="#{view.common.optional}">(선택)</span>
                     </label>
                     <input type="text" name="memo"
                            id="out-memo-input"
@@ -132,7 +132,7 @@
                            value="true"
                            class="field-check field-check--out">
                     <label for="out-include-kept"
-                           class="text-sm text-slate-600"
+                           class="text-sm text-muted"
                            th:text="#{view.stock.modal.out.includeKept}">보관 품목 포함</label>
                 </div>
                 <div class="flex gap-2 justify-end">
@@ -159,7 +159,7 @@
         <!-- 삭제 섹션 -->
         <div id="action-section-del" class="hidden">
             <p class="text-sm font-medium text-danger mb-2" th:text="#{view.stock.modal.delete.warning}">⚠ 이 위치의 재고를 모두 삭제합니다.</p>
-            <p class="text-sm text-slate-500 mb-6" th:text="#{view.stock.modal.delete.message}">삭제된 재고는 복구할 수 없습니다.</p>
+            <p class="text-sm text-muted mb-6" th:text="#{view.stock.modal.delete.message}">삭제된 재고는 복구할 수 없습니다.</p>
             <div class="flex gap-2 justify-end">
                 <button type="button"
                         hx-get="/empty" hx-target="#modal" hx-swap="outerHTML"
@@ -195,12 +195,12 @@
             var btn = document.getElementById('action-tab-' + t);
             if (t === tab) {
                 section.classList.remove('hidden');
-                btn.classList.add('bg-white', 'shadow-sm', tabColors[t]);
-                btn.classList.remove('text-slate-500');
+                btn.classList.add('bg-surface', tabColors[t]);
+                btn.classList.remove('text-muted');
             } else {
                 section.classList.add('hidden');
-                btn.classList.remove('bg-white', 'shadow-sm', 'text-in', 'text-out', 'text-danger');
-                btn.classList.add('text-slate-500');
+                btn.classList.remove('bg-surface', 'text-in', 'text-out', 'text-danger');
+                btn.classList.add('text-muted');
             }
         });
         document.getElementById('in-count-msg').textContent = '';

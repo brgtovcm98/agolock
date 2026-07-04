@@ -2,58 +2,59 @@
 <html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- 읽기 모드 카드 (개선) -->
+<!-- 읽기 모드 카드 -->
 <div th:fragment="view"
      data-component-id="items.card.view"
      th:id="'item-' + ${item.externalId}"
      data-item-card
      th:classappend="${item.stockCount == 0} ? 'is-empty'"
-     class="item-row">
+     class="list-row item-row">
 
+    <div class="index-col border-r border-line-soft" th:text="${#numbers.formatInteger(idx, 2)}">01</div>
     <div class="item-info">
         <img th:src="${item.primaryImageExternalId != null} ? @{/images/{id}(id=${item.primaryImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
              alt=""
-             class="item-thumb object-cover border border-slate-200"
-             th:classappend="${item.stockCount > 0} ? 'accent' : 'muted'">
+             class="row-thumb">
         <div class="min-w-0">
             <div class="item-name"
-                 th:classappend="${item.stockCount == 0} ? 'muted'"
+                 th:classappend="${item.stockCount == 0} ? 'text-stat-dim'"
                  th:text="${item.name}">품목명</div>
             <div class="item-desc"
-                 th:classappend="${item.stockCount == 0} ? 'muted'"
+                 th:classappend="${item.stockCount == 0} ? 'text-faint'"
                  th:text="${item.description}">설명</div>
         </div>
     </div>
 
     <div class="item-stock">
         <th:block th:if="${item.stockCount > 0}">
-            <a th:href="@{/stocks(item=${item.externalId})}"><b th:text="${item.stockCount} + '개'">8개</b></a>
-            <span class="sub">
+            <a th:href="@{/stocks(item=${item.externalId})}"><b th:text="${item.stockCount}">8</b></a><span class="text-muted" th:text="#{view.item.card.unit}">개</span>
+            <span class="text-muted">
                 <span> · </span>
                 <button th:if="${item.spaceCount > 0}"
                         th:attr="hx-get=@{/items/{id}/spaces(id=${item.externalId})}"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="cursor-pointer hover:underline text-sm"
+                        class="cursor-pointer hover:underline"
                         th:text="#{view.item.card.spaceCount(${item.spaceCount})}">공간 2곳</button>
                 <span th:unless="${item.spaceCount > 0}" th:text="#{view.item.card.spaceCount(${item.spaceCount})}">0곳 공간</span>
+            </span>
         </th:block>
         <span th:unless="${item.stockCount > 0}" class="empty" th:text="#{view.item.card.noStock}">재고 없음</span>
     </div>
 
     <div class="item-actions">
-        <button class="btn--cta text-sm"
+        <button class="btn-accent btn-sm"
                 th:attr="hx-get=@{/items/{id}/add-stock(id=${item.externalId})}"
                 hx-target="#modal"
                 hx-swap="outerHTML"
                 th:text="#{view.item.card.addStock}">+ 재고</button>
         <button th:if="${item.stockCount > 0}"
-                class="btn-secondary btn-sm text-sm"
+                class="btn-secondary btn-sm"
                 th:attr="hx-get=@{/items/{id}/history(id=${item.externalId})}"
                 hx-target="#modal"
                 hx-swap="outerHTML"
                 th:text="#{view.stock.action.history}">이력</button>
-        <button class="btn-secondary btn-sm text-sm"
+        <button class="btn-secondary btn-sm"
                 th:attr="hx-get=@{/items/{id}/edit(id=${item.externalId})},hx-target='#item-' + ${item.externalId}"
                 hx-swap="outerHTML"
                 th:text="#{view.common.edit}">수정</button>
@@ -66,157 +67,150 @@
      data-component-id="items.card.edit"
      th:id="'item-' + ${item.externalId}"
      data-item-card
-     class="card-editing grid max-h-[calc(100vh-8rem)] gap-3 overflow-y-auto px-4 py-4 md:grid-item-card md:items-start">
+     class="card-editing px-4 py-4">
 
-    <div class="min-w-0">
-        <div class="mb-2 w-20 md:w-full">
-            <img th:src="${item.primaryImageExternalId != null} ? @{/images/{id}(id=${item.primaryImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
-                 data-existing-image
-                 alt=""
-                 class="aspect-square w-full rounded-lg object-cover border border-slate-200">
-            <img data-image-preview
-                 class="hidden aspect-square w-full rounded-lg object-cover border border-slate-200"
-                 alt="">
-        </div>
-        <input type="file" name="imageFile" data-image-file
-               accept="image/jpeg,image/png,image/webp,image/gif"
-               class="block w-full text-xs text-slate-500
-                      file:mr-2 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2
-                      file:text-xs file:text-slate-700 hover:file:bg-slate-200">
-        <span data-image-analysis-status
-              class="hidden mt-1 block text-xs text-primary" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
-        <button type="button"
-                data-image-analysis-retry
-                class="link hidden mt-2 text-sm"
-                th:text="#{view.item.card.aiRetry}">
-            다시 분석
-        </button>
-        <button type="button"
-                th:if="${item.primaryImageExternalId != null}"
-                th:attr="data-reanalyze-src=@{/images/{id}/analyze(id=${item.primaryImageExternalId})}"
-                data-image-reanalyze
-                class="link mt-2 text-sm"
-                th:text="#{view.item.card.aiReanalyzeStored}">
-            저장된 이미지 AI 분석
-        </button>
-        <input type="hidden" name="imageHash" data-image-hash value="">
-    </div>
+    <form th:object="${item}"
+          method="post"
+          th:attr="hx-put=@{/items/{id}(id=${item.externalId})}"
+          hx-target="#item-list-section"
+          hx-select="#item-list-section"
+          hx-swap="outerHTML"
+          hx-encoding="multipart/form-data"
+          class="flex flex-col gap-4 md:flex-row md:items-start">
+        <input type="hidden" name="sortBy" th:value="${sortBy}">
+        <input type="hidden" name="keyword" th:value="${keyword}">
+        <input type="hidden" name="searchType" th:value="${searchType}">
 
-    <div class="space-y-2 min-w-0">
-        <div>
-            <label class="field-label field-label-sm" th:text="#{view.item.card.nameLabel}">품목명 *</label>
-            <input type="text" name="name" th:value="${item.name}"
-                   class="field-input">
-        </div>
-
-        <div>
-            <label class="field-label field-label-sm" th:text="#{view.item.card.descLabel}">설명</label>
-            <input type="text" name="description" th:value="${item.description}"
-                   class="field-input"
-                   th:placeholder="#{view.item.card.descPlaceholder}">
-        </div>
-
-        <div>
-            <label class="field-label field-label-sm" th:text="#{view.item.card.priceLabel}">가격</label>
-            <input type="number" min="0" step="1" name="price" th:value="${item.price}"
-                   class="field-input"
-                   th:placeholder="#{view.stock.form.price.placeholder}">
-        </div>
-
-        <div>
-            <label class="field-label field-label-sm">
-                <span th:text="#{view.item.policy.expirationDays}">유통기한(일)</span>
-            </label>
-            <input type="number" min="1" name="expirationPeriodDays" th:value="${item.expirationPeriodDays}"
-                   class="field-input"
-                   th:placeholder="#{view.item.policy.expirationDays}">
-            <p data-expiration-preview
-               th:data-label="#{view.item.policy.expirationPreview}"
-               class="hidden mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"></p>
-        </div>
-
-        <details th:if="${lotSerialEnabled}">
-            <summary class="link cursor-pointer text-sm font-semibold" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
-            <div class="mt-3 space-y-3">
-                <select name="serialMode" class="field-input">
-                    <option value="NONE" th:selected="${item.serialMode.name() == 'NONE'}" th:text="#{enum.TrackingMode.NONE}">없음</option>
-                    <option value="AUTO" th:selected="${item.serialMode.name() == 'AUTO'}" th:text="#{enum.TrackingMode.AUTO}">자동</option>
-                    <option value="MANUAL" th:selected="${item.serialMode.name() == 'MANUAL'}" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
-                </select>
-                <div class="grid grid-cols-3 gap-2">
-                    <input type="text" name="serialPrefix" th:value="${item.serialPrefix}" th:placeholder="#{view.item.policy.serialPrefix}"
-                           class="field-input">
-                    <input type="number" min="0" max="16" name="serialPaddingLength" th:value="${item.serialPaddingLength}" th:placeholder="#{view.item.policy.serialPadding}"
-                           class="field-input">
-                    <input type="number" min="0" name="serialNextSequence" th:value="${item.serialNextSequence}" th:placeholder="#{view.item.policy.serialNext}"
-                           class="field-input">
-                </div>
-                <p data-serial-preview
-                   th:data-label="#{view.item.policy.serialPreview}"
-                   class="hidden rounded-lg bg-primary-bg px-3 py-2 text-xs font-medium text-primary-text"></p>
-                <input type="hidden" name="serialIncrementUnit" th:value="${item.serialIncrementUnit}">
-
-                <select name="lotMode" class="field-input">
-                    <option value="NONE" th:selected="${item.lotMode.name() == 'NONE'}" th:text="#{enum.TrackingMode.NONE}">없음</option>
-                    <option value="AUTO" th:selected="${item.lotMode.name() == 'AUTO'}" th:text="#{enum.TrackingMode.AUTO}">자동</option>
-                    <option value="MANUAL" th:selected="${item.lotMode.name() == 'MANUAL'}" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
-                </select>
-                <div>
-                    <input type="text" name="lotVendorCode" th:value="${item.lotVendorCode}" th:placeholder="#{view.item.policy.lotVendorCode}"
-                           class="field-input">
-                </div>
-                <p data-lot-preview
-                   th:data-label="#{view.item.policy.lotPreview}"
-                   class="hidden rounded-lg bg-primary-bg px-3 py-2 text-xs font-medium text-primary-text"></p>
-                <input type="hidden" name="lotDateFormat" th:value="${item.lotDateFormat}">
-                <input type="hidden" name="lotIncludeSequence" th:value="${item.lotIncludeSequence}">
-                <input type="hidden" name="lotNextSequence" th:value="${item.lotNextSequence}">
-                <input type="hidden" data-lot-sequence-key th:value="${item.lotSequenceKey}">
+        <div class="flex flex-1 gap-4">
+            <div class="w-20 shrink-0 md:w-32">
+                <img th:src="${item.primaryImageExternalId != null} ? @{/images/{id}(id=${item.primaryImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
+                     data-existing-image
+                     alt=""
+                     class="aspect-square w-full border border-line-soft object-cover bg-surface-dim">
+                <img data-image-preview
+                     class="hidden aspect-square w-full border border-line-soft object-cover bg-surface-dim"
+                     alt="">
+                <input type="file" name="imageFile" data-image-file
+                       accept="image/jpeg,image/png,image/webp,image/gif"
+                       class="mt-2 block w-full text-xs text-muted
+                              file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
+                              file:text-xs file:text-ink hover:file:bg-line-soft">
+                <input type="hidden" name="imageHash" data-image-hash value="">
+                <span data-image-analysis-status class="mt-1 hidden block text-xs text-accent" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
+                <button type="button"
+                        data-image-analysis-retry
+                        class="btn-text mt-2 hidden text-sm"
+                        th:text="#{view.item.card.aiRetry}">
+                    다시 분석
+                </button>
+                <button type="button"
+                        th:if="${item.primaryImageExternalId != null}"
+                        th:attr="data-reanalyze-src=@{/images/{id}/analyze(id=${item.primaryImageExternalId})}"
+                        data-image-reanalyze
+                        class="btn-text mt-2 text-sm"
+                        th:text="#{view.item.card.aiReanalyzeStored}">
+                    저장된 이미지 AI 분석
+                </button>
             </div>
-        </details>
-    </div>
 
-    <div class="flex flex-wrap items-center gap-2 min-w-0 md:contents">
-        <div class="flex flex-wrap items-center gap-2 text-xs min-w-0">
-            <a th:if="${item.stockCount > 0}"
-               th:href="@{/stocks(item=${item.externalId})}"
-               class="badge-blue badge-interactive"
-               th:text="#{view.item.card.stockCount(${item.stockCount})}"></a>
-            <span th:if="${item.stockCount == 0}"
-                  class="badge-slate"
-                  th:text="#{view.item.card.stockCount(${item.stockCount})}"></span>
+            <div class="grid flex-1 gap-3 md:grid-cols-2">
+                <div>
+                    <label class="field-label field-label-sm" th:text="#{view.item.card.nameLabel}">품목명 *</label>
+                    <input type="text" name="name" th:value="${item.name}"
+                           class="field-input">
+                </div>
+
+                <div>
+                    <label class="field-label field-label-sm" th:text="#{view.item.card.descLabel}">설명</label>
+                    <input type="text" name="description" th:value="${item.description}"
+                           class="field-input"
+                           th:placeholder="#{view.item.card.descPlaceholder}">
+                </div>
+
+                <div>
+                    <label class="field-label field-label-sm" th:text="#{view.item.card.priceLabel}">가격</label>
+                    <input type="number" min="0" step="1" name="price" th:value="${item.price}"
+                           class="field-input font-mono"
+                           th:placeholder="#{view.stock.form.price.placeholder}">
+                </div>
+
+                <div>
+                    <label class="field-label field-label-sm">
+                        <span th:text="#{view.item.policy.expirationDays}">유통기한(일)</span>
+                    </label>
+                    <input type="number" min="1" name="expirationPeriodDays" th:value="${item.expirationPeriodDays}"
+                           class="field-input font-mono"
+                           th:placeholder="#{view.item.policy.expirationDays}">
+                    <p data-expiration-preview
+                       th:data-label="#{view.item.policy.expirationPreview}"
+                       class="mt-2 hidden border border-line-soft bg-surface-dim px-3 py-2 text-xs font-medium text-stat-dim"></p>
+                </div>
+
+                <details th:if="${lotSerialEnabled}" class="md:col-span-2">
+                    <summary class="btn-text cursor-pointer text-sm font-semibold" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
+                    <div class="mt-3 space-y-3">
+                        <select name="serialMode" class="field-input">
+                            <option value="NONE" th:selected="${item.serialMode.name() == 'NONE'}" th:text="#{enum.TrackingMode.NONE}">없음</option>
+                            <option value="AUTO" th:selected="${item.serialMode.name() == 'AUTO'}" th:text="#{enum.TrackingMode.AUTO}">자동</option>
+                            <option value="MANUAL" th:selected="${item.serialMode.name() == 'MANUAL'}" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
+                        </select>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" name="serialPrefix" th:value="${item.serialPrefix}" th:placeholder="#{view.item.policy.serialPrefix}"
+                                   class="field-input">
+                            <input type="number" min="0" max="16" name="serialPaddingLength" th:value="${item.serialPaddingLength}" th:placeholder="#{view.item.policy.serialPadding}"
+                                   class="field-input">
+                            <input type="number" min="0" name="serialNextSequence" th:value="${item.serialNextSequence}" th:placeholder="#{view.item.policy.serialNext}"
+                                   class="field-input">
+                        </div>
+                        <p data-serial-preview
+                           th:data-label="#{view.item.policy.serialPreview}"
+                           class="hidden border border-line-soft bg-surface-dim px-3 py-2 text-xs font-medium text-stat-dim"></p>
+                        <input type="hidden" name="serialIncrementUnit" th:value="${item.serialIncrementUnit}">
+
+                        <select name="lotMode" class="field-input">
+                            <option value="NONE" th:selected="${item.lotMode.name() == 'NONE'}" th:text="#{enum.TrackingMode.NONE}">없음</option>
+                            <option value="AUTO" th:selected="${item.lotMode.name() == 'AUTO'}" th:text="#{enum.TrackingMode.AUTO}">자동</option>
+                            <option value="MANUAL" th:selected="${item.lotMode.name() == 'MANUAL'}" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
+                        </select>
+                        <div>
+                            <input type="text" name="lotVendorCode" th:value="${item.lotVendorCode}" th:placeholder="#{view.item.policy.lotVendorCode}"
+                                   class="field-input">
+                        </div>
+                        <p data-lot-preview
+                           th:data-label="#{view.item.policy.lotPreview}"
+                           class="hidden border border-line-soft bg-surface-dim px-3 py-2 text-xs font-medium text-stat-dim"></p>
+                        <input type="hidden" name="lotDateFormat" th:value="${item.lotDateFormat}">
+                        <input type="hidden" name="lotIncludeSequence" th:value="${item.lotIncludeSequence}">
+                        <input type="hidden" name="lotNextSequence" th:value="${item.lotNextSequence}">
+                        <input type="hidden" data-lot-sequence-key th:value="${item.lotSequenceKey}">
+                    </div>
+                </details>
+            </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 text-xs min-w-0">
-            <button th:if="${item.spaceCount > 0}"
-                    th:attr="hx-get=@{/items/{id}/spaces(id=${item.externalId})}"
-                    hx-target="#modal"
-                    hx-swap="outerHTML"
-                    class="badge-green badge-interactive"
-                    th:text="#{view.item.card.spaceCount(${item.spaceCount})}"></button>
-            <span th:if="${item.spaceCount == 0}"
-                  class="badge-slate"
-                  th:text="#{view.item.card.spaceCount(${item.spaceCount})}"></span>
+        <div class="flex flex-col gap-2 md:ml-auto md:pt-7">
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="btn-primary btn-sm"
+                        data-submit-btn
+                        th:text="#{view.common.save}">저장</button>
+                <button type="button"
+                        class="btn-secondary btn-sm"
+                        th:attr="hx-get=@{/items/{id}/cancel(id=${item.externalId})},hx-target='#item-' + ${item.externalId}"
+                        hx-swap="outerHTML"
+                        th:text="#{view.common.cancel}">취소</button>
+            </div>
+            <div class="text-right">
+                <button type="button"
+                        class="btn-danger btn-sm"
+                        th:attr="hx-delete=@{/items/{id}(id=${item.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.item.card.deleteConfirm(${item.name})}"
+                        hx-target="#item-list-section"
+                        hx-select="#item-list-section"
+                        hx-swap="outerHTML"
+                        th:text="#{view.common.delete}">삭제</button>
+            </div>
         </div>
-    </div>
-
-    <div class="flex flex-wrap gap-2 items-center md:justify-end">
-        <button class="btn-danger btn-sm md:order-last text-sm"
-                th:attr="hx-delete=@{/items/{id}(id=${item.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.item.card.deleteConfirm(${item.name})}"
-                hx-target="#item-list-section"
-                hx-swap="outerHTML"
-                th:text="#{view.common.delete}">삭제</button>
-        <button class="btn-primary btn-sm text-sm"
-                th:attr="hx-put=@{/items/{id}(id=${item.externalId})},hx-target='#item-' + ${item.externalId},hx-include='#item-' + ${item.externalId}"
-                hx-swap="outerHTML"
-                hx-encoding="multipart/form-data"
-                data-submit-btn
-                th:text="#{view.common.save}">저장</button>
-        <button class="btn-secondary btn-sm text-sm"
-                th:attr="hx-get=@{/items/{id}/cancel(id=${item.externalId})},hx-target='#item-' + ${item.externalId}"
-                hx-swap="outerHTML"
-                th:text="#{view.common.cancel}">취소</button>
-    </div>
+    </form>
 
     <script>
     (function () {

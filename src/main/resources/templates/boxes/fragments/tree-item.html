@@ -4,14 +4,14 @@
 
 <li th:fragment="tree-item(box, space, shelf)" data-component-id="boxes.tree-item"
     th:id="'box-' + ${box.externalId}"
-    class="tree-item-container flex items-center gap-1 px-3 py-2.5 hover:bg-slate-50 active:bg-slate-200 transition cursor-pointer group">
+    class="tree-item-container flex items-center gap-1 px-3 py-2.5 hover:bg-surface-dim active:bg-surface-dim transition cursor-pointer group">
 
-    <span class="text-xs text-slate-300 w-3 shrink-0">□</span>
+    <span class="text-xs text-disabled w-3 shrink-0">□</span>
 
     <!-- Box명 클릭 → 박스 재고 패널 로드 -->
     <button type="button"
-            class="tree-item-trigger tree-item-text flex-1 text-left text-sm text-slate-600 truncate"
-            th:classappend="${box.stockCount == 0} ? 'text-slate-400' : ''"
+            class="tree-item-trigger tree-item-text flex-1 text-left text-sm text-muted truncate"
+            th:classappend="${box.stockCount == 0} ? 'text-faint' : ''"
             th:text="${box.name}"
             th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/stocks(sid=${space},shid=${shelf},id=${box.externalId})}"
             hx-target="#stock-panel"
@@ -20,16 +20,16 @@
     <span class="count shrink-0" th:text="${box.stockCount}" onclick="event.stopPropagation()">3</span>
 
     <details class="relative shrink-0" data-dropdown-menu>
-        <summary class="dots inline-flex h-8 w-8 items-center justify-center rounded text-base text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer list-none select-none" aria-label="더보기" onclick="event.stopPropagation()">⋯</summary>
-        <div class="absolute right-0 top-full mt-1 rounded-lg border border-slate-200 bg-white shadow-lg py-1 z-[100] text-sm">
+        <summary class="dots inline-flex h-8 w-8 items-center justify-center text-base text-faint hover:bg-surface-dim hover:text-ink cursor-pointer list-none select-none" aria-label="더보기" onclick="event.stopPropagation()">⋯</summary>
+        <div class="absolute right-0 top-full mt-1 border border-line-soft bg-surface py-1 z-[100] text-sm">
             <button type="button"
-                    class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left text-sm"
+                    class="flex w-full items-center text-ink hover:bg-surface-dim transition text-left text-sm"
                     th:attr="hx-get=@{/api/qr/modal(type='box',externalId=${box.externalId},name=${box.name})}"
                     hx-target="#modal" hx-swap="outerHTML">
                 📷 <span th:text="#{view.box.tree.qrTitle}">QR 코드</span>
             </button>
             <button type="button"
-                    class="flex w-full items-center text-slate-700 hover:bg-slate-50 transition text-left text-sm"
+                    class="flex w-full items-center text-ink hover:bg-surface-dim transition text-left text-sm"
                     th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/edit(sid=${space},shid=${shelf},id=${box.externalId})}"
                     hx-target="#modal" hx-swap="outerHTML">
                 ✏ <span th:text="#{view.box.tree.editTitle}">이름 수정</span>

@@ -4,10 +4,23 @@
 
 <div th:fragment="modal"
      id="modal" data-component-id="items.modal.create" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
+     class="modal-overlay">
+    <div class="modal-dialog modal-dialog-sm">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-4" th:text="#{view.item.modal.add.title}">품목 추가</h2>
+        <div class="modal-header">
+            <h2 id="modal-title" class="modal-title" th:text="#{view.item.modal.add.title}">품목 추가</h2>
+            <button type="button"
+                    hx-get="/empty"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="modal-close"
+                    th:attr="aria-label=#{aria.modal.close}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
 
         <form th:object="${form}"
               method="post"
@@ -15,40 +28,34 @@
               hx-post="/items"
               hx-encoding="multipart/form-data"
               hx-target="#modal"
-              hx-swap="outerHTML">
+              hx-swap="outerHTML"
+              class="modal-body">
 
-            <div class="mb-3">
+            <div class="mb-5">
                 <label class="field-label">
-                    <span th:text="#{view.item.modal.image.label}">사진</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer w-full rounded-lg border border-dashed
-                              border-slate-300 px-3 py-2 text-sm text-slate-500
-                              hover:border-primary hover:text-primary transition"
-                       id="item-modal-image-label">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <span id="item-modal-image-label-text" th:text="#{view.item.modal.image.placeholder}">사진을 선택하세요</span>
-                    <input type="file" th:field="*{imageFile}"
-                           accept="image/jpeg,image/png,image/webp,image/gif"
-                           class="sr-only">
+                    <span th:text="#{view.item.modal.image.label}">사진</span>
+                    <span class="font-normal text-faint" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <img id="item-modal-preview"
-                     class="hidden mt-2 w-full aspect-square rounded-lg object-cover border border-slate-200"
+                     class="mb-3 hidden aspect-square w-full border border-line-soft object-cover bg-surface-dim"
                      th:alt="#{view.item.modal.image.previewAlt}">
+                <input type="file" th:field="*{imageFile}"
+                       accept="image/jpeg,image/png,image/webp,image/gif"
+                       class="block w-full text-xs text-muted
+                              file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
+                              file:text-xs file:text-ink hover:file:bg-line-soft"
+                       id="item-modal-image-file">
                 <span id="item-modal-analysis-status"
-                      class="hidden mt-1 block text-xs text-primary" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
+                      class="mt-1 hidden block text-xs text-accent" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"
                         id="item-modal-analysis-retry-btn"
-                        class="link hidden mt-2 text-sm"
+                        class="btn-text mt-2 hidden text-sm"
                         th:text="#{view.item.card.aiRetry}">
                     다시 분석
                 </button>
             </div>
 
-            <div class="mb-3">
+            <div class="mb-5">
                 <label class="field-label" th:text="#{view.item.card.nameLabel}">품목명 *</label>
                 <input type="text" th:field="*{name}"
                        th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
@@ -59,9 +66,10 @@
                       class="field-error"></span>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-5">
                 <label class="field-label">
-                    <span th:text="#{view.item.card.descLabel}">설명</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                    <span th:text="#{view.item.card.descLabel}">설명</span>
+                    <span class="font-normal text-faint" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{description}"
                        th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
@@ -72,42 +80,40 @@
                       class="field-error"></span>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-5">
                 <label class="field-label">
-                    <span th:text="#{view.item.card.priceLabel}">가격</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                    <span th:text="#{view.item.card.priceLabel}">가격</span>
+                    <span class="font-normal text-faint" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
                        th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'"
-                       class="field-input"
+                       class="field-input font-mono"
                        th:placeholder="#{view.stock.form.price.placeholder}">
                 <span th:if="${#fields.hasErrors('price')}"
                       th:errors="*{price}"
                       class="field-error"></span>
             </div>
 
-            <div class="mb-4">
-                <label class="field-label">
-                    <span th:text="#{view.item.policy.expirationDays}">유통기한(일)</span>
-                </label>
+            <div class="mb-5">
+                <label class="field-label" th:text="#{view.item.policy.expirationDays}">유통기한(일)</label>
                 <input type="number" min="1" th:field="*{expirationPeriodDays}"
                        th:classappend="${#fields.hasErrors('expirationPeriodDays')} ? 'is-invalid'"
-                       class="field-input"
+                       class="field-input font-mono"
                        th:placeholder="#{view.item.policy.expirationDays}">
                 <span th:if="${#fields.hasErrors('expirationPeriodDays')}"
                       th:errors="*{expirationPeriodDays}"
                       class="field-error"></span>
                 <p data-expiration-preview
                    th:data-label="#{view.item.policy.expirationPreview}"
-                   class="hidden mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"></p>
+                   class="mt-2 hidden border border-line-soft bg-surface-dim px-3 py-2 text-xs font-medium text-stat-dim"></p>
             </div>
 
-            <details class="mb-4" th:if="${lotSerialEnabled}">
-                <summary class="link cursor-pointer text-sm font-semibold" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
+            <details class="mb-5" th:if="${lotSerialEnabled}">
+                <summary class="btn-text cursor-pointer text-sm font-semibold" th:text="#{view.item.policy.section}">시리얼/로트 정책</summary>
                 <div class="mt-3 space-y-3">
                     <div>
                         <label class="field-label field-label-sm" th:text="#{view.item.policy.serialMode}">시리얼 모드</label>
-                        <select th:field="*{serialMode}"
-                                class="field-input">
+                        <select th:field="*{serialMode}" class="field-input">
                             <option value="NONE" th:text="#{enum.TrackingMode.NONE}">없음</option>
                             <option value="AUTO" th:text="#{enum.TrackingMode.AUTO}">자동</option>
                             <option value="MANUAL" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
@@ -123,13 +129,12 @@
                     </div>
                     <p data-serial-preview
                        th:data-label="#{view.item.policy.serialPreview}"
-                       class="hidden rounded-lg bg-primary-bg px-3 py-2 text-xs font-medium text-primary-text"></p>
+                       class="hidden border border-line-soft bg-surface-dim px-3 py-2 text-xs font-medium text-stat-dim"></p>
                     <input type="hidden" th:field="*{serialIncrementUnit}" value="1">
 
                     <div>
                         <label class="field-label field-label-sm" th:text="#{view.item.policy.lotMode}">로트 모드</label>
-                        <select th:field="*{lotMode}"
-                                class="field-input">
+                        <select th:field="*{lotMode}" class="field-input">
                             <option value="NONE" th:text="#{enum.TrackingMode.NONE}">없음</option>
                             <option value="AUTO" th:text="#{enum.TrackingMode.AUTO}">자동</option>
                             <option value="MANUAL" th:text="#{enum.TrackingMode.MANUAL}">수동</option>
@@ -141,7 +146,7 @@
                     </div>
                     <p data-lot-preview
                        th:data-label="#{view.item.policy.lotPreview}"
-                       class="hidden rounded-lg bg-primary-bg px-3 py-2 text-xs font-medium text-primary-text"></p>
+                       class="hidden border border-line-soft bg-surface-dim px-3 py-2 text-xs font-medium text-stat-dim"></p>
                     <input type="hidden" th:field="*{lotDateFormat}" value="yyyyMMdd">
                     <input type="hidden" th:field="*{lotIncludeSequence}" value="true">
                     <input type="hidden" th:field="*{lotNextSequence}" value="0">
@@ -150,18 +155,18 @@
 
             <input type="hidden" th:field="*{imageHash}" id="item-modal-image-hash">
 
-            <div class="flex gap-2 justify-end">
+            <div class="modal-footer -mx-6 -mb-6 mt-6">
                 <button type="button"
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="btn-secondary text-sm"
+                        class="btn-text"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
                         id="item-modal-submit-btn"
-                        class="btn-primary text-sm"
+                        class="btn-primary"
                         th:text="#{view.common.add}">
                     추가
                 </button>
@@ -176,8 +181,7 @@
         descriptionInputSelector: '#modal input[name="description"]',
         submitSelector:           '#item-modal-submit-btn',
         statusSelector:           '#item-modal-analysis-status',
-        retryButtonSelector:      '#item-modal-analysis-retry-btn',
-        fileLabelSelector:        '#item-modal-image-label'
+        retryButtonSelector:      '#item-modal-analysis-retry-btn'
     });
 
     initImageUpload({
@@ -185,10 +189,8 @@
         previewSelector:    '#item-modal-preview',
         hashInputSelector:  '#item-modal-image-hash',
         submitSelector:     '#item-modal-submit-btn',
-        labelTextSelector:  '#item-modal-image-label-text',
         onImageReady: analyzeItemModalImage
     });
-
     </script>
     <script th:if="${lotSerialEnabled}">
     (function initTrackingModeToggles() {

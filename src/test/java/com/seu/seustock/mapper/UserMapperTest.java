@@ -48,6 +48,30 @@ class UserMapperTest {
   }
 
   @Test
+  void findById() {
+    UserDTO user = buildUser("dave@test.com");
+    userMapper.insertUser(user);
+
+    Optional<UserDTO> found = userMapper.findById(user.getId());
+
+    assertThat(found).isPresent();
+    assertThat(found.get().getEmail()).isEqualTo("dave@test.com");
+  }
+
+  @Test
+  void updateNickname() {
+    UserDTO user = buildUser("eve@test.com");
+    userMapper.insertUser(user);
+    user.setNickname("newNick");
+
+    userMapper.updateNickname(user);
+
+    Optional<UserDTO> found = userMapper.findByEmail("eve@test.com");
+    assertThat(found).isPresent();
+    assertThat(found.get().getNickname()).isEqualTo("newNick");
+  }
+
+  @Test
   void updatePassword() {
     UserDTO user = buildUser("bob@test.com");
     userMapper.insertUser(user);

@@ -26,13 +26,13 @@
 
 <ul th:fragment="box-list-container" data-component-id="shelves.box-list-container"
     th:id="'box-list-' + ${shelf.externalId}"
-    class="ml-4 border-l border-slate-100">
+    class="ml-4 border-l border-line-soft">
     <th:block th:replace="~{:: box-list-content}"></th:block>
 </ul>
 
 <th:block th:fragment="box-list-response">
     <ul data-component-id="shelves.box-list-response" th:id="'box-list-' + ${shelf.externalId}"
-        class="ml-4 border-l border-slate-100"
+        class="ml-4 border-l border-line-soft"
         hx-swap-oob="true">
         <th:block th:replace="~{:: box-list-content}"></th:block>
     </ul>

@@ -10,7 +10,7 @@
 
 <th:block th:fragment="stock-panel-response">
     <div id="modal" data-component-id="stocks.modal-mount" hx-swap-oob="true"></div>
-    <div id="stock-panel" class="rounded-lg border border-slate-200 bg-white overflow-hidden">
+    <div id="stock-panel" class=" border border-line-soft bg-surface overflow-hidden">
         <th:block th:replace="~{:: panel-content}"></th:block>
     </div>
 </th:block>
@@ -18,15 +18,15 @@
 <div th:fragment="stock-panel"
      id="stock-panel"
      data-component-id="stocks.panel"
-     class="rounded-lg border border-slate-200 bg-white overflow-hidden">
+     class=" border border-line-soft bg-surface overflow-hidden">
     <th:block th:replace="~{:: panel-content}"></th:block>
 </div>
 
 <th:block th:fragment="panel-content">
 
-    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-y-2">
-        <div class="flex items-center gap-2 text-sm text-slate-600">
-            <span class="text-slate-400">📦</span>
+    <div class="px-4 py-3 bg-surface-dim border-b border-line-soft flex flex-wrap items-center justify-between gap-y-2">
+        <div class="flex items-center gap-2 text-sm text-muted">
+            <span class="text-faint">📦</span>
             <span th:text="${breadcrumb}">위치</span>
         </div>
         <div class="flex gap-2">
@@ -54,19 +54,19 @@
     </div>
 
     <!-- 검색바 + 정렬 뱃지 (전체보기 전용) -->
-    <div th:if="${isAllView}" class="px-4 py-3 border-b border-slate-100 space-y-2">
+    <div th:if="${isAllView}" class="px-4 py-3 border-b border-line-soft space-y-2">
         <form th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space})}"
               hx-target="#stock-panel"
               hx-swap="outerHTML"
               class="flex items-center gap-2">
             <input type="hidden" name="sortBy" th:value="${sortBy}">
             <input type="hidden" name="page" value="1">
-            <span class="search-select inline-flex items-center rounded-lg" th:text="#{view.item.list.table.item}">물품명</span>
+            <span class="search-select inline-flex items-center" th:text="#{view.item.list.table.item}">물품명</span>
             <input type="text"
                    name="keyword"
                    th:value="${keyword}"
                    th:placeholder="#{view.item.list.search.placeholder}"
-                   class="search-input rounded-lg">
+                   class="search-input">
             <button type="submit"
                     class="btn-search btn-sm shrink-0"
                     th:text="#{view.common.search}">
@@ -106,7 +106,7 @@
     </div>
 
     <form id="stock-move-selection-form"
-          class="hidden border-b border-primary-border bg-primary-bg px-4 py-3"
+          class="hidden border-b border-ink bg-surface-dim px-4 py-3"
           hx-get="/stocks/move-form"
           hx-target="#modal"
           hx-swap="outerHTML"
@@ -116,18 +116,18 @@
         <input type="hidden" name="sourceBoxExternalId" th:value="${box}">
         <div id="move-selection-fields"></div>
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <p class="text-sm text-primary-text" th:text="#{view.stock.modal.move.instruction}">이동할 물품을 선택하고 수량을 조정하세요.</p>
+            <p class="text-sm text-ink" th:text="#{view.stock.modal.move.instruction}">이동할 물품을 선택하고 수량을 조정하세요.</p>
             <div class="flex gap-2">
                 <button type="button"
                         onclick="cancelStockMoveMode()"
-                        class="rounded-lg border border-primary-border bg-white px-3 py-1.5 text-sm text-primary-text hover:bg-primary-bg transition"
+                        class=" border border-ink bg-surface px-3 py-1.5 text-sm text-ink hover:bg-surface-dim transition"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
                         id="stock-move-submit"
                         disabled
-                        class="btn-primary btn-sm disabled:bg-slate-300 text-sm"
+                        class="btn-primary btn-sm disabled:bg-disabled text-sm"
                         th:text="#{view.stock.modal.move.button.submit}">
                     이동하기
                 </button>
@@ -135,9 +135,9 @@
         </div>
     </form>
 
-    <div id="stock-panel-rows" class="divide-y divide-slate-100">
+    <div id="stock-panel-rows" class="divide-y divide-line-soft">
 
-        <div th:if="${stocks.empty}" class="px-4 py-8 text-center text-sm text-slate-400" th:text="#{view.stock.panel.empty}">
+        <div th:if="${stocks.empty}" class="px-4 py-8 text-center text-sm text-faint" th:text="#{view.stock.panel.empty}">
             이 위치에 등록된 재고가 없습니다.
         </div>
 
@@ -149,7 +149,7 @@
          id="stock-panel-more"
          data-component-id="stocks.panel-more"
          th:fragment="stock-panel-more"
-         class="border-t border-slate-100 px-4 py-3 text-center">
+         class="border-t border-line-soft px-4 py-3 text-center">
         <button th:if="${page.hasNext() and isAllView}"
                 th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space},page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
                 hx-target="#stock-panel-more"

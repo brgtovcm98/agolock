@@ -3,12 +3,12 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="#{view.error.400.title}">잘못된 요청 - SeuStock</title>
 </head>
-<body class="page bg-slate-50 min-h-screen flex flex-col">
+<body class="page bg-surface-dim min-h-screen flex flex-col">
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 <main data-component-id="page.error-400" class="page-main mx-auto max-w-5xl px-4 py-16 text-center flex-1">
-    <p class="text-5xl font-bold text-slate-300 mb-4">400</p>
+    <p class="text-5xl font-bold text-disabled mb-4">400</p>
     <h1 class="page-title mb-2" th:text="#{view.error.400.header}">잘못된 요청입니다</h1>
-    <p class="text-slate-500 mb-8" th:text="${errorMessage} ?: #{view.error.400.defaultMessage}">요청을 처리할 수 없습니다.</p>
+    <p class="text-muted mb-8" th:text="${errorMessage} ?: #{view.error.400.defaultMessage}">요청을 처리할 수 없습니다.</p>
     <button type="button" onclick="history.back()" class="btn-secondary text-sm" th:text="#{view.error.back}">돌아가기</button>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

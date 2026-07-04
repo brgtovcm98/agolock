@@ -8,7 +8,11 @@ import org.apache.ibatis.annotations.Mapper;
 public interface UserMapper {
   void insertUser(UserDTO user);
 
+  Optional<UserDTO> findById(Long id);
+
   Optional<UserDTO> findByEmail(String email);
+
+  void updateNickname(UserDTO user);
 
   void updatePassword(UserDTO user);
 

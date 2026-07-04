@@ -4,18 +4,19 @@
 
 <div th:fragment="modal"
      id="modal" data-component-id="items.modal.history" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-2xl mx-4 p-6 max-h-[80vh] flex flex-col">
+     class="modal-overlay">
+    <div class="modal-dialog modal-dialog-md">
 
-        <div class="flex items-center justify-between mb-4">
-            <h2 id="modal-title" class="text-lg font-semibold text-slate-800">
+        <div class="modal-header">
+            <h2 id="modal-title" class="modal-title">
                 <span th:text="#{view.item.history.title(${itemName})}"></span>
             </h2>
             <button type="button"
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="text-slate-400 hover:text-slate-600 transition text-sm">
+                    class="modal-close"
+                    th:attr="aria-label=#{aria.modal.close}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -23,70 +24,82 @@
             </button>
         </div>
 
-        <div class="overflow-y-auto flex-1">
+        <div class="modal-body max-h-[60vh] overflow-y-auto">
             <p th:if="${history.empty}"
-               class="py-8 text-center text-sm text-slate-400" th:text="#{view.item.history.empty}">거래 기록이 없습니다.</p>
+               class="py-8 text-center text-sm text-faint" th:text="#{view.item.history.empty}">거래 기록이 없습니다.</p>
 
             <div th:unless="${history.empty}">
                 <div th:each="tx : ${history}"
-                     class="border-b border-slate-100 last:border-0 py-3">
+                     class="border-b border-line-soft py-5 last:border-b-0">
 
                     <!-- 유형 badge + 날짜 -->
                     <div class="flex items-center justify-between gap-2">
                         <span th:text="#{${'enum.TransactionType.' + tx.transactionType.name()}}"
-                              th:classappend="${tx.transactionType.name() == 'IN'} ? 'badge-blue' :
-                                              (${tx.transactionType.name() == 'OUT'} ? 'badge-red' : 'badge-slate')"
-                              class="badge font-semibold"></span>
-                        <span class="text-xs text-slate-400 whitespace-nowrap shrink-0"
+                              th:classappend="${tx.transactionType.name() == 'IN'} ? 'badge-in' :
+                                              (${tx.transactionType.name() == 'OUT'} ? 'badge-out' : 'badge')"
+                              class="font-semibold"></span>
+                        <span class="font-mono text-[13px] text-faint whitespace-nowrap shrink-0"
                               th:text="${#temporals.format(tx.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
                     </div>
 
                     <!-- 장소 -->
-                    <div class="mt-1-5 flex items-start gap-2 text-sm">
-                        <span class="shrink-0 w-20 text-xs font-medium text-slate-400" th:text="#{view.item.history.location}">장소</span>
+                    <div class="mt-3 flex items-start gap-2 text-sm">
+                        <span class="w-16 shrink-0 text-[13px] text-faint" th:text="#{view.item.history.location}">장소</span>
                         <span th:if="${tx.transactionType.name() == 'MOVE' and tx.fromSpaceName != null and tx.toSpaceName != null}"
-                              class="text-slate-700">
-                            <span th:text="${tx.fromSpaceName}"></span>
-                            <span th:if="${tx.fromShelfName != null}"
-                                  th:text="' › ' + ${tx.fromShelfName}"
-                                  class="text-slate-400"></span>
-                            <span th:if="${tx.fromBoxName != null}"
-                                  th:text="' › ' + ${tx.fromBoxName}"
-                                  class="text-slate-400"></span>
-                            <span class="mx-1 text-slate-300">→</span>
-                            <span th:text="${tx.toSpaceName}"></span>
-                            <span th:if="${tx.toShelfName != null}"
-                                  th:text="' › ' + ${tx.toShelfName}"
-                                  class="text-slate-400"></span>
-                            <span th:if="${tx.toBoxName != null}"
-                                  th:text="' › ' + ${tx.toBoxName}"
-                                  class="text-slate-400"></span>
+                              class="breadcrumb">
+                            <span th:text="${tx.fromSpaceName}"
+                                  th:classappend="${tx.fromShelfName == null and tx.fromBoxName == null} ? 'leaf'"></span>
+                            <th:block th:if="${tx.fromShelfName != null}">
+                                <span class="sep"> › </span>
+                                <span th:text="${tx.fromShelfName}"
+                                      th:classappend="${tx.fromBoxName == null} ? 'leaf'"></span>
+                            </th:block>
+                            <th:block th:if="${tx.fromBoxName != null}">
+                                <span class="sep"> › </span>
+                                <span class="leaf" th:text="${tx.fromBoxName}"></span>
+                            </th:block>
+                            <span class="mx-1 text-line">→</span>
+                            <span th:text="${tx.toSpaceName}"
+                                  th:classappend="${tx.toShelfName == null and tx.toBoxName == null} ? 'leaf'"></span>
+                            <th:block th:if="${tx.toShelfName != null}">
+                                <span class="sep"> › </span>
+                                <span th:text="${tx.toShelfName}"
+                                      th:classappend="${tx.toBoxName == null} ? 'leaf'"></span>
+                            </th:block>
+                            <th:block th:if="${tx.toBoxName != null}">
+                                <span class="sep"> › </span>
+                                <span class="leaf" th:text="${tx.toBoxName}"></span>
+                            </th:block>
                         </span>
                         <span th:unless="${tx.transactionType.name() == 'MOVE' and tx.fromSpaceName != null and tx.toSpaceName != null}"
-                              class="text-slate-700">
-                            <span th:text="${tx.spaceName}"></span>
-                            <span th:if="${tx.shelfName != null}"
-                                  th:text="' › ' + ${tx.shelfName}"
-                                  class="text-slate-400"></span>
-                            <span th:if="${tx.boxName != null}"
-                                  th:text="' › ' + ${tx.boxName}"
-                                  class="text-slate-400"></span>
+                              class="breadcrumb">
+                            <span th:text="${tx.spaceName}"
+                                  th:classappend="${tx.shelfName == null and tx.boxName == null} ? 'leaf'"></span>
+                            <th:block th:if="${tx.shelfName != null}">
+                                <span class="sep"> › </span>
+                                <span th:text="${tx.shelfName}"
+                                      th:classappend="${tx.boxName == null} ? 'leaf'"></span>
+                            </th:block>
+                            <th:block th:if="${tx.boxName != null}">
+                                <span class="sep"> › </span>
+                                <span class="leaf" th:text="${tx.boxName}"></span>
+                            </th:block>
                         </span>
                     </div>
 
                     <!-- 상태 / 유형 -->
-                    <div class="mt-1 flex items-start gap-2 text-sm">
-                        <span class="shrink-0 w-20 text-xs font-medium text-slate-400" th:text="#{view.item.history.status}">상태</span>
-                        <span class="text-slate-700" th:text="#{${'enum.StockStatus.' + tx.status.name()}}"></span>
-                        <span class="text-slate-300">/</span>
-                        <span class="text-slate-500" th:text="#{${'enum.TransactionType.' + tx.transactionType.name()}}"></span>
+                    <div class="mt-2 flex items-start gap-2 text-sm">
+                        <span class="w-16 shrink-0 text-[13px] text-faint" th:text="#{view.item.history.status}">상태</span>
+                        <span class="text-ink" th:text="#{${'enum.StockStatus.' + tx.status.name()}}"></span>
+                        <span class="text-line">/</span>
+                        <span class="text-muted" th:text="#{${'enum.TransactionType.' + tx.transactionType.name()}}"></span>
                     </div>
 
                     <!-- 시리얼 / 로트 -->
                     <div th:if="${lotSerialEnabled and (tx.serialNumber != null or tx.lotNumber != null)}"
-                         class="mt-1 flex items-start gap-2 text-sm">
-                        <span class="shrink-0 w-20 text-xs font-medium text-slate-400" th:text="#{view.item.history.serialLot}">시리얼/로트</span>
-                        <span class="text-slate-600">
+                         class="mt-2 flex items-start gap-2 text-sm">
+                        <span class="w-16 shrink-0 text-[13px] text-faint" th:text="#{view.item.history.serialLot}">시리얼/로트</span>
+                        <span class="text-muted">
                             <span th:if="${tx.serialNumber != null}" th:text="${tx.serialNumber}"></span>
                             <span th:if="${tx.serialNumber != null and tx.lotNumber != null}"> / </span>
                             <span th:if="${tx.lotNumber != null}" th:text="${tx.lotNumber}"></span>
@@ -95,20 +108,20 @@
 
                     <!-- 메모 -->
                     <div th:if="${tx.memo != null and !tx.memo.isEmpty()}"
-                         class="mt-1 flex items-start gap-2 text-sm">
-                        <span class="shrink-0 w-20 text-xs font-medium text-slate-400" th:text="#{view.item.history.memo}">메모</span>
-                        <span class="text-slate-500" th:text="${#messages.msgOrNull(tx.memo) ?: tx.memo}"></span>
+                         class="mt-2 flex items-start gap-2 text-sm">
+                        <span class="w-16 shrink-0 text-[13px] text-faint" th:text="#{view.item.history.memo}">메모</span>
+                        <span class="text-ink" th:text="${#messages.msgOrNull(tx.memo) ?: tx.memo}"></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-end pt-4 border-t border-slate-100 mt-4">
+        <div class="modal-footer">
             <button type="button"
                     hx-get="/empty"
                     hx-target="#modal"
                     hx-swap="outerHTML"
-                    class="btn-secondary text-sm"
+                    class="btn-secondary-strong btn-sm ml-auto"
                     th:text="#{view.common.close}">
                 닫기
             </button>

@@ -5,12 +5,12 @@
 <!-- 새 박스 행 -->
 <li th:fragment="created" data-component-id="boxes.tree-item.created"
     th:id="'box-' + ${box.externalId}"
-    class="flex items-center gap-1 px-3 py-1.5 hover:bg-slate-50 transition cursor-pointer group">
+    class="flex items-center gap-1 px-3 py-1.5 hover:bg-surface-dim transition cursor-pointer group">
 
-    <span class="text-xs text-slate-300 w-3">□</span>
+    <span class="text-xs text-disabled w-3">□</span>
 
     <button type="button"
-            class="flex-1 text-left text-sm text-slate-600 truncate"
+            class="flex-1 text-left text-sm text-muted truncate"
             th:text="${box.name}"
             th:attr="hx-get=@{/spaces/{sid}/shelves/{shid}/boxes/{id}/stocks(sid=${space},shid=${shelf},id=${box.externalId})}"
             hx-target="#stock-panel"
@@ -18,14 +18,14 @@
 
     <span class="hidden group-hover:flex items-center gap-1 shrink-0">
     <button type="button"
-            class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-primary hover:text-primary-hover"
+            class="inline-flex h-6 w-6 items-center justify-center text-sm text-accent hover:text-accent"
             th:attr="hx-get=@{/stocks/new(spaceId=${space},shelfId=${shelf},boxId=${box.externalId})}"
             hx-target="#modal"
             hx-swap="outerHTML"
             th:title="#{view.box.created.addStock}">📦</button>
 
     <button type="button"
-            class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-red-400 hover:text-red-600"
+            class="inline-flex h-6 w-6 items-center justify-center text-sm text-danger hover:text-danger"
             th:attr="hx-delete=@{/spaces/{sid}/shelves/{shid}/boxes/{id}(sid=${space},shid=${shelf},id=${box.externalId})},
                      hx-confirm=#{view.box.created.deleteConfirm},
                      hx-target='#box-list-' + ${shelf}"

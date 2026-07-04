@@ -6,18 +6,19 @@
 <div th:fragment="view(stock)"
      data-component-id="stocks.detail-row.view"
      th:id="'stock-' + ${stock.externalId}"
-     class="stock-row border-l-4 border-white">
+     class="stock-row list-row">
 
+    <div class="index-col border-r border-line-soft" th:text="${#numbers.formatInteger(idx, 2)}">01</div>
     <div class="stock-item">
         <img th:src="${stock.displayImageExternalId != null} ? @{/images/{id}(id=${stock.displayImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
-             alt="" class="stock-thumb object-cover border border-slate-200">
+             alt="" class="row-thumb">
         <div class="min-w-0">
             <div>
                 <span class="stock-name" th:text="${stock.itemName}">품목명</span>
-                <span th:if="${stock.kept}" class="stock-badge" th:text="#{stock.badge.kept}">보관됨</span>
+                <span th:if="${stock.kept}" class="badge badge-empty ml-1" th:text="#{stock.badge.kept}">보관됨</span>
             </div>
             <div th:if="${lotSerialEnabled}" class="stock-id"
-                 th:classappend="${(stock.serialNumber == null or stock.serialNumber.isEmpty()) and (stock.lotNumber == null or stock.lotNumber.isEmpty())} ? 'muted'"
+                 th:classappend="${(stock.serialNumber == null or stock.serialNumber.isEmpty()) and (stock.lotNumber == null or stock.lotNumber.isEmpty())} ? 'text-faint'"
                  th:switch="${true}">
                 <th:block th:case="${stock.serialNumber != null and !stock.serialNumber.isEmpty() and stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
                     <span th:text="${stock.serialNumber}"></span>
@@ -32,11 +33,11 @@
                 </th:block>
                 <th:block th:case="*" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</th:block>
             </div>
-            <div th:unless="${lotSerialEnabled}" class="stock-id muted" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</div>
+            <div th:unless="${lotSerialEnabled}" class="stock-id" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</div>
         </div>
     </div>
 
-    <div class="stock-path">
+    <div class="stock-path breadcrumb">
         <a th:href="@{/stocks(space=${stock.spaceExternalId})}" class="hover:underline"
            th:text="${stock.spaceName}">공간</a>
         <th:block th:if="${stock.shelfName != null}">
@@ -58,31 +59,27 @@
         <button type="button"
                 th:attr="hx-get=@{/stocks/{id}/edit(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
                 hx-swap="outerHTML"
-                class="btn-secondary btn-sm text-sm"
+                class="btn-secondary btn-sm"
                 th:text="#{view.common.edit}">수정</button>
         <details class="relative" data-dropdown-menu>
             <summary class="btn-icon cursor-pointer list-none select-none"
                      aria-label="더보기">⋯</summary>
-            <div class="absolute right-0 top-full mt-1 min-w-[130px] rounded-lg border border-slate-200 bg-white shadow-md py-1 z-50 text-sm">
+            <div class="z-50 min-w-[140px]">
                 <button type="button"
                         th:attr="hx-get=@{/stocks/{id}/memo(id=${stock.externalId})}"
                         hx-target="#modal"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="#{view.stock.action.viewMemo}">메모 보기</button>
                 <button type="button"
                         th:attr="hx-get=@{/stocks/{id}/memo/edit(id=${stock.externalId})}"
                         hx-target="#modal"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="#{view.stock.action.writeMemo}">메모 작성</button>
                 <button type="button"
                         th:attr="hx-get=@{/stocks/{id}/history(id=${stock.externalId})}"
                         hx-target="#modal"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="#{view.stock.action.history}">이력 보기</button>
                 <button type="button"
                         th:attr="hx-post=@{/stocks/{id}/keep(id=${stock.externalId},kept=${!stock.kept})},hx-target='#stock-' + ${stock.externalId}"
                         hx-swap="outerHTML"
-                        class="block w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                         th:text="${stock.kept} ? #{view.stock.action.unkeep} : #{view.stock.action.keep}">보관 처리</button>
             </div>
         </details>
@@ -93,112 +90,119 @@
      data-component-id="stocks.detail-row.edit"
      th:id="'stock-' + ${stock.externalId}"
      th:object="${form}"
-     class="card-editing grid gap-3 px-4 py-2.5 text-sm md:grid-stock-row md:items-start">
+     class="card-editing px-4 py-4">
 
-    <div class="flex min-w-0 items-center gap-3">
-        <img th:src="${stock.displayImageExternalId != null} ? @{/images/{id}(id=${stock.displayImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
-             alt=""
-             class="h-12 w-12 shrink-0 rounded-lg border border-slate-200 object-cover">
-        <div class="min-w-0">
-            <p class="truncate text-sm font-semibold text-slate-800" th:text="${stock.itemName}">품목명</p>
-            <div th:if="${lotSerialEnabled}" class="stock-id mt-0.5 truncate font-mono text-xs leading-5 text-slate-500"
-                 th:classappend="${(stock.serialNumber == null or stock.serialNumber.isEmpty()) and (stock.lotNumber == null or stock.lotNumber.isEmpty())} ? 'muted'"
-                 th:switch="${true}">
-                <th:block th:case="${stock.serialNumber != null and !stock.serialNumber.isEmpty() and stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
-                    <span th:text="${stock.serialNumber}"></span>
-                    <span> · LOT </span>
-                    <span th:text="${stock.lotNumber}"></span>
-                </th:block>
-                <th:block th:case="${stock.serialNumber != null and !stock.serialNumber.isEmpty()}">
-                    <span th:text="${stock.serialNumber}"></span>
-                </th:block>
-                <th:block th:case="${stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
-                    <span>LOT </span><span th:text="${stock.lotNumber}"></span>
-                </th:block>
-                <th:block th:case="*" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</th:block>
+    <form method="post"
+          th:attr="hx-put=@{/stocks/{id}(id=${stock.externalId})}"
+          hx-target="#stock-detail-section"
+          hx-select="#stock-detail-section"
+          hx-swap="outerHTML"
+          class="flex flex-col gap-4 md:flex-row md:items-start">
+        <input type="hidden" name="sortBy" th:value="${sortBy}">
+        <input type="hidden" name="keyword" th:value="${keyword}">
+        <input type="hidden" name="searchType" th:value="${searchType}">
+        <input th:if="${itemExternalId != null}" type="hidden" name="item" th:value="${item}">
+        <input th:if="${spaceExternalId != null}" type="hidden" name="space" th:value="${space}">
+        <input th:if="${shelfExternalId != null}" type="hidden" name="shelf" th:value="${shelf}">
+        <input th:if="${boxExternalId != null}" type="hidden" name="box" th:value="${box}">
+
+        <div class="flex flex-1 gap-4">
+            <img th:src="${stock.displayImageExternalId != null} ? @{/images/{id}(id=${stock.displayImageExternalId})} : @{/image/placeholder/item_placeholder_v2.png}"
+                 alt=""
+                 class="thumb h-12 w-12">
+            <div class="min-w-0">
+                <p class="truncate text-sm font-bold text-ink" th:text="${stock.itemName}">품목명</p>
+                <div th:if="${lotSerialEnabled}" class="mt-0.5 truncate font-mono text-xs text-faint"
+                     th:classappend="${(stock.serialNumber == null or stock.serialNumber.isEmpty()) and (stock.lotNumber == null or stock.lotNumber.isEmpty())} ? 'text-faint'"
+                     th:switch="${true}">
+                    <th:block th:case="${stock.serialNumber != null and !stock.serialNumber.isEmpty() and stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
+                        <span th:text="${stock.serialNumber}"></span>
+                        <span> · LOT </span>
+                        <span th:text="${stock.lotNumber}"></span>
+                    </th:block>
+                    <th:block th:case="${stock.serialNumber != null and !stock.serialNumber.isEmpty()}">
+                        <span th:text="${stock.serialNumber}"></span>
+                    </th:block>
+                    <th:block th:case="${stock.lotNumber != null and !stock.lotNumber.isEmpty()}">
+                        <span>LOT </span><span th:text="${stock.lotNumber}"></span>
+                    </th:block>
+                    <th:block th:case="*" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</th:block>
+                </div>
+                <div th:unless="${lotSerialEnabled}" class="mt-0.5 truncate text-xs text-faint" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</div>
+                <div class="mt-1 text-xs text-muted">
+                    <a th:href="@{/stocks(space=${stock.spaceExternalId})}" class="hover:underline" th:text="${stock.spaceName}">공간</a>
+                    <th:block th:if="${stock.shelfName != null}">
+                        <span class="text-faint"> › </span>
+                        <th:block th:if="${stock.boxName != null}">
+                            <a th:href="@{/stocks(shelf=${stock.shelfExternalId})}" class="hover:underline" th:text="${stock.shelfName}">선반</a>
+                            <span class="text-faint"> › </span>
+                            <a th:href="@{/stocks(box=${stock.boxExternalId})}" class="font-semibold text-ink hover:underline" th:text="${stock.boxName}">박스</a>
+                        </th:block>
+                        <th:block th:unless="${stock.boxName != null}">
+                            <span class="font-semibold text-ink" th:text="${stock.shelfName}">선반</span>
+                        </th:block>
+                    </th:block>
+                </div>
             </div>
-            <div th:unless="${lotSerialEnabled}" class="stock-id muted mt-0.5 truncate text-xs leading-5 text-slate-400" th:text="#{view.stock.table.noIdentifier}">식별정보 없음</div>
         </div>
-    </div>
 
-    <div class="min-w-0">
-        <div class="stock-path text-xs leading-5 text-slate-500">
-            <a th:href="@{/stocks(space=${stock.spaceExternalId})}" class="hover:underline"
-               th:text="${stock.spaceName}">공간</a>
-            <th:block th:if="${stock.shelfName != null}">
-                <span class="sep"> › </span>
-                <th:block th:if="${stock.boxName != null}">
-                    <a th:href="@{/stocks(shelf=${stock.shelfExternalId})}" class="hover:underline"
-                       th:text="${stock.shelfName}">선반</a>
-                    <span class="sep"> › </span>
-                    <a th:href="@{/stocks(box=${stock.boxExternalId})}" class="leaf hover:underline"
-                       th:text="${stock.boxName}">박스</a>
-                </th:block>
-                <th:block th:unless="${stock.boxName != null}">
-                    <span class="leaf" th:text="${stock.shelfName}">선반</span>
-                </th:block>
-            </th:block>
+        <div class="grid flex-1 gap-3 md:grid-cols-2">
+            <div th:if="${lotSerialEnabled}">
+                <label class="field-label field-label-sm" th:text="#{view.stock.form.serial.label}">시리얼 번호</label>
+                <input type="text" th:field="*{serialNumber}"
+                       class="field-input">
+                <p th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"
+                   class="field-error"></p>
+            </div>
+            <div th:if="${lotSerialEnabled}">
+                <label class="field-label field-label-sm" th:text="#{view.stock.form.lot.label}">로트 번호</label>
+                <input type="text" th:field="*{lotNumber}"
+                       th:readonly="${stock.lotExternalId != null}"
+                       th:classappend="${stock.lotExternalId != null} ? 'bg-surface-dim text-muted'"
+                       class="field-input">
+                <p th:if="${#fields.hasErrors('lotNumber')}" th:errors="*{lotNumber}"
+                   class="field-error"></p>
+            </div>
+            <div>
+                <label class="field-label field-label-sm" th:text="#{view.stock.form.price.label}">가격</label>
+                <input type="number" min="0" step="1" th:field="*{price}"
+                       class="field-input font-mono">
+                <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}"
+                   class="field-error"></p>
+            </div>
+            <div>
+                <label class="field-label field-label-sm" th:text="#{view.stock.form.expiration.label}">유통기한</label>
+                <input type="date" th:field="*{expirationDate}"
+                       class="field-input font-mono">
+            </div>
         </div>
-    </div>
 
-    <div class="space-y-2">
-        <div th:if="${lotSerialEnabled}">
-            <label class="field-label field-label-sm" th:text="#{view.stock.form.serial.label}">시리얼 번호</label>
-            <input type="text" th:field="*{serialNumber}"
-                   class="field-input">
-            <p th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"
-               class="field-error"></p>
+        <div class="flex flex-col gap-2 md:ml-auto md:pt-7">
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="btn-primary btn-sm"
+                        th:text="#{view.common.save}">
+                    저장
+                </button>
+                <button type="button"
+                        th:attr="hx-get=@{/stocks/{id}/cancel(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
+                        hx-swap="outerHTML"
+                        class="btn-secondary btn-sm"
+                        th:text="#{view.common.cancel}">
+                    취소
+                </button>
+            </div>
+            <div class="text-right">
+                <button type="button"
+                        th:attr="hx-delete=@{/stocks/{id}(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId},hx-confirm=#{view.stock.detail.deleteConfirm(${stock.itemName})}"
+                        hx-swap="outerHTML"
+                        class="btn-danger btn-sm"
+                        th:text="#{view.common.delete}">
+                    삭제
+                </button>
+            </div>
         </div>
-        <div th:if="${lotSerialEnabled}">
-            <label class="field-label field-label-sm" th:text="#{view.stock.form.lot.label}">로트 번호</label>
-            <input type="text" th:field="*{lotNumber}"
-                   th:readonly="${stock.lotExternalId != null}"
-                   th:classappend="${stock.lotExternalId != null} ? 'bg-slate-100 text-slate-500'"
-                   class="field-input">
-            <p th:if="${#fields.hasErrors('lotNumber')}" th:errors="*{lotNumber}"
-               class="field-error"></p>
-        </div>
-        <div>
-            <label class="field-label field-label-sm" th:text="#{view.stock.form.price.label}">가격</label>
-            <input type="number" min="0" step="1" th:field="*{price}"
-                   class="field-input">
-            <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}"
-               class="field-error"></p>
-        </div>
-        <div>
-            <label class="field-label field-label-sm" th:text="#{view.stock.form.expiration.label}">유통기한</label>
-            <input type="date" th:field="*{expirationDate}"
-                   class="field-input">
-        </div>
-    </div>
-
-    <div class="space-y-2">
-        <div class="flex flex-wrap gap-2 items-center md:justify-end">
-            <button type="button"
-                    th:attr="hx-put=@{/stocks/{id}(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId},hx-include='#stock-' + ${stock.externalId}"
-                    hx-swap="outerHTML"
-                    class="btn-primary btn-sm text-sm"
-                    th:text="#{view.common.save}">
-                저장
-            </button>
-            <button type="button"
-                    th:attr="hx-get=@{/stocks/{id}/cancel(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
-                    hx-swap="outerHTML"
-                    class="btn-secondary btn-sm text-sm"
-                    th:text="#{view.common.cancel}">
-                취소
-            </button>
-        </div>
-        <div class="text-right">
-            <button type="button"
-                    th:attr="hx-delete=@{/stocks/{id}(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId},hx-confirm=#{view.stock.detail.deleteConfirm(${stock.itemName})}"
-                    hx-swap="outerHTML"
-                    class="text-sm font-medium text-red-500 hover:text-red-700 transition bg-transparent border-0 cursor-pointer"
-                    th:text="#{view.common.delete}">
-                삭제
-            </button>
-        </div>
-    </div>
+    </form>
 </div>
 
 <th:block th:fragment="view-with-modal-close">

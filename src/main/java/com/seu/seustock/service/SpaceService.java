@@ -3,6 +3,7 @@ package com.seu.seustock.service;
 import com.seu.seustock.mapper.SpaceMapper;
 import com.seu.seustock.mapper.StockMapper;
 import com.seu.seustock.mapper.UserMapper;
+import com.seu.seustock.model.dto.ImageDTO;
 import com.seu.seustock.model.dto.SpaceDTO;
 import com.seu.seustock.model.dto.SpaceSummaryDTO;
 import com.seu.seustock.model.dto.UserDTO;
@@ -28,6 +29,7 @@ public class SpaceService extends BaseService {
 
   private final SpaceMapper spaceMapper;
   private final StockMapper stockMapper;
+  private final ImageStorageService imageStorageService;
 
   @Value("${seustock.space.expiring-soon-days:7}")
   private int expiringSoonDays;
@@ -36,10 +38,12 @@ public class SpaceService extends BaseService {
       SpaceMapper spaceMapper,
       UserMapper userMapper,
       StockMapper stockMapper,
+      ImageStorageService imageStorageService,
       MessageSource messageSource) {
     super(userMapper, messageSource);
     this.spaceMapper = spaceMapper;
     this.stockMapper = stockMapper;
+    this.imageStorageService = imageStorageService;
   }
 
   /**
@@ -106,6 +110,10 @@ public class SpaceService extends BaseService {
     SpaceDTO space = new SpaceDTO();
     space.setUserId(user.getId());
     space.setName(form.getName());
+    ImageDTO image = imageStorageService.store(form.getImageFile(), user, form.getImageHash());
+    if (image != null) {
+      space.setImageExternalId(image.getExternalId());
+    }
     spaceMapper.insertSpace(space);
     log.info("space created userId={} spaceId={}", user.getId(), space.getId());
     if (space.getId() == null) {
@@ -118,9 +126,14 @@ public class SpaceService extends BaseService {
   public SpaceDTO update(UUID externalId, SpaceForm form, String username) {
     SpaceDTO space = getSpace(externalId);
     verifyOwner(space, username);
+    UserDTO user = getUser(username);
     space.setName(form.getName());
+    ImageDTO image = imageStorageService.store(form.getImageFile(), user, form.getImageHash());
+    if (image != null) {
+      space.setImageExternalId(image.getExternalId());
+    }
     spaceMapper.updateSpace(space);
-    log.info("space updated userId={} spaceId={}", getUser(username).getId(), space.getId());
+    log.info("space updated userId={} spaceId={}", user.getId(), space.getId());
     return spaceMapper.findByExternalId(externalId).orElseThrow();
   }
 

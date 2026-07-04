@@ -28,18 +28,18 @@
 
             <div class="mb-3">
                 <label class="field-label" th:text="#{view.stock.form.item.label}">품목</label>
-                <div class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
+                <div class="max-h-48 overflow-y-auto border border-line-soft divide-y divide-line-soft">
                     <label th:each="item : ${items}"
-                           class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer">
+                           class="flex items-center gap-3 px-3 py-2 hover:bg-surface-dim cursor-pointer">
                         <input type="radio" name="itemExternalId" th:value="${item.externalId}"
                                class="field-check">
                         <img th:if="${item.primaryImageExternalId != null}"
                              th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
                              alt=""
-                             class="h-9 w-9 rounded-lg object-cover border border-slate-200">
+                             class="h-9 w-9 object-cover border border-line-soft">
                         <span th:unless="${item.primaryImageExternalId != null}"
-                              class="h-9 w-9 rounded-lg border border-slate-200 bg-slate-50"></span>
-                        <span class="text-sm text-slate-800" th:text="${item.name}">품목명</span>
+                              class="h-9 w-9 border border-line-soft bg-surface-dim"></span>
+                        <span class="text-sm text-ink" th:text="${item.name}">품목명</span>
                     </label>
                 </div>
                 <span th:if="${#fields.hasErrors('itemExternalId')}"
@@ -50,7 +50,7 @@
             <div class="mb-3" data-count-field>
                 <label class="field-label">
                     <span th:text="#{view.stock.form.count.label}">수량</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.stock.form.count.maxHint}">(최대 50개)</span>
+                    <span class="text-faint font-normal" th:text="#{view.stock.form.count.maxHint}">(최대 50개)</span>
                 </label>
                 <input type="number" th:field="*{count}" min="1" max="50"
                        class="field-input">
@@ -62,7 +62,7 @@
             <div class="mb-3">
                 <label class="field-label">
                     <span th:text="#{view.stock.form.price.label}">가격</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                    <span class="text-faint font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
                        class="field-input"
@@ -75,7 +75,7 @@
             <div class="mb-3" data-serial-single-field th:if="${lotSerialEnabled}">
                 <label class="field-label">
                     <span th:text="#{view.stock.form.serial.label}">시리얼 번호</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.stock.form.serial.hint}">(선택, 수량 1일 때)</span>
+                    <span class="text-faint font-normal" th:text="#{view.stock.form.serial.hint}">(선택, 수량 1일 때)</span>
                 </label>
                 <input type="text" th:field="*{serialNumber}"
                        class="field-input"
@@ -94,7 +94,7 @@
             <div class="mb-3" data-lot-manual-field th:if="${lotSerialEnabled}">
                 <label class="field-label">
                     <span th:text="#{view.stock.form.lot.label}">로트 번호</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                    <span class="text-faint font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="text" th:field="*{lotNumber}"
                        class="field-input">
@@ -103,7 +103,7 @@
             <div class="mb-4">
                 <label class="field-label">
                     <span th:text="#{view.stock.form.expiration.label}">유통기한</span>
-                    <span class="text-slate-400 font-normal" th:text="#{view.common.optional}">(선택)</span>
+                    <span class="text-faint font-normal" th:text="#{view.common.optional}">(선택)</span>
                 </label>
                 <input type="date" th:field="*{expirationDate}"
                        class="field-input">

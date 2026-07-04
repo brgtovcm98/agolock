@@ -7,8 +7,8 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-sm mx-4 p-6 max-h-[90vh] overflow-y-auto flex flex-col">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.list.quickAdd}">빠른 재고 등록</h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="#{view.stock.modal.quick.description}">품목을 새로 만들고 바로 재고에 추가합니다.</p>
+        <h2 id="modal-title" class="text-lg font-semibold text-ink mb-1" th:text="#{view.stock.list.quickAdd}">빠른 재고 등록</h2>
+        <p class="text-xs text-faint mb-4" th:text="#{view.stock.modal.quick.description}">품목을 새로 만들고 바로 재고에 추가합니다.</p>
 
         <form th:object="${form}"
               method="post"
@@ -24,10 +24,10 @@
 
             <div class="mb-3">
                 <label class="field-label">
-                    <span th:text="#{view.item.modal.image.label}">사진</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                    <span th:text="#{view.item.modal.image.label}">사진</span> <span class="text-faint font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
-                <label class="flex items-center gap-2 cursor-pointer w-full rounded-lg border border-dashed border-slate-300
-                              px-3 py-2 text-sm text-slate-500 hover:border-primary hover:text-primary transition"
+                <label class="flex items-center gap-2 cursor-pointer w-full border border-dashed border-line
+                              px-3 py-2 text-sm text-muted hover:border-ink hover:text-ink transition"
                        id="image-label">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -38,10 +38,10 @@
                            class="sr-only">
                 </label>
                 <img id="quick-image-preview"
-                     class="hidden mt-2 w-full aspect-square rounded-lg object-cover border border-slate-200"
+                     class="hidden mt-2 w-full aspect-square object-cover border border-line-soft"
                      th:alt="#{view.item.modal.image.previewAlt}">
                 <span id="quick-analysis-status"
-                      class="hidden mt-1 block text-xs text-primary" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
+                      class="hidden mt-1 block text-xs text-muted" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"
                         id="quick-analysis-retry-btn"
                         class="link hidden mt-2 text-sm"
@@ -62,7 +62,7 @@
 
             <div class="mb-3">
                 <label class="field-label">
-                    <span th:text="#{view.item.card.descLabel}">설명</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                    <span th:text="#{view.item.card.descLabel}">설명</span> <span class="text-faint font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{description}"
                        class="field-input"
@@ -74,7 +74,7 @@
 
             <div class="mb-3">
                 <label class="field-label">
-                    <span th:text="#{view.stock.form.count.label}">수량</span> <span class="text-slate-400 font-normal" th:text="|#{view.stock.modal.quick.max}|">(최대 50개)</span>
+                    <span th:text="#{view.stock.form.count.label}">수량</span> <span class="text-faint font-normal" th:text="|#{view.stock.modal.quick.max}|">(최대 50개)</span>
                 </label>
                 <input type="number" th:field="*{count}" min="1" max="50"
                        class="field-input">
@@ -85,7 +85,7 @@
 
             <div class="mb-3">
                 <label class="field-label">
-                    <span th:text="#{view.stock.form.price.label}">가격</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                    <span th:text="#{view.stock.form.price.label}">가격</span> <span class="text-faint font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="number" min="0" step="1" th:field="*{price}"
                        class="field-input"
@@ -97,7 +97,7 @@
 
             <div class="mb-4">
                 <label class="field-label">
-                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-faint font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{memo}"
                        class="field-input">

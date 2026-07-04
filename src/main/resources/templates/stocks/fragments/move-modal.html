@@ -7,8 +7,8 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-md mx-4 p-6 flex flex-col">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-slate-800 mb-1" th:text="#{view.stock.modal.move.title}">물품 이동</h2>
-        <p class="text-xs text-slate-400 mb-4" th:text="#{view.stock.modal.move.description}">선택한 물품을 같은 위치로 이동합니다.</p>
+        <h2 id="modal-title" class="text-lg font-semibold text-ink mb-1" th:text="#{view.stock.modal.move.title}">물품 이동</h2>
+        <p class="text-xs text-faint mb-4" th:text="#{view.stock.modal.move.description}">선택한 물품을 같은 위치로 이동합니다.</p>
 
         <form th:object="${form}"
               method="post"
@@ -37,10 +37,10 @@
 
             <div class="mb-4">
                 <label class="field-label" th:text="#{view.stock.form.target.label}">이동할 장소</label>
-                <div class="max-h-72 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
+                <div class="max-h-72 overflow-y-auto border border-line-soft divide-y divide-line-soft">
                     <label th:each="option : ${locationOptions}"
                            class="flex items-center gap-3 px-3 py-2 text-sm"
-                           th:classappend="${option.current} ? 'cursor-not-allowed bg-slate-50 text-slate-400' : 'cursor-pointer hover:bg-slate-50 text-slate-700'">
+                           th:classappend="${option.current} ? 'cursor-not-allowed bg-surface-dim text-faint' : 'cursor-pointer hover:bg-surface-dim text-ink'">
                         <input type="radio"
                                name="moveTargetOption"
                                required
@@ -51,7 +51,7 @@
                                onchange="setStockMoveTarget(this)"
                                class="field-check">
                         <span th:text="${option.label}">위치</span>
-                        <span th:if="${option.current}" class="ml-auto text-xs text-slate-400" th:text="#{view.stock.form.target.current}">현재 위치</span>
+                        <span th:if="${option.current}" class="ml-auto text-xs text-faint" th:text="#{view.stock.form.target.current}">현재 위치</span>
                     </label>
                 </div>
                 <span th:if="${#fields.hasErrors('targetSpaceExternalId')}"
@@ -61,7 +61,7 @@
 
             <div class="mb-4">
                 <label class="field-label">
-                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-slate-400 font-normal" th:text="|#{view.common.optional}|">(선택)</span>
+                    <span th:text="#{view.stock.form.memo.label}">메모</span> <span class="text-faint font-normal" th:text="|#{view.common.optional}|">(선택)</span>
                 </label>
                 <input type="text" th:field="*{memo}"
                        class="field-input"

@@ -9,8 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.seu.seustock.model.dto.ItemDTO;
 import com.seu.seustock.model.pagination.PageResult;
+import com.seu.seustock.service.BoxService;
 import com.seu.seustock.service.ItemService;
+import com.seu.seustock.service.ShelfService;
+import com.seu.seustock.service.SpaceService;
+import com.seu.seustock.service.StockService;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +31,14 @@ class ItemControllerTest extends AbstractControllerTest {
 
   @MockitoBean private ItemService itemService;
 
+  @MockitoBean private SpaceService spaceService;
+
+  @MockitoBean private ShelfService shelfService;
+
+  @MockitoBean private BoxService boxService;
+
+  @MockitoBean private StockService stockService;
+
   @BeforeEach
   void stubDefaults() {
     given(itemService.findPageByUsername(anyString(), any(), anyString(), anyString(), any()))
@@ -35,6 +48,9 @@ class ItemControllerTest extends AbstractControllerTest {
     given(itemService.update(any(), any(), anyString())).willReturn(stubItem());
     given(itemService.findSpaceStock(any(), anyString())).willReturn(List.of());
     given(itemService.findTransactionHistory(any(), anyString())).willReturn(List.of());
+    given(spaceService.findAllByUsername(anyString())).willReturn(List.of());
+    given(shelfService.findAllBySpaceId(any(), anyString())).willReturn(List.of());
+    given(boxService.findAllByShelfId(any(), any(), anyString())).willReturn(List.of());
   }
 
   // ── Security: 미인증 리다이렉트 ────────────────────────────────────────
@@ -190,6 +206,51 @@ class ItemControllerTest extends AbstractControllerTest {
         .perform(put("/items/" + ITEM_ID).with(user("testuser")).with(csrf()).param("name", ""))
         .andExpect(status().isOk())
         .andExpect(view().name("items/fragments/card :: edit"))
+        .andExpect(header().doesNotExist("HX-Trigger"));
+  }
+
+  @Test
+  @DisplayName("POST /items/{id}/stocks - 선반을 여러 개 선택하면 유효성 실패")
+  void addStock_withMultipleShelves_returnsUnifiedFormWithError() throws Exception {
+    mockMvc
+        .perform(
+            post("/items/" + ITEM_ID + "/stocks")
+                .with(user("testuser"))
+                .with(csrf())
+                .param("itemExternalId", ITEM_ID.toString())
+                .param("spaceExternalId", SPACE_ID.toString())
+                .param("shelfExternalId", SHELF_ID.toString())
+                .param("shelfExternalId", UUID.randomUUID().toString())
+                .param("count", "1"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("items/fragments/add-stock-modal :: unified-form"))
+        .andExpect(
+            model()
+                .attributeHasFieldErrorCode(
+                    "form", "shelfExternalId", "valid.stock.shelfExternalId.multiple"))
+        .andExpect(header().doesNotExist("HX-Trigger"));
+  }
+
+  @Test
+  @DisplayName("POST /items/{id}/stocks - 박스를 여러 개 선택하면 유효성 실패")
+  void addStock_withMultipleBoxes_returnsUnifiedFormWithError() throws Exception {
+    mockMvc
+        .perform(
+            post("/items/" + ITEM_ID + "/stocks")
+                .with(user("testuser"))
+                .with(csrf())
+                .param("itemExternalId", ITEM_ID.toString())
+                .param("spaceExternalId", SPACE_ID.toString())
+                .param("shelfExternalId", SHELF_ID.toString())
+                .param("boxExternalId", BOX_ID.toString())
+                .param("boxExternalId", UUID.randomUUID().toString())
+                .param("count", "1"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("items/fragments/add-stock-modal :: unified-form"))
+        .andExpect(
+            model()
+                .attributeHasFieldErrorCode(
+                    "form", "boxExternalId", "valid.stock.boxExternalId.multiple"))
         .andExpect(header().doesNotExist("HX-Trigger"));
   }
 

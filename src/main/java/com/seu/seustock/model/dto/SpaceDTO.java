@@ -14,5 +14,6 @@ public class SpaceDTO {
   private UUID externalId;
   private Long userId;
   private String name;
+  private UUID imageExternalId;
   private LocalDateTime createdAt;
 }

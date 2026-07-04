@@ -3,27 +3,30 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="#{view.login.title}">로그인 · SeuStock</title>
 </head>
-<body class="page min-h-screen bg-slate-50 flex flex-col">
+<body class="page min-h-screen flex flex-col">
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
-<main data-component-id="page.login" class="page-main flex flex-1 items-center justify-center px-4 py-12">
-    <div data-component-id="login.card" class="card w-full max-w-sm p-6">
+<main data-component-id="page.login" class="page-main flex flex-1 items-start justify-center px-4 pt-[120px]">
+    <div data-component-id="login.card" class="w-full max-w-[440px] border border-ink bg-surface p-10">
 
-        <h1 class="page-title mb-6" th:text="#{view.login.header}">로그인</h1>
+        <div class="mb-7">
+            <p class="page-caption mb-2">LOGIN</p>
+            <h1 class="text-2xl font-extrabold text-ink" th:text="#{view.login.header}">로그인</h1>
+        </div>
 
-        <form data-component-id="login.form" th:action="@{/login}" th:object="${form}" method="post" class="space-y-4">
+        <form data-component-id="login.form" th:action="@{/login}" th:object="${form}" method="post" class="space-y-5">
 
             <!-- 비밀번호 변경 완료 -->
             <div th:if="${param.reset}"
-                 class="alert alert-success"
+                 class="border border-ink bg-ink px-4 py-3 text-sm text-white"
                  th:text="#{view.login.resetSuccess}">
                 비밀번호가 변경되었습니다. 다시 로그인해주세요.
             </div>
 
             <!-- 인증 오류 -->
             <div th:if="${param.error}"
-                 class="alert alert-error"
+                 class="border border-danger px-4 py-3 text-sm text-danger"
                  th:text="#{view.login.error}">
                 이메일 또는 비밀번호가 올바르지 않습니다.
             </div>
@@ -35,7 +38,7 @@
                 </label>
                 <input type="email" id="email" th:field="*{email}"
                        th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
-                       class="field-input"
+                       class="field-input h-11"
                        autocomplete="email">
                 <span th:if="${#fields.hasErrors('email')}"
                       th:errors="*{email}"
@@ -49,7 +52,7 @@
                 </label>
                 <input type="password" id="password" th:field="*{password}"
                        th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
-                       class="field-input"
+                       class="field-input h-11"
                        autocomplete="current-password">
                 <span th:if="${#fields.hasErrors('password')}"
                       th:errors="*{password}"
@@ -57,7 +60,7 @@
             </div>
 
             <button type="submit"
-                    class="btn-primary w-full text-sm"
+                    class="btn-primary h-12 w-full text-[15px] font-bold"
                     th:text="#{view.login.button}">
                 로그인
             </button>
@@ -65,12 +68,12 @@
         </form>
 
         <p class="mt-4 text-center text-sm">
-            <a href="/password/forgot" class="link" th:text="#{view.login.forgotPassword}">비밀번호를 잊으셨나요?</a>
+            <a href="/password/forgot" class="text-muted hover:text-ink underline decoration-line transition-colors duration-120 ease-out" th:text="#{view.login.forgotPassword}">비밀번호를 잊으셨나요?</a>
         </p>
 
-        <p class="mt-3 text-center text-sm text-slate-500">
+        <p class="mt-3 text-center text-sm text-muted">
             <span th:text="#{view.login.noAccount}">계정이 없으신가요?</span>
-            <a href="/register" class="link" th:text="#{view.login.register}">회원가입</a>
+            <a href="/register" class="font-semibold text-ink underline decoration-line transition-colors duration-120 ease-out" th:text="#{view.login.register}">회원가입</a>
         </p>
 
     </div>
