@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/main.css --minify",
-    "watch": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/main.css --watch"
+    "build": "npx @tailwindcss/cli@latest -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/main.css --minify",
+    "watch": "npx @tailwindcss/cli@latest -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/main.css --watch"
   },
   "repository": {
     "type": "git",
