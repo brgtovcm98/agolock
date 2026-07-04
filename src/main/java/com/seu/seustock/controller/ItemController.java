@@ -41,6 +41,22 @@ public class ItemController {
         key, args, org.springframework.context.i18n.LocaleContextHolder.getLocale());
   }
 
+  private void addItemListModelAttributes(
+      Model model,
+      String username,
+      String keyword,
+      String searchType,
+      String sortBy,
+      Integer page) {
+    var itemsPage = itemService.findPageByUsername(username, keyword, searchType, sortBy, page);
+    model.addAttribute("items", itemsPage.content());
+    model.addAttribute("page", itemsPage);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("searchType", searchType);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("currentPage", itemsPage.page());
+  }
+
   @org.springframework.web.bind.annotation.InitBinder
   public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
     if (binder.getConversionService()
@@ -83,19 +99,23 @@ public class ItemController {
       Principal principal,
       Model model) {
     String username = principal.getName();
-    var itemsPage = itemService.findPageByUsername(username, keyword, searchType, sortBy, page);
-    model.addAttribute("items", itemsPage.content());
-    model.addAttribute("page", itemsPage);
-    model.addAttribute("keyword", keyword);
-    model.addAttribute("searchType", searchType);
-    model.addAttribute("sortBy", sortBy);
+    addItemListModelAttributes(model, username, keyword, searchType, sortBy, page);
     model.addAttribute("activeNav", "items");
     return "items/list";
   }
 
   @GetMapping("/new")
-  public String newModal(Model model) {
+  public String newModal(
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "name") String searchType,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false) Integer page,
+      Model model) {
     model.addAttribute("form", new ItemForm());
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("searchType", searchType);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("currentPage", page);
     return "items/fragments/modal :: modal";
   }
 
@@ -103,19 +123,27 @@ public class ItemController {
   public String create(
       @Valid @ModelAttribute("form") ItemForm form,
       BindingResult result,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "name") String searchType,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false) Integer page,
       Principal principal,
       Model model,
       HttpServletResponse response) {
+    String username = principal.getName();
     if (result.hasErrors()) {
       log.warn(
           "request validation failed operation=item.create errorCount={} fields={}",
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
+      model.addAttribute("keyword", keyword);
+      model.addAttribute("searchType", searchType);
+      model.addAttribute("sortBy", sortBy);
+      model.addAttribute("currentPage", page);
       return "items/fragments/modal :: modal";
     }
-    String username = principal.getName();
-    ItemDTO created = itemService.create(username, form);
-    model.addAttribute("item", created);
+    itemService.create(username, form);
+    addItemListModelAttributes(model, username, keyword, searchType, sortBy, 1);
     HtmxResponse.success(response, getMsg("toast.item.created"));
     return "items/fragments/modal :: created";
   }
@@ -123,9 +151,24 @@ public class ItemController {
   /* ── HTMX 인라인 수정 ── */
 
   @GetMapping("/{externalId}/edit")
-  public String editRow(@PathVariable UUID externalId, Principal principal, Model model) {
+  public String editRow(
+      @PathVariable UUID externalId,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "name") String searchType,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false) Integer page,
+      Principal principal,
+      Model model) {
     String username = principal.getName();
-    model.addAttribute("item", itemService.findByExternalId(externalId, username));
+    ItemDTO item = itemService.findByExternalId(externalId, username);
+    ItemForm form = new ItemForm();
+    org.springframework.beans.BeanUtils.copyProperties(item, form);
+    model.addAttribute("item", item);
+    model.addAttribute("form", form);
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("searchType", searchType);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("currentPage", page);
     return "items/fragments/card :: edit";
   }
 
@@ -134,6 +177,10 @@ public class ItemController {
       @PathVariable UUID externalId,
       @Valid @ModelAttribute("form") ItemForm form,
       BindingResult result,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "name") String searchType,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false) Integer page,
       Principal principal,
       Model model,
       HttpServletResponse response) {
@@ -145,18 +192,36 @@ public class ItemController {
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
       model.addAttribute("item", itemService.findByExternalId(externalId, username));
+      model.addAttribute("form", form);
+      model.addAttribute("keyword", keyword);
+      model.addAttribute("searchType", searchType);
+      model.addAttribute("sortBy", sortBy);
+      model.addAttribute("currentPage", page);
+      response.setHeader("HX-Retarget", "#item-" + externalId);
+      response.setHeader("HX-Reswap", "outerHTML");
       return "items/fragments/card :: edit";
     }
-    ItemDTO updated = itemService.update(externalId, form, username);
-    model.addAttribute("item", updated);
+    itemService.update(externalId, form, username);
+    addItemListModelAttributes(model, username, keyword, searchType, sortBy, page);
     HtmxResponse.success(response, getMsg("toast.item.updated"));
-    return "items/fragments/card :: view";
+    return "items/list :: item-list-section";
   }
 
   @GetMapping("/{externalId}/cancel")
-  public String cancelEdit(@PathVariable UUID externalId, Principal principal, Model model) {
+  public String cancelEdit(
+      @PathVariable UUID externalId,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false, defaultValue = "name") String searchType,
+      @RequestParam(required = false, defaultValue = "newest") String sortBy,
+      @RequestParam(required = false) Integer page,
+      Principal principal,
+      Model model) {
     String username = principal.getName();
     model.addAttribute("item", itemService.findByExternalId(externalId, username));
+    model.addAttribute("keyword", keyword);
+    model.addAttribute("searchType", searchType);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("currentPage", page);
     return "items/fragments/card :: view";
   }
 
@@ -281,12 +346,7 @@ public class ItemController {
       HttpServletResponse response) {
     String username = principal.getName();
     itemService.delete(externalId, username);
-    var itemsPage = itemService.findPageByUsername(username, keyword, searchType, sortBy, page);
-    model.addAttribute("items", itemsPage.content());
-    model.addAttribute("page", itemsPage);
-    model.addAttribute("keyword", keyword);
-    model.addAttribute("searchType", searchType);
-    model.addAttribute("sortBy", sortBy);
+    addItemListModelAttributes(model, username, keyword, searchType, sortBy, page);
     HtmxResponse.success(response, getMsg("toast.item.deleted"));
     return "items/list :: item-list-section";
   }

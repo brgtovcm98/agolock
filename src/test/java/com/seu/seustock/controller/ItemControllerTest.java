@@ -156,13 +156,13 @@ class ItemControllerTest extends AbstractControllerTest {
   }
 
   @Test
-  @DisplayName("PUT /items/{id} - 정상 name → card :: view 프래그먼트 + HX-Trigger")
-  void updateRow_withValidName_returnsViewFragmentWithToast() throws Exception {
+  @DisplayName("PUT /items/{id} - 정상 name → items/list :: item-list-section + HX-Trigger")
+  void updateRow_withValidName_returnsListSectionWithToast() throws Exception {
     mockMvc
         .perform(
             put("/items/" + ITEM_ID).with(user("testuser")).with(csrf()).param("name", "수정된 품목"))
         .andExpect(status().isOk())
-        .andExpect(view().name("items/fragments/card :: view"))
+        .andExpect(view().name("items/list :: item-list-section"))
         .andExpect(hasToastTrigger());
   }
 
@@ -200,12 +200,14 @@ class ItemControllerTest extends AbstractControllerTest {
   }
 
   @Test
-  @DisplayName("PUT /items/{id} - 빈 name → card :: edit 프래그먼트 (유효성 실패)")
-  void updateRow_withBlankName_returnsEditFragmentWithoutToast() throws Exception {
+  @DisplayName("PUT /items/{id} - 빈 name → card :: edit 프래그먼트 + HX-Retarget/Reswap (유효성 실패)")
+  void updateRow_withBlankName_returnsEditFragmentWithRetarget() throws Exception {
     mockMvc
         .perform(put("/items/" + ITEM_ID).with(user("testuser")).with(csrf()).param("name", ""))
         .andExpect(status().isOk())
         .andExpect(view().name("items/fragments/card :: edit"))
+        .andExpect(header().string("HX-Retarget", "#item-" + ITEM_ID))
+        .andExpect(header().string("HX-Reswap", "outerHTML"))
         .andExpect(header().doesNotExist("HX-Trigger"));
   }
 

@@ -154,6 +154,10 @@
             </details>
 
             <input type="hidden" th:field="*{imageHash}" id="item-modal-image-hash">
+            <input type="hidden" name="sortBy" th:value="${sortBy}">
+            <input type="hidden" name="searchType" th:value="${searchType}">
+            <input type="hidden" name="keyword" th:value="${keyword}">
+            <input type="hidden" name="page" th:value="${currentPage}">
 
             <div class="modal-footer -mx-6 -mb-6 mt-6">
                 <button type="button"
@@ -233,13 +237,10 @@
     </script>
 </div>
 
-<!-- 성공 응답: OOB로 카드 추가 + 빈 상태 제거 + 모달 닫기 -->
+<!-- 성공 응답: 모달 닫기 + OOB로 목록 전체 재렌더링 -->
 <th:block th:fragment="created">
-    <div id="item-cards" hx-swap-oob="afterbegin">
-        <div th:replace="~{items/fragments/card :: view}"></div>
-    </div>
-    <p id="item-empty-msg" hx-swap-oob="true"></p>
     <div id="modal" data-component-id="items.modal-mount"></div>
+    <th:block th:replace="~{items/fragments/list-section :: oob-section}"></th:block>
 </th:block>
 
 </body>
