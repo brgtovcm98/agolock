@@ -3,22 +3,25 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="|#{view.space.list.title} · SeuStock|">내 공간 · SeuStock</title>
 </head>
-<body class="page min-h-screen bg-slate-50 flex flex-col">
+<body class="page min-h-screen flex flex-col">
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
 <div id="modal" data-component-id="spaces.modal-mount"></div>
 
-<main data-component-id="page.spaces-list" class="page-main mx-auto w-full max-w-4xl px-4 py-10 flex-1">
+<main data-component-id="page.spaces-list" class="page-main">
 
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 class="page-title" th:text="#{view.space.list.title}">내 공간</h1>
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="page-caption mb-2" th:text="|SPACES / ${#numbers.formatInteger(page.totalCount(), 2)}|">SPACES / 07</p>
+            <h1 class="page-title" th:text="#{view.space.list.title}">내 공간</h1>
+        </div>
         <button type="button"
                 data-component-id="spaces.create-button"
                 hx-get="/spaces/new"
                 hx-target="#modal"
                 hx-swap="outerHTML"
-                class="btn-primary btn-sm btn-header-action text-sm"
+                class="btn-primary btn-sm"
                 th:text="#{view.space.list.add}">
             + 공간 추가
         </button>
@@ -26,60 +29,59 @@
 
     <!-- 공간 목록 -->
     <div id="space-list-section" data-component-id="spaces.list-section" aria-live="polite" th:fragment="space-list-section" class="space-y-3">
-        <div data-component-id="spaces.filter-card" class="card p-4 space-y-2">
+        <div data-component-id="spaces.filter-card" class="search-sort-block">
             <form data-component-id="spaces.search-form" hx-get="/spaces"
                   hx-target="#space-list-section"
                   hx-select="#space-list-section"
                   hx-swap="outerHTML"
                   hx-push-url="true"
-                  class="flex items-stretch">
+                  class="search-row">
                 <input type="hidden" name="sortBy" th:value="${sortBy}">
                 <input type="hidden" name="page" value="1">
-                <span class="search-select inline-flex items-center rounded-l-md rounded-r-none border-r-0" th:text="#{view.space.list.searchLabel}">공간명</span>
                 <input type="text"
                        name="keyword"
                        th:value="${keyword}"
                        th:placeholder="#{view.space.list.searchPlaceholder}"
-                       class="search-input rounded-none">
+                       class="search-input border-r-0">
                 <button type="submit"
-                        class="btn-search btn-sm shrink-0 rounded-l-none rounded-r-md"
+                        class="btn-search shrink-0"
                         th:text="#{view.common.search}">
                     검색
                 </button>
             </form>
-            <div data-component-id="spaces.sort-controls" class="flex flex-wrap gap-1">
+            <div data-component-id="spaces.sort-controls" class="sort-row">
                 <button th:attr="hx-get=@{/spaces(sortBy='most_stock',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'most_stock'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'most_stock'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.mostStock}">
                     재고 많은 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='recent_activity',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'recent_activity'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'recent_activity'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.recentActivity}">
                     최근 활동 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='newest',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'newest'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'newest'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.newest}">
                     가장 최신 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='oldest',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'oldest'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'oldest'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.oldest}">
                     가장 오래된 순
                 </button>
                 <button th:attr="hx-get=@{/spaces(sortBy='name',keyword=${keyword})}"
                         hx-target="#space-list-section" hx-select="#space-list-section" hx-swap="outerHTML" hx-push-url="true"
-                        th:classappend="${sortBy == 'name'} ? 'chip-active'"
-                        class="chip"
+                        th:classappend="${sortBy == 'name'} ? 'sort-tab-active'"
+                        class="sort-tab"
                         th:text="#{view.common.sort.name}">
                     공간명 순
                 </button>
@@ -89,19 +91,21 @@
         <div id="space-list"
              data-component-id="spaces.list"
              th:fragment="space-list"
-             class="flex flex-col gap-2.5">
+             class="flex flex-col gap-3">
             <div id="space-empty-msg"
                  th:if="${spaces.empty}"
-                 class="empty-state rounded-xl border border-slate-200 bg-white"
+                 class="empty-state"
                  th:text="#{view.space.list.empty}">
-                등록된 공간이 없습니다. 위에서 추가해보세요.
+                등록된 공간이 없습니다. 위에서 추가핳세요.
             </div>
 
             <div id="space-list-rows"
                  data-component-id="spaces.list-rows"
-                 class="flex flex-col gap-2.5">
-                <th:block th:each="space : ${spaces}">
-                    <th:block th:replace="~{spaces/fragments/row :: view}"></th:block>
+                 class="flex flex-col gap-3">
+                <th:block th:each="space, iter : ${spaces}">
+                    <th:block th:with="idx=${iter.index + 1 + (page != null ? (page.page() - 1) * page.size() : 0)}">
+                        <th:block th:replace="~{spaces/fragments/row :: view}"></th:block>
+                    </th:block>
                 </th:block>
             </div>
         </div>
@@ -111,7 +115,7 @@
                     th:attr="hx-get=@{/spaces(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},append=true)}"
                     hx-target="#space-list-more"
                     hx-swap="outerHTML"
-                    class="btn-secondary text-sm"
+                    class="btn-secondary btn-sm"
                     th:text="#{view.space.list.more}">
                 더 보기
             </button>

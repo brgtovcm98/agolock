@@ -5,19 +5,19 @@
 <!-- 새 선반 행 -->
 <li th:fragment="created" data-component-id="shelves.tree-item.created"
     th:id="'shelf-' + ${shelf.externalId}"
-    class="border-b border-slate-100 last:border-0">
+    class="border-b border-line-soft last:border-0">
 
-    <div class="flex items-center gap-1 px-3 py-2 hover:bg-slate-50 transition cursor-pointer group"
+    <div class="flex items-center gap-1 px-3 py-2 hover:bg-surface-dim transition cursor-pointer group"
          th:attr="onclick='toggleBoxList(\'' + ${shelf.externalId} + '\', this)',
                   hx-get=@{/spaces/{sid}/shelves/{id}/boxes(sid=${space},id=${shelf.externalId})},
                   hx-target='#box-list-' + ${shelf.externalId}"
          hx-swap="innerHTML"
          hx-trigger="click once">
 
-        <span class="arrow text-xs text-slate-400 w-3 shrink-0">▶</span>
+        <span class="arrow text-xs text-faint w-3 shrink-0">▶</span>
 
         <button type="button"
-                class="flex-1 text-left text-sm font-medium text-slate-700 truncate"
+                class="flex-1 text-left text-sm font-medium text-ink truncate"
                 th:text="${shelf.name}"
                 th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/stocks(sid=${space},id=${shelf.externalId})}"
                 hx-target="#stock-panel"
@@ -26,7 +26,7 @@
 
         <span class="hidden group-hover:flex items-center gap-1 shrink-0">
             <button type="button"
-                    class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-primary hover:text-primary-hover"
+                    class="inline-flex h-6 w-6 items-center justify-center text-sm text-accent hover:text-accent"
                     th:attr="hx-get=@{/spaces/{sid}/shelves/{id}/boxes/new(sid=${space},id=${shelf.externalId})}"
                     hx-target="#modal"
                     hx-swap="outerHTML"
@@ -34,7 +34,7 @@
                     th:title="#{view.shelf.created.addBox}">+</button>
 
             <button type="button"
-                    class="inline-flex h-6 w-6 items-center justify-center rounded text-sm text-red-400 hover:text-red-600"
+                    class="inline-flex h-6 w-6 items-center justify-center text-sm text-danger hover:text-danger"
                     th:attr="hx-delete=@{/spaces/{sid}/shelves/{id}(sid=${space},id=${shelf.externalId})},
                              hx-confirm=#{view.shelf.created.deleteConfirm}"
                     hx-target="#shelf-list"
@@ -45,7 +45,7 @@
     </div>
 
     <ul data-component-id="shelves.box-list" th:id="'box-list-' + ${shelf.externalId}"
-        class="hidden ml-4 border-l border-slate-100">
+        class="hidden ml-4 border-l border-line-soft">
     </ul>
 
 </li>

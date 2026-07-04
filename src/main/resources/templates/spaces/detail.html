@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head(~{::title})}">
     <title th:text="${spaceDetail.name} + ' · SeuStock'">공간 상세 · SeuStock</title>
 </head>
-<body class="page min-h-screen bg-slate-50 flex flex-col">
+<body class="page min-h-screen flex flex-col">
 
 <nav th:replace="~{fragments/layout :: nav}"></nav>
 
@@ -12,19 +12,19 @@
 <main data-component-id="page.space-detail" class="page-main mx-auto w-full max-w-5xl px-4 py-10 flex-1">
 
     <!-- 헤더 -->
-    <div class="mb-6 flex items-center gap-2 text-sm text-slate-500">
-        <a href="/spaces" class="hover:text-slate-800 transition" th:text="#{view.space.detail.nav}">내 공간</a>
+    <div class="mb-6 flex items-center gap-2 text-sm text-muted">
+        <a href="/spaces" class="hover:text-ink transition" th:text="#{view.space.detail.nav}">내 공간</a>
         <span>›</span>
-        <span class="font-semibold text-slate-800" th:text="${spaceDetail.name}"></span>
+        <span class="font-semibold text-ink" th:text="${spaceDetail.name}"></span>
     </div>
 
     <!-- 2패널 레이아웃 -->
     <div class="flex flex-col lg:flex-row gap-4 lg:items-start">
 
         <!-- 왼쪽: 위치 트리 -->
-        <div class="w-full lg:w-64 lg:shrink-0 rounded-lg border border-slate-200 bg-white">
-            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide" th:text="#{view.space.detail.structure}">위치 구조</span>
+        <div class="w-full lg:w-64 lg:shrink-0 border border-line-soft bg-surface">
+            <div class="px-4 py-3 bg-surface-dim border-b border-line-soft flex items-center justify-between">
+                <span class="text-xs font-semibold text-muted uppercase tracking-wide" th:text="#{view.space.detail.structure}">위치 구조</span>
                 <button th:attr="hx-get=@{/spaces/{id}/shelves/new(id=${space})}"
                         hx-target="#modal"
                         hx-swap="outerHTML"
@@ -39,22 +39,22 @@
             </ul>
 
             <!-- 전체보기 진입점 -->
-            <div class="tree-item-container tree-item-selected border-t border-slate-100 px-3">
+            <div class="tree-item-container tree-item-selected border-t border-line-soft px-3">
                 <button th:attr="hx-get=@{/spaces/{id}/stocks/all(id=${space})}"
                         hx-target="#stock-panel"
                         hx-swap="outerHTML"
-                        class="tree-item-trigger tree-item-text w-full text-left text-sm font-medium text-slate-600 hover:text-slate-900 active:bg-slate-50 transition py-3 min-h-[56px] flex items-center"
+                        class="tree-item-trigger tree-item-text w-full text-left text-sm font-medium text-muted hover:text-ink active:bg-surface-dim transition py-3 min-h-[56px] flex items-center"
                         th:text="|🗂 #{view.space.detail.viewAll(${spaceDetail.name})}|">
                     🗂 [[${space.name}]] 전체보기
                 </button>
             </div>
 
             <!-- 공간 직접 재고 진입점 -->
-            <div class="tree-item-container border-t border-slate-100 px-3">
+            <div class="tree-item-container border-t border-line-soft px-3">
                 <button th:attr="hx-get=@{/spaces/{id}/stocks(id=${space})}"
                         hx-target="#stock-panel"
                         hx-swap="outerHTML"
-                        class="tree-item-trigger tree-item-text w-full text-left text-sm text-slate-500 hover:text-slate-800 active:bg-slate-50 transition py-3 min-h-[56px] flex items-center"
+                        class="tree-item-trigger tree-item-text w-full text-left text-sm text-muted hover:text-ink active:bg-surface-dim transition py-3 min-h-[56px] flex items-center"
                         th:text="|📦 #{view.space.detail.viewLoose(${spaceDetail.name})}|">
                     📦 [[${space.name}]]에 대충 던져놓은 물건들
                 </button>

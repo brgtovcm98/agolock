@@ -4,19 +4,33 @@
 
 <div th:fragment="modal"
      id="modal" data-component-id="spaces.modal.create" role="dialog" aria-modal="true" aria-labelledby="modal-title"
-     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
-    <div class="modal-dialog max-w-sm mx-4 p-6">
+     class="modal-overlay">
+    <div class="modal-dialog modal-dialog-sm">
 
-        <h2 id="modal-title" class="modal-title mb-4" th:text="#{view.space.modal.add.title}">공간 추가</h2>
+        <div class="modal-header">
+            <h2 id="modal-title" class="modal-title" th:text="#{view.space.modal.add.title}">공간 추가</h2>
+            <button type="button"
+                    hx-get="/empty"
+                    hx-target="#modal"
+                    hx-swap="outerHTML"
+                    class="modal-close"
+                    th:attr="aria-label=#{aria.modal.close}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
 
         <form th:object="${form}"
               method="post"
               hx-post="/spaces"
               hx-target="#modal"
-              hx-swap="outerHTML">
-            <div class="mb-4">
-                <label class="field-label"
-                       th:text="#{view.space.list.searchLabel}">
+              hx-swap="outerHTML"
+              hx-encoding="multipart/form-data"
+              class="modal-body">
+            <div class="mb-5">
+                <label class="field-label" th:text="#{view.space.list.searchLabel}">
                     공간명
                 </label>
                 <input type="text" th:field="*{name}"
@@ -28,17 +42,33 @@
                       class="field-error"></span>
             </div>
 
-            <div class="flex gap-2 justify-end">
+            <div class="mb-5">
+                <label class="field-label" th:text="#{view.item.modal.image.label}">사진</label>
+                <div class="mb-3">
+                    <img data-image-preview
+                         class="hidden aspect-square w-[132px] border border-line-soft object-cover bg-surface-dim"
+                         alt="">
+                </div>
+                <input type="file" th:field="*{imageFile}" data-image-file
+                       accept="image/jpeg,image/png,image/webp,image/gif"
+                       class="block w-full text-xs text-muted
+                              file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
+                              file:text-xs file:text-ink hover:file:bg-line-soft">
+                <input type="hidden" th:field="*{imageHash}" data-image-hash value="">
+            </div>
+
+            <div class="modal-footer -mx-6 -mb-6 mt-6">
                 <button type="button"
                         hx-get="/empty"
                         hx-target="#modal"
                         hx-swap="outerHTML"
-                        class="btn-secondary text-sm"
+                        class="btn-text"
                         th:text="#{view.common.cancel}">
                     취소
                 </button>
                 <button type="submit"
-                        class="btn-primary text-sm"
+                        class="btn-primary"
+                        data-submit-btn
                         th:text="#{view.common.add}">
                     추가
                 </button>
@@ -54,6 +84,19 @@
     <div id="space-empty-msg" hx-swap-oob="true"></div>
     <div id="modal" data-component-id="spaces.modal-mount"></div>
 </th:block>
+
+<script th:inline="none">
+(function () {
+    var modal = document.getElementById('modal');
+    if (!modal) return;
+    initImageUpload({
+        fileInputSelector: '[data-image-file]',
+        previewSelector:   '[data-image-preview]',
+        hashInputSelector: '[data-image-hash]',
+        submitSelector:    '[data-submit-btn]'
+    }, modal);
+})();
+</script>
 
 </body>
 </html>

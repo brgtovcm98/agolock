@@ -2,60 +2,86 @@
 <html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- 읽기 모드 카드 (개선) -->
+<!-- 읽기 모드 카드 -->
 <div th:fragment="view" data-component-id="spaces.row.view" th:id="'space-' + ${space.externalId}"
      th:with="sm=${summaries != null ? summaries.get(space.externalId) : null}"
      th:classappend="${sm == null or sm.itemCount == 0} ? 'is-empty'"
      class="space-card">
 
-    <div th:if="${sm != null and sm.itemCount > 0}">
-        <!-- 채워진 공간 -->
-        <div class="space-top">
-            <div class="space-title">
-                <a class="space-no" th:href="@{/spaces/{id}(id=${space.externalId})}"
-                   th:text="${space.name}">공간 3</a>
-                <span class="space-date"
-                      th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}">2026-06-21</span>
-            </div>
-            <div class="space-actions">
-                <button class="btn-secondary btn-sm text-sm"
+    <div th:if="${sm != null and sm.itemCount > 0}" class="space-card-body flex w-full">
+        <!-- 인덱스 -->
+        <div class="index-col" th:text="${#numbers.formatInteger(idx, 2)}">01</div>
+
+        <!-- 사진 -->
+        <a th:href="@{/spaces/{id}(id=${space.externalId})}" class="space-photo">
+            <img th:if="${space.imageExternalId != null}"
+                 th:src="@{/images/{id}(id=${space.imageExternalId})}"
+                 alt=""
+                 class="space-photo-img">
+            <span th:unless="${space.imageExternalId != null}" class="space-photo-ph" th:text="#{view.space.list.photoPlaceholder}">
+                공간 사진
+            </span>
+        </a>
+
+        <!-- 정보 -->
+        <div class="flex min-w-0 flex-1 flex-col justify-between p-4 md:p-5">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <a th:href="@{/spaces/{id}(id=${space.externalId})}"
+                       class="space-title hover:underline"
+                       th:text="${space.name}">공간 3</a>
+                    <p class="mt-1 space-date"
+                       th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}">2026-06-21</p>
+                </div>
+                <button class="btn-secondary-strong btn-sm"
                         th:attr="hx-get=@{/spaces/{id}/edit(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                         hx-swap="outerHTML" th:text="#{view.common.edit}">수정</button>
             </div>
-        </div>
-        <div class="space-metrics">
-            <div class="space-metric">
-                <div class="lbl" th:text="#{view.space.list.summary.items}">품목</div>
-                <div class="val" th:text="${sm.itemCount}">8</div>
-            </div>
-            <div class="space-metric">
-                <div class="lbl" th:text="#{view.space.list.summary.stocks}">재고</div>
-                <div class="val" th:text="${sm.stockCount}">142</div>
-            </div>
-            <div class="space-metric">
-                <div class="lbl" th:text="#{view.space.list.summary.value}">평가액</div>
-                <div class="val" th:text="'₩' + ${#numbers.formatInteger(sm.totalValue, 1, 'COMMA')}">₩320,000</div>
-            </div>
-            <div class="space-metric div">
-                <div class="lbl" th:text="#{view.space.list.summary.shelvesBoxes}">선반 · 박스</div>
-                <div class="val" th:text="${sm.shelfCount} + ' · ' + ${sm.boxCount}">4 · 12</div>
+
+            <div class="space-metrics mt-4 flex flex-wrap">
+                <div class="space-metric px-2 first:pl-0 md:px-7">
+                    <div class="space-stat-label" th:text="#{view.space.list.summary.items}">품목</div>
+                    <div class="space-stat-value" th:text="${sm.itemCount}">8</div>
+                </div>
+                <div class="space-metric border-l border-line-soft px-2 md:px-7">
+                    <div class="space-stat-label" th:text="#{view.space.list.summary.stocks}">재고</div>
+                    <div class="space-stat-value" th:text="${sm.stockCount}">142</div>
+                </div>
+                <div class="space-metric border-l border-line-soft px-2 md:px-7">
+                    <div class="space-stat-label" th:text="#{view.space.list.summary.value}">평가액</div>
+                    <div class="space-stat-value"
+                         th:classappend="${sm.totalValue != null and sm.totalValue.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'space-stat-accent'"
+                         th:text="'₩' + ${#numbers.formatInteger(sm.totalValue, 1, 'COMMA')}">₩320,000</div>
+                </div>
+                <div class="space-metric border-l border-line-soft px-2 md:px-7">
+                    <div class="space-stat-label" th:text="#{view.space.list.summary.shelvesBoxes}">선반 · 박스</div>
+                    <div class="space-stat-value space-stat-dim"
+                         th:text="${sm.shelfCount} + ' · ' + ${sm.boxCount}">5 · 6</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div th:unless="${sm != null and sm.itemCount > 0}">
-        <!-- 빈 공간 -->
-        <div class="space-top">
-            <div class="space-title">
-                <a class="space-no muted" th:href="@{/spaces/{id}(id=${space.externalId})}"
+    <div th:unless="${sm != null and sm.itemCount > 0}" class="space-empty-body flex w-full items-center">
+        <!-- 인덱스 -->
+        <div class="index-col text-disabled" th:text="${#numbers.formatInteger(idx, 2)}">01</div>
+
+        <div class="space-empty-main flex flex-1 items-center justify-between px-4 py-3 md:px-5">
+            <div>
+                <a th:href="@{/spaces/{id}(id=${space.externalId})}"
+                   class="text-base font-bold text-stat-dim hover:text-ink"
                    th:text="${space.name}">공간 25</a>
-                <span class="space-date" th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')} + ' · ' + #{view.space.list.emptyState}">2026-06-21 · 비어 있음</span>
+                <p class="mt-0.5 text-xs text-faint">
+                    <span th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}">2026-06-21</span>
+                    <span> · </span>
+                    <span class="badge badge-empty" th:text="#{view.space.list.emptyState}">비어 있음</span>
+                </p>
             </div>
-            <div class="space-actions">
-                <a class="btn--cta"
+            <div class="flex items-center gap-2">
+                <a class="btn-accent-link"
                    th:href="@{/spaces/{id}(id=${space.externalId})}"
                    th:text="#{view.space.list.addItem}">+ 품목 담기</a>
-                <button class="btn-secondary btn-sm text-sm"
+                <button class="btn-secondary btn-sm"
                         th:attr="hx-get=@{/spaces/{id}/edit(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
                         hx-swap="outerHTML" th:text="#{view.common.edit}">수정</button>
             </div>
@@ -66,24 +92,82 @@
 
 <!-- 수정 모드 카드 -->
 <div th:fragment="edit" data-component-id="spaces.row.edit" th:id="'space-' + ${space.externalId}"
-     class="card-editing grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_14rem] md:items-center">
-    <input type="text" name="name" th:value="${space.name}"
-           class="field-input flex-1">
-    <p class="text-sm text-slate-500"
-       th:text="${#temporals.format(space.createdAt, 'yyyy-MM-dd')}"></p>
-    <div class="flex items-center gap-2 md:justify-end">
-        <button class="btn-primary btn-sm text-sm"
-                th:attr="hx-put=@{/spaces/{id}(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
-                hx-swap="outerHTML"
-                hx-include="closest div[id]" th:text="#{view.common.save}">저장</button>
-        <button class="btn-danger btn-sm text-sm"
-                th:attr="hx-delete=@{/spaces/{id}(id=${space.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.space.list.deleteConfirm(${space.name})}"
-                hx-target="#space-list-section"
-                hx-swap="outerHTML" th:text="#{view.common.delete}">삭제</button>
-        <button class="btn-secondary btn-sm text-sm"
-                th:attr="hx-get=@{/spaces/{id}/cancel(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
-                hx-swap="outerHTML" th:text="#{view.common.cancel}">취소</button>
-    </div>
+     class="card-editing px-4 py-4">
+    <form th:object="${space}"
+          method="post"
+          th:attr="hx-put=@{/spaces/{id}(id=${space.externalId})}"
+          hx-target="#space-list-section"
+          hx-select="#space-list-section"
+          hx-swap="outerHTML"
+          hx-encoding="multipart/form-data"
+          class="flex flex-col gap-4 md:flex-row md:items-start">
+        <input type="hidden" name="sortBy" th:value="${sortBy}">
+        <input type="hidden" name="keyword" th:value="${keyword}">
+
+        <div class="flex flex-1 gap-4">
+            <div class="w-[132px] shrink-0">
+                <img th:if="${space.imageExternalId != null}"
+                     th:src="@{/images/{id}(id=${space.imageExternalId})}"
+                     data-existing-image
+                     alt=""
+                     class="aspect-square w-full border border-line-soft object-cover bg-surface-dim">
+                <img data-image-preview
+                     class="hidden aspect-square w-full border border-line-soft object-cover bg-surface-dim"
+                     alt="">
+                <div th:unless="${space.imageExternalId != null}" data-no-image
+                     class="flex aspect-square w-full items-center justify-center border border-line-soft bg-surface-dim text-xs text-faint"
+                     th:text="#{view.space.list.photoPlaceholder}">
+                    공간 사진
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="field-label field-label-sm" th:text="#{view.space.list.searchLabel}">공간명</label>
+                <input type="text" name="name" th:value="${space.name}"
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+                       class="field-input w-64">
+                <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="field-error"></span>
+
+                <label class="field-label field-label-sm" th:text="#{view.item.modal.image.label}">사진</label>
+                <input type="file" name="imageFile" data-image-file
+                       accept="image/jpeg,image/png,image/webp,image/gif"
+                       class="block w-full text-xs text-muted
+                              file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
+                              file:text-xs file:text-ink hover:file:bg-line-soft">
+                <input type="hidden" name="imageHash" data-image-hash value="">
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 md:ml-auto md:pt-7">
+            <button type="submit"
+                    class="btn-primary btn-sm"
+                    data-submit-btn
+                    th:text="#{view.common.save}">저장</button>
+            <button type="button"
+                    class="btn-danger btn-sm"
+                    th:attr="hx-delete=@{/spaces/{id}(id=${space.externalId},page=${page != null ? page.page() : 1},sortBy=${sortBy},keyword=${keyword})},hx-confirm=#{view.space.list.deleteConfirm(${space.name})}"
+                    hx-target="#space-list-section"
+                    hx-select="#space-list-section"
+                    hx-swap="outerHTML" th:text="#{view.common.delete}">삭제</button>
+            <button type="button"
+                    class="btn-secondary btn-sm"
+                    th:attr="hx-get=@{/spaces/{id}/cancel(id=${space.externalId})},hx-target='#space-' + ${space.externalId}"
+                    hx-swap="outerHTML" th:text="#{view.common.cancel}">취소</button>
+        </div>
+    </form>
+
+    <script>
+    (function () {
+        var card = document.currentScript.closest('[data-component-id="spaces.row.edit"]');
+        if (!card) return;
+        initImageUpload({
+            fileInputSelector:     '[data-image-file]',
+            previewSelector:       '[data-image-preview]',
+            hashInputSelector:     '[data-image-hash]',
+            submitSelector:        '[data-submit-btn]',
+            existingImageSelector: '[data-existing-image]'
+        }, card);
+    })();
+    </script>
 </div>
 
 </body>
