@@ -98,6 +98,21 @@
                     showToast({ type: 'error', message: /*[[#{toast.default.error}]]*/ '요청을 처리하지 못했습니다.' });
                 }
             });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                var modal = document.getElementById('modal');
+                if (!modal || !modal.classList.contains('modal-overlay')) return;
+                htmx.ajax('GET', '/empty', { target: '#modal', swap: 'outerHTML' });
+            });
+
+            document.addEventListener('click', function (e) {
+                var modal = document.getElementById('modal');
+                if (!modal || !modal.classList.contains('modal-overlay')) return;
+                if (e.target === modal) {
+                    htmx.ajax('GET', '/empty', { target: '#modal', swap: 'outerHTML' });
+                }
+            });
         })();
     </script>
     <script th:if="${toastMessage != null}" th:inline="javascript">

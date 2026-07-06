@@ -41,9 +41,7 @@
                      th:alt="#{view.item.modal.image.previewAlt}">
                 <input type="file" th:field="*{imageFile}"
                        accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="block w-full text-xs text-muted
-                              file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
-                              file:text-xs file:text-ink hover:file:bg-line-soft"
+                       class="field-file"
                        id="item-modal-image-file">
                 <span id="item-modal-analysis-status"
                       class="mt-1 hidden block text-xs text-accent" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>

@@ -146,6 +146,13 @@
     .field-input.is-invalid,
     .field-input[aria-invalid="true"] { @apply border-danger focus:border-danger; }
 
+    .field-file        { @apply block w-full min-h-11 border border-line bg-surface
+                                text-xs text-muted transition-colors duration-120 ease-out
+                                file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
+                                file:text-xs file:text-ink hover:file:bg-line-soft
+                                focus:border-ink focus:outline-none;
+    }
+
     .field-check       { @apply h-4 w-4 border-line text-ink accent-ink; }
     /* Out-flow accents (출고 = accent language) */
     .field-check--out  { @apply text-accent accent-accent; }

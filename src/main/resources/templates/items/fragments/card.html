@@ -92,9 +92,7 @@
                      alt="">
                 <input type="file" name="imageFile" data-image-file
                        accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="mt-2 block w-full text-xs text-muted
-                              file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
-                              file:text-xs file:text-ink hover:file:bg-line-soft">
+                       class="mt-2 field-file">
                 <input type="hidden" name="imageHash" data-image-hash th:value="*{imageHash}">
                 <span data-image-analysis-status class="mt-1 hidden block text-xs text-accent" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"

@@ -35,6 +35,8 @@
                     <label th:each="item : ${items}"
                            class="flex items-center gap-3 px-3 py-2 hover:bg-surface-dim cursor-pointer">
                         <input type="radio" name="itemExternalId" th:value="${item.externalId}"
+                               th:data-serial-mode="${item.serialMode}"
+                               th:data-lot-mode="${item.lotMode}"
                                class="field-check">
                         <img th:if="${item.primaryImageExternalId != null}"
                              th:src="@{/images/{id}(id=${item.primaryImageExternalId})}"
