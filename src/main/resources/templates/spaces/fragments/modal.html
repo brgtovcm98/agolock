@@ -49,9 +49,13 @@
                          class="hidden aspect-square w-[132px] border border-line-soft object-cover bg-surface-dim"
                          alt="">
                 </div>
-                <input type="file" th:field="*{imageFile}" data-image-file
-                       accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="field-file">
+                <label class="file-picker">
+                    <span class="file-picker-btn" th:text="#{view.common.file.button}">파일 선택</span>
+                    <span class="file-picker-name" data-file-name th:text="#{view.common.file.none}">선택된 파일 없음</span>
+                    <input type="file" th:field="*{imageFile}" data-image-file
+                           accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="sr-only">
+                </label>
                 <input type="hidden" th:field="*{imageHash}" data-image-hash value="">
             </div>
 
@@ -91,7 +95,8 @@
         fileInputSelector: '[data-image-file]',
         previewSelector:   '[data-image-preview]',
         hashInputSelector: '[data-image-hash]',
-        submitSelector:    '[data-submit-btn]'
+        submitSelector:    '[data-submit-btn]',
+        labelTextSelector: '[data-file-name]'
     }, modal);
 })();
 </script>

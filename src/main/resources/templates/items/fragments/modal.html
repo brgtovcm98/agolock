@@ -39,10 +39,14 @@
                 <img id="item-modal-preview"
                      class="mb-3 hidden aspect-square w-full border border-line-soft object-cover bg-surface-dim"
                      th:alt="#{view.item.modal.image.previewAlt}">
-                <input type="file" th:field="*{imageFile}"
-                       accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="field-file"
-                       id="item-modal-image-file">
+                <label class="file-picker" id="item-modal-image-label">
+                    <span class="file-picker-btn" th:text="#{view.common.file.button}">파일 선택</span>
+                    <span class="file-picker-name" data-file-name th:text="#{view.common.file.none}">선택된 파일 없음</span>
+                    <input type="file" th:field="*{imageFile}"
+                           accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="sr-only"
+                           id="item-modal-image-file">
+                </label>
                 <span id="item-modal-analysis-status"
                       class="mt-1 hidden block text-xs text-accent" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"
@@ -183,7 +187,8 @@
         descriptionInputSelector: '#modal input[name="description"]',
         submitSelector:           '#item-modal-submit-btn',
         statusSelector:           '#item-modal-analysis-status',
-        retryButtonSelector:      '#item-modal-analysis-retry-btn'
+        retryButtonSelector:      '#item-modal-analysis-retry-btn',
+        fileLabelSelector:        '#item-modal-image-label'
     });
 
     initImageUpload({
@@ -191,6 +196,7 @@
         previewSelector:    '#item-modal-preview',
         hashInputSelector:  '#item-modal-image-hash',
         submitSelector:     '#item-modal-submit-btn',
+        labelTextSelector:  '#item-modal-image-label [data-file-name]',
         onImageReady: analyzeItemModalImage
     });
     </script>

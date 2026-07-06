@@ -128,9 +128,13 @@
                 <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="field-error"></span>
 
                 <label class="field-label field-label-sm" th:text="#{view.item.modal.image.label}">사진</label>
-                <input type="file" name="imageFile" data-image-file
-                       accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="field-file">
+                <label class="file-picker">
+                    <span class="file-picker-btn" th:text="#{view.common.file.button}">파일 선택</span>
+                    <span class="file-picker-name" data-file-name th:text="#{view.common.file.none}">선택된 파일 없음</span>
+                    <input type="file" name="imageFile" data-image-file
+                           accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="sr-only">
+                </label>
                 <input type="hidden" name="imageHash" data-image-hash value="">
             </div>
         </div>
@@ -162,7 +166,8 @@
             previewSelector:       '[data-image-preview]',
             hashInputSelector:     '[data-image-hash]',
             submitSelector:        '[data-submit-btn]',
-            existingImageSelector: '[data-existing-image]'
+            existingImageSelector: '[data-existing-image]',
+            labelTextSelector:     '[data-file-name]'
         }, card);
     })();
     </script>

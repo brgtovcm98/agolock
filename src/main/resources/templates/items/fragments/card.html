@@ -90,9 +90,13 @@
                 <img data-image-preview
                      class="hidden aspect-square w-full border border-line-soft object-cover bg-surface-dim"
                      alt="">
-                <input type="file" name="imageFile" data-image-file
-                       accept="image/jpeg,image/png,image/webp,image/gif"
-                       class="mt-2 field-file">
+                <label class="file-picker mt-2" data-image-label>
+                    <span class="file-picker-btn" th:text="#{view.common.file.button}">파일 선택</span>
+                    <span class="file-picker-name" data-file-name th:text="#{view.common.file.none}">선택된 파일 없음</span>
+                    <input type="file" name="imageFile" data-image-file
+                           accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="sr-only">
+                </label>
                 <input type="hidden" name="imageHash" data-image-hash th:value="*{imageHash}">
                 <span data-image-analysis-status class="mt-1 hidden block text-xs text-accent" th:text="#{view.item.card.aiAnalyzing}">AI 분석 중...</span>
                 <button type="button"
@@ -227,7 +231,8 @@
             descriptionInputSelector: 'input[name="description"]',
             submitSelector:           '[data-submit-btn]',
             statusSelector:           '[data-image-analysis-status]',
-            retryButtonSelector:      '[data-image-analysis-retry]'
+            retryButtonSelector:      '[data-image-analysis-retry]',
+            fileLabelSelector:        '[data-image-label]'
         }, card);
 
         initImageUpload({
@@ -236,6 +241,7 @@
             hashInputSelector:     '[data-image-hash]',
             submitSelector:        '[data-submit-btn]',
             existingImageSelector: '[data-existing-image]',
+            labelTextSelector:     '[data-file-name]',
             onImageReady: analyzeImage
         }, card);
 
