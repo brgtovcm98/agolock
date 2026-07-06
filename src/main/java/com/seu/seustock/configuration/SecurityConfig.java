@@ -51,7 +51,8 @@ public class SecurityConfig {
                         "/css/**",
                         "/js/**",
                         "/static/**",
-                        "/api/qr/modal")
+                        "/api/qr/modal",
+                        "/.well-known/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
