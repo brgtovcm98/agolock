@@ -146,12 +146,14 @@
     .field-input.is-invalid,
     .field-input[aria-invalid="true"] { @apply border-danger focus:border-danger; }
 
-    .field-file        { @apply block w-full min-h-11 border border-line bg-surface
-                                text-xs text-muted transition-colors duration-120 ease-out
-                                file:mr-2 file:border-0 file:bg-surface-dim file:px-3 file:py-2
-                                file:text-xs file:text-ink hover:file:bg-line-soft
-                                focus:border-ink focus:outline-none;
-    }
+    /* Custom file picker: native input is sr-only; a styled button + filename
+       span stand in for it so the control matches the design system's borders. */
+    .file-picker       { @apply flex w-full cursor-pointer items-center gap-3; }
+    .file-picker-btn   { @apply inline-flex shrink-0 items-center border border-line bg-surface px-3 py-2
+                                text-xs font-medium text-ink transition-colors duration-120 ease-out; }
+    .file-picker:hover .file-picker-btn { @apply border-ink bg-surface-dim; }
+    .file-picker:focus-within .file-picker-btn { @apply border-ink; }
+    .file-picker-name  { @apply min-w-0 flex-1 truncate text-xs text-muted; }
 
     .field-check       { @apply h-4 w-4 border-line text-ink accent-ink; }
     /* Out-flow accents (출고 = accent language) */
