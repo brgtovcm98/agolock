@@ -157,6 +157,7 @@ public class ItemController {
       @RequestParam(required = false, defaultValue = "name") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
       @RequestParam(required = false) Integer page,
+      @RequestParam(required = false, defaultValue = "0") Integer idx,
       Principal principal,
       Model model) {
     String username = principal.getName();
@@ -169,6 +170,7 @@ public class ItemController {
     model.addAttribute("searchType", searchType);
     model.addAttribute("sortBy", sortBy);
     model.addAttribute("currentPage", page);
+    model.addAttribute("idx", idx);
     return "items/fragments/card :: edit";
   }
 
@@ -214,6 +216,7 @@ public class ItemController {
       @RequestParam(required = false, defaultValue = "name") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
       @RequestParam(required = false) Integer page,
+      @RequestParam(required = false, defaultValue = "0") Integer idx,
       Principal principal,
       Model model) {
     String username = principal.getName();
@@ -222,6 +225,7 @@ public class ItemController {
     model.addAttribute("searchType", searchType);
     model.addAttribute("sortBy", sortBy);
     model.addAttribute("currentPage", page);
+    model.addAttribute("idx", idx);
     return "items/fragments/card :: view";
   }
 

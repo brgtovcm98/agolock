@@ -55,7 +55,7 @@
                 hx-swap="outerHTML"
                 th:text="#{view.stock.action.history}">이력</button>
         <button class="btn-secondary btn-sm"
-                th:attr="hx-get=@{/items/{id}/edit(id=${item.externalId},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},page=${currentPage})},hx-target='#item-' + ${item.externalId}"
+                th:attr="hx-get=@{/items/{id}/edit(id=${item.externalId},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},page=${currentPage},idx=${idx})},hx-target='#item-' + ${item.externalId}"
                 hx-swap="outerHTML"
                 th:text="#{view.common.edit}">수정</button>
     </div>
@@ -204,7 +204,7 @@
                         th:text="#{view.common.save}">저장</button>
                 <button type="button"
                         class="btn-secondary btn-sm"
-                        th:attr="hx-get=@{/items/{id}/cancel(id=${item.externalId},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},page=${currentPage})},hx-target='#item-' + ${item.externalId}"
+                        th:attr="hx-get=@{/items/{id}/cancel(id=${item.externalId},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},page=${currentPage},idx=${idx})},hx-target='#item-' + ${item.externalId}"
                         hx-swap="outerHTML"
                         th:text="#{view.common.cancel}">취소</button>
             </div>

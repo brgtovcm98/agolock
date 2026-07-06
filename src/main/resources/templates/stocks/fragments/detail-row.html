@@ -57,7 +57,7 @@
 
     <div class="stock-actions">
         <button type="button"
-                th:attr="hx-get=@{/stocks/{id}/edit(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
+                th:attr="hx-get=@{/stocks/{id}/edit(id=${stock.externalId},idx=${idx})},hx-target='#stock-' + ${stock.externalId}"
                 hx-swap="outerHTML"
                 class="btn-secondary btn-sm"
                 th:text="#{view.common.edit}">수정</button>
@@ -185,7 +185,7 @@
                     저장
                 </button>
                 <button type="button"
-                        th:attr="hx-get=@{/stocks/{id}/cancel(id=${stock.externalId})},hx-target='#stock-' + ${stock.externalId}"
+                        th:attr="hx-get=@{/stocks/{id}/cancel(id=${stock.externalId},idx=${idx})},hx-target='#stock-' + ${stock.externalId}"
                         hx-swap="outerHTML"
                         class="btn-secondary btn-sm"
                         th:text="#{view.common.cancel}">

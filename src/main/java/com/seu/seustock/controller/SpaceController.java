@@ -119,9 +119,14 @@ public class SpaceController {
   /* ── HTMX 인라인 수정 ── */
 
   @GetMapping("/{externalId}/edit")
-  public String editRow(@PathVariable UUID externalId, Principal principal, Model model) {
+  public String editRow(
+      @PathVariable UUID externalId,
+      @RequestParam(required = false, defaultValue = "0") Integer idx,
+      Principal principal,
+      Model model) {
     String username = principal.getName();
     model.addAttribute("space", spaceService.findByExternalId(externalId, username));
+    model.addAttribute("idx", idx);
     return "spaces/fragments/row :: edit";
   }
 
@@ -157,10 +162,15 @@ public class SpaceController {
   }
 
   @GetMapping("/{externalId}/cancel")
-  public String cancelEdit(@PathVariable UUID externalId, Principal principal, Model model) {
+  public String cancelEdit(
+      @PathVariable UUID externalId,
+      @RequestParam(required = false, defaultValue = "0") Integer idx,
+      Principal principal,
+      Model model) {
     String username = principal.getName();
     SpaceDTO space = spaceService.findByExternalId(externalId, username);
     model.addAttribute("space", space);
+    model.addAttribute("idx", idx);
     addSummaries(model, List.of(space));
     return "spaces/fragments/row :: view";
   }

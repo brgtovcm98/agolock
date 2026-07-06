@@ -80,7 +80,11 @@ public class StockController {
   /* ── 재고 상세 행 ── */
 
   @GetMapping("/stocks/{stockExternalId}/edit")
-  public String editRow(@PathVariable UUID stockExternalId, Principal principal, Model model) {
+  public String editRow(
+      @PathVariable UUID stockExternalId,
+      @RequestParam(required = false, defaultValue = "0") Integer idx,
+      Principal principal,
+      Model model) {
     String username = principal.getName();
     StockUpdateForm form = new StockUpdateForm();
     var stock = stockService.findDetailByExternalId(stockExternalId, username);
@@ -91,6 +95,7 @@ public class StockController {
     form.setMemo(stock.getMemo());
     model.addAttribute("stock", stock);
     model.addAttribute("form", form);
+    model.addAttribute("idx", idx);
     return "stocks/fragments/detail-row :: edit";
   }
 
@@ -152,9 +157,14 @@ public class StockController {
   }
 
   @GetMapping("/stocks/{stockExternalId}/cancel")
-  public String cancelEdit(@PathVariable UUID stockExternalId, Principal principal, Model model) {
+  public String cancelEdit(
+      @PathVariable UUID stockExternalId,
+      @RequestParam(required = false, defaultValue = "0") Integer idx,
+      Principal principal,
+      Model model) {
     String username = principal.getName();
     model.addAttribute("stock", stockService.findDetailByExternalId(stockExternalId, username));
+    model.addAttribute("idx", idx);
     return "stocks/fragments/detail-row :: view";
   }
 
