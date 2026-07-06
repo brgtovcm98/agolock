@@ -111,6 +111,7 @@ function initImageUpload(config, root) {
     var labelText   = config.labelTextSelector
                        ? scope.querySelector(config.labelTextSelector)
                        : null;
+    var labelDefaultText = labelText ? labelText.textContent : '';
 
     if (!fileInput) return;
     fileInput.imageUploadOnImageReady = typeof config.onImageReady === 'function'
@@ -133,13 +134,13 @@ function initImageUpload(config, root) {
             if (existingImg) existingImg.classList.remove('hidden');
             if (previewImg)  previewImg.classList.add('hidden');
             if (hashInput)   hashInput.value = '';
-            if (labelText)   labelText.textContent = '사진을 선택하세요';
+            if (labelText)   labelText.textContent = labelDefaultText;
             return;
         }
         if (existingImg) existingImg.classList.add('hidden');
         if (previewImg)  previewImg.classList.add('hidden');
         if (hashInput)   hashInput.value = '';
-        if (labelText)   labelText.textContent = file ? file.name : '사진을 선택하세요';
+        if (labelText)   labelText.textContent = file ? file.name : labelDefaultText;
         if (!file) return;
 
         if (previewImg) {
