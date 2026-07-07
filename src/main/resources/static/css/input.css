@@ -188,8 +188,8 @@
     /* Search + sort block (used by spaces/items/stocks) */
     .search-sort-block { @apply border border-ink bg-surface; }
     .search-sort-block .search-row { @apply flex items-stretch border-b border-line-mid; }
-    .search-sort-block .sort-row   { @apply flex flex-wrap; }
-    .sort-tab          { @apply inline-flex items-center justify-center leading-none font-mono text-[12.5px] font-medium text-muted
+    .search-sort-block .sort-row   { @apply flex flex-nowrap overflow-x-auto; }
+    .sort-tab          { @apply shrink-0 inline-flex items-center justify-center leading-none font-mono text-[12.5px] font-medium text-muted
                                 px-4 py-2.5 border-r border-line-soft
                                 transition-colors duration-120 ease-out
                                 hover:bg-surface-dim hover:text-ink;

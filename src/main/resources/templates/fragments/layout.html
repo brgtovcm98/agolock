@@ -20,6 +20,7 @@
     <script src="/js/image-upload.js"></script>
     <script src="/js/tracking-policy-preview.js"></script>
     <script src="/js/dropdown-menu.js"></script>
+    <script src="/js/sort-scroll.js"></script>
     <script>
         (function () {
             function ensureToastContainer() {
@@ -127,7 +128,7 @@
 
 <!--/* 공통 네비게이션 바 */-->
 <nav th:fragment="nav" data-component-id="layout.nav" class="border-b-2 border-ink bg-surface">
-    <div class="mx-auto flex max-w-[960px] items-center justify-between px-4 py-4 md:px-6 lg:px-14">
+    <div class="mx-auto flex max-w-[960px] items-center justify-between px-4 py-2 md:px-6 lg:px-14">
         <a href="/" class="flex items-center gap-2.5">
             <span class="flex h-[22px] w-[22px] items-center justify-center bg-ink text-surface">
                 <span class="font-mono text-sm font-semibold">S</span>
@@ -232,7 +233,7 @@
 
 <!--/* 공통 푸터 */-->
 <footer th:fragment="footer" data-component-id="layout.footer" class="border-t border-line bg-surface mt-auto">
-    <div class="mx-auto flex max-w-[960px] flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between">
+    <div class="mx-auto flex max-w-[960px] flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
         <div class="flex flex-col gap-2">
             <p class="text-sm text-muted">
                 &copy; 2026 <span class="font-semibold text-ink">Team Ugui</span>. All rights reserved.
