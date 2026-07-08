@@ -160,14 +160,11 @@
                        th:text="#{view.nav.myStocks}">내 재고</a>
                 </div>
                 <span class="h-3.5 w-px bg-line"></span>
-                <div class="flex items-center">
-                    <a href="/account"
-                       th:classappend="${activeNav == 'account'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
-                       class="px-3 py-1.5 text-sm transition-colors duration-120 ease-out"
-                       th:text="#{view.nav.myAccount}">내 계정</a>
-                </div>
-                <span class="h-3.5 w-px bg-line"></span>
-                <span class="font-mono text-[12.5px] text-muted" th:text="${currentNickname}"></span>
+                <a href="/account"
+                   th:title="#{view.nav.myAccount}" th:aria-label="#{view.nav.myAccount}"
+                   th:classappend="${activeNav == 'account'} ? 'bg-ink text-white font-bold' : 'text-muted hover:text-ink'"
+                   class="font-mono text-[12.5px] px-3 py-1.5 transition-colors duration-120 ease-out"
+                   th:text="${currentNickname}"></a>
                 <form th:action="@{/logout}" method="post" class="inline">
                     <button type="submit"
                             class="text-[13px] text-muted hover:text-ink transition-colors duration-120 ease-out cursor-pointer bg-transparent border-0 p-0"
@@ -196,8 +193,10 @@
             <div class="absolute right-0 top-full mt-1 min-w-[140px]
                         border border-ink bg-white/75 py-1 z-50 text-ink backdrop-blur-sm">
                 <th:block th:if="${currentUsername != null}">
-                    <div class="px-4 py-2 text-xs text-muted font-mono"
-                         th:text="${currentNickname}"></div>
+                    <a href="/account"
+                       th:title="#{view.nav.myAccount}"
+                       class="block px-4 py-2 text-xs text-muted font-mono hover:bg-surface-dim transition-colors duration-120 ease-out"
+                       th:text="${currentNickname}"></a>
                     <hr class="border-line-soft mx-2 my-1"/>
                     <a href="/spaces"
                        class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
@@ -208,9 +207,6 @@
                     <a href="/stocks"
                        class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
                        th:text="#{view.nav.myStocks}">내 재고</a>
-                    <a href="/account"
-                       class="block px-4 py-2 text-ink hover:bg-surface-dim transition-colors duration-120 ease-out"
-                       th:text="#{view.nav.myAccount}">내 계정</a>
                     <hr class="border-line-soft mx-2 my-1"/>
                     <form th:action="@{/logout}" method="post">
                         <button type="submit"
