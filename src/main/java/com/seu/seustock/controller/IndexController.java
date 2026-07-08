@@ -32,7 +32,10 @@ public class IndexController {
 
   @GetMapping("/")
   public String index(Principal principal, Model model) {
-    model.addAttribute("summary", dashboardService.getSummary(principal.getName()));
+    String username = principal.getName();
+    model.addAttribute("summary", dashboardService.getSummary(username));
+    model.addAttribute("spaceSnapshot", dashboardService.getSpaceSnapshot(username));
+    model.addAttribute("recentActivity", dashboardService.getRecentActivity(username));
     if (!model.containsAttribute("targetForm")) {
       model.addAttribute("targetForm", new DashboardTargetForm());
     }
@@ -52,7 +55,10 @@ public class IndexController {
           "request validation failed operation=dashboard.updateTarget errorCount={} fields={}",
           result.getErrorCount(),
           ControllerLogSupport.invalidFields(result));
-      model.addAttribute("summary", dashboardService.getSummary(principal.getName()));
+      String username = principal.getName();
+      model.addAttribute("summary", dashboardService.getSummary(username));
+      model.addAttribute("spaceSnapshot", dashboardService.getSpaceSnapshot(username));
+      model.addAttribute("recentActivity", dashboardService.getRecentActivity(username));
       model.addAttribute("activeNav", "home");
       return "dashboard";
     }

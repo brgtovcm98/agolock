@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.seu.seustock.model.dto.DashboardSummaryDTO;
 import com.seu.seustock.service.DashboardService;
 import java.math.BigDecimal;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -45,6 +46,8 @@ class IndexControllerTest extends AbstractControllerTest {
   @DisplayName("GET / - 인증 상태 → 200, dashboard 뷰")
   void getRoot_whenAuthenticated_returns200WithDashboardView() throws Exception {
     when(dashboardService.getSummary("testuser")).thenReturn(summary());
+    when(dashboardService.getSpaceSnapshot("testuser")).thenReturn(List.of());
+    when(dashboardService.getRecentActivity("testuser")).thenReturn(List.of());
 
     mockMvc
         .perform(get("/").with(user("testuser")))
@@ -69,6 +72,8 @@ class IndexControllerTest extends AbstractControllerTest {
   @DisplayName("POST /dashboard/target - 음수 목표 → 검증 실패, dashboard 뷰 재렌더")
   void postTarget_negative_returnsDashboardWithErrors() throws Exception {
     when(dashboardService.getSummary("testuser")).thenReturn(summary());
+    when(dashboardService.getSpaceSnapshot("testuser")).thenReturn(List.of());
+    when(dashboardService.getRecentActivity("testuser")).thenReturn(List.of());
 
     mockMvc
         .perform(

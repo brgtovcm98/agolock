@@ -50,4 +50,22 @@
         WHERE u.id = #{userId}
     </select>
 
+    <!-- 홈 대시보드 최근 활동 위젯. 품목 전체 범위로 stock_transactions 를 최신순 조회하며, 개별 품목/재고에
+         한정된 StockTransactionMapper 의 히스토리 쿼리와 달리 품목명을 함께 select 한다. -->
+    <select id="findRecentActivity" resultType="DashboardActivityDTO">
+        SELECT
+            st.transaction_type,
+            st.memo,
+            st.created_at,
+            i.name   AS item_name,
+            sp.name  AS space_name
+        FROM stock_transactions st
+        JOIN stocks s  ON st.stock_id = s.id
+        JOIN items  i  ON s.item_id   = i.id
+        JOIN spaces sp ON s.space_id  = sp.id
+        WHERE i.user_id = #{userId}
+        ORDER BY st.created_at DESC, st.id DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

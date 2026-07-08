@@ -145,6 +145,51 @@
         </div>
     </section>
 
+    <!-- 5. 공간별 요약 -->
+    <section data-component-id="dashboard.spaces" class="card mb-6 p-5 md:p-6">
+        <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-muted" th:text="#{view.dashboard.spaces.title}">공간별 요약</h2>
+            <a href="/spaces" class="text-xs text-muted hover:text-ink" th:text="#{view.dashboard.spaces.viewAll}">모든 공간 보기 →</a>
+        </div>
+        <p th:if="${spaceSnapshot.empty}" class="empty-state" th:text="#{view.dashboard.spaces.empty}">
+            등록된 공간이 없습니다.
+        </p>
+        <div th:if="${!spaceSnapshot.empty}" class="divide-y divide-line-soft">
+            <a th:each="row, iter : ${spaceSnapshot}" th:if="${iter.index < 6}"
+               th:href="@{/spaces/{id}(id=${row.spaceExternalId})}"
+               class="-mx-1 flex items-center justify-between gap-3 px-1 py-2.5 hover:bg-surface-dim">
+                <span class="flex min-w-0 items-center gap-2">
+                    <span class="truncate text-sm text-ink" th:text="${row.name}">창고</span>
+                    <span th:if="${row.needsAttention}" class="badge-red shrink-0 px-1.5 py-[1px] text-[10.5px]"
+                          th:text="#{view.dashboard.spaces.attention}">주의</span>
+                </span>
+                <span class="shrink-0 font-mono text-sm text-stat-dim" th:text="${row.stockCount}">42</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- 6. 최근 활동 -->
+    <section data-component-id="dashboard.activity" class="card p-5 md:p-6">
+        <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.activity.title}">최근 활동</h2>
+        <p th:if="${recentActivity.empty}" class="empty-state" th:text="#{view.dashboard.activity.empty}">
+            최근 활동이 없습니다.
+        </p>
+        <div th:if="${!recentActivity.empty}" class="divide-y divide-line-soft">
+            <div th:each="activity : ${recentActivity}" class="flex items-center justify-between gap-3 py-2.5">
+                <div class="flex min-w-0 items-center gap-2">
+                    <span th:text="#{${'enum.TransactionType.' + activity.transactionType.name()}}"
+                          th:classappend="${activity.transactionType.name() == 'IN'} ? 'badge-in' :
+                                          (${activity.transactionType.name() == 'OUT'} ? 'badge-out' : 'badge')"
+                          class="shrink-0 px-1.5 py-[1px] text-[10.5px] font-semibold"></span>
+                    <span class="truncate text-sm text-ink" th:text="${activity.itemName}">품목명</span>
+                    <span class="truncate text-xs text-faint" th:text="${activity.spaceName}">공간</span>
+                </div>
+                <span class="shrink-0 font-mono text-[11.5px] text-faint"
+                      th:text="${#temporals.format(activity.createdAt, 'MM.dd HH:mm')}">07.08 10:00</span>
+            </div>
+        </div>
+    </section>
+
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

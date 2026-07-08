@@ -2,14 +2,18 @@ package com.seu.seustock.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.seu.seustock.model.dto.DashboardActivityDTO;
 import com.seu.seustock.model.dto.DashboardSummaryDTO;
 import com.seu.seustock.model.dto.ItemDTO;
 import com.seu.seustock.model.dto.SpaceDTO;
 import com.seu.seustock.model.dto.StockDTO;
+import com.seu.seustock.model.dto.StockTransactionDTO;
 import com.seu.seustock.model.dto.UserDTO;
 import com.seu.seustock.model.enumeration.StockStatus;
+import com.seu.seustock.model.enumeration.TransactionType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +34,7 @@ class DashboardMapperTest {
   @Autowired private ItemMapper itemMapper;
   @Autowired private SpaceMapper spaceMapper;
   @Autowired private StockMapper stockMapper;
+  @Autowired private StockTransactionMapper stockTransactionMapper;
 
   private Long userId;
   private Long itemId;
@@ -139,5 +144,42 @@ class DashboardMapperTest {
 
     assertThat(dashboardMapper.findSummaryByUserId(userId, today, soonCutoff).getTargetTotalStock())
         .isEqualTo(100);
+  }
+
+  @Test
+  void findRecentActivity_returnsOwnedTransactionsNewestFirstWithItemName() {
+    Long stockId = insertInStock(null, null);
+    StockTransactionDTO in = new StockTransactionDTO();
+    in.setStockId(stockId);
+    in.setTransactionType(TransactionType.IN);
+    in.setMemo("구매 입고");
+    stockTransactionMapper.insertTransaction(in);
+
+    StockTransactionDTO adjust = new StockTransactionDTO();
+    adjust.setStockId(stockId);
+    adjust.setTransactionType(TransactionType.ADJUST);
+    adjust.setMemo("수량 조정");
+    stockTransactionMapper.insertTransaction(adjust);
+
+    List<DashboardActivityDTO> activity = dashboardMapper.findRecentActivity(userId, 10);
+
+    assertThat(activity).hasSize(2);
+    assertThat(activity.get(0).getTransactionType()).isEqualTo(TransactionType.ADJUST);
+    assertThat(activity.get(0).getItemName()).isEqualTo("생수");
+    assertThat(activity.get(0).getSpaceName()).isEqualTo("창고");
+    assertThat(activity.get(1).getTransactionType()).isEqualTo(TransactionType.IN);
+  }
+
+  @Test
+  void findRecentActivity_respectsLimit() {
+    Long stockId = insertInStock(null, null);
+    for (int i = 0; i < 5; i++) {
+      StockTransactionDTO tx = new StockTransactionDTO();
+      tx.setStockId(stockId);
+      tx.setTransactionType(TransactionType.ADJUST);
+      stockTransactionMapper.insertTransaction(tx);
+    }
+
+    assertThat(dashboardMapper.findRecentActivity(userId, 3)).hasSize(3);
   }
 }
