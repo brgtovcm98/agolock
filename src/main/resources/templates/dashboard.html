@@ -112,36 +112,36 @@
     <section data-component-id="dashboard.status" class="card mb-6 p-5 md:p-6">
         <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.status.title}">상태별 분포</h2>
         <div class="flex flex-wrap gap-2">
-            <span class="badge-in" th:text="#{enum.StockStatus.IN_STOCK} + ' ' + ${summary.totalStockCount}">재고중 142</span>
-            <span class="badge" th:text="#{view.dashboard.status.kept} + ' ' + ${summary.keptCount}">보관중 12</span>
-            <span class="badge-out" th:text="#{enum.StockStatus.DISPATCHED} + ' ' + ${summary.dispatchedCount}">출고 30</span>
-            <span class="badge-red" th:text="#{enum.StockStatus.LOST} + ' ' + ${summary.lostCount}">분실 1</span>
-            <span class="badge-orange" th:text="#{enum.StockStatus.DAMAGED} + ' ' + ${summary.damagedCount}">파손 2</span>
-            <span class="badge-slate" th:text="#{enum.StockStatus.DISPOSED} + ' ' + ${summary.disposedCount}">폐기 5</span>
+            <a href="/stocks" class="badge-in" th:text="#{enum.StockStatus.IN_STOCK} + ' ' + ${summary.totalStockCount}">재고중 142</a>
+            <a href="/stocks?filter=kept" class="badge" th:text="#{view.dashboard.status.kept} + ' ' + ${summary.keptCount}">보관중 12</a>
+            <a href="/stocks?filter=dispatched" class="badge-out" th:text="#{enum.StockStatus.DISPATCHED} + ' ' + ${summary.dispatchedCount}">출고 30</a>
+            <a href="/stocks?filter=lost" class="badge-red" th:text="#{enum.StockStatus.LOST} + ' ' + ${summary.lostCount}">분실 1</a>
+            <a href="/stocks?filter=damaged" class="badge-orange" th:text="#{enum.StockStatus.DAMAGED} + ' ' + ${summary.damagedCount}">파손 2</a>
+            <a href="/stocks?filter=disposed" class="badge-slate" th:text="#{enum.StockStatus.DISPOSED} + ' ' + ${summary.disposedCount}">폐기 5</a>
         </div>
     </section>
 
     <!-- 4. 주의 필요 -->
-    <section data-component-id="dashboard.attention" class="card p-5 md:p-6">
+    <section data-component-id="dashboard.attention" class="card mb-6 p-5 md:p-6">
         <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.attention.title}">주의 필요</h2>
         <div class="grid grid-cols-3 gap-x-6 gap-y-3">
-            <div>
+            <a href="/stocks?filter=expiring" class="block">
                 <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.attention.expiring}">유통기한 임박</div>
                 <div class="font-mono text-[22px] font-semibold"
                      th:classappend="${summary.expiringCount > 0} ? 'text-accent' : 'text-ink'"
                      th:text="${summary.expiringCount}">3</div>
-            </div>
-            <div>
+            </a>
+            <a href="/stocks?filter=expired" class="block">
                 <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.attention.expired}">유통기한 만료</div>
                 <div class="font-mono text-[22px] font-semibold"
                      th:classappend="${summary.expiredCount > 0} ? 'text-danger' : 'text-ink'"
                      th:text="${summary.expiredCount}">1</div>
-            </div>
-            <div>
+            </a>
+            <a href="/stocks?filter=damagedLost" class="block">
                 <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.attention.damagedLost}">파손 · 분실</div>
                 <div class="font-mono text-[22px] font-semibold text-stat-dim"
                      th:text="${summary.damagedLostCount}">3</div>
-            </div>
+            </a>
         </div>
     </section>
 

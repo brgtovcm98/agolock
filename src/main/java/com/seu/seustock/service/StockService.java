@@ -18,6 +18,7 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,9 @@ public class StockService extends BaseService {
   private final StockInboundPreparer inboundPreparer;
   private final StockTransactionRecorder transactionRecorder;
   private static final int MEMO_SUGGESTION_LIMIT = 4;
+
+  @Value("${seustock.space.expiring-soon-days:7}")
+  private int expiringSoonDays;
 
   public StockService(
       StockMapper stockMapper,
@@ -143,6 +147,7 @@ public class StockService extends BaseService {
       UUID spaceExternalId,
       UUID shelfExternalId,
       UUID boxExternalId,
+      String filter,
       String keyword,
       String searchType,
       String sortBy,
@@ -152,6 +157,7 @@ public class StockService extends BaseService {
             spaceExternalId,
             shelfExternalId,
             boxExternalId,
+            filter,
             keyword,
             searchType,
             sortBy,
@@ -165,6 +171,7 @@ public class StockService extends BaseService {
       UUID spaceExternalId,
       UUID shelfExternalId,
       UUID boxExternalId,
+      String filter,
       String keyword,
       String searchType,
       String sortBy,
@@ -173,6 +180,8 @@ public class StockService extends BaseService {
     UserDTO user = getUser(username);
     String effectiveKeyword = normalizeKeyword(keyword);
     String effectiveSearchType = normalizeSearchType(searchType);
+    LocalDate today = LocalDate.now();
+    LocalDate soonCutoff = today.plusDays(expiringSoonDays);
     int totalCount =
         stockMapper.countSearchDetails(
             user.getId(),
@@ -180,6 +189,9 @@ public class StockService extends BaseService {
             spaceExternalId,
             shelfExternalId,
             boxExternalId,
+            filter,
+            today,
+            soonCutoff,
             effectiveKeyword,
             effectiveSearchType);
     PageRequest pageRequest = PageRequest.of(page, totalCount);
@@ -190,6 +202,9 @@ public class StockService extends BaseService {
             spaceExternalId,
             shelfExternalId,
             boxExternalId,
+            filter,
+            today,
+            soonCutoff,
             effectiveKeyword,
             effectiveSearchType,
             normalizeSort(sortBy),

@@ -15,6 +15,7 @@ import com.seu.seustock.model.dto.UserDTO;
 import com.seu.seustock.model.enumeration.StockStatus;
 import com.seu.seustock.model.form.StockUpdateForm;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,6 +55,9 @@ class StockMapperTest {
   private Long userId;
   private Long shelfId;
   private Long boxId;
+
+  private static final LocalDate TODAY = LocalDate.now();
+  private static final LocalDate SOON_CUTOFF = TODAY.plusDays(7);
 
   @BeforeEach
   void setUp() {
@@ -572,7 +576,8 @@ class StockMapperTest {
     stockMapper.updateStatusIfInStock(dispatched.getId(), StockStatus.DISPATCHED);
 
     List<StockDetailDTO> details =
-        stockMapper.searchDetails(userId, null, null, null, null, null, null, null, 10, 0);
+        stockMapper.searchDetails(
+            userId, null, null, null, null, null, TODAY, SOON_CUTOFF, null, null, null, 10, 0);
 
     assertThat(details).hasSize(1);
     assertThat(details.get(0).getExternalId()).isNotNull();
@@ -582,6 +587,106 @@ class StockMapperTest {
     assertThat(details.get(0).getBoxName()).isEqualTo("1번박스");
     assertThat(details.get(0).getSerialNumber()).isEqualTo("SN-001");
     assertThat(details.get(0).getMemo()).isEqualTo("충전기와 함께 보관");
+  }
+
+  @Test
+  void searchDetails_filterSelectsNonInStockStatus() {
+    StockDTO inStock = buildStockOnBox();
+    stockMapper.insertStock(inStock);
+    StockDTO dispatched = buildStockOnBox();
+    stockMapper.insertStock(dispatched);
+    stockMapper.updateStatusIfInStock(dispatched.getId(), StockStatus.DISPATCHED);
+    StockDTO lost = buildStockOnBox();
+    stockMapper.insertStock(lost);
+    stockMapper.updateStatusIfInStock(lost.getId(), StockStatus.LOST);
+
+    List<StockDetailDTO> dispatchedOnly =
+        stockMapper.searchDetails(
+            userId,
+            null,
+            null,
+            null,
+            null,
+            "dispatched",
+            TODAY,
+            SOON_CUTOFF,
+            null,
+            null,
+            null,
+            10,
+            0);
+    List<StockDetailDTO> damagedLost =
+        stockMapper.searchDetails(
+            userId,
+            null,
+            null,
+            null,
+            null,
+            "damagedLost",
+            TODAY,
+            SOON_CUTOFF,
+            null,
+            null,
+            null,
+            10,
+            0);
+    List<StockDetailDTO> defaultView =
+        stockMapper.searchDetails(
+            userId, null, null, null, null, null, TODAY, SOON_CUTOFF, null, null, null, 10, 0);
+
+    assertThat(dispatchedOnly)
+        .extracting(StockDetailDTO::getExternalId)
+        .containsExactly(stockMapper.findById(dispatched.getId()).orElseThrow().getExternalId());
+    assertThat(damagedLost)
+        .extracting(StockDetailDTO::getExternalId)
+        .containsExactly(stockMapper.findById(lost.getId()).orElseThrow().getExternalId());
+    assertThat(defaultView)
+        .extracting(StockDetailDTO::getExternalId)
+        .containsExactly(stockMapper.findById(inStock.getId()).orElseThrow().getExternalId());
+    assertThat(
+            stockMapper.countSearchDetails(
+                userId, null, null, null, null, "dispatched", TODAY, SOON_CUTOFF, null, null))
+        .isEqualTo(1);
+  }
+
+  @Test
+  void searchDetails_filterSelectsExpiringSoon() {
+    StockDTO expiringSoon = buildStockOnBox();
+    expiringSoon.setExpirationDate(TODAY.plusDays(3));
+    stockMapper.insertStock(expiringSoon);
+    StockDTO farOut = buildStockOnBox();
+    farOut.setExpirationDate(TODAY.plusDays(30));
+    stockMapper.insertStock(farOut);
+    StockDTO alreadyExpired = buildStockOnBox();
+    alreadyExpired.setExpirationDate(TODAY.minusDays(1));
+    stockMapper.insertStock(alreadyExpired);
+
+    List<StockDetailDTO> expiring =
+        stockMapper.searchDetails(
+            userId,
+            null,
+            null,
+            null,
+            null,
+            "expiring",
+            TODAY,
+            SOON_CUTOFF,
+            null,
+            null,
+            null,
+            10,
+            0);
+    List<StockDetailDTO> expired =
+        stockMapper.searchDetails(
+            userId, null, null, null, null, "expired", TODAY, SOON_CUTOFF, null, null, null, 10, 0);
+
+    assertThat(expiring)
+        .extracting(StockDetailDTO::getExternalId)
+        .containsExactly(stockMapper.findById(expiringSoon.getId()).orElseThrow().getExternalId());
+    assertThat(expired)
+        .extracting(StockDetailDTO::getExternalId)
+        .containsExactly(
+            stockMapper.findById(alreadyExpired.getId()).orElseThrow().getExternalId());
   }
 
   @Test
@@ -603,6 +708,9 @@ class StockMapperTest {
             space.getExternalId(),
             shelf.getExternalId(),
             box.getExternalId(),
+            null,
+            TODAY,
+            SOON_CUTOFF,
             null,
             null,
             null,
@@ -639,17 +747,55 @@ class StockMapperTest {
 
     List<StockDetailDTO> lotMatched =
         stockMapper.searchDetails(
-            userId, null, null, null, null, "LOT-SEARCH", null, "newest", 10, 0);
+            userId,
+            null,
+            null,
+            null,
+            null,
+            null,
+            TODAY,
+            SOON_CUTOFF,
+            "LOT-SEARCH",
+            null,
+            "newest",
+            10,
+            0);
     List<StockDetailDTO> memoMatched =
-        stockMapper.searchDetails(userId, null, null, null, null, "회의실", null, "newest", 10, 0);
+        stockMapper.searchDetails(
+            userId, null, null, null, null, null, TODAY, SOON_CUTOFF, "회의실", null, "newest", 10, 0);
     List<StockDetailDTO> serialTypeMatched =
         stockMapper.searchDetails(
-            userId, null, null, null, null, "SN-001", "serial", "newest", 10, 0);
+            userId,
+            null,
+            null,
+            null,
+            null,
+            null,
+            TODAY,
+            SOON_CUTOFF,
+            "SN-001",
+            "serial",
+            "newest",
+            10,
+            0);
     List<StockDetailDTO> itemTypeNotMatchedByLot =
         stockMapper.searchDetails(
-            userId, null, null, null, null, "LOT-SEARCH", "item", "newest", 10, 0);
+            userId,
+            null,
+            null,
+            null,
+            null,
+            null,
+            TODAY,
+            SOON_CUTOFF,
+            "LOT-SEARCH",
+            "item",
+            "newest",
+            10,
+            0);
     List<StockDetailDTO> nameSorted =
-        stockMapper.searchDetails(userId, null, null, null, null, null, null, "name", 10, 0);
+        stockMapper.searchDetails(
+            userId, null, null, null, null, null, TODAY, SOON_CUTOFF, null, null, "name", 10, 0);
 
     assertThat(lotMatched).extracting(StockDetailDTO::getItemName).containsExactly("마우스");
     assertThat(memoMatched).extracting(StockDetailDTO::getItemName).containsExactly("키보드");
@@ -658,9 +804,13 @@ class StockMapperTest {
     assertThat(nameSorted)
         .extracting(StockDetailDTO::getItemName)
         .containsExactly("노트북", "마우스", "키보드");
-    assertThat(stockMapper.countSearchDetails(userId, null, null, null, null, "LOT-SEARCH", null))
+    assertThat(
+            stockMapper.countSearchDetails(
+                userId, null, null, null, null, null, TODAY, SOON_CUTOFF, "LOT-SEARCH", null))
         .isEqualTo(1);
-    assertThat(stockMapper.countSearchDetails(userId, null, null, null, null, "LOT-SEARCH", "item"))
+    assertThat(
+            stockMapper.countSearchDetails(
+                userId, null, null, null, null, null, TODAY, SOON_CUTOFF, "LOT-SEARCH", "item"))
         .isZero();
   }
 
@@ -754,7 +904,8 @@ class StockMapperTest {
     itemMapper.updateItem(item);
 
     List<StockDetailDTO> details =
-        stockMapper.searchDetails(userId, null, null, null, null, null, null, null, 10, 0);
+        stockMapper.searchDetails(
+            userId, null, null, null, null, null, TODAY, SOON_CUTOFF, null, null, null, 10, 0);
 
     assertThat(details).hasSize(1);
     assertThat(details.get(0).getPrice()).isNull();

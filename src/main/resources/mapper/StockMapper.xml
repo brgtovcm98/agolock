@@ -357,7 +357,26 @@
     <select id="searchDetails" resultMap="StockDetailResultMap">
         <include refid="StockDetailSelect"/>
         WHERE i.user_id = #{userId}
-          AND s.status = 'IN_STOCK'
+        <choose>
+            <when test="filter == 'dispatched'">AND s.status = 'DISPATCHED'</when>
+            <when test="filter == 'lost'">AND s.status = 'LOST'</when>
+            <when test="filter == 'damaged'">AND s.status = 'DAMAGED'</when>
+            <when test="filter == 'disposed'">AND s.status = 'DISPOSED'</when>
+            <when test="filter == 'damagedLost'">AND s.status IN ('DAMAGED', 'LOST')</when>
+            <when test="filter == 'kept'">AND s.status = 'IN_STOCK' AND s.is_kept = TRUE</when>
+            <when test="filter == 'expiring'">
+                AND s.status = 'IN_STOCK'
+                AND s.expiration_date IS NOT NULL
+                AND s.expiration_date &gt;= #{today}
+                AND s.expiration_date &lt;= #{soonCutoff}
+            </when>
+            <when test="filter == 'expired'">
+                AND s.status = 'IN_STOCK'
+                AND s.expiration_date IS NOT NULL
+                AND s.expiration_date &lt; #{today}
+            </when>
+            <otherwise>AND s.status = 'IN_STOCK'</otherwise>
+        </choose>
         <if test="itemExternalId != null">
           AND i.external_id = #{itemExternalId}
         </if>
@@ -418,7 +437,26 @@
         LEFT JOIN boxes b ON s.box_id = b.id
         LEFT JOIN item_lots il ON s.lot_id = il.id
         WHERE i.user_id = #{userId}
-          AND s.status = 'IN_STOCK'
+        <choose>
+            <when test="filter == 'dispatched'">AND s.status = 'DISPATCHED'</when>
+            <when test="filter == 'lost'">AND s.status = 'LOST'</when>
+            <when test="filter == 'damaged'">AND s.status = 'DAMAGED'</when>
+            <when test="filter == 'disposed'">AND s.status = 'DISPOSED'</when>
+            <when test="filter == 'damagedLost'">AND s.status IN ('DAMAGED', 'LOST')</when>
+            <when test="filter == 'kept'">AND s.status = 'IN_STOCK' AND s.is_kept = TRUE</when>
+            <when test="filter == 'expiring'">
+                AND s.status = 'IN_STOCK'
+                AND s.expiration_date IS NOT NULL
+                AND s.expiration_date &gt;= #{today}
+                AND s.expiration_date &lt;= #{soonCutoff}
+            </when>
+            <when test="filter == 'expired'">
+                AND s.status = 'IN_STOCK'
+                AND s.expiration_date IS NOT NULL
+                AND s.expiration_date &lt; #{today}
+            </when>
+            <otherwise>AND s.status = 'IN_STOCK'</otherwise>
+        </choose>
         <if test="itemExternalId != null">
           AND i.external_id = #{itemExternalId}
         </if>

@@ -7,6 +7,7 @@ import com.seu.seustock.model.dto.StockDetailDTO;
 import com.seu.seustock.model.dto.StockPanelDTO;
 import com.seu.seustock.model.enumeration.StockStatus;
 import com.seu.seustock.model.form.StockUpdateForm;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -141,6 +142,9 @@ public interface StockMapper {
       @Param("spaceExternalId") UUID spaceExternalId,
       @Param("shelfExternalId") UUID shelfExternalId,
       @Param("boxExternalId") UUID boxExternalId,
+      @Param("filter") String filter,
+      @Param("today") LocalDate today,
+      @Param("soonCutoff") LocalDate soonCutoff,
       @Param("keyword") String keyword,
       @Param("searchType") String searchType,
       @Param("sortBy") String sortBy,
@@ -153,6 +157,9 @@ public interface StockMapper {
       @Param("spaceExternalId") UUID spaceExternalId,
       @Param("shelfExternalId") UUID shelfExternalId,
       @Param("boxExternalId") UUID boxExternalId,
+      @Param("filter") String filter,
+      @Param("today") LocalDate today,
+      @Param("soonCutoff") LocalDate soonCutoff,
       @Param("keyword") String keyword,
       @Param("searchType") String searchType);
 

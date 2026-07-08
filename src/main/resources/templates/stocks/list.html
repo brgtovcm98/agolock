@@ -15,8 +15,11 @@
             <h1 class="page-title" th:text="#{view.stock.list.header}">내 재고</h1>
             <p class="page-subtitle mt-1"
                th:text="${filtered} ? #{view.stock.list.description.filtered} : #{view.stock.list.description.all}"></p>
+            <th:block th:if="${filter != null}" th:with="filterLabel=${#messages.msgOrNull('view.stock.list.filter.' + filter)}">
+                <p th:if="${filterLabel != null}" class="page-subtitle mt-1 font-semibold text-accent" th:text="${filterLabel}">필터 적용됨</p>
+            </th:block>
         </div>
-        <a th:if="${filtered}"
+        <a th:if="${filtered or filter != null}"
            href="/stocks"
            class="btn-secondary btn-sm"
            th:text="#{view.common.all}">
@@ -38,6 +41,7 @@
                 <input th:if="${spaceExternalId != null}" type="hidden" name="space" th:value="${space}">
                 <input th:if="${shelfExternalId != null}" type="hidden" name="shelf" th:value="${shelf}">
                 <input th:if="${boxExternalId != null}" type="hidden" name="box" th:value="${box}">
+                <input th:if="${filter != null}" type="hidden" name="filter" th:value="${filter}">
                 <select name="searchType"
                         class="search-select border-r-0" th:attr="aria-label=#{aria.filter.searchType}">
                     <option value="all" th:selected="${searchType == null or searchType == 'all'}" th:text="#{view.stock.list.searchType.all}">전체</option>
@@ -58,21 +62,21 @@
                 </button>
             </form>
             <div data-component-id="stocks.sort-controls" class="sort-row">
-                <button th:attr="hx-get=@{/stocks(sortBy='newest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
+                <button th:attr="hx-get=@{/stocks(sortBy='newest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box},filter=${filter})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'newest'} ? 'sort-tab-active'"
                         class="sort-tab"
                         th:text="#{view.common.sort.newest}">
                     가장 최신 순
                 </button>
-                <button th:attr="hx-get=@{/stocks(sortBy='oldest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
+                <button th:attr="hx-get=@{/stocks(sortBy='oldest',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box},filter=${filter})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'oldest'} ? 'sort-tab-active'"
                         class="sort-tab"
                         th:text="#{view.common.sort.oldest}">
                     가장 오래된 순
                 </button>
-                <button th:attr="hx-get=@{/stocks(sortBy='name',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
+                <button th:attr="hx-get=@{/stocks(sortBy='name',keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box},filter=${filter})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${sortBy == 'name'} ? 'sort-tab-active'"
                         class="sort-tab"
@@ -116,21 +120,21 @@
         <div th:if="${page.totalPages() > 1}"
              class="flex items-center justify-center gap-1">
             <button th:if="${page.hasPrevious()}"
-                    th:attr="hx-get=@{/stocks(page=${page.previousPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
+                    th:attr="hx-get=@{/stocks(page=${page.previousPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box},filter=${filter})}"
                     hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
                     class="btn-secondary btn-sm"
                     th:text="#{view.common.pagination.prev}">
                 이전
             </button>
             <th:block th:each="pageNumber : ${#numbers.sequence(1, page.totalPages())}">
-                <button th:attr="hx-get=@{/stocks(page=${pageNumber},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
+                <button th:attr="hx-get=@{/stocks(page=${pageNumber},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box},filter=${filter})}"
                         hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
                         th:classappend="${pageNumber == page.page()} ? 'page-link-active'"
                         class="page-link"
                         th:text="${pageNumber}">1</button>
             </th:block>
             <button th:if="${page.hasNext()}"
-                    th:attr="hx-get=@{/stocks(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box})}"
+                    th:attr="hx-get=@{/stocks(page=${page.nextPage()},sortBy=${sortBy},keyword=${keyword},searchType=${searchType},item=${item},space=${space},shelf=${shelf},box=${box},filter=${filter})}"
                     hx-target="#stock-detail-section" hx-select="#stock-detail-section" hx-swap="outerHTML" hx-push-url="true"
                     class="btn-secondary btn-sm"
                     th:text="#{view.common.pagination.next}">

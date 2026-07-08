@@ -2,7 +2,9 @@ package com.seu.seustock.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -71,7 +73,7 @@ class StockControllerTest extends AbstractControllerTest {
     // 재고 상세 목록 (GET /stocks)
     given(
             stockService.searchDetailsPage(
-                any(), any(), any(), any(), any(), any(), any(), anyString(), any()))
+                any(), any(), any(), any(), any(), any(), any(), any(), anyString(), any()))
         .willReturn(new PageResult<>(List.of(), 1, 10, 0));
 
     // 단일 재고 상세 (editRow, cancelEdit, updateRow 오류 분기)
@@ -155,7 +157,22 @@ class StockControllerTest extends AbstractControllerTest {
         .perform(get("/stocks").with(user("testuser")))
         .andExpect(status().isOk())
         .andExpect(view().name("stocks/list"))
-        .andExpect(model().attributeExists("stocks", "page"));
+        .andExpect(model().attributeExists("stocks", "page"))
+        .andExpect(model().attribute("filter", (Object) null));
+  }
+
+  @Test
+  @DisplayName("GET /stocks?filter=dispatched → 200, filter 모델 속성에 반영")
+  void list_withFilter_passesFilterToModel() throws Exception {
+    mockMvc
+        .perform(get("/stocks").param("filter", "dispatched").with(user("testuser")))
+        .andExpect(status().isOk())
+        .andExpect(view().name("stocks/list"))
+        .andExpect(model().attribute("filter", "dispatched"));
+
+    verify(stockService)
+        .searchDetailsPage(
+            any(), any(), any(), any(), eq("dispatched"), any(), any(), any(), anyString(), any());
   }
 
   // ── Response Shape: 재고 상세 행 편집 ─────────────────────────────────────

@@ -39,6 +39,7 @@ public class StockController {
       @RequestParam(name = "space", required = false) UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false) String filter,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -52,6 +53,7 @@ public class StockController {
             spaceExternalId,
             shelfExternalId,
             boxExternalId,
+            filter,
             keyword,
             searchType,
             sortBy,
@@ -63,6 +65,7 @@ public class StockController {
     model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelf", shelfExternalId);
     model.addAttribute("box", boxExternalId);
+    model.addAttribute("filter", filter);
     model.addAttribute("keyword", keyword);
     model.addAttribute("searchType", searchType);
     model.addAttribute("sortBy", sortBy);
@@ -108,6 +111,7 @@ public class StockController {
       @RequestParam(name = "space", required = false) UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false) String filter,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -130,6 +134,7 @@ public class StockController {
           spaceExternalId,
           shelfExternalId,
           boxExternalId,
+          filter,
           keyword,
           searchType,
           sortBy,
@@ -148,6 +153,7 @@ public class StockController {
         spaceExternalId,
         shelfExternalId,
         boxExternalId,
+        filter,
         keyword,
         searchType,
         sortBy,
@@ -176,6 +182,7 @@ public class StockController {
       @RequestParam(name = "space", required = false) UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false) String filter,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -192,6 +199,7 @@ public class StockController {
         spaceExternalId,
         shelfExternalId,
         boxExternalId,
+        filter,
         keyword,
         searchType,
         sortBy,
@@ -207,6 +215,7 @@ public class StockController {
       @RequestParam(name = "space", required = false) UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false) String filter,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -223,6 +232,7 @@ public class StockController {
         spaceExternalId,
         shelfExternalId,
         boxExternalId,
+        filter,
         keyword,
         searchType,
         sortBy,
@@ -265,6 +275,7 @@ public class StockController {
       @RequestParam(name = "space", required = false) UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false) String filter,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -280,6 +291,7 @@ public class StockController {
         spaceExternalId,
         shelfExternalId,
         boxExternalId,
+        filter,
         keyword,
         searchType,
         sortBy,
@@ -294,6 +306,7 @@ public class StockController {
       @RequestParam(name = "space", required = false) UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false) String filter,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -309,6 +322,7 @@ public class StockController {
         spaceExternalId,
         shelfExternalId,
         boxExternalId,
+        filter,
         keyword,
         searchType,
         sortBy,
@@ -324,6 +338,7 @@ public class StockController {
       @RequestParam(name = "space", required = false) UUID spaceExternalId,
       @RequestParam(name = "shelf", required = false) UUID shelfExternalId,
       @RequestParam(name = "box", required = false) UUID boxExternalId,
+      @RequestParam(required = false) String filter,
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false, defaultValue = "all") String searchType,
       @RequestParam(required = false, defaultValue = "newest") String sortBy,
@@ -349,6 +364,7 @@ public class StockController {
         spaceExternalId,
         shelfExternalId,
         boxExternalId,
+        filter,
         keyword,
         searchType,
         sortBy,
@@ -375,6 +391,7 @@ public class StockController {
       UUID spaceExternalId,
       UUID shelfExternalId,
       UUID boxExternalId,
+      String filter,
       String keyword,
       String searchType,
       String sortBy,
@@ -385,6 +402,7 @@ public class StockController {
             spaceExternalId,
             shelfExternalId,
             boxExternalId,
+            filter,
             keyword,
             searchType,
             sortBy,
@@ -398,6 +416,7 @@ public class StockController {
         spaceExternalId,
         shelfExternalId,
         boxExternalId,
+        filter,
         keyword,
         searchType,
         sortBy,
@@ -411,6 +430,7 @@ public class StockController {
       UUID spaceExternalId,
       UUID shelfExternalId,
       UUID boxExternalId,
+      String filter,
       String keyword,
       String searchType,
       String sortBy,
@@ -419,6 +439,7 @@ public class StockController {
     model.addAttribute("space", spaceExternalId);
     model.addAttribute("shelf", shelfExternalId);
     model.addAttribute("box", boxExternalId);
+    model.addAttribute("filter", filter);
     model.addAttribute("keyword", keyword);
     model.addAttribute("searchType", searchType);
     model.addAttribute("sortBy", sortBy);
