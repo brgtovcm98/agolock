@@ -1,8 +1,8 @@
 package com.seu.seustock.model.enumeration;
 
 public enum StockStatus {
-  IN_STOCK("재고중"),
-  DISPATCHED("출고"),
+  IN_STOCK("재고"),
+  DISPATCHED("사용"),
   LOST("분실"),
   DAMAGED("파손"),
   DISPOSED("폐기");

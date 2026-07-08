@@ -7,8 +7,8 @@
      class="modal-overlay fixed inset-0 z-50 flex items-center justify-center">
     <div class="modal-dialog max-w-sm mx-4 p-6 flex flex-col">
 
-        <h2 id="modal-title" class="text-lg font-semibold text-ink mb-1" th:text="#{view.stock.modal.out.title}">출고 처리</h2>
-        <p class="text-sm text-muted mb-4" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
+        <h2 id="modal-title" class="text-lg font-semibold text-ink mb-1" th:text="#{view.stock.modal.out.title}">사용 처리</h2>
+        <p class="text-sm text-muted mb-4" th:text="#{view.stock.modal.out.message}">사용할 수량을 입력해주세요.</p>
 
         <form th:object="${form}"
               method="post"
@@ -56,7 +56,7 @@
                 <button type="submit"
                         class="btn-out text-sm"
                         th:text="#{view.stock.modal.out.title}">
-                    출고
+                    사용
                 </button>
             </div>
         </form>

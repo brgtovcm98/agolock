@@ -23,7 +23,7 @@
             <button type="button" onclick="switchActionTab('out')" id="action-tab-out"
                     class="flex-1 py-1.5 text-sm font-medium text-muted transition"
                     th:text="#{view.stock.modal.out.title}">
-                출고
+                사용
             </button>
             <button type="button" onclick="switchActionTab('del')" id="action-tab-del"
                     class="flex-1 py-1.5 text-sm font-medium text-muted transition"
@@ -94,7 +94,7 @@
 
         <!-- 출고 섹션 -->
         <div id="action-section-out" class="hidden">
-            <p class="text-sm text-muted mb-3" th:text="#{view.stock.modal.out.message}">출고할 수량을 입력해주세요.</p>
+            <p class="text-sm text-muted mb-3" th:text="#{view.stock.modal.out.message}">사용할 수량을 입력해주세요.</p>
             <form id="out-form">
                 <input type="hidden" name="itemExternalId"  th:value="${item}">
                 <input type="hidden" name="spaceExternalId" th:value="${space}">
@@ -156,7 +156,7 @@
                             th:attr="hx-confirm=#{view.stock.modal.out.confirm}"
                             class="btn-out text-sm"
                             th:text="#{view.stock.modal.out.title}">
-                        출고
+                        사용
                     </button>
                 </div>
             </form>
@@ -191,7 +191,7 @@
     const minCountMsg = /*[[#{view.stock.modal.js.minCount}]]*/ '1개 이상 입력해주세요';
     const maxCountMsg = /*[[#{view.stock.modal.js.maxCount}]]*/ '50개 초과 입력할 수 없습니다';
     const addMsgTemplate = /*[[#{view.stock.modal.js.addMessage}]]*/ '{0}개가 추가되어 총 {1}개가 됩니다';
-    const outMsgTemplate = /*[[#{view.stock.modal.js.outMessage}]]*/ '{0}개가 출고되어 총 {1}개가 됩니다';
+    const outMsgTemplate = /*[[#{view.stock.modal.js.outMessage}]]*/ '{0}개가 사용되어 총 {1}개가 됩니다';
     const minTotalErrorMsg = /*[[#{view.stock.modal.js.minTotalError}]]*/ '재고의 총 수량은 0개 이하가 될 수 없습니다';
 
     function switchActionTab(tab) {

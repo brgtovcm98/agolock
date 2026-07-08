@@ -58,4 +58,42 @@ public class DashboardSummaryDTO {
   public int getDamagedLostCount() {
     return damagedCount + lostCount;
   }
+
+  /** 상태별 분포 막대의 분모. 보관중(kept)은 재고중의 부분집합이라 제외한다. */
+  private int getStatusGrandTotal() {
+    return totalStockCount + dispatchedCount + lostCount + damagedCount + disposedCount;
+  }
+
+  private int percentOf(int count) {
+    int grandTotal = getStatusGrandTotal();
+    if (grandTotal <= 0) {
+      return 0;
+    }
+    return (int) Math.round(count * 100.0 / grandTotal);
+  }
+
+  /** 상태별 분포 막대에서 재고중 구간 비율(%). */
+  public int getInStockPercent() {
+    return percentOf(totalStockCount);
+  }
+
+  /** 상태별 분포 막대에서 출고 구간 비율(%). */
+  public int getDispatchedPercent() {
+    return percentOf(dispatchedCount);
+  }
+
+  /** 상태별 분포 막대에서 분실 구간 비율(%). */
+  public int getLostPercent() {
+    return percentOf(lostCount);
+  }
+
+  /** 상태별 분포 막대에서 파손 구간 비율(%). */
+  public int getDamagedPercent() {
+    return percentOf(damagedCount);
+  }
+
+  /** 상태별 분포 막대에서 폐기 구간 비율(%). */
+  public int getDisposedPercent() {
+    return percentOf(disposedCount);
+  }
 }

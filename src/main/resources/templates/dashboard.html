@@ -92,19 +92,19 @@
 
         <!-- 목표 설정 / 수정 폼 -->
         <form th:action="@{/dashboard/target}" th:object="${targetForm}" method="post"
-              data-component-id="dashboard.goal-form" class="flex flex-wrap items-start gap-2">
-            <div class="flex flex-col">
+              data-component-id="dashboard.goal-form" class="max-w-xs">
+            <div class="search-sort-block flex items-stretch">
                 <label for="target" class="sr-only" th:text="#{view.dashboard.goal.target}">목표</label>
                 <input type="number" id="target" name="target" min="0" step="1"
                        th:value="${targetForm.target != null} ? ${targetForm.target} : ${summary.targetTotalStock}"
                        th:placeholder="#{view.dashboard.goal.placeholder}"
-                       class="field-input w-40">
-                <p th:if="${#fields.hasErrors('target')}" th:errors="*{target}" class="field-error">오류</p>
+                       class="search-input border-r-0">
+                <button type="submit" class="btn-search shrink-0"
+                        th:text="${summary.targetSet} ? #{view.dashboard.goal.editTarget} : #{view.dashboard.goal.setTarget}">
+                    목표 설정
+                </button>
             </div>
-            <button type="submit" class="btn-primary btn-sm"
-                    th:text="${summary.targetSet} ? #{view.dashboard.goal.editTarget} : #{view.dashboard.goal.setTarget}">
-                목표 설정
-            </button>
+            <p th:if="${#fields.hasErrors('target')}" th:errors="*{target}" class="field-error">오류</p>
         </form>
     </section>
 
@@ -112,12 +112,19 @@
     <section data-component-id="dashboard.status" class="card mb-6 p-5 md:p-6">
         <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.status.title}">상태별 분포</h2>
         <div class="flex flex-wrap gap-2">
-            <a href="/stocks" class="badge-in" th:text="#{enum.StockStatus.IN_STOCK} + ' ' + ${summary.totalStockCount}">재고중 142</a>
-            <a href="/stocks?filter=kept" class="badge" th:text="#{view.dashboard.status.kept} + ' ' + ${summary.keptCount}">보관중 12</a>
-            <a href="/stocks?filter=dispatched" class="badge-out" th:text="#{enum.StockStatus.DISPATCHED} + ' ' + ${summary.dispatchedCount}">출고 30</a>
+            <a href="/stocks" class="badge-in" th:text="#{enum.StockStatus.IN_STOCK} + ' ' + ${summary.totalStockCount}">재고 142</a>
+            <a href="/stocks?filter=kept" class="badge" th:text="#{view.dashboard.status.kept} + ' ' + ${summary.keptCount}">보관 12</a>
+            <a href="/stocks?filter=dispatched" class="badge-out" th:text="#{enum.StockStatus.DISPATCHED} + ' ' + ${summary.dispatchedCount}">사용 30</a>
             <a href="/stocks?filter=lost" class="badge-red" th:text="#{enum.StockStatus.LOST} + ' ' + ${summary.lostCount}">분실 1</a>
             <a href="/stocks?filter=damaged" class="badge-orange" th:text="#{enum.StockStatus.DAMAGED} + ' ' + ${summary.damagedCount}">파손 2</a>
             <a href="/stocks?filter=disposed" class="badge-slate" th:text="#{enum.StockStatus.DISPOSED} + ' ' + ${summary.disposedCount}">폐기 5</a>
+        </div>
+        <div class="mt-3 flex h-2.5 w-full overflow-hidden bg-surface-dim">
+            <div class="h-full bg-ink" th:style="'width:' + ${summary.inStockPercent} + '%'"></div>
+            <div class="h-full bg-accent" th:style="'width:' + ${summary.dispatchedPercent} + '%'"></div>
+            <div class="h-full bg-danger" th:style="'width:' + ${summary.lostPercent} + '%'"></div>
+            <div class="h-full bg-accent/50" th:style="'width:' + ${summary.damagedPercent} + '%'"></div>
+            <div class="h-full bg-stat-dim" th:style="'width:' + ${summary.disposedPercent} + '%'"></div>
         </div>
     </section>
 

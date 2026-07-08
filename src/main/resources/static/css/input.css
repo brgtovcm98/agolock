@@ -228,8 +228,8 @@
 
     /* ── Badges ── */
     .badge             { @apply inline-flex items-center border border-line px-2 py-0.5 text-[11.5px] font-semibold text-muted; }
-    .badge-in          { @apply border-ink text-ink font-mono text-xs font-semibold px-2.5 py-[3px]; }
-    .badge-out         { @apply border-accent text-accent font-mono text-xs font-semibold px-2.5 py-[3px]; }
+    .badge-in          { @apply inline-flex items-center border border-ink text-ink font-mono text-xs font-semibold px-2.5 py-[3px]; }
+    .badge-out         { @apply inline-flex items-center border border-accent text-accent font-mono text-xs font-semibold px-2.5 py-[3px]; }
     .badge-empty       { @apply border border-line text-muted; }
     /* Legacy badge colors mapped to neutral/index-label tones */
     .badge-blue,
