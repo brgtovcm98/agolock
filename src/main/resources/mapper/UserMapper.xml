@@ -43,6 +43,12 @@
         WHERE id = #{id}
     </update>
 
+    <update id="updateTargetTotalStock">
+        UPDATE users
+        SET target_total_stock = #{target}
+        WHERE id = #{userId}
+    </update>
+
     <delete id="deleteById" parameterType="long">
         DELETE FROM users
         WHERE id = #{id}

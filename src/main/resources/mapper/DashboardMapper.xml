@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seu.seustock.mapper.DashboardMapper">
+
+    <!-- 사용자 전체 재고 롤업(홈 대시보드용). SpaceMapper.findSummariesBySpaceIds 와 동일한 스칼라 서브쿼리
+         패턴을 사용자 단위로 옮긴 것. 각 지표는 독립 서브쿼리라 조인 fan-out 이 없다. 재고 소유권은
+         stocks -> items(i.user_id) 로 판정한다. map-underscore-to-camel-case 로 자동 매핑된다. -->
+    <select id="findSummaryByUserId" resultType="DashboardSummaryDTO">
+        SELECT
+            u.target_total_stock AS target_total_stock,
+            (SELECT COUNT(DISTINCT st.item_id) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'IN_STOCK') AS total_item_count,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'IN_STOCK') AS total_stock_count,
+            (SELECT COALESCE(SUM(COALESCE(st.price, i.price)), 0) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'IN_STOCK') AS total_value,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'DISPATCHED') AS dispatched_count,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'LOST') AS lost_count,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'DAMAGED') AS damaged_count,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'DISPOSED') AS disposed_count,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'IN_STOCK' AND st.is_kept = TRUE) AS kept_count,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'IN_STOCK'
+                  AND st.expiration_date IS NOT NULL
+                  AND st.expiration_date &gt;= #{today}
+                  AND st.expiration_date &lt;= #{soonCutoff}) AS expiring_count,
+            (SELECT COUNT(*) FROM stocks st
+                JOIN items i ON st.item_id = i.id
+                WHERE i.user_id = u.id AND st.status = 'IN_STOCK'
+                  AND st.expiration_date IS NOT NULL
+                  AND st.expiration_date &lt; #{today}) AS expired_count,
+            (SELECT COUNT(*) FROM spaces sp WHERE sp.user_id = u.id) AS space_count
+        FROM users u
+        WHERE u.id = #{userId}
+    </select>
+
+</mapper>

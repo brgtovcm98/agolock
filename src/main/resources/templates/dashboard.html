@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{fragments/layout :: head(~{::title})}">
+    <title th:text="|#{view.dashboard.title} · SeuStock|">대시보드 · SeuStock</title>
+</head>
+<body class="page min-h-screen flex flex-col">
+
+<nav th:replace="~{fragments/layout :: nav}"></nav>
+
+<main data-component-id="page.dashboard" class="page-main">
+
+    <div class="mb-6">
+        <p class="page-caption mb-2">DASHBOARD</p>
+        <h1 class="page-title" th:text="#{view.dashboard.title}">대시보드</h1>
+    </div>
+
+    <!-- 1. 보유 현황 요약 -->
+    <section data-component-id="dashboard.holdings" class="card mb-6 p-5 md:p-6">
+        <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.holdings.title}">보유 현황</h2>
+        <div class="grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-4">
+            <div>
+                <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.holdings.totalItems}">총 품목</div>
+                <div class="font-mono text-[26px] font-semibold text-ink"
+                     th:text="${#numbers.formatInteger(summary.totalItemCount, 1, 'COMMA')}">24</div>
+            </div>
+            <div>
+                <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.holdings.totalStock}">총 재고</div>
+                <div class="font-mono text-[26px] font-semibold text-ink"
+                     th:text="${#numbers.formatInteger(summary.totalStockCount, 1, 'COMMA')}">142</div>
+            </div>
+            <div>
+                <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.holdings.totalValue}">총 평가액</div>
+                <div class="font-mono text-[26px] font-semibold"
+                     th:classappend="${summary.totalValue != null and summary.totalValue.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'text-accent' : 'text-ink'"
+                     th:text="'₩' + ${#numbers.formatInteger(summary.totalValue, 1, 'COMMA')}">₩320,000</div>
+            </div>
+            <div>
+                <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.holdings.spaces}">공간</div>
+                <div class="font-mono text-[26px] font-semibold text-stat-dim"
+                     th:text="${#numbers.formatInteger(summary.spaceCount, 1, 'COMMA')}">7</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. 소진 목표 진행 -->
+    <section data-component-id="dashboard.goal" class="card mb-6 p-5 md:p-6">
+        <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.goal.title}">소진 목표</h2>
+
+        <!-- 목표 미설정 안내 -->
+        <p th:unless="${summary.targetSet}" class="mb-4 text-sm text-muted" th:text="#{view.dashboard.goal.notSet}">
+            총 보유 수량 목표를 설정하면 처리해야 할 물건 수를 알려드립니다.
+        </p>
+
+        <!-- 목표 설정 시 진행 현황 -->
+        <div th:if="${summary.targetSet}" class="mb-5">
+            <div class="mb-3 flex flex-wrap items-end gap-x-8 gap-y-3">
+                <div>
+                    <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.goal.current}">현재 총재고</div>
+                    <div class="font-mono text-[26px] font-semibold text-ink"
+                         th:text="${#numbers.formatInteger(summary.totalStockCount, 1, 'COMMA')}">142</div>
+                </div>
+                <div>
+                    <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.goal.target}">목표</div>
+                    <div class="font-mono text-[26px] font-semibold text-stat-dim"
+                         th:text="${#numbers.formatInteger(summary.targetTotalStock, 1, 'COMMA')}">100</div>
+                </div>
+                <div>
+                    <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.goal.toProcess}">처리해야 할 물건</div>
+                    <div class="font-mono text-[26px] font-semibold"
+                         th:classappend="${summary.toProcessCount > 0} ? 'text-accent' : 'text-ink'"
+                         th:text="${#numbers.formatInteger(summary.toProcessCount, 1, 'COMMA')}">42</div>
+                </div>
+            </div>
+
+            <!-- 진행 바: 전체 재고 대비 초과분(처리 필요) 비율 -->
+            <div th:if="${summary.toProcessCount > 0}">
+                <div class="h-2.5 w-full bg-surface-dim">
+                    <div class="h-2.5 bg-accent" th:style="'width:' + ${summary.overPercent} + '%'"></div>
+                </div>
+                <p class="mt-2 text-[13px] text-muted"
+                   th:text="#{view.dashboard.goal.overHint(${summary.toProcessCount}, ${summary.overPercent})}">
+                    목표보다 42개 초과 · 전체의 30%를 처리해야 합니다.
+                </p>
+            </div>
+            <div th:unless="${summary.toProcessCount > 0}">
+                <div class="h-2.5 w-full bg-ink"></div>
+                <p class="mt-2 text-[13px] font-semibold text-ink" th:text="#{view.dashboard.goal.achieved}">
+                    목표를 달성했습니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- 목표 설정 / 수정 폼 -->
+        <form th:action="@{/dashboard/target}" th:object="${targetForm}" method="post"
+              data-component-id="dashboard.goal-form" class="flex flex-wrap items-start gap-2">
+            <div class="flex flex-col">
+                <label for="target" class="sr-only" th:text="#{view.dashboard.goal.target}">목표</label>
+                <input type="number" id="target" name="target" min="0" step="1"
+                       th:value="${targetForm.target != null} ? ${targetForm.target} : ${summary.targetTotalStock}"
+                       th:placeholder="#{view.dashboard.goal.placeholder}"
+                       class="field-input w-40">
+                <p th:if="${#fields.hasErrors('target')}" th:errors="*{target}" class="field-error">오류</p>
+            </div>
+            <button type="submit" class="btn-primary btn-sm"
+                    th:text="${summary.targetSet} ? #{view.dashboard.goal.editTarget} : #{view.dashboard.goal.setTarget}">
+                목표 설정
+            </button>
+        </form>
+    </section>
+
+    <!-- 3. 상태별 분포 -->
+    <section data-component-id="dashboard.status" class="card mb-6 p-5 md:p-6">
+        <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.status.title}">상태별 분포</h2>
+        <div class="flex flex-wrap gap-2">
+            <span class="badge-in" th:text="#{enum.StockStatus.IN_STOCK} + ' ' + ${summary.totalStockCount}">재고중 142</span>
+            <span class="badge" th:text="#{view.dashboard.status.kept} + ' ' + ${summary.keptCount}">보관중 12</span>
+            <span class="badge-out" th:text="#{enum.StockStatus.DISPATCHED} + ' ' + ${summary.dispatchedCount}">출고 30</span>
+            <span class="badge-red" th:text="#{enum.StockStatus.LOST} + ' ' + ${summary.lostCount}">분실 1</span>
+            <span class="badge-orange" th:text="#{enum.StockStatus.DAMAGED} + ' ' + ${summary.damagedCount}">파손 2</span>
+            <span class="badge-slate" th:text="#{enum.StockStatus.DISPOSED} + ' ' + ${summary.disposedCount}">폐기 5</span>
+        </div>
+    </section>
+
+    <!-- 4. 주의 필요 -->
+    <section data-component-id="dashboard.attention" class="card p-5 md:p-6">
+        <h2 class="mb-4 text-sm font-semibold text-muted" th:text="#{view.dashboard.attention.title}">주의 필요</h2>
+        <div class="grid grid-cols-3 gap-x-6 gap-y-3">
+            <div>
+                <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.attention.expiring}">유통기한 임박</div>
+                <div class="font-mono text-[22px] font-semibold"
+                     th:classappend="${summary.expiringCount > 0} ? 'text-accent' : 'text-ink'"
+                     th:text="${summary.expiringCount}">3</div>
+            </div>
+            <div>
+                <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.attention.expired}">유통기한 만료</div>
+                <div class="font-mono text-[22px] font-semibold"
+                     th:classappend="${summary.expiredCount > 0} ? 'text-danger' : 'text-ink'"
+                     th:text="${summary.expiredCount}">1</div>
+            </div>
+            <div>
+                <div class="text-[11.5px] text-faint" th:text="#{view.dashboard.attention.damagedLost}">파손 · 분실</div>
+                <div class="font-mono text-[22px] font-semibold text-stat-dim"
+                     th:text="${summary.damagedLostCount}">3</div>
+            </div>
+        </div>
+    </section>
+
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
