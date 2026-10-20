@@ -40,6 +40,8 @@ export default tseslint.config(
             'queryClient',
             'appRoutes',
             'useTheme',
+            'useAuth',
+            'safeRedirect',
             'badgeVariants',
             'buttonVariants',
             'statusLabel',

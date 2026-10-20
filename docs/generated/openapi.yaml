@@ -73,6 +73,12 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '409':
           $ref: '#/components/responses/Conflict'
+        '422':
+          description: 초대코드가 필요하거나 유효하지 않음
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         '429':
           $ref: '#/components/responses/TooManyRequests'
   /auth/login:
@@ -171,6 +177,12 @@ paths:
           description: 비밀번호 변경 완료
         '400':
           $ref: '#/components/responses/BadRequest'
+        '422':
+          description: 재설정 토큰이 만료되었거나 사용됨
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /spaces/{spaceId}:
     parameters:
       - $ref: '#/components/parameters/SpaceId'

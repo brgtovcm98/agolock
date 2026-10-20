@@ -27,7 +27,7 @@
 | 마일스톤 | 이름 | 단계 | 핵심 결과 |
 |---|---|---|---|
 | M0 | 기반 부트스트랩과 계약 파이프라인 (완료) | 1차 | 빌드, 로컬 인프라, 테스트, CI, 계약 생성기, 디자인 시스템 |
-| M1 | Identity, Space, 가입과 세션 | 1차 | 가입, 로그인, 세션, CSRF, 초대코드, Space 설정 |
+| M1 | Identity, Space, 가입과 세션 (완료) | 1차 | 가입, 로그인, 세션, CSRF, 초대코드, Space 설정 |
 | M2 | 계층과 권한 기반 | 1차 | Room, Shelf, Box, 이동, `effectivePermission` |
 | M3 | 카테고리, Item, Inventory | 1차 | 마스터·재고, 오버라이드, 상태, 이동 이력 |
 | M4 | 공유와 초대 | 1차 | 초대 전용 공유, Grant, ACL, 최소 감사 |
@@ -97,6 +97,9 @@ flowchart LR
 
 ### M1. Identity, Space, 가입과 세션
 
+> 상태: 완료 (2026-10-21).
+> 상세 계획: [PLAN-002-identity-space](implementation/PLAN-002-identity-space.md)
+
 범위:
 
 - `app_user`, `space`, `invite_code`, `invite_code_use`, `password_reset_token`
@@ -121,6 +124,8 @@ flowchart LR
 
 ### M2. 계층과 권한 기반
 
+> 상세 계획: [PLAN-003-hierarchy-permissions](implementation/PLAN-003-hierarchy-permissions.md)
+
 범위:
 
 - `room`, `shelf`, `box`
@@ -139,6 +144,8 @@ flowchart LR
 - OpenAPI, 데이터 사전이 재생성됩니다.
 
 ### M3. 카테고리, Item, Inventory
+
+> 상세 계획: [PLAN-004-inventory](implementation/PLAN-004-inventory.md)
 
 범위:
 
@@ -163,6 +170,8 @@ flowchart LR
 
 ### M4. 공유와 초대
 
+> 상세 계획: [PLAN-005-sharing](implementation/PLAN-005-sharing.md)
+
 범위:
 
 - `share_invitation`, `share` 테이블과 `audit_log` 마이그레이션·기록
@@ -183,6 +192,8 @@ flowchart LR
 - OpenAPI, 이벤트 계약, 데이터 사전이 재생성됩니다.
 
 ### M5. 이미지와 MQ 기반
+
+> 상세 계획: [PLAN-006-media-messaging](implementation/PLAN-006-media-messaging.md)
 
 범위:
 
@@ -206,6 +217,8 @@ flowchart LR
 
 ### M6. 검색과 추천
 
+> 상세 계획: [PLAN-007-search](implementation/PLAN-007-search.md)
+
 범위:
 
 - `pg_trgm` 검색, effective field, 위치 검색
@@ -228,6 +241,8 @@ flowchart LR
 
 ### M7. AI와 이미지 검색
 
+> 상세 계획: [PLAN-008-ai-image-search](implementation/PLAN-008-ai-image-search.md)
+
 범위:
 
 - `ai_job`, AI 인식 요청·상태·취소·재시도
@@ -249,6 +264,8 @@ flowchart LR
 - OpenAPI, 이벤트 계약, 데이터 사전이 재생성됩니다.
 
 ### M8. 출시 경화와 운영
+
+> 상세 계획: [PLAN-009-release-hardening](implementation/PLAN-009-release-hardening.md)
 
 범위:
 

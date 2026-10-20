@@ -1,3 +1,5 @@
+export const API_BASE = '/api/v1'
+
 export type ApiFieldError = {
   field: string
   message: string
@@ -18,6 +20,7 @@ export class ApiError extends Error {
   readonly code: string
   readonly fieldErrors: ApiFieldError[]
   readonly problem: ProblemDetail
+  retryAfterSeconds?: number
 
   constructor(problem: ProblemDetail) {
     super(problem.detail ?? problem.title)
@@ -43,6 +46,12 @@ const actionByStatus: Record<number, ApiErrorAction> = {
 
 export function actionFor(error: ApiError): ApiErrorAction {
   return actionByStatus[error.status] ?? 'SHOW_MESSAGE'
+}
+
+let unauthorizedHandler: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler
 }
 
 export function isProblemDetail(value: unknown): value is ProblemDetail {
@@ -82,7 +91,24 @@ function readCookie(name: string): string | null {
   return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null
 }
 
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+function apiUrl(path: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  if (path.startsWith('/api/')) return path
+  return `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
+}
+
+function isMutatingMethod(method: string): boolean {
+  return method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS'
+}
+
+async function refreshCsrf(): Promise<void> {
+  await fetch(apiUrl('/auth/csrf'), {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+}
+
+async function perform(path: string, init: RequestInit): Promise<Response> {
   const method = (init.method ?? 'GET').toUpperCase()
   const headers = new Headers(init.headers)
 
@@ -91,18 +117,46 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   }
 
   const csrfToken = readCookie('XSRF-TOKEN')
-  if (csrfToken && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+  if (csrfToken && isMutatingMethod(method)) {
     headers.set('X-XSRF-TOKEN', csrfToken)
   }
 
-  const response = await fetch(path, {
+  return fetch(apiUrl(path), {
     ...init,
     headers,
     credentials: 'include',
   })
+}
+
+export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const method = (init.method ?? 'GET').toUpperCase()
+
+  if (isMutatingMethod(method) && !readCookie('XSRF-TOKEN')) {
+    await refreshCsrf()
+  }
+
+  let response = await perform(path, init)
+
+  if (response.status === 403 && isMutatingMethod(method)) {
+    const csrfProblem = await parseProblemResponse(response.clone())
+    if (csrfProblem.code === 'CSRF_INVALID') {
+      await refreshCsrf()
+      response = await perform(path, init)
+    }
+  }
 
   if (!response.ok) {
-    throw new ApiError(await parseProblemResponse(response))
+    const problem = await parseProblemResponse(response)
+    const error = new ApiError(problem)
+    const retryAfter = response.headers.get('Retry-After')
+    if (retryAfter) {
+      const seconds = Number(retryAfter)
+      if (Number.isFinite(seconds)) error.retryAfterSeconds = seconds
+    }
+    if (response.status === 401) {
+      unauthorizedHandler?.()
+    }
+    throw error
   }
 
   if (response.status === 204) {

@@ -8,3 +8,9 @@ agolock:
   mail:
     host: localhost
     port: 1025
+    from: no-reply@agolock.local
+spring:
+  mail:
+    host: localhost
+    port: 1025
+    from: no-reply@agolock.local

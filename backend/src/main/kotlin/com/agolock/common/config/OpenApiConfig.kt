@@ -15,6 +15,6 @@ class OpenApiConfig {
                 Info()
                     .title("AGO Lock API")
                     .version("0.1.0")
-                    .description("M0 기반 부트스트랩의 HTTP API입니다. 도메인 API는 M1부터 추가됩니다."),
+                    .description("M1 Identity·Space API입니다. 도메인 API는 M2부터 추가됩니다."),
             ).servers(listOf(Server().url("/").description("Application root")))
 }

@@ -1,24 +1,26 @@
 import { Link } from 'react-router-dom'
-import { PageTitle, MetaText } from '@/shared/ui/typography'
+import { useAuth } from '@/features/auth/auth-provider'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
+import { Avatar } from '@/shared/ui/avatar'
+import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 
-const checklist = [
-  'Docker Compose 인프라 4종 healthy',
-  'Spring Boot·MyBatis·Flyway·Testcontainers',
-  'React·Vite·Tailwind·E안 디자인 토큰',
-  '계약 미리보기 생성기와 docs 검사',
-  'docs·backend·frontend·contract CI job 작성',
+const m1Items = [
+  '이메일·비밀번호 가입과 로그인',
+  'Spring Session JDBC 세션과 CSRF',
+  '초대코드 가입 제한과 비밀번호 재설정',
+  '내 프로필·Space 이름·화면 모드 설정',
 ]
 
 const nextSteps = [
-  'M1: 가입·로그인·세션·CSRF·Space 설정',
   'M2: Room·Shelf·Box 계층과 유효 권한',
   'M3: Category·Item·Inventory와 이동 이력',
+  'M4: 초대 전용 공유와 권한 관리',
 ]
 
 export function HomePage() {
+  const { user, space } = useAuth()
   const environment = import.meta.env.VITE_APP_ENV ?? import.meta.env.MODE
 
   return (
@@ -26,11 +28,11 @@ export function HomePage() {
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex flex-col gap-2">
-            <p className="label-caps text-foreground/70">AGO LOCK · M0</p>
-            <PageTitle>기반이 준비됐어요</PageTitle>
+            <p className="label-caps text-foreground/70">AGO LOCK · M1</p>
+            <PageTitle>{user?.displayName ?? '반가워요'}님, 반가워요</PageTitle>
             <MetaText>
-              인증과 도메인 API는 M1부터 연결합니다. 지금은 빌드·인프라·계약·디자인 기반만
-              확인합니다.
+              {space?.name ?? '내 Space'}에서 물건을 정리할 준비가 됐어요. 프로필과 Space 이름은
+              설정에서 바꿀 수 있습니다.
             </MetaText>
           </div>
           <Badge variant="info">{environment}</Badge>
@@ -38,31 +40,41 @@ export function HomePage() {
 
         <Card>
           <CardBody className="gap-4">
+            <div className="flex items-center gap-3">
+              <Avatar name={user?.displayName ?? '?'} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black">{user?.displayName}</p>
+                <p className="text-foreground/60 truncate text-xs">{user?.email}</p>
+              </div>
+              <Badge variant="info" className="ml-auto">
+                {space?.name ?? '내 Space'}
+              </Badge>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild>
-                <Link to="/design-preview?screen=home">디자인 미리보기</Link>
+                <Link to="/settings">설정 열기</Link>
               </Button>
               <Button asChild variant="secondary">
-                <Link to="/space">공간 화면 자리 보기</Link>
+                <Link to="/space">공간</Link>
               </Button>
               <Button asChild variant="secondary">
-                <Link to="/inventory">재고 화면 자리 보기</Link>
+                <Link to="/inventory">재고</Link>
               </Button>
+              {import.meta.env.DEV ? (
+                <Button asChild variant="secondary">
+                  <Link to="/design-preview?screen=home">디자인 미리보기</Link>
+                </Button>
+              ) : null}
             </div>
-            <p className="text-foreground/70 text-xs">
-              미리보기는 실제 데이터가 아닌 E안 시안 재현용 목데이터를 사용합니다.
-            </p>
           </CardBody>
         </Card>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="flex flex-col gap-3">
-          <h2 className="border-border border-b-[2.5px] pb-2 text-xs font-black tracking-[0.08em]">
-            M0에서 확인한 것
-          </h2>
+          <SectionTitle>M1에서 연결된 것</SectionTitle>
           <ul className="flex flex-col gap-2">
-            {checklist.map((item) => (
+            {m1Items.map((item) => (
               <li
                 key={item}
                 className="border-border bg-card flex items-start gap-2 border-[2.5px] p-3 text-xs font-bold"
@@ -78,9 +90,7 @@ export function HomePage() {
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="border-border border-b-[2.5px] pb-2 text-xs font-black tracking-[0.08em]">
-            다음 단계
-          </h2>
+          <SectionTitle>다음 단계</SectionTitle>
           <ol className="flex flex-col gap-2">
             {nextSteps.map((item, index) => (
               <li

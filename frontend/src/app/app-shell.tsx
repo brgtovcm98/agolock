@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '@/features/auth/auth-provider'
 import { activeNavigationHref, mainNavigation } from '@/shared/navigation'
 import { Avatar } from '@/shared/ui/avatar'
 import { BottomTabs } from '@/shared/ui/bottom-tabs'
@@ -9,6 +10,7 @@ import { ThemeToggle } from '@/shared/ui/theme-toggle'
 
 export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation()
+  const { user, space } = useAuth()
   const active = activeNavigationHref(location.pathname)
 
   return (
@@ -25,17 +27,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               to="/"
               className="border-border bg-primary text-on-accent shadow-brutal flex h-11 items-center gap-3 border-[2.5px] px-3 text-sm font-black"
             >
-              <span aria-hidden="true" className="size-3 border-2 border-current" />내 Space
-            </Link>
-            <Link
-              to="/space"
-              className="hover:bg-sunken flex h-10 items-center gap-3 border-[2.5px] border-transparent px-3 text-xs font-bold"
-            >
               <span aria-hidden="true" className="size-3 border-2 border-current" />
-              민지네 베란다
-              <span className="border-border bg-info text-on-info ml-auto inline-flex h-6 items-center border-2 px-1.5 text-[10px] font-bold">
-                공유
-              </span>
+              <span className="truncate">{space?.name ?? '내 Space'}</span>
             </Link>
           </div>
         </div>
@@ -46,10 +39,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="border-border mt-auto flex items-center gap-3 border-t-[2.5px] pt-4">
-          <Avatar name="지" />
+          <Avatar name={user?.displayName ?? '?'} />
           <div className="min-w-0">
-            <p className="truncate text-xs font-black">지민</p>
-            <p className="text-foreground/70 truncate text-[11px]">M0 기반 부트스트랩</p>
+            <p className="truncate text-xs font-black">{user?.displayName ?? '사용자'}</p>
+            <p className="text-foreground/70 truncate text-[11px]">{user?.email}</p>
           </div>
           <ThemeToggle className="ml-auto size-10 shadow-none" />
         </div>
@@ -59,14 +52,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="border-border bg-background sticky top-0 z-30 flex h-16 items-center justify-between border-b-[2.5px] px-4 lg:px-8">
           <Brand className="lg:hidden" />
           <div className="hidden items-center gap-3 lg:flex">
-            <span className="label-caps text-foreground/70">M0 FOUNDATION</span>
+            <span className="label-caps text-foreground/70">M1 IDENTITY</span>
             <span className="border-border bg-accent text-on-accent inline-flex h-7 items-center border-2 px-2 text-xs font-bold">
-              API 연결 전
+              {import.meta.env.MODE}
             </span>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle className="lg:hidden" />
-            <Avatar name="지" className="hidden lg:grid" />
+            <Avatar name={user?.displayName ?? '?'} className="hidden lg:grid" />
           </div>
         </header>
 

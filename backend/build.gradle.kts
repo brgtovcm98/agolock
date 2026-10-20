@@ -36,6 +36,9 @@ dependencies {
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.amqp)
+    implementation(libs.spring.boot.starter.mail)
+    implementation(libs.spring.session.jdbc)
+    implementation(libs.bouncycastle)
     implementation(libs.springdoc.openapi)
     implementation(libs.mybatis.spring.boot.starter)
     implementation(libs.logstash.logback.encoder)
@@ -51,6 +54,7 @@ dependencies {
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.rabbitmq)
+    testImplementation(libs.spring.security.test)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

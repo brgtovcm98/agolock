@@ -12,5 +12,6 @@ open class ApiException(
     val status: HttpStatus,
     override val message: String,
     val fieldErrors: List<ApiFieldError> = emptyList(),
+    val retryAfterSeconds: Long? = null,
     cause: Throwable? = null,
 ) : RuntimeException(message, cause)

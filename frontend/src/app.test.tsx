@@ -4,12 +4,20 @@ import { describe, expect, it } from 'vitest'
 import { renderApp } from '@/test/render-app'
 
 describe('앱 라우팅', () => {
-  it('M0 홈을 표시한다', () => {
+  it('M1 홈을 표시한다', () => {
     renderApp(['/'])
 
-    expect(screen.getByRole('heading', { name: '기반이 준비됐어요' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '디자인 미리보기' })).toBeInTheDocument()
-    expect(screen.getByText('M0에서 확인한 것')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '지민님, 반가워요' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '설정 열기' })).toBeInTheDocument()
+    expect(screen.getByText('M1에서 연결된 것')).toBeInTheDocument()
+  })
+
+  it('인증되지 않으면 로그인 화면으로 보낸다', () => {
+    renderApp(['/'], { authenticated: false })
+
+    expect(screen.getByRole('heading', { name: '다시 만났네요' })).toBeInTheDocument()
+    expect(screen.getByLabelText('이메일')).toBeInTheDocument()
+    expect(screen.getByLabelText('비밀번호')).toBeInTheDocument()
   })
 
   it('디자인 미리보기에서 3개 시안을 전환한다', async () => {
@@ -26,11 +34,11 @@ describe('앱 라우팅', () => {
     expect(screen.getByText('같은 물건 재고 3개 중 1번')).toBeInTheDocument()
   })
 
-  it('M0에 없는 화면은 안내한다', () => {
+  it('M1에 없는 화면은 안내한다', () => {
     renderApp(['/space'])
 
     expect(screen.getByRole('heading', { name: '공간' })).toBeInTheDocument()
-    expect(screen.getByText(/M0에서 셸과 내비게이션만 확인/)).toBeInTheDocument()
+    expect(screen.getByText(/현재 셸과 내비게이션만 확인/)).toBeInTheDocument()
   })
 
   it('잘못된 주소는 404를 표시한다', () => {

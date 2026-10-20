@@ -82,8 +82,14 @@ RFC 7807 `application/problem+json`을 사용합니다.
 | `VERSION_CONFLICT` | 낙관적 잠금 충돌 |
 | `IDEMPOTENCY_KEY_REUSED` | 같은 키로 다른 요청 |
 | `INVALID_CURSOR` | 잘못된 커서 |
+| `AUTHENTICATION_REQUIRED` | 세션 없음·만료 |
+| `CSRF_INVALID` | CSRF 토큰 누락·불일치 |
+| `EMAIL_ALREADY_EXISTS` | 활성 이메일 중복 |
+| `INVALID_CREDENTIALS` | 이메일 또는 비밀번호 불일치 |
+| `RATE_LIMITED` | 레이트리밋 또는 로그인 실패 잠금 |
 | `INVITE_CODE_REQUIRED` | 초대코드 누락 |
-| `INVITE_CODE_INVALID` | 초대코드 무효 |
+| `INVITE_CODE_INVALID` | 초대코드 무효·만료·철회·소진 |
+| `PASSWORD_RESET_TOKEN_INVALID` | 재설정 토큰 무효·만료·사용됨 |
 | `INVITATION_ALREADY_PENDING` | 대기 중인 초대 존재 |
 | `SHARE_ALREADY_EXISTS` | 활성 Grant 존재 |
 | `INVITATION_EMAIL_MISMATCH` | 초대 이메일과 계정 불일치 |

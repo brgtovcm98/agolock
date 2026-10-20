@@ -36,3 +36,6 @@ infra/data/
 
 # Gradle local user home
 .gradle-user/
+
+# Kotlin compiler local logs
+.kotlin/

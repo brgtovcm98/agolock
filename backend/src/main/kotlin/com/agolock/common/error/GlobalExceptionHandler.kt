@@ -30,6 +30,7 @@ class GlobalExceptionHandler {
             detail = exception.message,
             request = request,
             fieldErrors = exception.fieldErrors,
+            retryAfterSeconds = exception.retryAfterSeconds,
         )
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
@@ -105,12 +106,14 @@ class GlobalExceptionHandler {
         )
     }
 
+    @Suppress("LongParameterList")
     private fun problem(
         status: HttpStatus,
         code: String,
         detail: String,
         request: HttpServletRequest,
         fieldErrors: List<ApiFieldError> = emptyList(),
+        retryAfterSeconds: Long? = null,
     ): ResponseEntity<ProblemDetail> {
         val problem = ProblemDetail.forStatusAndDetail(status, detail)
         problem.title = titleOf(status)
@@ -118,10 +121,13 @@ class GlobalExceptionHandler {
         problem.instance = URI.create(request.requestURI)
         problem.setProperty("code", code)
         problem.setProperty("fieldErrors", fieldErrors)
-        return ResponseEntity
-            .status(status)
-            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-            .body(problem)
+        val response =
+            ResponseEntity
+                .status(status)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem)
+        retryAfterSeconds?.let { response.headers.set("Retry-After", it.toString()) }
+        return response
     }
 
     private fun titleOf(status: HttpStatus): String =

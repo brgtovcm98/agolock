@@ -37,6 +37,41 @@ class DatabaseMigrationTest
         }
 
         @Test
+        fun `M1 테이블과 Spring Session 스키마가 적용된다`() {
+            val tables =
+                jdbcTemplate.queryForList(
+                    """
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                    """.trimIndent(),
+                    String::class.java,
+                )
+
+            assertThat(tables).contains(
+                "app_user",
+                "space",
+                "invite_code",
+                "invite_code_use",
+                "password_reset_token",
+                "spring_session",
+                "spring_session_attributes",
+            )
+
+            val statuses =
+                jdbcTemplate.queryForList(
+                    """
+                    SELECT e.enumlabel
+                    FROM pg_enum e
+                    JOIN pg_type t ON t.oid = e.enumtypid
+                    WHERE t.typname = 'user_status'
+                    """.trimIndent(),
+                    String::class.java,
+                )
+            assertThat(statuses).containsExactly("ACTIVE", "LOCKED", "DELETED")
+        }
+
+        @Test
         fun `MyBatis가 실제 PostgreSQL에 연결한다`() {
             assertThat(systemMapper.selectOne()).isEqualTo(1)
         }

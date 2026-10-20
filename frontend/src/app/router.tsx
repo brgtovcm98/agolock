@@ -2,10 +2,16 @@ import { useMemo } from 'react'
 import { createBrowserRouter, Outlet, RouterProvider, type RouteObject } from 'react-router-dom'
 import { AppShell } from '@/app/app-shell'
 import { RouteError } from '@/app/route-error'
+import { LoginPage } from '@/features/auth/login-page'
+import { PublicOnlyRoute, RequireAuth } from '@/features/auth/protected-route'
+import { ResetPasswordConfirmPage } from '@/features/auth/reset-password-confirm-page'
+import { ResetPasswordPage } from '@/features/auth/reset-password-page'
+import { SignupPage } from '@/features/auth/signup-page'
 import { DesignPreviewPage } from '@/features/design-preview/design-preview-page'
 import { NotFoundPage } from '@/features/errors/not-found-page'
 import { HomePage } from '@/features/home/home-page'
 import { PlaceholderPage } from '@/features/placeholders/placeholder-page'
+import { SettingsPage } from '@/features/settings/settings-page'
 
 function AppLayout() {
   return (
@@ -17,8 +23,40 @@ function AppLayout() {
 
 export const appRoutes: RouteObject[] = [
   {
+    path: '/login',
+    element: (
+      <PublicOnlyRoute>
+        <LoginPage />
+      </PublicOnlyRoute>
+    ),
+    errorElement: <RouteError />,
+  },
+  {
+    path: '/signup',
+    element: (
+      <PublicOnlyRoute>
+        <SignupPage />
+      </PublicOnlyRoute>
+    ),
+    errorElement: <RouteError />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
+    errorElement: <RouteError />,
+  },
+  {
+    path: '/reset-password/confirm',
+    element: <ResetPasswordConfirmPage />,
+    errorElement: <RouteError />,
+  },
+  {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <RequireAuth>
+        <AppLayout />
+      </RequireAuth>
+    ),
     errorElement: <RouteError />,
     children: [
       { index: true, element: <HomePage /> },
@@ -54,13 +92,7 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: 'settings',
-        element: (
-          <PlaceholderPage
-            title="설정"
-            milestone="M1 · IDENTITY"
-            description="프로필, Space 이름, 카테고리 관리, 테마와 앱 정보를 제공하는 화면입니다."
-          />
-        ),
+        element: <SettingsPage />,
       },
     ],
   },

@@ -15,14 +15,15 @@ M0의 실제 코드에는 `GET /api/v1/info`와 Flyway 확장 이력만 있습�
 - `docs/generated/openapi.yaml`, `docs/generated/events.yaml`, `docs/generated/data-dictionary.md`는 M0 동안 설계 초안으로 보존합니다.
 - `scripts/docs_generate.sh`는 `openapi`, `schema`, `events`, `all`, `check` 명령을 제공하며 기본 동작은 미리보기 생성입니다.
 - `scripts/docs_check.py`는 설계 초안과 미리보기를 모두 검사합니다. 미리보기가 아직 없으면 경고만 출력하고 통과합니다.
-- M1에서 실제 컨트롤러와 도메인 테이블이 생기면 생성 결과를 `docs/generated/`에 기록하는 모드로 전환하고, ADR-014의 generated 문서 규칙을 다시 적용합니다.
+- M1에서 실제 컨트롤러와 도메인 테이블이 생겼지만, M2~M8 상세 설계 초안을 보존하기 위해 M1에서도 미리보기 모드를 유지합니다.
+- `docs/generated/` 기록 모드 전환은 도메인 API가 충분히 쌓이는 M4 이후 또는 M8 생성기 완성 시점에 다시 판단합니다.
 - `build/contracts/`는 빌드 산출물이므로 커밋하지 않습니다.
 
 ## 결과
 
 - M0에서도 생성기 명령, operationId·경로 파라미터 검사, AsyncAPI 참조 검사, 데이터 사전 introspection이 실제로 검증됩니다.
 - 상세 API·이벤트·스키마 설계 초안이 보존됩니다.
-- M1에서 기록 모드로 전환하는 후속 작업이 필요합니다.
+- M1은 미리보기 모드를 유지하며, M4/M8에서 기록 모드 전환을 다시 판단합니다.
 - CI의 contract job은 미리보기 생성과 `docs_check.py`를 수행합니다.
 
 ## 대안

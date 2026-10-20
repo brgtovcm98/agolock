@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INPUT = ROOT / "build" / "contracts" / "openapi.json"
 DEFAULT_OUTPUT = ROOT / "build" / "contracts" / "openapi.yaml"
 HEADER = """# AGO Lock HTTP API 계약 (생성 미리보기)
-# M0에서는 docs/generated/openapi.yaml의 상세 설계 초안을 보존합니다.
-# 구현된 컨트롤러만 이 미리보기에 생성하며, 실제 generated 기록은 M1부터 시작합니다.
+# docs/generated/openapi.yaml의 상세 설계 초안은 보존합니다.
+# 구현된 컨트롤러만 이 미리보기에 생성하며, 기록 모드 전환은 별도 결정을 따릅니다.
 # 이 파일은 직접 수정하지 않습니다.
 """
 

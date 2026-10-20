@@ -9,9 +9,10 @@
 
 ## 현재 상태
 
-- M0 기반 부트스트랩을 구현했습니다.
+- M0 기반 부트스트랩과 M1 Identity·Space를 구현했습니다.
 - 로컬 인프라, Spring Boot 백엔드, React 프론트엔드, E안 디자인 시스템, 계약 생성기, 문서 검사, CI가 있습니다.
-- 인증·도메인 API는 M1부터 구현합니다.
+- M1 가입·로그인·세션·CSRF·초대코드·비밀번호 재설정·설정 화면이 동작합니다.
+- Room·Shelf·Box 계층과 Item·Inventory는 M2·M3에서 구현합니다.
 - 제품 기준 문서는 [docs/product-spec.md](docs/product-spec.md)입니다.
 - AI 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다.
 
@@ -67,7 +68,12 @@ source scripts/env.sh
 ```
 
 - `http://localhost:8080/actuator/health`에서 liveness와 readiness를 확인합니다.
-- `http://localhost:8080/api/v1/info`는 M0 정보 API입니다.
+- `http://localhost:8080/api/v1/info`는 상태 정보 API입니다.
+- 로컬 가입은 초대코드가 필요합니다. 아래 CLI로 코드를 만들 수 있습니다.
+
+```bash
+./gradlew :backend:bootRun --args='--spring.profiles.active=local,cli invite-code create --label local --max-uses 5 --expires-in 7d'
+```
 - `http://localhost:8080/swagger-ui.html`에서 런타임 OpenAPI를 확인합니다.
 - Flyway는 `V1__extensions.sql`로 `pg_trgm`, `vector`, `citext`를 준비합니다.
 
@@ -79,8 +85,9 @@ pnpm install
 pnpm dev
 ```
 
-- `http://127.0.0.1:5173`에서 M0 홈을 확인합니다.
+- `http://127.0.0.1:5173`에서 로그인·회원가입·M1 홈을 확인합니다.
 - `http://127.0.0.1:5173/design-preview`에서 채택된 E안의 홈·공간·재고 상세를 모바일 390px, 데스크톱 1280px, 라이트·다크로 확인합니다.
+- 로그인 후 `/settings`에서 표시 이름·Space 이름·테마·로그아웃을 관리합니다.
 - 미리보기는 실제 API를 호출하지 않는 목데이터 화면입니다.
 - E2E를 처음 실행할 때 브라우저를 설치합니다.
 
@@ -175,6 +182,14 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 | [docs/implementation-roadmap.md](docs/implementation-roadmap.md) | 구현 마일스톤, 의존성, 완료 조건 |
 | [docs/implementation/PLAN-001-foundation.md](docs/implementation/PLAN-001-foundation.md) | M0 기반 부트스트랩 상세 구현 계획 |
 | [docs/implementation/PLAN-001-foundation-delivery.md](docs/implementation/PLAN-001-foundation-delivery.md) | M0 계약·CI·검증 계획 |
+| [PLAN-002](docs/implementation/PLAN-002-identity-space.md) | M1 Identity·Space 상세 계획 |
+| [PLAN-003](docs/implementation/PLAN-003-hierarchy-permissions.md) | M2 계층·권한 상세 계획 |
+| [PLAN-004](docs/implementation/PLAN-004-inventory.md) | M3 Category·Item·Inventory 상세 계획 |
+| [PLAN-005](docs/implementation/PLAN-005-sharing.md) | M4 공유·초대 상세 계획 |
+| [PLAN-006](docs/implementation/PLAN-006-media-messaging.md) | M5 이미지·MQ 상세 계획 |
+| [PLAN-007](docs/implementation/PLAN-007-search.md) | M6 검색·추천 상세 계획 |
+| [PLAN-008](docs/implementation/PLAN-008-ai-image-search.md) | M7 AI·이미지 검색 상세 계획 |
+| [PLAN-009](docs/implementation/PLAN-009-release-hardening.md) | M8 출시 경화 상세 계획 |
 | [docs/generated/data-dictionary.md](docs/generated/data-dictionary.md) | 테이블·컬럼·인덱스·제약 (설계 초안) |
 | [docs/generated/openapi.yaml](docs/generated/openapi.yaml) | HTTP API 계약 (설계 초안) |
 | [docs/generated/events.yaml](docs/generated/events.yaml) | 비동기 이벤트 계약 (설계 초안) |
@@ -203,10 +218,10 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 
 ## 다음 단계
 
-M1에서 다음을 구현합니다.
+M2에서 다음을 구현합니다.
 
-- `app_user`, `space`, `invite_code`, `invite_code_use`, `password_reset_token`
-- Spring Session JDBC, 세션 쿠키, CSRF, 세션 회전
-- 가입·로그인·로그아웃·내 정보·비밀번호 재설정
-- Space 이름 수정과 초대코드 운영 CLI
-- 로그인·가입·설정 화면과 M1 디자인 확장
+- `room`, `shelf`, `box`와 복합 FK
+- `AccessService` 유효 권한 기반과 `effectivePermission`, `isShared`
+- 계층 CRUD, 부모 이동, 삭제 차단, soft delete
+- 공간 트리·상세 화면과 권한별 UI
+- M2 계약·데이터 사전 미리보기와 테스트

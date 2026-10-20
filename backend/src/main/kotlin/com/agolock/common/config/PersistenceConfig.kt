@@ -1,5 +1,6 @@
 package com.agolock.common.config
 
+import org.apache.ibatis.annotations.Mapper
 import org.mybatis.spring.annotation.MapperScan
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Configuration
@@ -15,5 +16,5 @@ import org.springframework.context.annotation.Configuration
     havingValue = "false",
     matchIfMissing = true,
 )
-@MapperScan("com.agolock")
+@MapperScan(basePackages = ["com.agolock"], annotationClass = Mapper::class)
 class PersistenceConfig

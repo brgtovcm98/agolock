@@ -116,6 +116,13 @@ docker compose -f infra/docker-compose.yml up -d
 
 ### 5.1 인증·세션
 
+- M1은 Spring Session JDBC를 사용하고 세션 인덱스의 principal name에는 이메일이 아니라 `user_id`를 저장합니다.
+- 로그아웃과 비밀번호 재설정 완료 시 해당 사용자의 모든 세션을 삭제합니다.
+- 로그인 실패 10회/15분은 단일 인스턴스 메모리 카운터로 15분 잠급니다. 다중 인스턴스 전환 시 Redis로 교체합니다.
+- 초대코드는 `AGO-` + Crockford Base32 20자 형식이며 정규화 후 SHA-256 해시만 저장합니다.
+- 비밀번호 재설정 메일은 DB 트랜잭션 커밋 후 발송하고, 발송 실패가 202 응답과 가입·로그인을 막지 않습니다. 영속 재시도는 M5 Outbox에서 추가합니다.
+- M1 계약은 `build/contracts/` 미리보기로 검증하고 `docs/generated/`의 M2~M8 설계 초안은 보존합니다.
+
 - 비밀번호는 Argon2id로 해시합니다.
 - 세션은 HttpOnly, SameSite=Lax 쿠키를 사용하고 운영에서는 Secure를 필수로 합니다.
 - CSRF 토큰은 `GET /auth/csrf` 또는 `XSRF-TOKEN` 쿠키로 발급합니다.
@@ -167,7 +174,10 @@ docker compose -f infra/docker-compose.yml up -d
 - 1차는 단일 인스턴스 기준 in-memory 레이트리밋을 사용합니다.
 - 다중 인스턴스로 확장하면 Redis 기반으로 전환합니다.
 - 기본 한도:
-  - 로그인: IP와 이메일 조합으로 분당 10회
+  - 로그인: IP와 이메일 조합으로 분당 10회, IP당 분당 30회
+  - 가입 초대코드 검증: IP당 시간당 10회
+  - 비밀번호 재설정 요청: 이메일당 시간당 5회, IP당 시간당 20회
+  - 비밀번호 재설정 확인: IP당 분당 10회
   - 초대 생성: 사용자당 시간당 20회
   - 이미지 업로드: 사용자당 시간당 30회
   - AI 인식: 사용자당 일일 한도 설정값

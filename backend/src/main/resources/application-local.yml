@@ -8,6 +8,10 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:agolock}
     password: ${RABBITMQ_PASSWORD:agolock}
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    from: ${MAIL_FROM:no-reply@agolock.local}
 agolock:
   environment: local
   storage:
@@ -18,3 +22,4 @@ agolock:
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
+    from: ${MAIL_FROM:no-reply@agolock.local}

@@ -23,7 +23,7 @@ export function PlaceholderPage({
       <Card>
         <CardBody className="items-start gap-4">
           <p className="border-border bg-sunken border-[2.5px] border-dashed p-4 text-xs font-bold">
-            이 화면은 M0에서 셸과 내비게이션만 확인합니다. 실제 API와 데이터는 다음 마일스톤에서
+            이 화면은 현재 셸과 내비게이션만 확인합니다. 실제 API와 데이터는 다음 마일스톤에서
             연결됩니다.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -31,7 +31,7 @@ export function PlaceholderPage({
               <Link to="/design-preview">채택 디자인 미리보기</Link>
             </Button>
             <Button asChild variant="secondary">
-              <Link to="/">M0 홈으로</Link>
+              <Link to="/">M1 홈으로</Link>
             </Button>
           </div>
         </CardBody>

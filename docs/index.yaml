@@ -1,5 +1,5 @@
 version: 1
-last_updated: "2026-10-20"
+last_updated: "2026-10-21"
 docs:
   - id: PRODUCT
     path: docs/product-spec.md
@@ -236,6 +236,144 @@ docs:
       - ADR-006
       - ADR-014
     last_verified_commit: "051f05615a831d8ce9b0ade9c87440c0fcd14562"
+
+  - id: PLAN_002_IDENTITY
+    path: docs/implementation/PLAN-002-identity-space.md
+    title: M1 Identity·Space 상세 구현 계획
+    summary: 가입·로그인·세션·CSRF·초대코드·비밀번호 재설정·Space 설정·인증 화면
+    read_when:
+      - M1 인증·세션·초대코드·설정 작업을 시작하거나 검토할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/identity/**
+      - backend/src/main/kotlin/com/agolock/tenancy/**
+      - backend/src/main/resources/db/migration/**
+      - frontend/src/features/auth/**
+      - frontend/src/features/settings/**
+      - frontend/src/app/**
+    generated: false
+    related_adrs:
+      - ADR-006
+      - ADR-014
+      - ADR-015
+      - ADR-016
+    last_verified_commit: "pending"
+
+  - id: PLAN_003_HIERARCHY
+    path: docs/implementation/PLAN-003-hierarchy-permissions.md
+    title: M2 계층·권한 상세 구현 계획
+    summary: Room·Shelf·Box, AccessService, effectivePermission, 이동·삭제 차단, 계층 화면
+    read_when:
+      - M2 계층·권한 작업을 시작하거나 검토할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/hierarchy/**
+      - backend/src/main/kotlin/com/agolock/sharing/**
+      - frontend/src/features/hierarchy/**
+    generated: false
+    related_adrs:
+      - ADR-001
+      - ADR-002
+      - ADR-003
+      - ADR-010
+    last_verified_commit: "pending"
+
+  - id: PLAN_004_INVENTORY
+    path: docs/implementation/PLAN-004-inventory.md
+    title: M3 Category·Item·Inventory 상세 구현 계획
+    summary: 카테고리·마스터·재고, 오버라이드, 상태·폐기, 이동 이력, 버전·멱등성, 재고 화면
+    read_when:
+      - M3 물품·재고 작업을 시작하거나 검토할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/inventory/**
+      - frontend/src/features/inventory/**
+    generated: false
+    related_adrs:
+      - ADR-002
+      - ADR-003
+      - ADR-004
+      - ADR-010
+      - ADR-011
+    last_verified_commit: "pending"
+
+  - id: PLAN_005_SHARING
+    path: docs/implementation/PLAN-005-sharing.md
+    title: M4 공유·초대 상세 구현 계획
+    summary: 초대 전용 공유, Grant 상속, ACL, 감사 로그, 공유 MANAGE, 공유 화면
+    read_when:
+      - M4 공유·초대 작업을 시작하거나 검토할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/sharing/**
+      - frontend/src/features/sharing/**
+    generated: false
+    related_adrs:
+      - ADR-001
+      - ADR-003
+      - ADR-010
+      - ADR-013
+    last_verified_commit: "pending"
+
+  - id: PLAN_006_MEDIA
+    path: docs/implementation/PLAN-006-media-messaging.md
+    title: M5 이미지·MQ 상세 구현 계획
+    summary: presign·후처리 worker, 이미지 수명주기, Outbox·RabbitMQ, 정리 job, 업로드 UI
+    read_when:
+      - M5 이미지·비동기 작업을 시작하거나 검토할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/media/**
+      - backend/src/main/kotlin/com/agolock/messaging/**
+      - frontend/src/features/media/**
+    generated: false
+    related_adrs:
+      - ADR-005
+      - ADR-008
+      - ADR-011
+    last_verified_commit: "pending"
+
+  - id: PLAN_007_SEARCH
+    path: docs/implementation/PLAN-007-search.md
+    title: M6 검색·추천 상세 구현 계획
+    summary: pg_trgm 검색, 그룹 커서, 필터·정렬, 최근 검색, 자주 본 물건, 검색 UI
+    read_when:
+      - M6 검색·추천 작업을 시작하거나 검토할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/search/**
+      - frontend/src/features/search/**
+    generated: false
+    related_adrs:
+      - ADR-003
+      - ADR-012
+    last_verified_commit: "pending"
+
+  - id: PLAN_008_AI
+    path: docs/implementation/PLAN-008-ai-image-search.md
+    title: M7 AI·이미지 검색 상세 구현 계획
+    summary: AI job, 인식·임베딩, 모델 버전, 이미지 검색 5초, AI 확인 UI, 비용·캐시
+    read_when:
+      - M7 AI·이미지 검색 작업을 시작하거나 검토할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/ai/**
+      - frontend/src/features/ai/**
+    generated: false
+    related_adrs:
+      - ADR-007
+      - ADR-009
+      - ADR-012
+    last_verified_commit: "pending"
+
+  - id: PLAN_009_HARDENING
+    path: docs/implementation/PLAN-009-release-hardening.md
+    title: M8 출시 경화 상세 구현 계획
+    summary: E2E·접근성·PWA, 성능·백업·배포·관측, 보안·계약 gate, 출시 체크리스트
+    read_when:
+      - M8 출시 경화와 운영 작업을 시작하거나 검토할 때
+    code_paths:
+      - .github/**
+      - infra/**
+      - scripts/**
+    generated: false
+    related_adrs:
+      - ADR-014
+      - ADR-015
+    last_verified_commit: "pending"
 
   - id: DATA_DICTIONARY
     path: docs/generated/data-dictionary.md

@@ -1,6 +1,7 @@
 package com.agolock.common.config
 
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -45,6 +46,9 @@ class AppProperties {
     class Mail {
         @field:NotBlank
         var host: String = ""
+
+        @field:Email
+        var from: String = "no-reply@agolock.local"
 
         @field:Min(MIN_PORT)
         @field:Max(MAX_PORT)
