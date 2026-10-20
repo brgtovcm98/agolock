@@ -51,3 +51,7 @@ data class ShareInvitationResponse(
 data class ShareInvitationListResponse(
     val items: List<ShareInvitationResponse>,
 )
+
+data class InvitationTokenRequest(
+    @field:jakarta.validation.constraints.NotBlank val token: String,
+)

@@ -73,6 +73,23 @@ class ShareInvitationController(
         return ResponseEntity.noContent().build()
     }
 
+    @PostMapping("/accept")
+    @Operation(operationId = "acceptInvitationByToken", summary = "토큰으로 초대 수락")
+    fun acceptByToken(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @Valid @RequestBody request: InvitationTokenRequest,
+    ): ShareResponse = invitationService.acceptByToken(Actor.from(principal), request.token).share
+
+    @PostMapping("/decline")
+    @Operation(operationId = "declineInvitationByToken", summary = "토큰으로 초대 거절")
+    fun declineByToken(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @Valid @RequestBody request: InvitationTokenRequest,
+    ): ResponseEntity<Void> {
+        invitationService.declineByToken(Actor.from(principal), request.token)
+        return ResponseEntity.noContent().build()
+    }
+
     @DeleteMapping("/{invitationId}")
     @Operation(operationId = "revokeShareInvitation", summary = "초대 철회")
     fun revoke(

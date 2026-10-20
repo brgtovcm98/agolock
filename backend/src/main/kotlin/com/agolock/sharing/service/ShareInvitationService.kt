@@ -173,6 +173,28 @@ class ShareInvitationService(
     }
 
     @Transactional
+    fun acceptByToken(
+        actor: Actor,
+        token: String,
+    ): ShareServiceResponse {
+        val invitation =
+            invitationMapper.findByTokenHash(tokenService.hashToken(token))
+                ?: throw notFound("초대를 찾을 수 없습니다.")
+        return accept(actor, invitation.id)
+    }
+
+    @Transactional
+    fun declineByToken(
+        actor: Actor,
+        token: String,
+    ) {
+        val invitation =
+            invitationMapper.findByTokenHash(tokenService.hashToken(token))
+                ?: throw notFound("초대를 찾을 수 없습니다.")
+        decline(actor, invitation.id)
+    }
+
+    @Transactional
     fun decline(
         actor: Actor,
         invitationId: UUID,
