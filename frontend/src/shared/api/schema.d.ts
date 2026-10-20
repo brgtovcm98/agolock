@@ -895,12 +895,12 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/share-invitations/{token}/accept": {
+    "/share-invitations/received/{invitationId}/accept": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                token: string;
+                invitationId: string;
             };
             cookie?: never;
         };
@@ -913,12 +913,12 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/share-invitations/{token}/decline": {
+    "/share-invitations/received/{invitationId}/decline": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                token: string;
+                invitationId: string;
             };
             cookie?: never;
         };
@@ -3432,7 +3432,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                token: string;
+                invitationId: string;
             };
             cookie?: never;
         };
@@ -3456,7 +3456,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                token: string;
+                invitationId: string;
             };
             cookie?: never;
         };

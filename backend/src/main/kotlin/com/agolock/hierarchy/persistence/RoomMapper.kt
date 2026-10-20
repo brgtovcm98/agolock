@@ -14,6 +14,16 @@ interface RoomMapper {
     @Select(
         """
         SELECT id, space_id, name, description, version, created_at, updated_at, deleted_at
+        FROM room WHERE id = #{id} AND deleted_at IS NULL
+        """,
+    )
+    fun findByIdAny(
+        @Param("id") id: UUID,
+    ): Room?
+
+    @Select(
+        """
+        SELECT id, space_id, name, description, version, created_at, updated_at, deleted_at
         FROM room
         WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL
         """,

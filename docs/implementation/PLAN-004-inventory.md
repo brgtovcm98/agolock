@@ -1,6 +1,6 @@
 # PLAN-004: M3 카테고리·Item·Inventory 상세 구현 계획
 
-> 상태: M3 착수 준비 완료 (2026-10-21, M2 AccessTarget 보강 반영)
+> 상태: M3 핵심 구현 완료 (2026-10-21, 후속 보완 항목은 13번 참조)
 > 역할: 구현 로드맵 M3를 데이터 모델, 서비스, API, 화면, 테스트, 완료 조건으로 분해한 실행 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 문서: [PLAN-001 기반](PLAN-001-foundation.md), [PLAN-001 계약·CI·검증](PLAN-001-foundation-delivery.md), [PLAN-003 계층·권한](PLAN-003-hierarchy-permissions.md)
@@ -433,3 +433,18 @@ M2의 Room·Shelf·Box 상세는 M3에서 `inventoryCount`와 직접 위치 재�
 - `inventory_movement`는 공유 사용자의 이동에도 `moved_by`와 함께 기록합니다. M4 감사 로그 범위와 공유 사용자 테스트의 `InventoryService` 재사용은 **확인 필요**입니다.
 
 M5는 `primaryImageId`·Inventory 이미지, M6은 M3 목록 필터를 검색 조건·읽기 모델로 확장합니다. M6 마이그레이션 번호는 M5 완료 시점에 다시 확정합니다.
+
+
+## 13. M3 핵심 구현 결과
+
+| 영역 | 결과 |
+|---|---|
+| 마이그레이션 | `V6__category.sql`, `V7__item.sql`, `V8__inventory.sql`, `V9__inventory_movement.sql` |
+| API | Category·Item·Inventory CRUD, 위치 이동, 이동 이력, Item별 Inventory |
+| 유효 값 | Item 마스터 + Inventory 오버라이드 조합, 변경 없음 시 version 유지 |
+| 상태 | DISPOSED 전환 시 `confirmDisposal` 요구, 기본 목록에서 DISPOSED 제외 |
+| M2 연동 | Room·Shelf·Box `inventoryCount`, `HierarchyDeleteGuard`의 Inventory 삭제 차단 |
+| 화면 | `/inventory`에서 카테고리·Item·Inventory 생성과 목록 확인 |
+| 검증 | backend 61, frontend 17, E2E 6, docs 41 |
+
+후속 보완은 Category 병합·수정 영향 API·move-targets·Idempotency-Key 적용·PATCH 필드 생략/null 구분의 완전한 merge-patch입니다. 공유 사용자의 M3 Inventory 작업은 M4에서 확장합니다.

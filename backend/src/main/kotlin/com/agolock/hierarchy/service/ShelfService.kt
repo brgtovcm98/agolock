@@ -7,6 +7,7 @@ import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.domain.Shelf
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
+import com.agolock.inventory.persistence.InventoryMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,6 +22,7 @@ class ShelfService(
     private val roomMapper: RoomMapper,
     private val accessService: AccessService,
     private val deleteGuard: HierarchyDeleteGuard,
+    private val inventoryMapper: InventoryMapper,
     private val clock: Clock,
 ) {
     @Transactional(readOnly = true)
@@ -37,7 +39,12 @@ class ShelfService(
         val shelves =
             shelfMapper
                 .listByRoom(actor.spaceId, roomId, cursor?.name, cursor?.id, limit + 1)
-                .map { it.copy(boxCount = shelfMapper.countBoxes(actor.spaceId, it.id)) }
+                .map {
+                    it.copy(
+                        boxCount = shelfMapper.countBoxes(actor.spaceId, it.id),
+                        inventoryCount = inventoryMapper.countByShelf(actor.spaceId, it.id),
+                    )
+                }
         val page = shelves.take(limit)
         val next =
             if (shelves.size > limit) {
@@ -55,7 +62,10 @@ class ShelfService(
     ): Shelf {
         accessService.requireView(actor, actor.spaceId)
         val shelf = requireShelf(actor, shelfId)
-        return shelf.copy(boxCount = shelfMapper.countBoxes(actor.spaceId, shelf.id))
+        return shelf.copy(
+            boxCount = shelfMapper.countBoxes(actor.spaceId, shelf.id),
+            inventoryCount = inventoryMapper.countByShelf(actor.spaceId, shelf.id),
+        )
     }
 
     @Transactional

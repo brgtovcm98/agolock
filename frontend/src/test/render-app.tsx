@@ -31,6 +31,15 @@ export function renderApp(
   const authenticated = options.authenticated ?? true
   queryClient.setQueryData(['auth', 'me'], authenticated ? (options.auth ?? testAuth) : null)
   queryClient.setQueryData(['auth', 'config'], options.config ?? testAuthConfig)
+  queryClient.setQueryData(['inventory', 'categories'], { items: [] })
+  queryClient.setQueryData(['inventory', 'items'], { items: [] })
+  queryClient.setQueryData(['inventory', 'list'], { items: [] })
+  queryClient.setQueryData(['hierarchy', 'rooms', 'inventory-picker'], { items: [] })
+  queryClient.setQueryData(['sharing', 'shared'], { items: [] })
+  queryClient.setQueryData(['sharing', 'shares'], { items: [] })
+  queryClient.setQueryData(['sharing', 'invitations'], { items: [] })
+  queryClient.setQueryData(['sharing', 'received'], { items: [] })
+  queryClient.setQueryData(['hierarchy', 'rooms', 'sharing-picker'], { items: [] })
   queryClient.setQueryData(['hierarchy', 'rooms', 'tree'], {
     pages: [{ items: [], nextCursor: null }],
     pageParams: [undefined],

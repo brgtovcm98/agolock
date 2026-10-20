@@ -1,0 +1,118 @@
+package com.agolock.inventory.api
+
+import com.agolock.hierarchy.domain.Actor
+import com.agolock.identity.security.AppUserPrincipal
+import com.agolock.inventory.domain.InventoryStatus
+import com.agolock.inventory.service.CreateInventoryCommand
+import com.agolock.inventory.service.InventoryService
+import com.agolock.inventory.service.MoveInventoryCommand
+import com.agolock.inventory.service.UpdateInventoryCommand
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
+
+@RestController
+@RequestMapping("/api/v1/inventories")
+@Tag(name = "inventories")
+class InventoryController(
+    private val inventoryService: InventoryService,
+) {
+    @GetMapping
+    @Operation(operationId = "listInventories", summary = "Inventory 목록")
+    fun list(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @RequestParam(required = false) status: InventoryStatus?,
+        @RequestParam(required = false) limit: Int?,
+    ): InventoryListResponse = InventoryListResponse(inventoryService.list(Actor.from(principal), status, limit))
+
+    @PostMapping
+    @Operation(operationId = "createInventory", summary = "Inventory 생성")
+    fun create(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @Valid @RequestBody request: CreateInventoryRequest,
+    ): ResponseEntity<InventoryResponse> {
+        val inventory =
+            inventoryService.create(
+                Actor.from(principal),
+                CreateInventoryCommand(
+                    request.itemId,
+                    request.roomId,
+                    request.shelfId,
+                    request.boxId,
+                    request.status,
+                ),
+            )
+        return ResponseEntity.status(HttpStatus.CREATED).body(inventory)
+    }
+
+    @GetMapping("/{inventoryId}")
+    @Operation(operationId = "getInventory", summary = "Inventory 상세")
+    fun get(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable inventoryId: UUID,
+    ): InventoryResponse = inventoryService.get(Actor.from(principal), inventoryId)
+
+    @PatchMapping("/{inventoryId}")
+    @Operation(operationId = "updateInventory", summary = "Inventory 수정")
+    fun update(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable inventoryId: UUID,
+        @Valid @RequestBody request: UpdateInventoryRequest,
+    ): InventoryResponse =
+        inventoryService.update(
+            Actor.from(principal),
+            inventoryId,
+            UpdateInventoryCommand(
+                request.nameOverride,
+                request.descriptionOverride,
+                request.categoryIdOverride,
+                request.priceAmountOverride,
+                request.status ?: InventoryStatus.STORED,
+                request.confirmDisposal,
+                request.version ?: 0,
+            ),
+        )
+
+    @PatchMapping("/{inventoryId}/location")
+    @Operation(operationId = "moveInventory", summary = "Inventory 위치 이동")
+    fun move(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable inventoryId: UUID,
+        @Valid @RequestBody request: MoveInventoryRequest,
+    ): InventoryResponse =
+        inventoryService.move(
+            Actor.from(principal),
+            inventoryId,
+            MoveInventoryCommand(request.roomId, request.shelfId, request.boxId, request.version ?: 0),
+        )
+
+    @DeleteMapping("/{inventoryId}")
+    @Operation(operationId = "deleteInventory", summary = "Inventory 삭제")
+    fun delete(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable inventoryId: UUID,
+    ): ResponseEntity<Void> {
+        inventoryService.delete(Actor.from(principal), inventoryId)
+        return ResponseEntity.noContent().build()
+    }
+
+    @GetMapping("/{inventoryId}/movements")
+    @Operation(operationId = "listInventoryMovements", summary = "Inventory 이동 이력")
+    fun movements(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable inventoryId: UUID,
+    ): List<MovementResponse> = inventoryService.movements(Actor.from(principal), inventoryId)
+}

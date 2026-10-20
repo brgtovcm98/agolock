@@ -14,8 +14,9 @@ import { RoomDetailPage } from '@/features/hierarchy/room-detail-page'
 import { ShelfDetailPage } from '@/features/hierarchy/shelf-detail-page'
 import { SpaceTreePage } from '@/features/hierarchy/space-tree-page'
 import { HomePage } from '@/features/home/home-page'
-import { PlaceholderPage } from '@/features/placeholders/placeholder-page'
+import { InventoryPage } from '@/features/inventory/inventory-page'
 import { SettingsPage } from '@/features/settings/settings-page'
+import { SharingPage } from '@/features/sharing/sharing-page'
 
 function AppLayout() {
   return (
@@ -68,26 +69,8 @@ export const appRoutes: RouteObject[] = [
       { path: 'space/rooms/:roomId', element: <RoomDetailPage /> },
       { path: 'space/shelves/:shelfId', element: <ShelfDetailPage /> },
       { path: 'space/boxes/:boxId', element: <BoxDetailPage /> },
-      {
-        path: 'inventory',
-        element: (
-          <PlaceholderPage
-            title="재고"
-            milestone="M3 · INVENTORY"
-            description="상태·카테고리·위치 필터와 재고 목록을 제공하는 화면입니다."
-          />
-        ),
-      },
-      {
-        path: 'sharing',
-        element: (
-          <PlaceholderPage
-            title="공유"
-            milestone="M4 · SHARING"
-            description="초대 수락·거절, Grant 목록, 권한 변경과 철회를 제공하는 화면입니다."
-          />
-        ),
-      },
+      { path: 'inventory', element: <InventoryPage /> },
+      { path: 'sharing', element: <SharingPage /> },
       {
         path: 'settings',
         element: <SettingsPage />,

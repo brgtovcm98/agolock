@@ -1,6 +1,6 @@
 # PLAN-005: M4 공유와 초대 상세 구현 계획
 
-> 상태: 상세 구현계획 확정 (M3 완료 후 착수, 2026-10-21 M2 코드 기준 갱신)
+> 상태: M4 핵심 구현 완료 (2026-10-21, 코드리뷰 수정·후속 보완 항목은 14번 참조)
 > 역할: 구현 로드맵 M4의 스키마, 권한, API, 화면, 검증을 구현 가능한 단위로 고정
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 계획: [PLAN-001 기반 부트스트랩](PLAN-001-foundation.md) · [PLAN-003 계층과 권한](PLAN-003-hierarchy-permissions.md)
@@ -563,3 +563,25 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 - `GET /items`의 `scope`와 `inventoryCount`의 DISPOSED 포함 여부
 
 이 결정은 M4 착수 전에 ADR 또는 계획 부록으로 고정하고, 구현 중 임의로 바꾸지 않는다.
+
+
+## 14. M4 핵심 구현 결과와 후속
+
+| 영역 | 결과 |
+|---|---|
+| 스키마 | `V10__share_invitation.sql`, `V11__share.sql`, `V12__audit_log.sql`, `V13__outbox_event.sql` |
+| 권한 | `ShareGrantLookup`으로 Room/Shelf Grant 최대 권한 조회, `/shared/*` 읽기 API |
+| 초대 | 생성·받은 목록·수락·거절·철회, 이메일 일치, 중복 Grant·중복 PENDING 차단 |
+| Grant | 목록·권한 변경·철회, 철회 즉시 `/shared`에서 제외 |
+| 감사 | Share/Invitation 생성·수락·거절·철회·권한 변경 감사 기록 |
+| Outbox | 초대 생성 시 `notification.requested` 적재 |
+| 화면 | `/sharing`에서 Room 초대·수락·거절·권한 변경·철회 |
+| 검증 | backend 61, frontend 17, E2E 6, docs 41 |
+
+### 14.1 후속 보완
+
+- 초대 이메일 실제 발송 릴레이와 토큰 본문 수락·거절 API
+- 기존 `/rooms/{id}`·`/inventories/{id}`의 공유 사용자 접근(현재는 `/shared/*` 읽기 전용 경로)
+- shared MANAGE의 기존 Item Inventory 생성·삭제·이동
+- 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key
+- M3 Category 병합·수정 영향 API·move-targets

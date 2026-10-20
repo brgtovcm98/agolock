@@ -7,6 +7,7 @@ import com.agolock.hierarchy.domain.Box
 import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
+import com.agolock.inventory.persistence.InventoryMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,6 +21,8 @@ class BoxService(
     private val boxMapper: BoxMapper,
     private val shelfMapper: ShelfMapper,
     private val accessService: AccessService,
+    private val inventoryMapper: InventoryMapper,
+    private val deleteGuard: HierarchyDeleteGuard,
     private val clock: Clock,
 ) {
     @Transactional(readOnly = true)
@@ -33,7 +36,10 @@ class BoxService(
         requireShelf(actor, shelfId)
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
-        val boxes = boxMapper.listByShelf(actor.spaceId, shelfId, cursor?.name, cursor?.id, limit + 1)
+        val boxes =
+            boxMapper
+                .listByShelf(actor.spaceId, shelfId, cursor?.name, cursor?.id, limit + 1)
+                .map { it.copy(inventoryCount = inventoryMapper.countByBox(actor.spaceId, it.id)) }
         val page = boxes.take(limit)
         val next =
             if (boxes.size > limit) {
@@ -50,7 +56,9 @@ class BoxService(
         boxId: UUID,
     ): Box {
         accessService.requireView(actor, actor.spaceId)
-        return requireBox(actor, boxId)
+        return requireBox(actor, boxId).copy(
+            inventoryCount = inventoryMapper.countByBox(actor.spaceId, boxId),
+        )
     }
 
     @Transactional
@@ -130,7 +138,7 @@ class BoxService(
     ) {
         accessService.requireOwner(actor, actor.spaceId)
         requireBoxForUpdate(actor, boxId)
-        // M3에서 inventory 존재 검사를 HierarchyDeleteGuard에 추가합니다.
+        deleteGuard.assertBoxEmpty(actor.spaceId, boxId)
         boxMapper.softDelete(actor.spaceId, boxId, OffsetDateTime.now(clock))
     }
 

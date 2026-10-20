@@ -15,7 +15,6 @@ interface GrantLookup {
     ): Permission?
 }
 
-@org.springframework.stereotype.Service
 class NoGrantLookup : GrantLookup {
     override fun permissionFor(
         actor: Actor,

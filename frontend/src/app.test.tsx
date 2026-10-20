@@ -34,6 +34,20 @@ describe('앱 라우팅', () => {
     expect(screen.getByText('같은 물건 재고 3개 중 1번')).toBeInTheDocument()
   })
 
+  it('재고 화면의 빈 상태를 안내한다', () => {
+    renderApp(['/inventory'])
+
+    expect(screen.getByRole('heading', { name: '재고' })).toBeInTheDocument()
+    expect(screen.getByText('아직 Inventory가 없습니다.')).toBeInTheDocument()
+  })
+
+  it('공유 화면의 빈 상태를 안내한다', () => {
+    renderApp(['/sharing'])
+
+    expect(screen.getByRole('heading', { name: '공유' })).toBeInTheDocument()
+    expect(screen.getByText('대기 중인 초대가 없습니다.')).toBeInTheDocument()
+  })
+
   it('공간 트리의 빈 상태를 안내한다', () => {
     renderApp(['/space'])
 

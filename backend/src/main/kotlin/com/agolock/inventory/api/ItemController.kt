@@ -1,0 +1,102 @@
+@file:Suppress("MaxLineLength")
+
+package com.agolock.inventory.api
+
+import com.agolock.hierarchy.domain.Actor
+import com.agolock.identity.security.AppUserPrincipal
+import com.agolock.inventory.service.CreateItemCommand
+import com.agolock.inventory.service.InventoryService
+import com.agolock.inventory.service.ItemService
+import com.agolock.inventory.service.UpdateItemCommand
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
+
+@RestController
+@RequestMapping("/api/v1/items")
+@Tag(name = "items")
+class ItemController(
+    private val itemService: ItemService,
+    private val inventoryService: InventoryService,
+) {
+    @GetMapping
+    @Operation(operationId = "listItems", summary = "Item 목록")
+    fun list(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @RequestParam(required = false) categoryId: UUID?,
+        @RequestParam(required = false) limit: Int?,
+    ): ItemListResponse = ItemListResponse(itemService.list(Actor.from(principal), categoryId, limit).map { it.toResponse() })
+
+    @PostMapping
+    @Operation(operationId = "createItem", summary = "Item 생성")
+    fun create(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @Valid @RequestBody request: CreateItemRequest,
+    ): ResponseEntity<ItemResponse> {
+        val item =
+            itemService.create(
+                Actor.from(principal),
+                CreateItemCommand(request.name, request.description, request.categoryId, request.priceAmount),
+            )
+        return ResponseEntity.status(HttpStatus.CREATED).body(item.toResponse())
+    }
+
+    @GetMapping("/{itemId}")
+    @Operation(operationId = "getItem", summary = "Item 상세")
+    fun get(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable itemId: UUID,
+    ): ItemResponse = itemService.get(Actor.from(principal), itemId).toResponse()
+
+    @PatchMapping("/{itemId}")
+    @Operation(operationId = "updateItem", summary = "Item 수정")
+    fun update(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable itemId: UUID,
+        @Valid @RequestBody request: UpdateItemRequest,
+    ): ItemResponse {
+        val item =
+            itemService.update(
+                Actor.from(principal),
+                itemId,
+                UpdateItemCommand(
+                    request.name,
+                    request.description,
+                    request.categoryId,
+                    request.priceAmount,
+                    request.version ?: 0,
+                ),
+            )
+        return item.toResponse()
+    }
+
+    @DeleteMapping("/{itemId}")
+    @Operation(operationId = "deleteItem", summary = "Item 삭제")
+    fun delete(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable itemId: UUID,
+    ): ResponseEntity<Void> {
+        itemService.delete(Actor.from(principal), itemId)
+        return ResponseEntity.noContent().build()
+    }
+
+    @GetMapping("/{itemId}/inventories")
+    @Operation(operationId = "listItemInventories", summary = "Item의 Inventory 목록")
+    fun inventories(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable itemId: UUID,
+    ): InventoryListResponse = InventoryListResponse(inventoryService.listByItem(Actor.from(principal), itemId))
+}

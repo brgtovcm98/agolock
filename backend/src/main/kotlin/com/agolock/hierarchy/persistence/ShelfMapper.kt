@@ -14,6 +14,16 @@ interface ShelfMapper {
     @Select(
         """
         SELECT id, space_id, room_id, name, description, version, created_at, updated_at, deleted_at
+        FROM shelf WHERE id = #{id} AND deleted_at IS NULL
+        """,
+    )
+    fun findByIdAny(
+        @Param("id") id: UUID,
+    ): Shelf?
+
+    @Select(
+        """
+        SELECT id, space_id, room_id, name, description, version, created_at, updated_at, deleted_at
         FROM shelf
         WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL
         """,

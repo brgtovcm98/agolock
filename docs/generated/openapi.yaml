@@ -1539,13 +1539,14 @@ paths:
           description: 초대 철회
         '403':
           $ref: '#/components/responses/Forbidden'
-  /share-invitations/{token}/accept:
+  /share-invitations/received/{invitationId}/accept:
     parameters:
-      - name: token
+      - name: invitationId
         in: path
         required: true
         schema:
           type: string
+          format: uuid
     post:
       tags: [sharing]
       operationId: acceptShareInvitation
@@ -1563,13 +1564,14 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-  /share-invitations/{token}/decline:
+  /share-invitations/received/{invitationId}/decline:
     parameters:
-      - name: token
+      - name: invitationId
         in: path
         required: true
         schema:
           type: string
+          format: uuid
     post:
       tags: [sharing]
       operationId: declineShareInvitation

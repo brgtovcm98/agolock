@@ -13,4 +13,5 @@ data class Box(
     var createdAt: OffsetDateTime = OffsetDateTime.MIN,
     var updatedAt: OffsetDateTime = OffsetDateTime.MIN,
     var deletedAt: OffsetDateTime? = null,
+    var inventoryCount: Int = 0,
 )

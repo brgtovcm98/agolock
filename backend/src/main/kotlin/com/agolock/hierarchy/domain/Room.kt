@@ -13,4 +13,5 @@ data class Room(
     var updatedAt: OffsetDateTime = OffsetDateTime.MIN,
     var deletedAt: OffsetDateTime? = null,
     var shelfCount: Int = 0,
+    var inventoryCount: Int = 0,
 )

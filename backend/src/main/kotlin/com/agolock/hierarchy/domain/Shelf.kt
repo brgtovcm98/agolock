@@ -14,4 +14,5 @@ data class Shelf(
     var updatedAt: OffsetDateTime = OffsetDateTime.MIN,
     var deletedAt: OffsetDateTime? = null,
     var boxCount: Int = 0,
+    var inventoryCount: Int = 0,
 )

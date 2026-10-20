@@ -13,7 +13,8 @@
 - 로컬 인프라, Spring Boot 백엔드, React 프론트엔드, E안 디자인 시스템, 계약 생성기, 문서 검사, CI가 있습니다.
 - M1 가입·로그인·세션·CSRF·초대코드·비밀번호 재설정·설정 화면이 동작합니다.
 - M2 Room·Shelf·Box CRUD·이동·삭제 차단, 커서 페이지네이션, Idempotency-Key, 공간 트리가 동작합니다.
-- Item·Inventory는 M3에서 구현합니다.
+- M3 카테고리·Item·Inventory·이동 이력과 M4 공유·초대·Grant·감사/Outbox 기반을 구현했습니다.
+- 남은 후속 보완은 PLAN-004 13번, PLAN-005 14번에 정리했습니다.
 - 제품 기준 문서는 [docs/product-spec.md](docs/product-spec.md)입니다.
 - AI 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다.
 
