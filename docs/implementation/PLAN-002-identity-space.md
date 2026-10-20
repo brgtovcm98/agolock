@@ -468,7 +468,7 @@ M2는 Room·Shelf·Box 계층, 이동, `effectivePermission`을 다룹니다. �
 
 | 검증 | 결과 |
 |---|---|
-| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 55개 테스트 (M2 포함) |
+| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 56개 테스트 (M2 포함) |
 | `pnpm lint`, `pnpm format:check`, `pnpm test` | 통과, 15개 테스트 |
 | `pnpm build` | 통과 |
 | `pnpm test:e2e` | 데스크톱·모바일 4개 통과 |
@@ -492,4 +492,4 @@ M1 계약은 미리보기 모드로 검증했고, `docs/generated/`의 M2~M8 설
 | CSRF/SMTP | CSRF cookie Secure를 설정과 연동하고, SMTP timeout 3초·`MAIL_FROM` 바인딩·TLS/auth 환경 설정 추가 |
 | 오류 매핑 | 잘못된 UUID/query는 400, Content-Type은 415, method는 405로 반환 |
 | 브라우저 오류 | 세션 확인 5xx를 로그인 화면으로 오인하지 않고 retry 화면 표시, 만료된 재설정 토큰은 재요청 화면으로 전환 |
-| 검증 | backend 55, frontend 15, E2E 6, docs 41 통과 |
+| 검증 | backend 56, frontend 15, E2E 6, docs 41 통과 |

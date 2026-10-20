@@ -1,6 +1,6 @@
 # PLAN-005: M4 공유와 초대 상세 구현 계획
 
-> 상태: 계획 초안 (M4 착수 전)
+> 상태: 상세 구현계획 확정 (M3 완료 후 착수, 2026-10-21 M2 코드 기준 갱신)
 > 역할: 구현 로드맵 M4의 스키마, 권한, API, 화면, 검증을 구현 가능한 단위로 고정
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 계획: [PLAN-001 기반 부트스트랩](PLAN-001-foundation.md) · [PLAN-003 계층과 권한](PLAN-003-hierarchy-permissions.md)
@@ -41,13 +41,13 @@ M4는 초대 전용 공유를 실제 접근 권한으로 연결합니다. 수락
 |---|---|---|
 | M0 | Gradle·Testcontainers·Flyway·MyBatis, UUIDv7, `ClockProvider`, problem+json, `request_id`, 로그 마스킹 | M0 보완 |
 | M1 | `app_user`, `space`, `space.owner_user_id`, `Actor`, `SpaceOwnership`, 세션·CSRF, 메일 포트·템플릿, 레이트리밋, `idempotency_record` | M1 보완, M4 중단 |
-| M2 | `room`, `shelf`, `box`, `Permission`, `AccessService`, `AccessTarget`, `GrantLookup`, `NoGrantLookup`, `effectivePermission`, `isShared`, `PermissionBadge` | M2 보완 |
-| M3 | `item`, `inventory`, `inventory_movement`, `version`, `GET /items`, `POST /inventories`, `DELETE /inventories/{id}`, `PATCH /inventories/{id}/location`, `GET /inventories/{id}/move-targets` | M3 보완 |
+| M2 | `room`, `shelf`, `box`, `Permission`, `AccessService`, `AccessTarget`, `GrantLookup`, `NoGrantLookup`, `effectivePermission`, `resolveAll`, `isShared`, `PermissionBadge` | M2 완료 |
+| M3 | `item`, `inventory`, `inventory_movement`, `version`, `GET /items`, `POST /inventories`, `DELETE /inventories/{id}`, `PATCH /inventories/{id}/location`, `GET /inventories/{id}/move-targets` | M3 완료 조건 |
 | 계약 | `docs/generated/` 기록 모드와 재생성 명령. 미전환이면 [ADR-014](../decisions/ADR-014-generated-docs-draft.md)에 따라 수동 초안 갱신 | 착수 전 확인 |
 
 - M2의 `NoGrantLookup`을 `ShareGrantLookup`으로 교체합니다. `AccessService` 호출부와 404·403 규칙은 유지합니다.
 - M3의 공유 `MANAGE` Inventory 생성·삭제·이동 연결 지점은 M4에서 활성화합니다. M3는 소유자 흐름만 테스트합니다.
-- 마이그레이션 번호는 M3 마지막 버전 다음을 사용합니다. 아래 예시는 `V8`~`V11`이며 착수 시 실제 head로 확정합니다.
+- M3 마지막 마이그레이션은 `V9__inventory_movement.sql`입니다. M4는 `V10`부터 시작하며 아래 표에 번호를 확정했습니다.
 - `outbox_event`를 M4에 만들지 M5에 맡길지는 12.2번의 확인 필요 항목입니다. M4 메일 요구를 위해 최소 테이블과 알림 릴레이가 필요합니다.
 
 ## 4. 데이터 모델과 마이그레이션
@@ -58,10 +58,10 @@ M4는 초대 전용 공유를 실제 접근 권한으로 연결합니다. 수락
 
 | 테이블 | 예시 파일 | M4 역할 | 데이터 사전 |
 |---|---|---|---|
-| `share_invitation` | `V8__share_invitation.sql` | 초대 상태·토큰·만료·이메일 | 공유 표 초안을 기준으로 제약 보강 |
-| `share` | `V9__share.sql` | 수락 후 Grant, 철회 이력 | 공유 표 초안을 기준으로 인덱스 보강 |
-| `audit_log` | `V10__audit_log.sql` | Share·Invitation 감사 | 이력과 알림 표 |
-| `outbox_event` | `V11__outbox_event.sql` | 초대 메일·도메인 이벤트 적재 | 비동기와 AI 표 |
+| `share_invitation` | `V10__share_invitation.sql` | 초대 상태·토큰·만료·이메일 | 공유 표 초안을 기준으로 제약 보강 |
+| `share` | `V11__share.sql` | 수락 후 Grant, 철회 이력 | 공유 표 초안을 기준으로 인덱스 보강 |
+| `audit_log` | `V12__audit_log.sql` | Share·Invitation 감사 | 이력과 알림 표 |
+| `outbox_event` | `V13__outbox_event.sql` | 초대 메일·도메인 이벤트 적재 | 비동기와 AI 표 |
 
 - Expand 단계만 수행합니다. 기존 테이블 변경 없이 신규 테이블·인덱스만 추가합니다.
 - `share`와 `share_invitation`의 `space_id`는 공유 대상 리소스의 소유 Space입니다. 초대받은 사용자의 Space ID를 저장하지 않습니다.
@@ -135,7 +135,7 @@ M4는 초대 전용 공유를 실제 접근 권한으로 연결합니다. 수락
 
 ### 5.2 `AccessService` 확장
 
-M2의 `resolve`, `resolveAll`, `require`, `requireOwner` 시그니처는 유지하고 다음을 추가합니다.
+M2에서 구현한 `AccessTarget`, `effectivePermission(actor,target)`, `require`, `resolveAll`, `isShared`를 유지하고 다음을 추가합니다. M3는 소유자 target만 사용하며, M4가 `ShareGrantLookup`을 연결합니다.
 
 | 추가 API | 용도 |
 |---|---|
@@ -145,9 +145,9 @@ M2의 `resolve`, `resolveAll`, `require`, `requireOwner` 시그니처는 유지�
 | `accessibleRoomIds(actor)`, `accessibleShelfIds(actor)` | 이동 대상·필터 후보 조회 |
 
 - 소유자면 항상 `OWNER`이고 Grant 조회를 생략합니다.
-- `ShareGrantLookup.grantsFor(userId, roomIds, shelfIds)`는 활성 Grant를 한 번에 읽습니다. `resolveAll`은 대상별 N+1을 만들지 않습니다.
-- 권한 비교는 `Permission.rank`로만 수행합니다. 여러 Grant는 최대 rank, 없으면 `NONE`입니다.
-- `require`는 `NONE`이면 404, 보이지만 rank가 부족하면 403 `PERMISSION_DENIED`입니다. 공유 범위 밖과 다른 Space는 404로 통일합니다.
+- `ShareGrantLookup`은 `GrantLookup.permissionFor(actor,target)`를 구현하고, 내부 `grantsFor(userId, roomIds, shelfIds)`로 활성 Grant를 한 번에 읽습니다. `resolveAll`은 대상별 N+1을 만들지 않습니다.
+- 권한 비교는 `Permission.atLeast`(enum ordinal `NONE < VIEW < EDIT < MANAGE < OWNER`)로만 수행합니다. 여러 Grant는 최대 권한, 없으면 `NONE`입니다.
+- `require`는 `NONE`이면 404, 보이지만 권한이 부족하면 403 `PERMISSION_DENIED`입니다. 공유 범위 밖과 다른 Space는 404로 통일합니다.
 - 철회 즉시 차단을 위해 판정 결과를 캐시하지 않습니다.
 
 ### 5.3 Grant 상속
@@ -527,3 +527,39 @@ python3 scripts/docs_impact.py
 | M8 출시 경화 | 감사·관측·E2E, 메일 실패 메트릭 | 감사 로그 UI·내보내기, 반송 처리, 접근성·부하 검증 |
 
 M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 유지하고 스키마 변경은 하위 호환으로만 합니다. M6은 M4 ACL SQL을 복사하지 않고 include하며, 성능 문제가 있으면 materialized view를 검토하되 판정 규칙은 바꾸지 않습니다. M4 종료 후 [구현 로드맵](../implementation-roadmap.md)의 M4 상태와 완료 조건을 갱신하고, M5·M6 착수 체크리스트에 이 문서의 12.3번 표를 연결합니다.
+
+
+## 13. 현재 코드 기준 실행 확정
+
+이 절은 2026-10-21 M2 구현과 코드리뷰 하드닝 이후 M4 계획을 다시 고정한 것이다.
+
+| 항목 | 확정 |
+|---|---|
+| 시작 마이그레이션 | M3 `V9` 다음 `V10__share_invitation.sql`, `V11__share.sql`, `V12__audit_log.sql`, `V13__outbox_event.sql` |
+| 권한 진입점 | `AccessService.effectivePermission(actor, AccessTarget)`와 `require(actor, target, minimum)` |
+| Grant 구현 | `NoGrantLookup`을 `ShareGrantLookup`으로 교체하되 `GrantLookup.permissionFor(actor,target)` 계약 유지 |
+| 상속 | target의 `roomId`/`shelfId`를 사용해 Room Grant와 Shelf Grant의 최대 권한을 계산 |
+| isShared | `NONE`/`OWNER`가 아닌 유효 권한이면 true |
+| 목록 ACL | `resolveAll`의 batch 구현과 SQL EXISTS/최대 권한 조건을 사용하고 행별 N+1을 만들지 않음 |
+| M3 연결 | Inventory 위치 target, `inventoryCount`, `HierarchyDeleteGuard` 재고 차단을 M4가 확장 |
+| 계약 | M4는 preview 모드를 유지하고 `docs/generated` 초안을 수동 갱신한 뒤 `build/contracts`와 비교 |
+
+### 13.1 M4 작업 순서
+
+1. `V10`~`V13` 마이그레이션과 데이터 사전 델타를 확정하고 `ShareGrantLookup` SQL·인덱스를 먼저 만든다.
+2. `AccessTarget` 기반 M4 `resolveAll`/`accessibleRoomIds`/`accessibleShelfIds`를 구현하고 owner·Room Grant·Shelf Grant 상속 테스트를 먼저 통과시킨다.
+3. 초대 상태 기계·토큰·이메일 일치·중복·만료를 구현하고 수락 트랜잭션에서 Grant·감사·Outbox를 원자적으로 기록한다.
+4. `GET /shared`, Grant 목록/권한 변경/철회, 받은 초대 API를 연결하고 shared MANAGE Inventory 작업을 M3 서비스에 연결한다.
+5. SCR-015·016·019와 초대 토큰 착지 화면을 구현하고, 로그인 전 토큰은 sessionStorage만 사용한다.
+6. 감사·Outbox·알림 릴레이·메일 실패 재시도와 운영 메트릭을 연결한다.
+7. OpenAPI·데이터 사전·이벤트·문서를 갱신하고 preview/contract test를 통과시킨다.
+
+### 13.2 M4 착수 전에 남은 결정
+
+- 초대 수락 후 Grant 철회와 Room/Shelf 삭제의 순서·감사 규칙
+- `outbox_event`를 M4에 최소 도입할지 M5로 미룰지
+- 초대 만료 job의 실행 주기와 lazy 만료 중 우선 순위
+- 공유 사용자의 마지막 Inventory 삭제 후 Item 가시성
+- `GET /items`의 `scope`와 `inventoryCount`의 DISPOSED 포함 여부
+
+이 결정은 M4 착수 전에 ADR 또는 계획 부록으로 고정하고, 구현 중 임의로 바꾸지 않는다.

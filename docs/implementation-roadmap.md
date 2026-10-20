@@ -146,6 +146,7 @@ flowchart LR
 
 ### M3. 카테고리, Item, Inventory
 
+> 상태: 착수 준비 완료 (M2 AccessTarget·마이그레이션 기준 보강). M3 구현은 PLAN-004를 따른다.
 > 상세 계획: [PLAN-004-inventory](implementation/PLAN-004-inventory.md)
 
 범위:
@@ -171,6 +172,7 @@ flowchart LR
 
 ### M4. 공유와 초대
 
+> 상태: 상세 구현계획 확정 (M3 완료 후 착수). AccessTarget/GrantLookup/M3 연결 기준을 PLAN-005 13번 항목에 고정.
 > 상세 계획: [PLAN-005-sharing](implementation/PLAN-005-sharing.md)
 
 범위:

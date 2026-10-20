@@ -136,8 +136,8 @@ enum class Permission(val rank: Int) {
 ```
 
 - DB `permission` enum은 `VIEW`, `EDIT`, `MANAGE`만 유지합니다. `OWNER`는 저장하지 않고 Space 소유자에게 계산으로 부여하며, API 응답의 `Permission`은 `OWNER`를 포함해야 합니다. 현재 OpenAPI enum에 `OWNER`가 없는 것은 M2에서 반드시 고칠 계약 공백입니다.
-- 비교는 `rank`로만 수행하고 문자열 비교를 금지합니다.
-- Grant가 여러 개면 최대 rank를 선택합니다. 거부 규칙은 없습니다.
+- 비교는 `Permission.atLeast`(ordinal `NONE < VIEW < EDIT < MANAGE < OWNER`)로만 수행하고 문자열 비교를 금지합니다.
+- Grant가 여러 개면 최대 권한을 선택합니다. 거부 규칙은 없습니다.
 
 ### 4.3 AccessService API
 
@@ -145,33 +145,31 @@ enum class Permission(val rank: Int) {
 data class AccessTarget(
     val spaceId: UUID,
     val ownerUserId: UUID,
-    val nodeType: NodeType,   // ROOM, SHELF, BOX
-    val roomId: UUID?,        // ROOM이면 자기 ID, SHELF·BOX이면 조상 Room
-    val shelfId: UUID?,       // BOX이면 부모 Shelf
-)
-
-data class EffectivePermission(
-    val permission: Permission,
-    val isShared: Boolean,
+    val roomId: UUID? = null,   // Room이면 자기 ID, Shelf·Box이면 조상 Room
+    val shelfId: UUID? = null,  // Shelf이면 자기 ID, Box이면 부모 Shelf
+    val boxId: UUID? = null,    // Box이면 자기 ID
 )
 
 interface AccessService {
-    fun resolve(actor: Actor, target: AccessTarget): EffectivePermission
-    fun resolveAll(actor: Actor, targets: List<AccessTarget>): List<EffectivePermission>
-    fun require(actor: Actor, target: AccessTarget, minimum: Permission): EffectivePermission
-    fun requireOwner(actor: Actor, target: AccessTarget): EffectivePermission
+    fun target(spaceId: UUID, roomId: UUID? = null, shelfId: UUID? = null, boxId: UUID? = null): AccessTarget
+    fun effectivePermission(actor: Actor, target: AccessTarget): Permission
+    fun require(actor: Actor, target: AccessTarget, minimum: Permission): Permission
+    fun require(actor: Actor, spaceId: UUID, minimum: Permission, roomId: UUID? = null, shelfId: UUID? = null, boxId: UUID? = null): Permission
+    fun requireView(actor: Actor, target: AccessTarget): Permission
+    fun requireOwner(actor: Actor, target: AccessTarget): Permission
     fun isShared(actor: Actor, target: AccessTarget): Boolean
+    fun resolveAll(actor: Actor, targets: Collection<AccessTarget>): Map<String, Permission>
 }
 
 interface GrantLookup {
-    fun grantsFor(userId: UUID, roomIds: Set<UUID>, shelfIds: Set<UUID>): List<GrantRef>
+    fun permissionFor(actor: Actor, target: AccessTarget): Permission?
 }
 ```
 
-- `NoGrantLookup`은 M2에서 빈 목록을 반환합니다. M4에서 SQL 구현으로 교체하며 호출부는 바꾸지 않습니다.
-- `resolve`: 소유자면 `OWNER, isShared=false`; 아니면 `GrantLookup` 결과의 최대 rank, 없으면 `NONE`. `isShared`는 "현재 사용자에게 Grant로 열린 리소스"를 뜻하며, 소유자가 다른 사람에게 공유한 상태는 M4에서 별도 필드가 필요하면 추가합니다.
-- `require`: `NONE`이면 404, rank가 부족하면 403 `PERMISSION_DENIED`.
-- `resolveAll`은 목록·트리에서 Grant 조회를 한 번으로 묶습니다. M2는 소유자만 있으므로 추가 쿼리가 없고, M4에서도 대상별 N+1을 만들지 않습니다.
+- `NoGrantLookup`은 M2에서 null을 반환합니다. M4에서 `ShareGrantLookup` SQL 구현으로 교체하며 호출부는 바꾸지 않습니다.
+- `effectivePermission`: 소유자면 `OWNER`; 아니면 `GrantLookup.permissionFor`의 결과, 없으면 `NONE`.
+- `require`: `NONE`이면 404, 권한이 부족하면 403 `PERMISSION_DENIED`.
+- `resolveAll`은 target key별 권한 Map을 반환합니다. M2는 소유자만 있으므로 추가 쿼리가 없고, M4에서는 batch Grant 조회 구현으로 대상별 N+1을 막습니다.
 - 판정 결과는 캐시하지 않습니다. Grant 철회 후 즉시 차단 원칙을 지키기 위해서입니다.
 
 ### 4.4 조회와 판정 흐름
@@ -471,7 +469,7 @@ Base path는 `/api/v1`이고 인증은 세션 쿠키, 상태 변경은 CSRF를 �
 | 삭제 | `HierarchyDeleteGuard`가 하위 Shelf·Box를 검사하고 soft delete |
 | 화면 | `/space` 트리, Room·Shelf·Box 상세, 생성·수정·삭제·Shelf 이동 대화상자 |
 | 계약 | OpenAPI `OWNER`, `shelfCount`, `boxCount`, 목록 `nextCursor`, 설명 2000자 |
-| 테스트 | backend 55개, frontend 15개, E2E 6개 |
+| 테스트 | backend 56개, frontend 15개, E2E 6개 |
 
 ### 13.2 계획과 다른 점
 
@@ -498,7 +496,7 @@ Base path는 `/api/v1`이고 인증은 세션 쿠키, 상태 변경은 CSRF를 �
 
 | 검증 | 결과 |
 |---|---|
-| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 55개 테스트 |
+| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 56개 테스트 |
 | `pnpm lint`, `pnpm format:check`, `pnpm test` | 통과, 15개 테스트 |
 | `pnpm build` | 통과 |
 | `pnpm test:e2e` | 데스크톱·모바일 6개 통과 |
@@ -521,6 +519,6 @@ Base path는 `/api/v1`이고 인증은 세션 쿠키, 상태 변경은 CSRF를 �
 | 이동 대화상자 | 현재 부모를 기본 선택하고 같은 부모는 no-op으로 비활성화 |
 | 오류·페이지 | 목록 오류를 빈 상태와 분리하고 retry를 추가, Room/Shelf/Box 목록에 `nextCursor` 기반 더 보기 추가 |
 | 계약 | OpenAPI에 CSRF 보안과 Shelf/Box `Idempotency-Key`를 반영, 데이터 사전에 M2 부분 인덱스 추가 |
-| 검증 | backend 55, frontend 15, E2E 6, docs 41 통과 |
+| 검증 | backend 56, frontend 15, E2E 6, docs 41 통과 |
 
 남은 항목은 M4 전 `AccessService`의 target/inheritance/resolveAll 전환, 목록 count의 batch화, 이메일 타이밍 완화, 회원가입·재설정의 Argon2 트랜잭션 분리, 트리 ARIA keyboard 보완입니다.

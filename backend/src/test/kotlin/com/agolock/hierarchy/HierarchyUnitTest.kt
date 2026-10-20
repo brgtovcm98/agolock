@@ -1,6 +1,7 @@
 package com.agolock.hierarchy
 
 import com.agolock.common.error.ApiException
+import com.agolock.hierarchy.domain.AccessTarget
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.Permission
 import com.agolock.hierarchy.service.AccessService
@@ -39,7 +40,7 @@ class HierarchyUnitTest {
         assertThat(accessService.effectivePermission(actor, spaceId)).isEqualTo(Permission.OWNER)
         assertThat(accessService.effectivePermission(Actor(UUID.randomUUID(), spaceId), spaceId))
             .isEqualTo(Permission.NONE)
-        assertThat(accessService.isShared(spaceId, actor)).isFalse()
+        assertThat(accessService.isShared(actor, AccessTarget(spaceId, userId))).isFalse()
     }
 
     @Test
@@ -52,13 +53,46 @@ class HierarchyUnitTest {
             object : GrantLookup {
                 override fun permissionFor(
                     actor: Actor,
-                    spaceId: UUID,
+                    target: AccessTarget,
                 ): Permission = Permission.VIEW
             }
         val accessService = AccessService(ownership, grant)
 
-        assertThat(accessService.effectivePermission(actor, spaceId)).isEqualTo(Permission.VIEW)
-        assertThat(accessService.isShared(spaceId, actor)).isTrue()
+        assertThat(accessService.effectivePermission(actor, AccessTarget(spaceId, UUID.randomUUID())))
+            .isEqualTo(Permission.VIEW)
+        assertThat(accessService.isShared(actor, AccessTarget(spaceId, UUID.randomUUID()))).isTrue()
+    }
+
+    @Test
+    fun `target 권한은 404와 403을 구분하고 resolveAll로 일괄 계산한다`() {
+        val owner = UUID.randomUUID()
+        val ownership =
+            object : SpaceOwnership {
+                override fun ownerOf(spaceId: UUID): UUID? = owner
+            }
+        val grant =
+            object : GrantLookup {
+                override fun permissionFor(
+                    actor: Actor,
+                    target: AccessTarget,
+                ): Permission = if (target.shelfId != null) Permission.MANAGE else Permission.VIEW
+            }
+        val accessService = AccessService(ownership, grant)
+        val roomId = UUID.randomUUID()
+        val shelfId = UUID.randomUUID()
+        val roomTarget = AccessTarget(spaceId, owner, roomId = roomId)
+        val shelfTarget = AccessTarget(spaceId, owner, roomId = roomId, shelfId = shelfId)
+
+        assertThat(accessService.require(actor, roomTarget, Permission.VIEW)).isEqualTo(Permission.VIEW)
+        assertThat(accessService.require(actor, shelfTarget, Permission.MANAGE))
+            .isEqualTo(Permission.MANAGE)
+        assertThatThrownBy { accessService.require(actor, roomTarget, Permission.MANAGE) }
+            .isInstanceOf(ApiException::class.java)
+            .extracting("code")
+            .isEqualTo("PERMISSION_DENIED")
+        assertThat(accessService.resolveAll(actor, listOf(roomTarget, shelfTarget)))
+            .containsEntry(roomTarget.key, Permission.VIEW)
+            .containsEntry(shelfTarget.key, Permission.MANAGE)
     }
 
     @Test

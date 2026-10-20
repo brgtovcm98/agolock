@@ -1,16 +1,17 @@
 package com.agolock.hierarchy.service
 
+import com.agolock.hierarchy.domain.AccessTarget
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.Permission
-import java.util.UUID
 
 /**
- * M4 공유 Grant를 연결할 포트입니다. M2에서는 항상 null입니다.
+ * M4 공유 Grant를 연결할 포트입니다.
+ * target의 Room/Shelf 조상 정보를 사용해 상속된 최대 권한을 반환할 수 있습니다.
  */
 interface GrantLookup {
     fun permissionFor(
         actor: Actor,
-        spaceId: UUID,
+        target: AccessTarget,
     ): Permission?
 }
 
@@ -18,6 +19,6 @@ interface GrantLookup {
 class NoGrantLookup : GrantLookup {
     override fun permissionFor(
         actor: Actor,
-        spaceId: UUID,
+        target: AccessTarget,
     ): Permission? = null
 }

@@ -1,11 +1,11 @@
 # PLAN-004: M3 카테고리·Item·Inventory 상세 구현 계획
 
-> 상태: 검토 대기 (2026-10-21 작성)
+> 상태: M3 착수 준비 완료 (2026-10-21, M2 AccessTarget 보강 반영)
 > 역할: 구현 로드맵 M3를 데이터 모델, 서비스, API, 화면, 테스트, 완료 조건으로 분해한 실행 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 문서: [PLAN-001 기반](PLAN-001-foundation.md), [PLAN-001 계약·CI·검증](PLAN-001-foundation-delivery.md), [PLAN-003 계층·권한](PLAN-003-hierarchy-permissions.md)
 > 관련 문서: [도메인](../domain.md), [공유](../sharing.md), [검색](../search.md), [계약](../contracts.md), [화면과 흐름](../frontend.md), [디자인 시스템](../design-system.md), [데이터 사전](../generated/data-dictionary.md), [OpenAPI](../generated/openapi.yaml), [ADR-002](../decisions/ADR-002-inventory-location.md), [ADR-003](../decisions/ADR-003-permission-model.md), [ADR-004](../decisions/ADR-004-mybatis.md), [ADR-009](../decisions/ADR-009-ai-confirmation.md), [ADR-010](../decisions/ADR-010-item-creation-permissions.md), [ADR-011](../decisions/ADR-011-image-upload-lifecycle.md), [ADR-016](../decisions/ADR-016-neo-brutal-design-system.md)
-> 전제: 2026-10-21 현재 M0 완료, M1 구현 중입니다. M2는 [PLAN-003](PLAN-003-hierarchy-permissions.md)으로 확정되었고, M1 완료 후 M2를 거쳐 M3에 착수합니다. M1 상세 계획 문서는 아직 없습니다.
+> 전제: 2026-10-21 현재 M0-M2 완료. M1은 [PLAN-002](PLAN-002-identity-space.md), M2는 [PLAN-003](PLAN-003-hierarchy-permissions.md)으로 구현·검증되었고, M3는 V6부터 시작합니다.
 
 ## 1. 목적, 범위, 비목표
 
@@ -38,15 +38,26 @@ M3 완료의 정의는 카테고리 → Item + 첫 Inventory → 오버라이드
 |---|---|---|
 | M0 (완료) | Gradle·pnpm 빌드, Testcontainers, Flyway, problem+json, `request_id`, 디자인 토큰 | `./gradlew :backend:test`, `pnpm build` |
 | M1 | 세션 인증, `Actor`·Space 컨텍스트, CSRF, `app_user`·`space`·`V2__identity.sql`, 공통 오류 코드 | 인증 통합 테스트, `/auth/me` |
-| M2 | [PLAN-003](PLAN-003-hierarchy-permissions.md)의 `V3__hierarchy.sql`·`V4__idempotency.sql`, `AccessService`, `GrantLookup`, `HierarchyDeleteGuard`, `effectivePermission`, `version` 패턴 | M2 완료 조건, 계층·권한·교차 Space 테스트 |
+| M2 | [PLAN-003](PLAN-003-hierarchy-permissions.md)의 `V4__hierarchy.sql`·`V5__idempotency.sql`, `AccessService`, `GrantLookup`, `HierarchyDeleteGuard`, `effectivePermission`, `version` 패턴 | M2 완료 조건, 계층·권한·교차 Space 테스트 |
 
 착수 게이트는 다음과 같습니다.
 
-- M1 `V2`, M2 `V3`·`V4`가 적용된 전제에서 M3는 `V5`부터 시작합니다. 실제 번호는 M2 마지막 번호를 확인해 확정합니다.
-- M2의 `AccessService.require(actor, AccessTarget, minimum)`를 그대로 사용합니다. Inventory 권한은 위치한 Room·Shelf·Box의 `AccessTarget`으로 계산하고, Item·Category 마스터 권한은 `SpaceOwnership.requireOwner(actor, spaceId)`로 판정합니다. 별도 `requireInventory` ACL을 만들지 않습니다.
-- M2의 `common.idempotency` 필터·서비스와 `idempotency_record`를 재사용합니다. M3는 `POST /categories`, `/items`, `/inventories`를 대상 경로에 추가할 뿐 테이블과 저장 로직을 새로 만들지 않습니다.
+- M1 `V2`, M2 `V4`·`V5`가 적용된 전제에서 M3는 `V6`부터 시작합니다. 마이그레이션 번호는 M2 head(V5) 다음으로 확정했습니다.
+- M2의 `AccessService.require(actor, AccessTarget, minimum)`와 `effectivePermission`/`resolveAll`을 그대로 사용합니다. Inventory 권한은 위치한 Room·Shelf·Box의 `AccessTarget`으로 계산하고, Item·Category 마스터 권한은 `requireOwner(actor, spaceId)`로 판정합니다. 별도 `requireInventory` ACL을 만들지 않습니다.
+- M2의 `common.idempotency` 서비스와 `idempotency_record`를 재사용합니다. M3 컨트롤러는 `IdempotencyService.execute`를 호출하고, 테이블과 저장 로직을 새로 만들지 않습니다.
 - M3는 `HierarchyDeleteGuard`에 Inventory 존재 검사를 넣고 Room·Shelf·Box 응답에 `inventoryCount`를 추가합니다. M2 12번 항목에서 넘긴 작업입니다.
 - 세션의 `Actor`와 `spaceId`만 사용하며 어떤 요청도 `spaceId`를 받지 않습니다. 공통 `Problem.meta`와 오류 코드 enum을 확장할 수 있어야 합니다.
+
+### 2.1 착수 게이트 확인 결과
+
+| 게이트 | 현재 상태 |
+|---|---|
+| `AccessService` target 기반 판정 | `AccessTarget`, `effectivePermission(actor,target)`, `require`, `resolveAll`, `isShared` 구현·테스트 완료 |
+| `GrantLookup` 포트 | `NoGrantLookup`으로 M3 소유자 흐름 지원, M4에서 SQL 구현으로 교체 |
+| M2 멱등성 | `IdempotencyService`와 advisory lock 동시성 테스트 완료 |
+| M2 삭제 잠금 | Room/Shelf/Box 부모 `FOR UPDATE` 적용 |
+| 마이그레이션 | M2 V4·V5 적용 확인, M3는 V6부터 시작 |
+| 계약 | OpenAPI preview 18 paths, design draft 0.3.0, M3 상세 계약은 구현 시 확장 |
 
 ## 3. 데이터 모델과 마이그레이션
 
@@ -54,11 +65,11 @@ M3 완료의 정의는 카테고리 → Item + 첫 Inventory → 오버라이드
 
 | 테이블 | 마이그레이션 | 핵심 컬럼(타입) | M3 제약·인덱스 |
 |---|---|---|---|
-| `category` | `V5__category.sql` | `id uuid PK`, `space_id`, `name text`, `normalized_name text`, `color text NULL`, `sort_order integer`, `deleted_at` | Space FK, `UNIQUE (space_id, normalized_name) WHERE deleted_at IS NULL`, 활성 목록 인덱스 |
-| `item` | `V6__item.sql` | `id`, `space_id`, `name text`, `description text NULL`, `category_id uuid NULL`, `price_amount integer NULL`, `currency char(3)`, `version bigint`, `deleted_at` | `CHECK (price_amount >= 0)`, `UNIQUE (id, space_id)`, `(category_id, space_id)` 복합 FK |
-| `inventory` | `V7__inventory.sql` | `id`, `space_id`, `item_id`, 위치 3종, `name_override`, `description_override`, `category_id_override`, `price_amount_override`, `status`, `version bigint`, `deleted_at` | 위치 3컬럼 중 1개 CHECK, Item·위치 3종·카테고리 복합 FK, 가격 CHECK |
-| `inventory_movement` | `V8__inventory_movement.sql` | `id`, `space_id`, `inventory_id`, `from_*`·`to_*` 위치 3종, `moved_by`, `moved_at` | from·to 각 1개 CHECK, Inventory·위치 6종 복합 FK, 페이지 인덱스 |
-| `idempotency_record` | M2 `V4`, M3 재사용 | `user_id`, `idempotency_key`, `request_method`, `request_path`, `request_hash char(64)`, `response_status`, `response_body jsonb`, `expires_at` | `UNIQUE (user_id, idempotency_key)`, `(expires_at)` |
+| `category` | `V6__category.sql` | `id uuid PK`, `space_id`, `name text`, `normalized_name text`, `color text NULL`, `sort_order integer`, `deleted_at` | Space FK, `UNIQUE (space_id, normalized_name) WHERE deleted_at IS NULL`, 활성 목록 인덱스 |
+| `item` | `V7__item.sql` | `id`, `space_id`, `name text`, `description text NULL`, `category_id uuid NULL`, `price_amount integer NULL`, `currency char(3)`, `version bigint`, `deleted_at` | `CHECK (price_amount >= 0)`, `UNIQUE (id, space_id)`, `(category_id, space_id)` 복합 FK |
+| `inventory` | `V8__inventory.sql` | `id`, `space_id`, `item_id`, 위치 3종, `name_override`, `description_override`, `category_id_override`, `price_amount_override`, `status`, `version bigint`, `deleted_at` | 위치 3컬럼 중 1개 CHECK, Item·위치 3종·카테고리 복합 FK, 가격 CHECK |
+| `inventory_movement` | `V9__inventory_movement.sql` | `id`, `space_id`, `inventory_id`, `from_*`·`to_*` 위치 3종, `moved_by`, `moved_at` | from·to 각 1개 CHECK, Inventory·위치 6종 복합 FK, 페이지 인덱스 |
+| `idempotency_record` | M2 `V5`, M3 재사용 | `user_id`, `idempotency_key`, `request_method`, `request_path`, `request_hash char(64)`, `response_status`, `response_body jsonb`, `expires_at` | `UNIQUE (user_id, idempotency_key)`, `(expires_at)` |
 
 M3에서 추가할 인덱스는 다음과 같습니다. 기존 데이터 사전 인덱스는 유지합니다.
 
@@ -310,7 +321,7 @@ M2의 Room·Shelf·Box 상세는 M3에서 `inventoryCount`와 직접 위치 재�
 
 | 순서 | 작업 | 주요 파일 | 검증 |
 |---|---|---|---|
-| 1 | 마이그레이션·데이터 사전 델타 | `db/migration/V5__category.sql`~`V8__inventory_movement.sql`, `docs/generated/data-dictionary.md` | `M3MigrationTest`, `flyway validate` |
+| 1 | 마이그레이션·데이터 사전 델타 | `db/migration/V6__category.sql`~`V9__inventory_movement.sql`, `docs/generated/data-dictionary.md` | `M3MigrationTest`, `flyway validate` |
 | 2 | 멱등성 경로·오류 코드 | `common/idempotency/IdempotencyFilter.kt` 설정, `common/error/ErrorCode.kt`, `Problem.meta` | `IdempotencyTest` |
 | 3 | Category 영속성·서비스·API | `inventory/{domain,repository,service,api}`, `mapper/inventory/CategoryMapper.xml` | `CategoryMergeTest`, `CategoryApiTest` |
 | 4 | Item 영속성·서비스·API | `inventory/{domain,repository,service,api}`, `mapper/inventory/ItemMapper.xml` | `EffectiveFieldTest`, `ItemUpdateImpactTest` |
