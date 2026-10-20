@@ -71,8 +71,10 @@ class InventoryService(
         actor: Actor,
         inventoryId: UUID,
     ): InventoryResponse {
-        accessService.requireOwner(actor, actor.spaceId)
-        return toResponse(actor, requireInventory(actor, inventoryId))
+        val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
+        val target = accessService.target(inventory.spaceId, inventory.roomId, inventory.shelfId, inventory.boxId)
+        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.VIEW)
+        return toResponse(actor, inventory, permission.name)
     }
 
     fun getShared(
@@ -122,8 +124,9 @@ class InventoryService(
         inventoryId: UUID,
         command: UpdateInventoryCommand,
     ): InventoryResponse {
-        accessService.requireOwner(actor, actor.spaceId)
-        val current = requireInventory(actor, inventoryId)
+        val current = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
+        val target = accessService.target(current.spaceId, current.roomId, current.shelfId, current.boxId)
+        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.EDIT)
         if (current.version != command.version) throw versionConflict()
         if (command.status == com.agolock.inventory.domain.InventoryStatus.DISPOSED && !command.confirmDisposal) {
             throw ApiException("DISPOSAL_CONFIRMATION_REQUIRED", HttpStatus.UNPROCESSABLE_ENTITY, "폐기 확인이 필요합니다.")
@@ -131,7 +134,7 @@ class InventoryService(
         if (command.status != com.agolock.inventory.domain.InventoryStatus.DISPOSED && command.confirmDisposal) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "폐기 확인은 DISPOSED 전환에만 사용할 수 있습니다.")
         }
-        if (command.categoryIdOverride != null && categoryMapper.findById(actor.spaceId, command.categoryIdOverride) == null) {
+        if (command.categoryIdOverride != null && categoryMapper.findById(current.spaceId, command.categoryIdOverride) == null) {
             throw notFound("카테고리를 찾을 수 없습니다.")
         }
         val nameOverride = command.nameOverride?.trim()?.takeIf(String::isNotEmpty) ?: current.nameOverride
@@ -150,7 +153,7 @@ class InventoryService(
         }
         val updated =
             inventoryMapper.update(
-                actor.spaceId,
+                current.spaceId,
                 inventoryId,
                 nameOverride,
                 descriptionOverride,
@@ -161,7 +164,11 @@ class InventoryService(
                 OffsetDateTime.now(clock),
             )
         if (updated == 0) throw versionConflict()
-        return toResponse(actor, requireInventory(actor, inventoryId))
+        return toResponse(
+            actor,
+            inventoryMapper.findById(current.spaceId, inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다."),
+            permission.name,
+        )
     }
 
     @Transactional

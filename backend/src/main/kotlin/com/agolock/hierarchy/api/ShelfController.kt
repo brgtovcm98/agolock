@@ -83,9 +83,13 @@ class ShelfController(
         @PathVariable shelfId: UUID,
     ): ShelfResponse {
         val actor = Actor.from(principal)
-        return shelfService
-            .get(actor, shelfId)
-            .toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+        val shelf = shelfService.get(actor, shelfId)
+        val permission =
+            accessService.effectivePermission(
+                actor,
+                accessService.target(shelf.spaceId, shelf.roomId, shelf.id),
+            )
+        return shelf.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
     }
 
     @PatchMapping("/shelves/{shelfId}")

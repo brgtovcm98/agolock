@@ -60,11 +60,15 @@ class ShelfService(
         actor: Actor,
         shelfId: UUID,
     ): Shelf {
-        accessService.requireView(actor, actor.spaceId)
-        val shelf = requireShelf(actor, shelfId)
+        val shelf = shelfMapper.findByIdAny(shelfId) ?: throw notFound("Shelf를 찾을 수 없습니다.")
+        accessService.require(
+            actor,
+            accessService.target(shelf.spaceId, shelf.roomId, shelf.id),
+            com.agolock.hierarchy.domain.Permission.VIEW,
+        )
         return shelf.copy(
-            boxCount = shelfMapper.countBoxes(actor.spaceId, shelf.id),
-            inventoryCount = inventoryMapper.countByShelf(actor.spaceId, shelf.id),
+            boxCount = shelfMapper.countBoxes(shelf.spaceId, shelf.id),
+            inventoryCount = inventoryMapper.countByShelf(shelf.spaceId, shelf.id),
         )
     }
 
@@ -215,6 +219,8 @@ class ShelfService(
     }
 
     private fun normalizedDescription(value: String?): String? = value?.trim()?.takeIf(String::isNotEmpty)
+
+    private fun notFound(message: String) = ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, message)
 
     private fun versionConflict(): ApiException =
         ApiException(

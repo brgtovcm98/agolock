@@ -570,8 +570,8 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 | 영역 | 결과 |
 |---|---|
 | 스키마 | `V10__share_invitation.sql`, `V11__share.sql`, `V12__audit_log.sql`, `V13__outbox_event.sql` |
-| 권한 | `ShareGrantLookup`으로 Room/Shelf Grant 최대 권한 조회, `/shared/*` 읽기 API |
-| 초대 | 생성·받은 목록·수락·거절·철회, 이메일 일치, 중복 Grant·중복 PENDING 차단 |
+| 권한 | `ShareGrantLookup`으로 Room/Shelf Grant 최대 권한 조회, `/shared/*` 및 기존 Room·Inventory 상세 읽기 |
+| 초대 | 생성·받은 목록·ID/토큰 수락·거절·철회, 이메일 일치, 중복 Grant·중복 PENDING 차단 |
 | Grant | 목록·권한 변경·철회, 철회 즉시 `/shared`에서 제외 |
 | 감사 | Share/Invitation 생성·수락·거절·철회·권한 변경 감사 기록 |
 | Outbox | 초대 생성 시 `notification.requested` 적재 |
@@ -580,8 +580,8 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 
 ### 14.1 후속 보완
 
-- 초대 이메일 실제 발송 릴레이와 토큰 본문 수락·거절 API
-- 기존 `/rooms/{id}`·`/inventories/{id}`의 공유 사용자 접근(현재는 `/shared/*` 읽기 전용 경로)
-- shared MANAGE의 기존 Item Inventory 생성·삭제·이동
+- 초대 이메일 실제 발송 릴레이 (Outbox 적재와 토큰 수락 API는 구현)
+- shared MANAGE의 Inventory 생성·이동 (상세 조회·수정·삭제는 일부 구현)
+- 기존 목록 API의 공유 항목 노출(`/shared`는 별도 경로)
 - 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key
 - M3 Category 병합·수정 영향 API·move-targets

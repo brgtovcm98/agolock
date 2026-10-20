@@ -1514,6 +1514,48 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
+  /share-invitations/accept:
+    post:
+      tags: [sharing]
+      operationId: acceptInvitationByToken
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationTokenRequest'
+      responses:
+        '200':
+          description: 초대 수락
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Share'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: 토큰 무효 또는 이메일 불일치
+  /share-invitations/decline:
+    post:
+      tags: [sharing]
+      operationId: declineInvitationByToken
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationTokenRequest'
+      responses:
+        '204':
+          description: 초대 거절
+        '404':
+          $ref: '#/components/responses/NotFound'
   /share-invitations/received:
     get:
       tags: [sharing]
@@ -2887,6 +2929,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShareInvitation'
+    InvitationTokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
     CreateShareInvitationRequest:
       type: object
       required: [invitedEmail, permission]

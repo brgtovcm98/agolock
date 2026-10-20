@@ -86,7 +86,9 @@ class RoomController(
     ): RoomResponse {
         val actor = Actor.from(principal)
         val room = roomService.get(actor, roomId)
-        return room.toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+        val permission =
+            accessService.effectivePermission(actor, accessService.target(room.spaceId, roomId = room.id))
+        return room.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
     }
 
     @PatchMapping("/{roomId}")

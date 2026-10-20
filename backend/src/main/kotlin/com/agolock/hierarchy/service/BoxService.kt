@@ -55,10 +55,14 @@ class BoxService(
         actor: Actor,
         boxId: UUID,
     ): Box {
-        accessService.requireView(actor, actor.spaceId)
-        return requireBox(actor, boxId).copy(
-            inventoryCount = inventoryMapper.countByBox(actor.spaceId, boxId),
+        val box = boxMapper.findByIdAny(boxId) ?: throw notFound("Box를 찾을 수 없습니다.")
+        val shelf = shelfMapper.findById(box.spaceId, box.shelfId)
+        accessService.require(
+            actor,
+            accessService.target(box.spaceId, shelf?.roomId, box.shelfId, box.id),
+            com.agolock.hierarchy.domain.Permission.VIEW,
         )
+        return box.copy(inventoryCount = inventoryMapper.countByBox(box.spaceId, box.id))
     }
 
     @Transactional
@@ -201,6 +205,8 @@ class BoxService(
     }
 
     private fun normalizedDescription(value: String?): String? = value?.trim()?.takeIf(String::isNotEmpty)
+
+    private fun notFound(message: String) = ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, message)
 
     private fun versionConflict(): ApiException =
         ApiException(

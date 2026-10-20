@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions", "MaxLineLength")
+
 package com.agolock.hierarchy.service
 
 import com.agolock.common.error.ApiException
@@ -55,11 +57,11 @@ class RoomService(
         actor: Actor,
         roomId: UUID,
     ): Room {
-        accessService.requireView(actor, actor.spaceId)
-        val room = requireRoom(actor, roomId)
+        val room = roomMapper.findByIdAny(roomId) ?: throw notFound("Room을 찾을 수 없습니다.")
+        accessService.require(actor, accessService.target(room.spaceId, roomId = room.id), com.agolock.hierarchy.domain.Permission.VIEW)
         return room.copy(
-            shelfCount = roomMapper.countShelves(actor.spaceId, room.id),
-            inventoryCount = inventoryMapper.countByRoom(actor.spaceId, room.id),
+            shelfCount = roomMapper.countShelves(room.spaceId, room.id),
+            inventoryCount = inventoryMapper.countByRoom(room.spaceId, room.id),
         )
     }
 
@@ -158,6 +160,8 @@ class RoomService(
     }
 
     private fun normalizedDescription(value: String?): String? = value?.trim()?.takeIf(String::isNotEmpty)
+
+    private fun notFound(message: String) = ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, message)
 
     private fun versionConflict(): ApiException =
         ApiException(

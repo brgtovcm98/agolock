@@ -39,6 +39,7 @@ class SharingIntegrationTest
         }
 
         @Test
+        @Suppress("LongMethod")
         fun `초대를 수락하면 공유 목록에 나타나고 철회하면 사라진다`() {
             val owner = AuthTestClient(restTemplate, objectMapper)
             val ownerEmail = "owner-${UUID.randomUUID()}@example.com"
@@ -90,6 +91,9 @@ class SharingIntegrationTest
             assertThat(json(sharedRoom.body)["effectivePermission"].asText()).isEqualTo("VIEW")
             val sharedInventory = guest.get("/api/v1/shared/inventories/${inventory["id"].asText()}")
             assertThat(sharedInventory.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(guest.get("/api/v1/rooms/$roomId").statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(guest.get("/api/v1/inventories/${inventory["id"].asText()}").statusCode)
+                .isEqualTo(HttpStatus.OK)
             val alreadyShared =
                 owner.post(
                     "/api/v1/share-invitations",
@@ -102,6 +106,7 @@ class SharingIntegrationTest
             assertThat(owner.delete("/api/v1/shares/$shareId").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
             assertThat(json(guest.get("/api/v1/shared").body)["items"].size()).isEqualTo(0)
             assertThat(guest.get("/api/v1/shared/rooms/$roomId").statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+            assertThat(guest.get("/api/v1/rooms/$roomId").statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         }
 
         @Test
