@@ -110,6 +110,50 @@ class SharingIntegrationTest
         }
 
         @Test
+        fun `공유 MANAGE 사용자는 기존 Item으로 Inventory를 만들고 이동하고 삭제한다`() {
+            val owner = AuthTestClient(restTemplate, objectMapper)
+            val ownerEmail = "owner-${UUID.randomUUID()}@example.com"
+            val guestEmail = "guest-${UUID.randomUUID()}@example.com"
+            owner.signup(ownerEmail, "password-1234", "소유자")
+            val room = json(owner.post("/api/v1/rooms", mapOf("name" to "공유방")).body)
+            val shelf = json(owner.post("/api/v1/rooms/${room["id"].asText()}/shelves", mapOf("name" to "선반")).body)
+            val item = json(owner.post("/api/v1/items", mapOf("name" to "공유 Item")).body)
+
+            val invitation =
+                json(
+                    owner
+                        .post(
+                            "/api/v1/share-invitations",
+                            mapOf(
+                                "roomId" to room["id"].asText(),
+                                "invitedEmail" to guestEmail,
+                                "permission" to "MANAGE",
+                            ),
+                        ).body,
+                )
+            val guest = AuthTestClient(restTemplate, objectMapper)
+            guest.signup(guestEmail, "password-1234", "게스트")
+            val accepted = guest.post("/api/v1/share-invitations/received/${invitation["id"].asText()}/accept", mapOf("x" to "y"))
+            assertThat(accepted.statusCode).isEqualTo(HttpStatus.OK)
+
+            val created =
+                guest.post(
+                    "/api/v1/inventories",
+                    mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
+                )
+            assertThat(created.statusCode).isEqualTo(HttpStatus.CREATED)
+            val inventoryId = json(created.body)["id"].asText()
+            val moved =
+                guest.patch(
+                    "/api/v1/inventories/$inventoryId/location",
+                    mapOf("shelfId" to shelf["id"].asText(), "version" to 0),
+                )
+            assertThat(moved.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(moved.body)["location"]["type"].asText()).isEqualTo("SHELF")
+            assertThat(guest.delete("/api/v1/inventories/$inventoryId").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        }
+
+        @Test
         fun `다른 이메일의 초대는 수락할 수 없고 자기 자신은 초대할 수 없다`() {
             val owner = AuthTestClient(restTemplate, objectMapper)
             val ownerEmail = "owner-${UUID.randomUUID()}@example.com"
