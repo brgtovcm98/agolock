@@ -1027,6 +1027,7 @@ export interface components {
             id: string;
             name: string;
             description?: string | null;
+            shelfCount: number;
             effectivePermission: components["schemas"]["Permission"];
             isShared: boolean;
             /** Format: int64 */
@@ -1057,6 +1058,7 @@ export interface components {
             roomId: string;
             name: string;
             description?: string | null;
+            boxCount: number;
             effectivePermission: components["schemas"]["Permission"];
             isShared: boolean;
             /** Format: int64 */
@@ -1064,6 +1066,7 @@ export interface components {
         };
         ShelfList: {
             items: components["schemas"]["Shelf"][];
+            nextCursor?: string | null;
         };
         CreateShelfRequest: {
             name: string;
@@ -1095,6 +1098,7 @@ export interface components {
         };
         BoxList: {
             items: components["schemas"]["Box"][];
+            nextCursor?: string | null;
         };
         CreateBoxRequest: {
             name: string;
@@ -1115,7 +1119,7 @@ export interface components {
         /** @enum {string} */
         InventoryStatus: "IN_USE" | "STORED" | "DISPOSED";
         /** @enum {string} */
-        Permission: "VIEW" | "EDIT" | "MANAGE";
+        Permission: "VIEW" | "EDIT" | "MANAGE" | "OWNER";
         Category: {
             /** Format: uuid */
             id: string;

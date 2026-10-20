@@ -43,9 +43,11 @@ class AuthTestClient(
     fun post(
         path: String,
         body: Any,
+        extraHeaders: Map<String, String> = emptyMap(),
     ): ResponseEntity<String> {
         if (csrfToken == null) refreshCsrf()
         val httpHeaders = headers()
+        extraHeaders.forEach(httpHeaders::set)
         csrfToken?.let { httpHeaders.set("X-XSRF-TOKEN", it) }
         httpHeaders.contentType = MediaType.APPLICATION_JSON
         val response =
@@ -65,9 +67,11 @@ class AuthTestClient(
     fun patch(
         path: String,
         body: Any,
+        extraHeaders: Map<String, String> = emptyMap(),
     ): ResponseEntity<String> {
         if (csrfToken == null) refreshCsrf()
         val httpHeaders = headers()
+        extraHeaders.forEach(httpHeaders::set)
         csrfToken?.let { httpHeaders.set("X-XSRF-TOKEN", it) }
         httpHeaders.contentType = MediaType.APPLICATION_JSON
         val response =
@@ -79,6 +83,18 @@ class AuthTestClient(
             )
         captureCookies(response.headers)
         return response
+    }
+
+    fun delete(path: String): ResponseEntity<String> {
+        if (csrfToken == null) refreshCsrf()
+        val httpHeaders = headers()
+        csrfToken?.let { httpHeaders.set("X-XSRF-TOKEN", it) }
+        return restTemplate.exchange(
+            path,
+            HttpMethod.DELETE,
+            HttpEntity<Void>(httpHeaders),
+            String::class.java,
+        )
     }
 
     fun signup(

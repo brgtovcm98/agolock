@@ -34,11 +34,12 @@ describe('앱 라우팅', () => {
     expect(screen.getByText('같은 물건 재고 3개 중 1번')).toBeInTheDocument()
   })
 
-  it('M1에 없는 화면은 안내한다', () => {
+  it('공간 트리의 빈 상태를 안내한다', () => {
     renderApp(['/space'])
 
-    expect(screen.getByRole('heading', { name: '공간' })).toBeInTheDocument()
-    expect(screen.getByText(/현재 셸과 내비게이션만 확인/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '공간 지도' })).toBeInTheDocument()
+    expect(screen.getByText('아직 방이 없어요')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Room 추가' })).toBeInTheDocument()
   })
 
   it('잘못된 주소는 404를 표시한다', () => {

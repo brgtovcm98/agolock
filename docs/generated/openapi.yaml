@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
   title: AGO Lock API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     개인 물품 관리 앱의 HTTP API 계약입니다.
     인증은 HttpOnly 세션 쿠키를 사용하며, 상태 변경 요청은 X-XSRF-TOKEN 헤더가 필요합니다.
@@ -1781,7 +1781,7 @@ components:
             $ref: '#/components/schemas/SharedResource'
     Room:
       type: object
-      required: [id, name, version, effectivePermission, isShared]
+      required: [id, name, shelfCount, version, effectivePermission, isShared]
       properties:
         id:
           type: string
@@ -1791,6 +1791,9 @@ components:
         description:
           type: string
           nullable: true
+        shelfCount:
+          type: integer
+          minimum: 0
         effectivePermission:
           $ref: '#/components/schemas/Permission'
         isShared:
@@ -1842,7 +1845,7 @@ components:
           format: int64
     Shelf:
       type: object
-      required: [id, roomId, name, version, effectivePermission, isShared]
+      required: [id, roomId, name, boxCount, version, effectivePermission, isShared]
       properties:
         id:
           type: string
@@ -1855,6 +1858,9 @@ components:
         description:
           type: string
           nullable: true
+        boxCount:
+          type: integer
+          minimum: 0
         effectivePermission:
           $ref: '#/components/schemas/Permission'
         isShared:
@@ -1870,6 +1876,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Shelf'
+        nextCursor:
+          type: string
+          nullable: true
     CreateShelfRequest:
       type: object
       required: [name]
@@ -1935,6 +1944,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Box'
+        nextCursor:
+          type: string
+          nullable: true
     CreateBoxRequest:
       type: object
       required: [name]
@@ -1975,7 +1987,7 @@ components:
       enum: [IN_USE, STORED, DISPOSED]
     Permission:
       type: string
-      enum: [VIEW, EDIT, MANAGE]
+      enum: [VIEW, EDIT, MANAGE, OWNER]
     Category:
       type: object
       required: [id, name]

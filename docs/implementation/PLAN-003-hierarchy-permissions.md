@@ -1,10 +1,28 @@
 # PLAN-003: M2 계층과 권한 기반 상세 구현 계획
 
-> 상태: 구현 전 계획 (M1 완료 후 착수)
+> 상태: M2 핵심 구현 완료 (M3 연결 전 보완 항목은 13번 항목 참조)
 > 역할: 구현 로드맵 M2의 스키마, AccessService 기반, 계층 CRUD·이동·삭제, 계층 UI의 실행 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 문서: [PLAN-001 기반 부트스트랩](PLAN-001-foundation.md) · [PLAN-001 계약·CI·검증](PLAN-001-foundation-delivery.md)
 > 관련 문서: [아키텍처](../architecture.md), [도메인](../domain.md), [공유](../sharing.md), [계약](../contracts.md), [화면과 흐름](../frontend.md), [디자인 시스템](../design-system.md), [데이터 사전](../generated/data-dictionary.md), [ADR-001](../decisions/ADR-001-space-tenant.md), [ADR-002](../decisions/ADR-002-inventory-location.md), [ADR-003](../decisions/ADR-003-permission-model.md), [ADR-004](../decisions/ADR-004-mybatis.md), [ADR-010](../decisions/ADR-010-item-creation-permissions.md), [ADR-013](../decisions/ADR-013-invitation-only-sharing.md), [ADR-016](../decisions/ADR-016-neo-brutal-design-system.md)
+
+
+## 0. 확정된 결정
+
+M2는 11.2번 항목의 권장안을 그대로 채택했습니다.
+
+| 항목 | 결정 |
+|---|---|
+| API Permission | `OWNER`를 API enum에만 추가하고 DB permission enum은 VIEW/EDIT/MANAGE 유지 |
+| isShared | Grant로 접근 중인 리소스. M2는 항상 false |
+| DELETE version | 받지 않고 soft delete와 하위 리소스 재검사로 처리 |
+| 페이지네이션 | Room·Shelf·Box 모두 `cursor`/`limit`, `nextCursor` 제공 |
+| 트리 | 신규 트리 엔드포인트 없이 3단계 지연 로딩 |
+| 이름 유일 | M2는 제약 없음. UI에서 경로와 개수로 구분 |
+| 수동 정렬 | M2 제외. 이름·ID 커서 정렬 |
+| 감사 로그 | M2는 구조화 로그만, `audit_log`는 M4 |
+| 재고 삭제 차단 | M3에서 `HierarchyDeleteGuard` 확장 |
+| 설명 길이 | 최대 2000자, OpenAPI `maxLength` |
 
 ## 1. 목적과 범위
 
@@ -438,3 +456,53 @@ Base path는 `/api/v1`이고 인증은 세션 쿠키, 상태 변경은 CSRF를 �
 - M6 검색은 M2의 위치 ID와 인덱스를 조인해 하위 위치 조건을 구성합니다.
 
 다음 마일스톤 범위는 [구현 로드맵](../implementation-roadmap.md)의 M3 항목을 따릅니다.
+
+
+## 13. M2 구현 결과와 편차
+
+### 13.1 구현 결과
+
+| 영역 | 결과 |
+|---|---|
+| 스키마 | `V4__hierarchy.sql`의 Room·Shelf·Box와 복합 FK, 부분 인덱스 |
+| 멱등성 | `V5__idempotency.sql`, `IdempotencyService`, POST 3종 `Idempotency-Key` |
+| 권한 | `Permission`(OWNER 포함), `AccessService`, `SpaceOwnership`, `GrantLookup`/`NoGrantLookup` |
+| API | Room·Shelf·Box 17개 엔드포인트, `shelfCount`·`boxCount`, 커서, 버전, 삭제 차단 |
+| 삭제 | `HierarchyDeleteGuard`가 하위 Shelf·Box를 검사하고 soft delete |
+| 화면 | `/space` 트리, Room·Shelf·Box 상세, 생성·수정·삭제·Shelf 이동 대화상자 |
+| 계약 | OpenAPI `OWNER`, `shelfCount`, `boxCount`, 목록 `nextCursor`, 설명 2000자 |
+| 테스트 | backend 50개, frontend 14개, E2E 6개 |
+
+### 13.2 계획과 다른 점
+
+| 계획 | 실제 | 이유 |
+|---|---|---|
+| `GrantLookup` fake로 상속 테스트 | `NoGrantLookup` 포트만 구현 | M2는 Grant 테이블이 없고 M4에서 실제 구현을 연결 |
+| `Problem.meta` 삭제 차단 개수 | `LOCATION_NOT_EMPTY` 코드와 메시지 | M2 응답 스키마를 늘리지 않고 M3에서 재고 개수와 함께 추가 |
+| 멱등성 필터 | 컨트롤러가 `IdempotencyService` 호출 | 3개 POST에만 적용해 필터 순서 의존을 피함 |
+| 별도 동시성·FK·계약 테스트 파일 | `HierarchyIntegrationTest` 4개로 통합 | M2 범위에서 실제 SQL·교차 Space·페이지·멱등성을 한 흐름으로 검증 |
+| 구조화 로그 duration·resource 필드 | MDC `user_id`·`space_id`와 기존 요청 로그 | 관측 필드 확장은 M4 감사 로그와 함께 |
+| Box 이동 UI | 백엔드 `PATCH /boxes/{id}/parent`만 제공 | 트리에서 Box 이동 선택 UI는 M3 재고 이동 화면과 함께 |
+| Shelf 상세 생성·수정 버튼 | 트리에서 수행, 상세는 조회·이동 중심 | M2 화면 범위를 트리 중심으로 고정 |
+
+### 13.3 M3 전 보완
+
+- `HierarchyDeleteGuard.assertBoxEmpty`에 inventory count를 추가합니다.
+- Room·Shelf 응답에 `inventoryCount`를 추가합니다.
+- 삭제 차단 `Problem.meta.count`를 추가합니다.
+- Box 이동 UI와 상세 액션을 재고 화면과 함께 연결합니다.
+- 구조화 로그에 `resource_type`, `resource_id`, `operation`, `result`, `duration_ms`를 추가합니다.
+
+
+## 14. M2 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 50개 테스트 |
+| `pnpm lint`, `pnpm format:check`, `pnpm test` | 통과, 14개 테스트 |
+| `pnpm build` | 통과 |
+| `pnpm test:e2e` | 데스크톱·모바일 6개 통과 |
+| `bash scripts/docs_generate.sh all` | OpenAPI 18 paths, 데이터 사전 12 tables, 이벤트 0 channels |
+| `python3 scripts/docs_check.py` | 통과, 41개 문서 |
+| 로컬 마이그레이션 | V4·V5 적용, Room·Shelf·Box·idempotency_record 생성 확인 |
+| 계약 | `OWNER`, `shelfCount`, `boxCount`, 목록 `nextCursor`, 설명 2000자 반영 |

@@ -14,7 +14,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * M1 계약 미리보기용 테스트입니다.
+ * M1·M2 계약 미리보기용 테스트입니다.
  *
  * 일반 test task에서는 제외되고 `./gradlew :backend:generateOpenApiPreview`에서만 실행됩니다.
  * 결과는 docs/generated를 덮어쓰지 않고 루트 build/contracts에 기록합니다.

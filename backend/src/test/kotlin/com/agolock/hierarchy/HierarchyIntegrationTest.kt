@@ -1,0 +1,143 @@
+package com.agolock.hierarchy
+
+import com.agolock.support.AuthTestClient
+import com.agolock.support.TestcontainersConfiguration
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.context.annotation.Import
+import org.springframework.http.HttpStatus
+import org.springframework.test.context.ActiveProfiles
+import java.util.UUID
+
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = ["auth.signup.invite-required=false"],
+)
+@ActiveProfiles("test")
+@Import(TestcontainersConfiguration::class)
+class HierarchyIntegrationTest
+    @Autowired
+    constructor(
+        private val restTemplate: TestRestTemplate,
+        private val objectMapper: ObjectMapper,
+    ) {
+        private lateinit var client: AuthTestClient
+
+        @BeforeEach
+        fun setUp() {
+            client = AuthTestClient(restTemplate, objectMapper)
+            client.signup("hierarchy-${UUID.randomUUID()}@example.com", "password-1234", "지민")
+        }
+
+        @Test
+        fun `Room과 Shelf와 Box를 만들고 삭제 차단을 확인한다`() {
+            val room = createRoom("거실")
+            assertThat(room["name"].asText()).isEqualTo("거실")
+            assertThat(room["effectivePermission"].asText()).isEqualTo("OWNER")
+            assertThat(room["isShared"].asBoolean()).isFalse()
+            val roomId = room["id"].asText()
+
+            val shelf = json(client.post("/api/v1/rooms/$roomId/shelves", mapOf("name" to "책장")).body)
+            val shelfId = shelf["id"].asText()
+            val box = json(client.post("/api/v1/shelves/$shelfId/boxes", mapOf("name" to "파란 박스")).body)
+            val boxId = box["id"].asText()
+
+            val roomDetail = json(client.get("/api/v1/rooms/$roomId").body)
+            assertThat(roomDetail["shelfCount"].asInt()).isEqualTo(1)
+            val shelfDetail = json(client.get("/api/v1/shelves/$shelfId").body)
+            assertThat(shelfDetail["boxCount"].asInt()).isEqualTo(1)
+
+            assertThat(client.delete("/api/v1/rooms/$roomId").statusCode).isEqualTo(HttpStatus.CONFLICT)
+            assertThat(client.delete("/api/v1/shelves/$shelfId").statusCode).isEqualTo(HttpStatus.CONFLICT)
+            assertThat(client.delete("/api/v1/boxes/$boxId").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            assertThat(client.delete("/api/v1/shelves/$shelfId").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            assertThat(client.delete("/api/v1/rooms/$roomId").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        }
+
+        @Test
+        fun `버전 충돌과 이동 no-op을 처리한다`() {
+            val room1 = createRoom("거실")
+            val room2 = createRoom("안방")
+            val roomId1 = room1["id"].asText()
+            val roomId2 = room2["id"].asText()
+            val shelf = json(client.post("/api/v1/rooms/$roomId1/shelves", mapOf("name" to "책장")).body)
+            val shelfId = shelf["id"].asText()
+
+            val updated = client.patch("/api/v1/rooms/$roomId1", mapOf("name" to "큰 거실", "version" to 0))
+            assertThat(updated.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(updated.body)["version"].asLong()).isEqualTo(1)
+            assertThat(client.patch("/api/v1/rooms/$roomId1", mapOf("name" to "다른 이름", "version" to 0)).statusCode)
+                .isEqualTo(HttpStatus.CONFLICT)
+
+            val moved = client.patch("/api/v1/shelves/$shelfId/parent", mapOf("roomId" to roomId2, "version" to 0))
+            assertThat(moved.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(moved.body)["roomId"].asText()).isEqualTo(roomId2)
+            assertThat(json(moved.body)["version"].asLong()).isEqualTo(1)
+
+            val noOp = client.patch("/api/v1/shelves/$shelfId/parent", mapOf("roomId" to roomId2, "version" to 1))
+            assertThat(noOp.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(noOp.body)["version"].asLong()).isEqualTo(1)
+        }
+
+        @Test
+        fun `커서 페이지네이션과 Idempotency-Key를 지원한다`() {
+            val first = createRoom("A Room", idempotencyKey = "create-a")
+            val firstReplay = createRoom("A Room", idempotencyKey = "create-a")
+            assertThat(firstReplay["id"].asText()).isEqualTo(first["id"].asText())
+            assertThat(
+                client
+                    .post(
+                        "/api/v1/rooms",
+                        mapOf("name" to "다른 이름"),
+                        mapOf("Idempotency-Key" to "create-a"),
+                    ).statusCode,
+            ).isEqualTo(HttpStatus.CONFLICT)
+
+            createRoom("B Room")
+            createRoom("C Room")
+            val page1 = json(client.get("/api/v1/rooms?limit=2").body)
+            assertThat(page1["items"].size()).isEqualTo(2)
+            val cursor = page1["nextCursor"].asText()
+            assertThat(cursor).isNotBlank()
+            val page2 = json(client.get("/api/v1/rooms?limit=2&cursor=$cursor").body)
+            assertThat(page2["items"].size()).isEqualTo(1)
+        }
+
+        @Test
+        fun `다른 Space의 리소스는 404로 숨긴다`() {
+            val room = createRoom("내 방")
+            val other = AuthTestClient(restTemplate, objectMapper)
+            other.signup("other-${UUID.randomUUID()}@example.com", "password-1234", "민지")
+            val otherRoom = json(other.post("/api/v1/rooms", mapOf("name" to "민지 방")).body)
+
+            assertThat(client.get("/api/v1/rooms/${otherRoom["id"].asText()}").statusCode)
+                .isEqualTo(HttpStatus.NOT_FOUND)
+            assertThat(
+                client
+                    .patch(
+                        "/api/v1/rooms/${otherRoom["id"].asText()}",
+                        mapOf("name" to "탈취", "version" to 0),
+                    ).statusCode,
+            ).isEqualTo(HttpStatus.NOT_FOUND)
+            assertThat(json(client.get("/api/v1/rooms/${room["id"].asText()}").body)["name"].asText())
+                .isEqualTo("내 방")
+        }
+
+        private fun createRoom(
+            name: String,
+            idempotencyKey: String? = null,
+        ): JsonNode {
+            val headers = if (idempotencyKey == null) emptyMap() else mapOf("Idempotency-Key" to idempotencyKey)
+            val response = client.post("/api/v1/rooms", mapOf("name" to name), headers)
+            assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
+            return json(response.body)
+        }
+
+        private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")
+    }

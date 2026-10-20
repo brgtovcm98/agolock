@@ -124,6 +124,7 @@ flowchart LR
 
 ### M2. 계층과 권한 기반
 
+> 상태: 핵심 구현 완료 (2026-10-21). M3 연결 전 보완 항목은 계획 13번 항목 참조.
 > 상세 계획: [PLAN-003-hierarchy-permissions](implementation/PLAN-003-hierarchy-permissions.md)
 
 범위:

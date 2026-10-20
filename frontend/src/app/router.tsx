@@ -9,6 +9,10 @@ import { ResetPasswordPage } from '@/features/auth/reset-password-page'
 import { SignupPage } from '@/features/auth/signup-page'
 import { DesignPreviewPage } from '@/features/design-preview/design-preview-page'
 import { NotFoundPage } from '@/features/errors/not-found-page'
+import { BoxDetailPage } from '@/features/hierarchy/box-detail-page'
+import { RoomDetailPage } from '@/features/hierarchy/room-detail-page'
+import { ShelfDetailPage } from '@/features/hierarchy/shelf-detail-page'
+import { SpaceTreePage } from '@/features/hierarchy/space-tree-page'
 import { HomePage } from '@/features/home/home-page'
 import { PlaceholderPage } from '@/features/placeholders/placeholder-page'
 import { SettingsPage } from '@/features/settings/settings-page'
@@ -60,16 +64,10 @@ export const appRoutes: RouteObject[] = [
     errorElement: <RouteError />,
     children: [
       { index: true, element: <HomePage /> },
-      {
-        path: 'space',
-        element: (
-          <PlaceholderPage
-            title="공간"
-            milestone="M2 · HIERARCHY"
-            description="Room, Shelf, Box 계층과 공유받은 공간을 탐색하는 화면입니다."
-          />
-        ),
-      },
+      { path: 'space', element: <SpaceTreePage /> },
+      { path: 'space/rooms/:roomId', element: <RoomDetailPage /> },
+      { path: 'space/shelves/:shelfId', element: <ShelfDetailPage /> },
+      { path: 'space/boxes/:boxId', element: <BoxDetailPage /> },
       {
         path: 'inventory',
         element: (

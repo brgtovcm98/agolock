@@ -101,3 +101,52 @@ test('디자인 미리보기는 공개 라우트에서 열린다', async ({ page
   await page.getByRole('button', { name: /재고 상세/ }).click()
   await expect(page.getByText('같은 물건 재고 3개 중 1번')).toBeVisible()
 })
+
+test('공간 트리에서 Room을 표시한다', async ({ page }) => {
+  await page.route('**/api/v1/auth/me', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(authMe),
+    }),
+  )
+  await page.route('**/api/v1/auth/config', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        inviteRequired: false,
+        passwordMinLength: 10,
+        passwordMaxLength: 128,
+      }),
+    }),
+  )
+  await page.route('**/api/v1/rooms**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [
+          {
+            id: '018f0000-0000-7000-8000-000000000010',
+            name: '거실',
+            description: null,
+            shelfCount: 1,
+            version: 0,
+            effectivePermission: 'OWNER',
+            isShared: false,
+            createdAt: '2026-10-21T00:00:00Z',
+            updatedAt: '2026-10-21T00:00:00Z',
+          },
+        ],
+        nextCursor: null,
+      }),
+    }),
+  )
+
+  await page.goto('/space')
+
+  await expect(page.getByRole('heading', { name: '공간 지도' })).toBeVisible()
+  await expect(page.getByRole('link', { name: '거실' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Room 추가' })).toBeVisible()
+})

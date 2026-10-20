@@ -9,10 +9,11 @@
 
 ## 현재 상태
 
-- M0 기반 부트스트랩과 M1 Identity·Space를 구현했습니다.
+- M0 기반 부트스트랩, M1 Identity·Space, M2 계층·권한 기반을 구현했습니다.
 - 로컬 인프라, Spring Boot 백엔드, React 프론트엔드, E안 디자인 시스템, 계약 생성기, 문서 검사, CI가 있습니다.
 - M1 가입·로그인·세션·CSRF·초대코드·비밀번호 재설정·설정 화면이 동작합니다.
-- Room·Shelf·Box 계층과 Item·Inventory는 M2·M3에서 구현합니다.
+- M2 Room·Shelf·Box CRUD·이동·삭제 차단, 커서 페이지네이션, Idempotency-Key, 공간 트리가 동작합니다.
+- Item·Inventory는 M3에서 구현합니다.
 - 제품 기준 문서는 [docs/product-spec.md](docs/product-spec.md)입니다.
 - AI 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다.
 
@@ -218,10 +219,10 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 
 ## 다음 단계
 
-M2에서 다음을 구현합니다.
+M3에서 다음을 구현합니다.
 
-- `room`, `shelf`, `box`와 복합 FK
-- `AccessService` 유효 권한 기반과 `effectivePermission`, `isShared`
-- 계층 CRUD, 부모 이동, 삭제 차단, soft delete
-- 공간 트리·상세 화면과 권한별 UI
-- M2 계약·데이터 사전 미리보기와 테스트
+- `item`, `category`, `inventory`와 상태·수량
+- Inventory 위치·상태·카테고리 변경과 이동 이력
+- Item·Inventory CRUD와 검색·필터 기반
+- `HierarchyDeleteGuard`에 재고 존재 검사 추가
+- 재고 목록·상세 화면과 M3 계약·테스트
