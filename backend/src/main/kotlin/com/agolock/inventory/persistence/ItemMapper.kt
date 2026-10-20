@@ -75,6 +75,16 @@ interface ItemMapper {
         @Param("updatedAt") updatedAt: OffsetDateTime,
     ): Int
 
+    @Update(
+        "UPDATE item SET category_id = #{targetId}, updated_at = #{now} WHERE category_id = #{sourceId} AND space_id = #{spaceId} AND deleted_at IS NULL",
+    )
+    fun reassignCategory(
+        @Param("spaceId") spaceId: UUID,
+        @Param("sourceId") sourceId: UUID,
+        @Param("targetId") targetId: UUID,
+        @Param("now") now: OffsetDateTime,
+    ): Int
+
     @Update("UPDATE item SET deleted_at = #{now}, updated_at = #{now} WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL")
     fun softDelete(
         @Param("spaceId") spaceId: UUID,

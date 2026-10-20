@@ -60,6 +60,17 @@ class CategoryController(
             .update(Actor.from(principal), categoryId, UpdateCategoryCommand(request.name, request.color, request.sortOrder))
             .toResponse()
 
+    @PostMapping("/{categoryId}/merge")
+    @Operation(operationId = "mergeCategory", summary = "Category 병합")
+    fun merge(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable categoryId: UUID,
+        @Valid @RequestBody request: MergeCategoryRequest,
+    ): ResponseEntity<Void> {
+        categoryService.merge(Actor.from(principal), categoryId, request.targetCategoryId!!)
+        return ResponseEntity.noContent().build()
+    }
+
     @DeleteMapping("/{categoryId}")
     @Operation(operationId = "deleteCategory", summary = "Category 삭제")
     fun delete(

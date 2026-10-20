@@ -137,6 +137,16 @@ interface InventoryMapper {
     ): Int
 
     @Update(
+        "UPDATE inventory SET category_id_override = #{targetId}, updated_at = #{now} WHERE category_id_override = #{sourceId} AND space_id = #{spaceId} AND deleted_at IS NULL",
+    )
+    fun reassignCategoryOverride(
+        @Param("spaceId") spaceId: UUID,
+        @Param("sourceId") sourceId: UUID,
+        @Param("targetId") targetId: UUID,
+        @Param("now") now: OffsetDateTime,
+    ): Int
+
+    @Update(
         "UPDATE inventory SET deleted_at = #{now}, updated_at = #{now} WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL",
     )
     fun softDelete(

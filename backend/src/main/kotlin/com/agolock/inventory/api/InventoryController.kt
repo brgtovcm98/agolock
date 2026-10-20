@@ -109,6 +109,13 @@ class InventoryController(
         return ResponseEntity.noContent().build()
     }
 
+    @GetMapping("/{inventoryId}/move-targets")
+    @Operation(operationId = "listMoveTargets", summary = "이동 가능한 위치")
+    fun moveTargets(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable inventoryId: UUID,
+    ): LocationListResponse = LocationListResponse(inventoryService.moveTargets(Actor.from(principal), inventoryId))
+
     @GetMapping("/{inventoryId}/movements")
     @Operation(operationId = "listInventoryMovements", summary = "Inventory 이동 이력")
     fun movements(

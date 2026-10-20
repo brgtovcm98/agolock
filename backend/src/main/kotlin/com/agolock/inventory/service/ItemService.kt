@@ -1,4 +1,4 @@
-@file:Suppress("ThrowsCount", "MagicNumber", "ComplexCondition")
+@file:Suppress("ThrowsCount", "MagicNumber", "ComplexCondition", "TooManyFunctions")
 
 package com.agolock.inventory.service
 
@@ -40,6 +40,23 @@ class ItemService(
     ): Item {
         accessService.requireOwner(actor, actor.spaceId)
         return requireItem(actor, itemId)
+    }
+
+    fun updateImpact(
+        actor: Actor,
+        itemId: UUID,
+    ): Pair<Int, Int> {
+        accessService.requireOwner(actor, actor.spaceId)
+        requireItem(actor, itemId)
+        val inventories = inventoryMapper.listByItem(actor.spaceId, itemId)
+        val protectedCount =
+            inventories.count {
+                it.nameOverride != null ||
+                    it.descriptionOverride != null ||
+                    it.categoryIdOverride != null ||
+                    it.priceAmountOverride != null
+            }
+        return inventories.size to protectedCount
     }
 
     @Transactional

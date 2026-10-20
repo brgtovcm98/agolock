@@ -576,7 +576,7 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 | 감사 | Share/Invitation 생성·수락·거절·철회·권한 변경 감사 기록 |
 | Outbox | 초대 생성 시 `notification.requested` 적재 |
 | 화면 | `/sharing`에서 Room 초대·수락·거절·권한 변경·철회 |
-| 검증 | backend 62, frontend 17, E2E 6, docs 41 |
+| 검증 | backend 63, frontend 17, E2E 6, docs 41 |
 
 ### 14.1 후속 보완
 
@@ -584,4 +584,3 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 - 기존 목록 API의 공유 항목 노출(`/shared`는 별도 경로)
 - 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key
 - 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key
-- M3 Category 병합·수정 영향 API·move-targets

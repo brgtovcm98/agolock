@@ -78,6 +78,10 @@ class InventoryIntegrationTest
                         ).body,
                 )
             val inventoryId = createdInventory["id"].asText()
+            val impact = json(client.get("/api/v1/items/${item["id"].asText()}/update-impact").body)
+            assertThat(impact["affectedInventoryCount"].asInt()).isEqualTo(1)
+            val targets = json(client.get("/api/v1/inventories/$inventoryId/move-targets").body)
+            assertThat(targets["items"].size()).isGreaterThanOrEqualTo(2)
             assertThat(createdInventory["displayName"].asText()).isEqualTo("책")
             assertThat(createdInventory["status"].asText()).isEqualTo("STORED")
             assertThat(createdInventory["location"]["type"].asText()).isEqualTo("ROOM")
@@ -114,6 +118,33 @@ class InventoryIntegrationTest
                 .isEqualTo(HttpStatus.CONFLICT)
             assertThat(client.delete("/api/v1/inventories/$inventoryId").statusCode)
                 .isEqualTo(HttpStatus.NO_CONTENT)
+        }
+
+        @Test
+        fun `카테고리를 병합하면 Item과 Inventory override가 대상으로 이동한다`() {
+            val sourceResponse = client.post("/api/v1/categories", mapOf("name" to "원본"))
+            assertThat(sourceResponse.statusCode).isEqualTo(HttpStatus.CREATED)
+            val source = json(sourceResponse.body)
+            val targetResponse = client.post("/api/v1/categories", mapOf("name" to "대상"))
+            assertThat(targetResponse.statusCode).isEqualTo(HttpStatus.CREATED)
+            val target = json(targetResponse.body)
+            val itemResponse =
+                client.post(
+                    "/api/v1/items",
+                    mapOf("name" to "병합 Item", "categoryId" to source["id"].asText()),
+                )
+            assertThat(itemResponse.statusCode).isEqualTo(HttpStatus.CREATED)
+            val item = json(itemResponse.body)
+            assertThat(item["categoryId"].asText()).isEqualTo(source["id"].asText())
+            val merged =
+                client.post(
+                    "/api/v1/categories/${source["id"].asText()}/merge",
+                    mapOf("targetCategoryId" to target["id"].asText()),
+                )
+            assertThat(merged.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            val afterMerge = client.get("/api/v1/items/${item["id"].asText()}")
+            assertThat(afterMerge.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(afterMerge.body)["categoryId"].asText()).isEqualTo(target["id"].asText())
         }
 
         @Test

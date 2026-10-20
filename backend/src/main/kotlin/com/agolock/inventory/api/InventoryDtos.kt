@@ -147,3 +147,22 @@ fun InventoryMovement.toResponse(locationLoader: (UUID?, UUID?, UUID?) -> Invent
         to = locationLoader(toRoomId, toShelfId, toBoxId),
         movedAt = movedAt,
     )
+
+data class LocationItemResponse(
+    val type: String,
+    val id: UUID,
+    val path: String,
+)
+
+data class LocationListResponse(
+    val items: List<LocationItemResponse>,
+)
+
+data class MergeCategoryRequest(
+    @field:NotNull val targetCategoryId: UUID? = null,
+)
+
+data class ItemUpdateImpactResponse(
+    val affectedInventoryCount: Int,
+    val protectedByOverrideCount: Int,
+)

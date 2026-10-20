@@ -93,6 +93,16 @@ class ItemController(
         return ResponseEntity.noContent().build()
     }
 
+    @GetMapping("/{itemId}/update-impact")
+    @Operation(operationId = "getItemUpdateImpact", summary = "Item 수정 영향 범위")
+    fun updateImpact(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable itemId: UUID,
+    ): ItemUpdateImpactResponse {
+        val (affected, protectedCount) = itemService.updateImpact(Actor.from(principal), itemId)
+        return ItemUpdateImpactResponse(affected, protectedCount)
+    }
+
     @GetMapping("/{itemId}/inventories")
     @Operation(operationId = "listItemInventories", summary = "Item의 Inventory 목록")
     fun inventories(

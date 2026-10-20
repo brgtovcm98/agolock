@@ -57,7 +57,7 @@ class AuthTestClient(
                 String::class.java,
             )
         captureCookies(response.headers)
-        if (response.statusCode == HttpStatus.NO_CONTENT) {
+        if (path == "/api/v1/auth/logout" && response.statusCode == HttpStatus.NO_CONTENT) {
             sessionCookie = null
         }
         return response

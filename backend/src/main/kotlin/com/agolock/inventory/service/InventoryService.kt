@@ -7,6 +7,7 @@
     "CyclomaticComplexMethod",
     "ComplexCondition",
     "UnusedParameter",
+    "NestedBlockDepth",
 )
 
 package com.agolock.inventory.service
@@ -245,6 +246,40 @@ class InventoryService(
         val target = inventoryTarget(inventory)
         accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.MANAGE)
         inventoryMapper.softDelete(inventory.spaceId, inventoryId, OffsetDateTime.now(clock))
+    }
+
+    fun moveTargets(
+        actor: Actor,
+        inventoryId: UUID,
+    ): List<com.agolock.inventory.api.LocationItemResponse> {
+        val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
+        accessService.require(actor, inventoryTarget(inventory), com.agolock.hierarchy.domain.Permission.MANAGE)
+        val result = mutableListOf<com.agolock.inventory.api.LocationItemResponse>()
+        roomMapper.list(inventory.spaceId, null, null, 100).forEach { room ->
+            val roomTarget = accessService.target(inventory.spaceId, roomId = room.id)
+            if (accessService.effectivePermission(actor, roomTarget).atLeast(com.agolock.hierarchy.domain.Permission.MANAGE)) {
+                result +=
+                    com.agolock.inventory.api
+                        .LocationItemResponse("ROOM", room.id, room.name)
+            }
+            shelfMapper.listByRoom(inventory.spaceId, room.id, null, null, 100).forEach { shelf ->
+                val shelfTarget = accessService.target(inventory.spaceId, room.id, shelf.id)
+                if (accessService.effectivePermission(actor, shelfTarget).atLeast(com.agolock.hierarchy.domain.Permission.MANAGE)) {
+                    result +=
+                        com.agolock.inventory.api
+                            .LocationItemResponse("SHELF", shelf.id, "${room.name} > ${shelf.name}")
+                }
+                boxMapper.listByShelf(inventory.spaceId, shelf.id, null, null, 100).forEach { box ->
+                    val boxTarget = accessService.target(inventory.spaceId, room.id, shelf.id, box.id)
+                    if (accessService.effectivePermission(actor, boxTarget).atLeast(com.agolock.hierarchy.domain.Permission.MANAGE)) {
+                        result +=
+                            com.agolock.inventory.api
+                                .LocationItemResponse("BOX", box.id, "${room.name} > ${shelf.name} > ${box.name}")
+                    }
+                }
+            }
+        }
+        return result
     }
 
     fun movements(
