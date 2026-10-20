@@ -4,6 +4,13 @@ import com.agolock.hierarchy.domain.Box
 import com.agolock.hierarchy.domain.Permission
 import com.agolock.hierarchy.domain.Room
 import com.agolock.hierarchy.domain.Shelf
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
@@ -18,14 +25,48 @@ data class CreateNodeRequest(
     val description: String? = null,
 )
 
-data class UpdateNodeRequest(
+@JsonDeserialize(using = UpdateNodeRequestDeserializer::class)
+class UpdateNodeRequest {
     @field:Size(min = 1, max = 120)
-    val name: String? = null,
+    var name: String? = null
+
     @field:Size(max = 2000)
-    val description: String? = null,
+    var description: String? = null
+        private set
+
     @field:NotNull
-    val version: Long,
-)
+    var version: Long? = null
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var descriptionPresent: Boolean = false
+        private set
+
+    fun applyDescription(value: String?) {
+        description = value
+        descriptionPresent = true
+    }
+}
+
+class UpdateNodeRequestDeserializer : StdDeserializer<UpdateNodeRequest>(UpdateNodeRequest::class.java) {
+    override fun deserialize(
+        parser: JsonParser,
+        context: DeserializationContext,
+    ): UpdateNodeRequest {
+        val node = parser.readValueAsTree<JsonNode>()
+        val request = UpdateNodeRequest()
+        node
+            .get("name")
+            ?.takeUnless(JsonNode::isNull)
+            ?.asText()
+            ?.let { request.name = it }
+        if (node.has("description")) {
+            request.applyDescription(node.get("description").takeUnless(JsonNode::isNull)?.asText())
+        }
+        request.version = node.get("version")?.takeUnless(JsonNode::isNull)?.asLong()
+        return request
+    }
+}
 
 data class MoveShelfRequest(
     @field:NotNull

@@ -23,14 +23,18 @@ class SessionService(
     private val jdbcTemplateProvider: ObjectProvider<JdbcTemplate>,
     private val authProperties: AuthProperties,
 ) {
+    private val sessionLock = Any()
+
     fun establish(
         authResult: AuthResult,
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        request.getSession(true)
-        request.changeSessionId()
-        trimOldSessions(authResult.user.id, request.getSession().id)
+        val session = request.getSession(true)
+        synchronized(sessionLock) {
+            trimOldSessions(authResult.user.id, session.id)
+            request.changeSessionId()
+        }
 
         val principal = AppUserPrincipal.from(authResult)
         val authentication =
@@ -67,7 +71,13 @@ class SessionService(
                     repository.findByPrincipalName(userId.toString()).keys.toList()
                 }
 
-            val overflow = sessionIds.size - authProperties.session.max + 1
+            val currentIsPersisted = currentSessionId in sessionIds
+            val overflow =
+                if (currentIsPersisted) {
+                    sessionIds.size - authProperties.session.max
+                } else {
+                    sessionIds.size - authProperties.session.max + 1
+                }
             if (overflow > 0) {
                 sessionIds
                     .filter { it != currentSessionId }

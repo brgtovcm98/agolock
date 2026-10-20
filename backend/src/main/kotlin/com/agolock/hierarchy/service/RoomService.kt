@@ -89,7 +89,12 @@ class RoomService(
                 spaceId = actor.spaceId,
                 id = roomId,
                 name = command.name?.let(::normalizedName) ?: current.name,
-                description = command.description,
+                description =
+                    if (command.descriptionPresent) {
+                        normalizedDescription(command.description)
+                    } else {
+                        current.description
+                    },
                 version = command.version,
                 updatedAt = OffsetDateTime.now(clock),
             )
@@ -103,7 +108,7 @@ class RoomService(
         roomId: UUID,
     ) {
         accessService.requireOwner(actor, actor.spaceId)
-        requireRoom(actor, roomId)
+        requireRoomForUpdate(actor, roomId)
         deleteGuard.assertRoomEmpty(actor.spaceId, roomId)
         roomMapper.softDelete(actor.spaceId, roomId, OffsetDateTime.now(clock))
     }
@@ -113,6 +118,17 @@ class RoomService(
         roomId: UUID,
     ): Room =
         roomMapper.findById(actor.spaceId, roomId)
+            ?: throw ApiException(
+                code = "RESOURCE_NOT_FOUND",
+                status = HttpStatus.NOT_FOUND,
+                message = "Room을 찾을 수 없습니다.",
+            )
+
+    private fun requireRoomForUpdate(
+        actor: Actor,
+        roomId: UUID,
+    ): Room =
+        roomMapper.findByIdForUpdate(actor.spaceId, roomId)
             ?: throw ApiException(
                 code = "RESOURCE_NOT_FOUND",
                 status = HttpStatus.NOT_FOUND,

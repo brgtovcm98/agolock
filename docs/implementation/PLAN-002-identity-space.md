@@ -49,7 +49,7 @@ M0는 커밋 `49e6a1a` 기준으로 완료되어 있습니다. 착수 전에 `do
 | [application-contract.yml](../../backend/src/main/resources/application-contract.yml) | DB 제외 contract 프로필을 Testcontainers 기반 `test` 프로필로 대체 |
 | [OpenApiExportTest.kt](../../backend/src/test/kotlin/com/agolock/contract/OpenApiExportTest.kt) | `@ActiveProfiles("test")`와 `TestcontainersConfiguration` 사용 |
 | [client.ts](../../frontend/src/shared/api/client.ts), [router.tsx](../../frontend/src/app/router.tsx), [app-shell.tsx](../../frontend/src/app/app-shell.tsx) | `/api/v1` base, CSRF·401 처리, 공개·보호 라우트, 실제 세션 데이터 연결 |
-| [docs_generate.sh](../../scripts/docs_generate.sh) | `publish` 모드 추가, `docs/generated/` 기록 전환 |
+| [docs_generate.sh](../../scripts/docs_generate.sh) | `all` 미리보기 생성 유지, 기록 전환은 M4/M8 |
 
 - 의존성은 Spring Session JDBC, Spring Mail, Thymeleaf, BouncyCastle(Argon2id), GreenMail(테스트)을 추가합니다. 버전은 [libs.versions.toml](../../gradle/libs.versions.toml)과 Spring Boot BOM을 따릅니다.
 - Spring Session DDL은 의존성 jar의 `org/springframework/session/jdbc/schema-postgresql.sql`을 확인해 그대로 사용합니다.
@@ -197,7 +197,7 @@ M0는 커밋 `49e6a1a` 기준으로 완료되어 있습니다. 착수 전에 `do
 
 ## 5. API 계약
 
-최종 OpenAPI는 M1 전까지 [docs/generated/openapi.yaml](../generated/openapi.yaml) 설계 초안이고, M1에서 컨트롤러와 테이블이 생기면 [ADR-015](../decisions/ADR-015-contract-preview-mode.md)에 따라 기록 모드로 전환합니다. 엔드포인트 규칙의 단일 원본은 [contracts.md](../contracts.md) 5.1입니다.
+최종 OpenAPI는 [docs/generated/openapi.yaml](../generated/openapi.yaml) 설계 초안입니다. 확정에 따라 M1·M2에서도 `build/contracts/` 미리보기만 생성하고, [ADR-015](../decisions/ADR-015-contract-preview-mode.md)의 기록 모드 전환은 M4/M8로 미룹니다. 엔드포인트 규칙의 단일 원본은 [contracts.md](../contracts.md) 5.1입니다.
 
 | Method·Path | 인증·CSRF | 요청 | 성공 응답 | 주요 오류 |
 |---|---|---|---|---|
@@ -298,7 +298,7 @@ M0는 커밋 `49e6a1a` 기준으로 완료되어 있습니다. 착수 전에 `do
 7. **비밀번호 재설정**: `PasswordResetService`, `MailPort`, `SmtpMailAdapter`, Thymeleaf 템플릿, API 2종. 검증: `./gradlew :backend:test --tests '*PasswordResetIntegrationTest' --tests '*MailDeliveryIntegrationTest'`.
 8. **Space·프로필**: `SpaceService`, `SpaceController`, `ProfileService`, `PATCH /auth/me`, `PATCH /spaces/{spaceId}`. 검증: `./gradlew :backend:test --tests '*SpaceSettingsIntegrationTest'`.
 9. **레이트리밋·관측**: `InMemoryRateLimiter`를 로그인·가입·재설정에 연결, `AuthenticatedRequestContextFilter`로 `user_id`·`space_id` MDC, Micrometer 카운터. 검증: `./gradlew :backend:test --tests '*RateLimitIntegrationTest' --tests '*AuthLoggingIntegrationTest'`.
-10. **계약 기록 모드**: springdoc annotation·customizer로 operationId·CSRF 파라미터 일치. `OpenApiExportTest`를 Testcontainers `test` 프로필로 변경, `docs_generate.sh publish`·`normalize_openapi.py --mode publish`·`generate_data_dictionary.py --mode publish` 추가. 검증: `bash scripts/docs_generate.sh publish && python3 scripts/docs_check.py && pnpm generate:api`.
+10. **계약 미리보기**: springdoc annotation으로 operationId를 맞추고 `OpenApiExportTest`를 Testcontainers `test` 프로필로 실행합니다. `docs_generate.sh all`은 `build/contracts/`만 갱신하고 기록 모드 전환은 M4/M8에서 판단합니다. 검증: `bash scripts/docs_generate.sh all && python3 scripts/docs_check.py && pnpm generate:api`.
 11. **프론트엔드 기반**: `client.ts` CSRF·401, `auth-provider.tsx`, `protected-route.tsx`, `auth-layout.tsx`, `text-field.tsx`, `form-field.tsx`, `alert.tsx`, `toast.tsx`, `radio-group.tsx`, `auth.ts`. 검증: `pnpm test -- --run src/features/auth && pnpm lint`.
 12. **화면·마무리**: `login-page.tsx`, `signup-page.tsx`, `reset-password-page.tsx`, `reset-password-confirm-page.tsx`, `settings-page.tsx`, 홈·AppShell 실제 데이터, 라우터 교체. Playwright 인증 흐름, CI diff, `docs/contracts.md` 7번 항목·`docs/index.yaml` 갱신. 검증: `pnpm test && pnpm build && pnpm test:e2e && python3 scripts/docs_check.py`.
 
@@ -387,8 +387,8 @@ M0는 커밋 `49e6a1a` 기준으로 완료되어 있습니다. 착수 전에 `do
 ### 9.3 마이그레이션과 계약
 
 - 배포 순서는 V2~V3 적용, 새 애플리케이션 배포, 헬스 체크, 가입·로그인 스모크입니다. 마이그레이션은 additive이므로 이전 애플리케이션도 기동할 수 있습니다.
-- M1에서 `docs/generated/openapi.yaml`과 `docs/generated/data-dictionary.md`를 생성 기록 모드로 전환합니다. 생성 헤더를 “생성 문서”로 바꾸고 [docs_check.py](../../scripts/docs_check.py)가 이를 허용하도록 수정합니다.
-- `docs_generate.sh publish`는 `build/contracts/`가 아니라 `docs/generated/`에 기록합니다. `pnpm generate:api`는 갱신된 OpenAPI에서 타입을 다시 만듭니다.
+- M1·M2에서는 `docs/generated/`를 덮어쓰지 않고 `build/contracts/` 미리보기만 생성합니다. 기록 모드 전환은 M4/M8에서 다시 판단합니다.
+- `docs_generate.sh all`은 미리보기만 갱신하고, `pnpm generate:api`는 설계 초안에서 타입을 만듭니다.
 - [ADR-015](../decisions/ADR-015-contract-preview-mode.md)의 M1 전환 조건을 이행하고 전환 날짜·명령을 ADR에 기록합니다. [ADR-014](../decisions/ADR-014-generated-docs-draft.md)의 “직접 수정 금지”가 다시 적용됩니다.
 - [docs/index.yaml](../index.yaml)의 PLAN-002 등록과 `last_verified_commit` 갱신은 이 문서 작성 범위에서 하지 않습니다.
 
@@ -442,7 +442,7 @@ python3 scripts/docs_check.py
 | 오류 색상 토큰 | 확인 필요 | `--danger` 역할 토큰 추가와 WCAG AA 검증. 미승인 시 색 없이 텍스트·아이콘으로 표시 |
 | 동시 세션 초과 정책 | 확인 필요 | 가장 오래된 세션 만료(`maxSessionsPreventsLogin=false`) 권장. 새 로그인 차단을 원하면 값만 변경 |
 | 기본 Space 이름 | 결정 | `"{displayName}의 Space"`, 120자 제한. 첫 로그인 후 설정에서 변경 안내 |
-| M1 계약 전환 시점 | 결정 | 컨트롤러·마이그레이션 완료 후 `publish` 모드로 `docs/generated/` 갱신. 그 전까지 초안 유지 |
+| M1 계약 전환 시점 | 확정 | M1·M2는 미리보기 유지, M4/M8에서 기록 모드 재판단 |
 
 - `AuthPrincipal` 필드가 늘어나면 `serialVersionUID`를 유지하고, 배포 시 세션을 강제 만료할지 결정해야 합니다. M1은 배포 전 세션 테이블을 비우는 것을 권장합니다.
 - 메일 본문 링크는 `PUBLIC_BASE_URL`을 사용합니다. 잘못된 값은 재설정 불가로 이어지므로 non-local에서 HTTPS를 검증합니다.
@@ -459,7 +459,7 @@ M2는 Room·Shelf·Box 계층, 이동, `effectivePermission`을 다룹니다. �
 | `SignupService`·`LoginService`·`SpaceService` 분리 | `AuthService` 단일 서비스 + `SessionService` | M1 범위가 작고 트랜잭션 경계가 단순해 중복 분리를 피함 |
 | `AuthPrincipal` | `AppUserPrincipal` (`Serializable`, username=userId) | 세션 직렬화와 `principal_name` 인덱스 안정성 |
 | Thymeleaf 메일 템플릿 | `SmtpMailPort` HTML·텍스트 문자열 | 의존성과 템플릿 로딩을 줄이고 Mailpit으로 검증 |
-| `docs_generate.sh publish` | 미리보기 유지 | M2~M8 계약 초안 보존 |
+| `docs_generate.sh all` | 미리보기 유지 | M2~M8 계약 초안 보존 |
 | GreenMail 통합 | `FakeMailPort` + Mailpit 수동 확인 | M1 테스트 속도와 SMTP 의존 최소화 |
 | `application-contract.yml` | `test` 프로필 + Testcontainers | 인증 컨트롤러가 있는 실제 컨텍스트 OpenAPI 생성 |
 
@@ -468,8 +468,8 @@ M2는 Room·Shelf·Box 계층, 이동, `effectivePermission`을 다룹니다. �
 
 | 검증 | 결과 |
 |---|---|
-| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 42개 테스트 |
-| `pnpm lint`, `pnpm format:check`, `pnpm test` | 통과, 14개 테스트 |
+| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 55개 테스트 (M2 포함) |
+| `pnpm lint`, `pnpm format:check`, `pnpm test` | 통과, 15개 테스트 |
 | `pnpm build` | 통과 |
 | `pnpm test:e2e` | 데스크톱·모바일 4개 통과 |
 | `bash scripts/docs_generate.sh all` | OpenAPI 10 paths, 데이터 사전 8 tables, 이벤트 0 channels |
@@ -479,3 +479,17 @@ M2는 Room·Shelf·Box 계층, 이동, `effectivePermission`을 다룹니다. �
 | 보안 | CSRF 403, 세션 회전, 전체 세션 무효화, 최대 5세션, 422 초대·토큰 오류 확인 |
 
 M1 계약은 미리보기 모드로 검증했고, `docs/generated/`의 M2~M8 설계 초안은 보존했습니다.
+
+
+## 15. 코드리뷰 후 하드닝
+
+| 항목 | 변경 |
+|---|---|
+| 클라이언트 IP | `X-Forwarded-For` 직접 신뢰를 제거하고 `request.remoteAddr`을 사용. 신뢰 프록시에서만 `FORWARD_HEADERS_STRATEGY=framework` 사용 |
+| 세션 cap | 현재 세션이 DB에 저장되어 있는지 구분해 trim하고, 단일 인스턴스에서 로그인을 직렬화 |
+| 로그인 해시 | 로그인 검증을 DB 트랜잭션 밖에서 수행 |
+| 캐시 | 로그아웃·401·새 로그인 시 React Query 캐시를 비움. 로그아웃 실패는 화면에 표시하고 세션을 유지 |
+| CSRF/SMTP | CSRF cookie Secure를 설정과 연동하고, SMTP timeout 3초·`MAIL_FROM` 바인딩·TLS/auth 환경 설정 추가 |
+| 오류 매핑 | 잘못된 UUID/query는 400, Content-Type은 415, method는 405로 반환 |
+| 브라우저 오류 | 세션 확인 5xx를 로그인 화면으로 오인하지 않고 retry 화면 표시, 만료된 재설정 토큰은 재요청 화면으로 전환 |
+| 검증 | backend 55, frontend 15, E2E 6, docs 41 통과 |

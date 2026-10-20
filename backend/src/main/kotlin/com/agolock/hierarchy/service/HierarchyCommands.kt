@@ -9,6 +9,7 @@ data class UpdateNodeCommand(
     val name: String?,
     val description: String?,
     val version: Long,
+    val descriptionPresent: Boolean = false,
 )
 
 data class MoveShelfCommand(

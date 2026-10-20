@@ -14,7 +14,7 @@ class OpenApiConfig {
             .info(
                 Info()
                     .title("AGO Lock API")
-                    .version("0.1.0")
-                    .description("M1 Identity·Space API입니다. 도메인 API는 M2부터 추가됩니다."),
+                    .version("0.3.0")
+                    .description("M1 Identity·Space와 M2 계층 API입니다. 전체 도메인 계약은 docs/generated/openapi.yaml을 따릅니다."),
             ).servers(listOf(Server().url("/").description("Application root")))
 }

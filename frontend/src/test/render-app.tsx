@@ -31,7 +31,10 @@ export function renderApp(
   const authenticated = options.authenticated ?? true
   queryClient.setQueryData(['auth', 'me'], authenticated ? (options.auth ?? testAuth) : null)
   queryClient.setQueryData(['auth', 'config'], options.config ?? testAuthConfig)
-  queryClient.setQueryData(['hierarchy', 'rooms'], { items: [], nextCursor: null })
+  queryClient.setQueryData(['hierarchy', 'rooms', 'tree'], {
+    pages: [{ items: [], nextCursor: null }],
+    pageParams: [undefined],
+  })
 
   const router = createMemoryRouter(appRoutes, { initialEntries })
   return render(

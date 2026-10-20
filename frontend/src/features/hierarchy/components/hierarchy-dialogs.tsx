@@ -128,6 +128,7 @@ export function MoveDialog({
   title,
   label,
   options,
+  initialId,
   pending = false,
   error,
   onSubmit,
@@ -137,11 +138,12 @@ export function MoveDialog({
   title: string
   label: string
   options: Array<{ id: string; name: string }>
+  initialId?: string
   pending?: boolean
   error?: string | null
   onSubmit: (parentId: string) => void
 }) {
-  const [selected, setSelected] = useState(options[0]?.id ?? '')
+  const [selected, setSelected] = useState(initialId ?? options[0]?.id ?? '')
 
   return (
     <DialogFrame open={open} onOpenChange={onOpenChange} title={title}>
@@ -149,7 +151,7 @@ export function MoveDialog({
         className="flex flex-col gap-4"
         onSubmit={(event) => {
           event.preventDefault()
-          if (selected) onSubmit(selected)
+          if (selected && selected !== initialId) onSubmit(selected)
         }}
       >
         {error ? <Alert variant="error">{error}</Alert> : null}
@@ -163,6 +165,7 @@ export function MoveDialog({
             {options.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.name}
+                {option.id === initialId ? ' (현재)' : ''}
               </option>
             ))}
           </select>
@@ -171,7 +174,11 @@ export function MoveDialog({
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             취소
           </Button>
-          <Button type="submit" disabled={pending || !selected} aria-busy={pending}>
+          <Button
+            type="submit"
+            disabled={pending || !selected || selected === initialId}
+            aria-busy={pending}
+          >
             {pending ? '이동 중…' : '이동'}
           </Button>
         </div>

@@ -1651,7 +1651,9 @@ export interface operations {
     signup: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1687,7 +1689,9 @@ export interface operations {
     login: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1779,7 +1783,9 @@ export interface operations {
     requestPasswordReset: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1802,7 +1808,9 @@ export interface operations {
     confirmPasswordReset: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -2030,7 +2038,9 @@ export interface operations {
     createShelf: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 roomId: components["parameters"]["RoomId"];
             };
@@ -2180,7 +2190,9 @@ export interface operations {
     createBox: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 shelfId: components["parameters"]["ShelfId"];
             };

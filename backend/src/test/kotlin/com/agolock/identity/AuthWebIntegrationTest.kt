@@ -1,5 +1,7 @@
 package com.agolock.identity
 
+import com.agolock.identity.service.InMemoryRateLimiter
+import com.agolock.identity.service.LoginAttemptService
 import com.agolock.support.AuthTestClient
 import com.agolock.support.FakeMailConfiguration
 import com.agolock.support.FakeMailPort
@@ -33,6 +35,8 @@ class AuthWebIntegrationTest
         private val objectMapper: ObjectMapper,
         private val fakeMailPort: FakeMailPort,
         private val jdbcTemplate: JdbcTemplate,
+        private val rateLimiter: InMemoryRateLimiter,
+        private val loginAttempts: LoginAttemptService,
     ) {
         private lateinit var client: AuthTestClient
 
@@ -40,6 +44,8 @@ class AuthWebIntegrationTest
         fun setUp() {
             client = AuthTestClient(restTemplate, objectMapper)
             fakeMailPort.messages.clear()
+            rateLimiter.clear()
+            loginAttempts.clear()
         }
 
         @Test
@@ -107,6 +113,46 @@ class AuthWebIntegrationTest
         }
 
         @Test
+        fun `X-Forwarded-For를 바꿔도 로그인 실패 제한을 우회할 수 없다`() {
+            val email = email()
+            client.signup(email, PASSWORD, "지민")
+
+            repeat(10) { index ->
+                val response =
+                    client.post(
+                        "/api/v1/auth/login",
+                        mapOf("email" to email, "password" to "wrong-password-123"),
+                        mapOf("X-Forwarded-For" to "10.0.0.${index + 1}"),
+                    )
+                assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+            }
+
+            val limited =
+                client.post(
+                    "/api/v1/auth/login",
+                    mapOf("email" to email, "password" to "wrong-password-123"),
+                    mapOf("X-Forwarded-For" to "10.0.0.99"),
+                )
+            assertThat(limited.statusCode).isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
+            assertThat(limited.headers.getFirst("Retry-After")).isNotNull()
+        }
+
+        @Test
+        fun `최대 세션 상태에서 재로그인해도 현재 세션이 유지된다`() {
+            val email = email()
+            val first = AuthTestClient(restTemplate, objectMapper)
+            assertThat(first.signup(email, PASSWORD, "지민").statusCode).isEqualTo(HttpStatus.CREATED)
+
+            repeat(4) {
+                val other = AuthTestClient(restTemplate, objectMapper)
+                assertThat(other.login(email, PASSWORD).statusCode).isEqualTo(HttpStatus.OK)
+            }
+
+            assertThat(first.login(email, PASSWORD).statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(first.get("/api/v1/auth/me").statusCode).isEqualTo(HttpStatus.OK)
+        }
+
+        @Test
         fun `CSRF 토큰 없이 상태 변경 요청을 보내면 403이다`() {
             val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
             val response =
@@ -144,6 +190,16 @@ class AuthWebIntegrationTest
             val updateOwn = client.patch("/api/v1/spaces/$ownSpaceId", mapOf("name" to "내 방"))
             assertThat(updateOwn.statusCode).isEqualTo(HttpStatus.OK)
             assertThat(objectMapper.readTree(updateOwn.body)["name"].asText()).isEqualTo("내 방")
+        }
+
+        @Test
+        fun `잘못된 UUID 경로는 500이 아니라 400이다`() {
+            client.signup(email(), PASSWORD, "지민")
+
+            val malformed = client.patch("/api/v1/spaces/not-a-uuid", mapOf("name" to "새 이름"))
+
+            assertThat(malformed.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+            assertThat(objectMapper.readTree(malformed.body)["code"].asText()).isEqualTo("VALIDATION_FAILED")
         }
 
         @Test

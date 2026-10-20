@@ -65,7 +65,7 @@ class ShelfService(
         command: CreateNodeCommand,
     ): Shelf {
         accessService.requireOwner(actor, actor.spaceId)
-        requireRoom(actor, roomId)
+        requireRoomForUpdate(actor, roomId)
         val now = OffsetDateTime.now(clock)
         val shelf =
             Shelf(
@@ -96,7 +96,12 @@ class ShelfService(
                 spaceId = actor.spaceId,
                 id = shelfId,
                 name = command.name?.let(::normalizedName) ?: current.name,
-                description = command.description,
+                description =
+                    if (command.descriptionPresent) {
+                        normalizedDescription(command.description)
+                    } else {
+                        current.description
+                    },
                 version = command.version,
                 updatedAt = OffsetDateTime.now(clock),
             )
@@ -105,6 +110,7 @@ class ShelfService(
     }
 
     @Transactional
+    @Suppress("ThrowsCount")
     fun move(
         actor: Actor,
         shelfId: UUID,
@@ -113,8 +119,10 @@ class ShelfService(
         accessService.requireOwner(actor, actor.spaceId)
         val current = requireShelf(actor, shelfId)
         if (current.version != command.version) throw versionConflict()
-        requireRoom(actor, command.roomId)
-        if (current.roomId == command.roomId) return get(actor, shelfId)
+        requireRoomForUpdate(actor, command.roomId)
+        val locked = requireShelfForUpdate(actor, shelfId)
+        if (locked.version != command.version) throw versionConflict()
+        if (locked.roomId == command.roomId) return get(actor, shelfId)
         val updated =
             shelfMapper.move(
                 actor.spaceId,
@@ -133,7 +141,7 @@ class ShelfService(
         shelfId: UUID,
     ) {
         accessService.requireOwner(actor, actor.spaceId)
-        requireShelf(actor, shelfId)
+        requireShelfForUpdate(actor, shelfId)
         deleteGuard.assertShelfEmpty(actor.spaceId, shelfId)
         shelfMapper.softDelete(actor.spaceId, shelfId, OffsetDateTime.now(clock))
     }
@@ -150,11 +158,34 @@ class ShelfService(
             )
     }
 
+    private fun requireRoomForUpdate(
+        actor: Actor,
+        roomId: UUID,
+    ) {
+        roomMapper.findByIdForUpdate(actor.spaceId, roomId)
+            ?: throw ApiException(
+                code = "RESOURCE_NOT_FOUND",
+                status = HttpStatus.NOT_FOUND,
+                message = "Room을 찾을 수 없습니다.",
+            )
+    }
+
     private fun requireShelf(
         actor: Actor,
         shelfId: UUID,
     ): Shelf =
         shelfMapper.findById(actor.spaceId, shelfId)
+            ?: throw ApiException(
+                code = "RESOURCE_NOT_FOUND",
+                status = HttpStatus.NOT_FOUND,
+                message = "Shelf를 찾을 수 없습니다.",
+            )
+
+    private fun requireShelfForUpdate(
+        actor: Actor,
+        shelfId: UUID,
+    ): Shelf =
+        shelfMapper.findByIdForUpdate(actor.spaceId, shelfId)
             ?: throw ApiException(
                 code = "RESOURCE_NOT_FOUND",
                 status = HttpStatus.NOT_FOUND,

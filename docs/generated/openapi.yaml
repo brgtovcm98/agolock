@@ -56,6 +56,8 @@ paths:
       tags: [auth]
       operationId: signup
       security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -86,6 +88,8 @@ paths:
       tags: [auth]
       operationId: login
       security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -107,6 +111,9 @@ paths:
     post:
       tags: [auth]
       operationId: logout
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: 로그아웃 성공
@@ -128,6 +135,9 @@ paths:
     patch:
       tags: [auth]
       operationId: updateMe
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -150,6 +160,8 @@ paths:
       tags: [auth]
       operationId: requestPasswordReset
       security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -166,6 +178,8 @@ paths:
       tags: [auth]
       operationId: confirmPasswordReset
       security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -189,6 +203,9 @@ paths:
     patch:
       tags: [auth]
       operationId: updateSpace
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -225,6 +242,9 @@ paths:
     post:
       tags: [hierarchy]
       operationId: createRoom
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
@@ -275,6 +295,9 @@ paths:
     patch:
       tags: [hierarchy]
       operationId: updateRoom
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -295,6 +318,9 @@ paths:
     delete:
       tags: [hierarchy]
       operationId: deleteRoom
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: Room 삭제
@@ -318,6 +344,11 @@ paths:
     post:
       tags: [hierarchy]
       operationId: createShelf
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -351,6 +382,9 @@ paths:
     patch:
       tags: [hierarchy]
       operationId: updateShelf
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -371,6 +405,9 @@ paths:
     delete:
       tags: [hierarchy]
       operationId: deleteShelf
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: Shelf 삭제
@@ -384,6 +421,9 @@ paths:
     patch:
       tags: [hierarchy]
       operationId: moveShelf
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -417,6 +457,11 @@ paths:
     post:
       tags: [hierarchy]
       operationId: createBox
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -450,6 +495,9 @@ paths:
     patch:
       tags: [hierarchy]
       operationId: updateBox
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -470,6 +518,9 @@ paths:
     delete:
       tags: [hierarchy]
       operationId: deleteBox
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: Box 삭제
@@ -483,6 +534,9 @@ paths:
     patch:
       tags: [hierarchy]
       operationId: moveBox
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -543,6 +597,9 @@ paths:
     post:
       tags: [items]
       operationId: createItem
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       description: Space 소유자만 신규 Item을 생성할 수 있습니다.
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -581,6 +638,9 @@ paths:
     patch:
       tags: [items]
       operationId: updateItem
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -601,6 +661,9 @@ paths:
     delete:
       tags: [items]
       operationId: deleteItem
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: Item 삭제
@@ -724,6 +787,9 @@ paths:
     post:
       tags: [inventories]
       operationId: createInventory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       description: 기존 Item에 Inventory를 추가하거나 소유자가 신규 Item과 첫 Inventory를 함께 생성합니다.
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -764,6 +830,9 @@ paths:
     patch:
       tags: [inventories]
       operationId: updateInventory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -784,6 +853,9 @@ paths:
     delete:
       tags: [inventories]
       operationId: deleteInventory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: Inventory 삭제
@@ -795,6 +867,9 @@ paths:
     patch:
       tags: [inventories]
       operationId: moveInventory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -876,6 +951,9 @@ paths:
     post:
       tags: [categories]
       operationId: createCategory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -899,6 +977,9 @@ paths:
     patch:
       tags: [categories]
       operationId: updateCategory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -917,6 +998,9 @@ paths:
     delete:
       tags: [categories]
       operationId: deleteCategory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: Category 삭제
@@ -930,6 +1014,9 @@ paths:
     post:
       tags: [categories]
       operationId: mergeCategory
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1025,6 +1112,9 @@ paths:
     delete:
       tags: [search]
       operationId: clearRecentSearches
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: 최근 검색어 전체 삭제
@@ -1054,6 +1144,9 @@ paths:
     post:
       tags: [search]
       operationId: searchByImage
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       parameters:
         - name: status
           in: query
@@ -1139,6 +1232,9 @@ paths:
     post:
       tags: [images]
       operationId: presignImage
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       description: ITEM은 OWNER, INVENTORY는 EDIT 이상, DRAFT는 인증된 사용자 본인의 Space만 허용합니다.
       requestBody:
         required: true
@@ -1165,6 +1261,9 @@ paths:
     post:
       tags: [images]
       operationId: completeImageUpload
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1210,6 +1309,9 @@ paths:
     post:
       tags: [images]
       operationId: getImageUrls
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1231,6 +1333,9 @@ paths:
     post:
       tags: [images]
       operationId: setPrimaryImage
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '200':
           description: 대표 이미지 변경
@@ -1250,6 +1355,9 @@ paths:
     delete:
       tags: [images]
       operationId: deleteImage
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: 이미지 삭제
@@ -1259,6 +1367,9 @@ paths:
     post:
       tags: [ai]
       operationId: createRecognition
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1297,6 +1408,9 @@ paths:
     post:
       tags: [ai]
       operationId: retryAiJob
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '202':
           description: 재시도 접수
@@ -1310,6 +1424,9 @@ paths:
     post:
       tags: [ai]
       operationId: cancelAiJob
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '202':
           description: 취소 접수
@@ -1334,6 +1451,9 @@ paths:
     patch:
       tags: [sharing]
       operationId: updateShare
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1352,6 +1472,9 @@ paths:
     delete:
       tags: [sharing]
       operationId: revokeShare
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: 공유 철회
@@ -1371,6 +1494,9 @@ paths:
     post:
       tags: [sharing]
       operationId: createShareInvitation
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1405,6 +1531,9 @@ paths:
     delete:
       tags: [sharing]
       operationId: revokeShareInvitation
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: 초대 철회
@@ -1420,6 +1549,9 @@ paths:
     post:
       tags: [sharing]
       operationId: acceptShareInvitation
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '200':
           description: 초대 수락
@@ -1441,6 +1573,9 @@ paths:
     post:
       tags: [sharing]
       operationId: declineShareInvitation
+      security:
+        - cookieAuth: []
+          CsrfToken: []
       responses:
         '204':
           description: 초대 거절
@@ -1454,6 +1589,10 @@ components:
       type: apiKey
       in: cookie
       name: SESSION
+    CsrfToken:
+      type: apiKey
+      in: header
+      name: X-XSRF-TOKEN
   parameters:
     Cursor:
       name: cursor

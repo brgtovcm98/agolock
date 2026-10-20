@@ -29,6 +29,8 @@ data class AppUserPrincipal(
     override fun isEnabled(): Boolean = true
 
     companion object {
+        const val serialVersionUID: Long = 1L
+
         fun from(authResult: com.agolock.identity.service.AuthResult): AppUserPrincipal =
             AppUserPrincipal(
                 userId = authResult.user.id,

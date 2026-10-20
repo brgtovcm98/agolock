@@ -1,5 +1,9 @@
 package com.agolock.common.logging
 
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.util.HexFormat
+
 /**
  * 로그에 남기면 안 되는 값을 마스킹합니다.
  *
@@ -17,6 +21,11 @@ object LogMasker {
     private val presignedUrl =
         Regex("(?i)(https?://\\S*?(?:X-Amz-Signature|Signature|token)=)[^\\s&]+")
 
+    fun fingerprint(value: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(StandardCharsets.UTF_8))
+        return HexFormat.of().formatHex(digest).take(FINGERPRINT_LENGTH)
+    }
+
     fun mask(value: String): String {
         var masked = value.replace(bearer) { match -> "${match.groupValues[1]}***" }
         masked = masked.replace(authorizationHeader) { match -> "${match.groupValues[1]}***" }
@@ -24,4 +33,6 @@ object LogMasker {
         masked = masked.replace(presignedUrl) { match -> "${match.groupValues[1]}***" }
         return masked
     }
+
+    private const val FINGERPRINT_LENGTH = 12
 }

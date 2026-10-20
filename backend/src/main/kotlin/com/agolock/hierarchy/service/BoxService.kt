@@ -60,7 +60,7 @@ class BoxService(
         command: CreateNodeCommand,
     ): Box {
         accessService.requireOwner(actor, actor.spaceId)
-        requireShelf(actor, shelfId)
+        requireShelfForUpdate(actor, shelfId)
         val now = OffsetDateTime.now(clock)
         val box =
             Box(
@@ -91,7 +91,12 @@ class BoxService(
                 spaceId = actor.spaceId,
                 id = boxId,
                 name = command.name?.let(::normalizedName) ?: current.name,
-                description = command.description,
+                description =
+                    if (command.descriptionPresent) {
+                        normalizedDescription(command.description)
+                    } else {
+                        current.description
+                    },
                 version = command.version,
                 updatedAt = OffsetDateTime.now(clock),
             )
@@ -100,6 +105,7 @@ class BoxService(
     }
 
     @Transactional
+    @Suppress("ThrowsCount")
     fun move(
         actor: Actor,
         boxId: UUID,
@@ -108,8 +114,10 @@ class BoxService(
         accessService.requireOwner(actor, actor.spaceId)
         val current = requireBox(actor, boxId)
         if (current.version != command.version) throw versionConflict()
-        requireShelf(actor, command.shelfId)
-        if (current.shelfId == command.shelfId) return get(actor, boxId)
+        requireShelfForUpdate(actor, command.shelfId)
+        val locked = requireBoxForUpdate(actor, boxId)
+        if (locked.version != command.version) throw versionConflict()
+        if (locked.shelfId == command.shelfId) return get(actor, boxId)
         val updated = boxMapper.move(actor.spaceId, boxId, command.shelfId, command.version, OffsetDateTime.now(clock))
         if (updated == 0) throw versionConflict()
         return get(actor, boxId)
@@ -121,7 +129,7 @@ class BoxService(
         boxId: UUID,
     ) {
         accessService.requireOwner(actor, actor.spaceId)
-        requireBox(actor, boxId)
+        requireBoxForUpdate(actor, boxId)
         // M3에서 inventory 존재 검사를 HierarchyDeleteGuard에 추가합니다.
         boxMapper.softDelete(actor.spaceId, boxId, OffsetDateTime.now(clock))
     }
@@ -137,6 +145,29 @@ class BoxService(
                 message = "Shelf를 찾을 수 없습니다.",
             )
     }
+
+    private fun requireShelfForUpdate(
+        actor: Actor,
+        shelfId: UUID,
+    ) {
+        shelfMapper.findByIdForUpdate(actor.spaceId, shelfId)
+            ?: throw ApiException(
+                code = "RESOURCE_NOT_FOUND",
+                status = HttpStatus.NOT_FOUND,
+                message = "Shelf를 찾을 수 없습니다.",
+            )
+    }
+
+    private fun requireBoxForUpdate(
+        actor: Actor,
+        boxId: UUID,
+    ): Box =
+        boxMapper.findByIdForUpdate(actor.spaceId, boxId)
+            ?: throw ApiException(
+                code = "RESOURCE_NOT_FOUND",
+                status = HttpStatus.NOT_FOUND,
+                message = "Box를 찾을 수 없습니다.",
+            )
 
     private fun requireBox(
         actor: Actor,

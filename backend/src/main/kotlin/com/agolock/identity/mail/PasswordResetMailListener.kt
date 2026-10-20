@@ -23,7 +23,7 @@ class PasswordResetMailListener(
         } catch (exception: Exception) {
             log.warn(
                 "비밀번호 재설정 메일 발송 실패 email={} reason={}",
-                LogMasker.mask(event.email),
+                LogMasker.fingerprint(event.email),
                 exception.javaClass.simpleName,
             )
         }

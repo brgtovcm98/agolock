@@ -27,7 +27,7 @@ class IdempotencyService(
     private val clock: Clock,
 ) {
     @Transactional
-    @Suppress("LongParameterList", "ReturnCount", "ComplexCondition")
+    @Suppress("LongParameterList", "ReturnCount", "ComplexCondition", "LongMethod")
     fun <T> execute(
         userId: UUID,
         key: String?,
@@ -43,6 +43,7 @@ class IdempotencyService(
             return IdempotentResult(HttpStatus.CREATED.value(), body, locationOf(body))
         }
 
+        mapper.lockKey("$userId:$key")
         val now = OffsetDateTime.now(clock)
         mapper.deleteExpired(now)
         val requestHash = hash(method, path, request)

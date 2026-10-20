@@ -124,10 +124,7 @@ class AuthController(
         return ResponseEntity.noContent().build()
     }
 
-    private fun clientKey(request: HttpServletRequest): String {
-        val forwarded = request.getHeader("X-Forwarded-For")?.substringBefore(",")?.trim()
-        return forwarded?.takeIf(String::isNotEmpty) ?: request.remoteAddr ?: "unknown"
-    }
+    private fun clientKey(request: HttpServletRequest): String = request.remoteAddr ?: "unknown"
 }
 
 private fun com.agolock.identity.domain.AppUser.toResponse(): UserResponse =

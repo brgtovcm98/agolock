@@ -96,9 +96,13 @@ class ShelfController(
         @Valid @RequestBody request: UpdateNodeRequest,
     ): ShelfResponse {
         val actor = Actor.from(principal)
-        return shelfService
-            .update(actor, shelfId, UpdateNodeCommand(request.name, request.description, request.version))
-            .toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+        val updated =
+            shelfService.update(
+                actor,
+                shelfId,
+                UpdateNodeCommand(request.name, request.description, request.version ?: 0, request.descriptionPresent),
+            )
+        return updated.toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
     }
 
     @PatchMapping("/shelves/{shelfId}/parent")

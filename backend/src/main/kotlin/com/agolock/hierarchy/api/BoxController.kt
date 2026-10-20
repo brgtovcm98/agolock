@@ -96,9 +96,13 @@ class BoxController(
         @Valid @RequestBody request: UpdateNodeRequest,
     ): BoxResponse {
         val actor = Actor.from(principal)
-        return boxService
-            .update(actor, boxId, UpdateNodeCommand(request.name, request.description, request.version))
-            .toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+        val updated =
+            boxService.update(
+                actor,
+                boxId,
+                UpdateNodeCommand(request.name, request.description, request.version ?: 0, request.descriptionPresent),
+            )
+        return updated.toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
     }
 
     @PatchMapping("/boxes/{boxId}/parent")

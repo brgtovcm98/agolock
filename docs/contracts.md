@@ -82,6 +82,8 @@ RFC 7807 `application/problem+json`을 사용합니다.
 | `VERSION_CONFLICT` | 낙관적 잠금 충돌 |
 | `IDEMPOTENCY_KEY_REUSED` | 같은 키로 다른 요청 |
 | `INVALID_CURSOR` | 잘못된 커서 |
+| `UNSUPPORTED_MEDIA_TYPE` | 지원하지 않는 Content-Type |
+| `METHOD_NOT_ALLOWED` | 지원하지 않는 HTTP 메서드 |
 | `AUTHENTICATION_REQUIRED` | 세션 없음·만료 |
 | `CSRF_INVALID` | CSRF 토큰 누락·불일치 |
 | `EMAIL_ALREADY_EXISTS` | 활성 이메일 중복 |
@@ -304,5 +306,5 @@ Outbox 기준 주요 이벤트 타입:
 - 설계 단계에서는 [ADR-014](decisions/ADR-014-generated-docs-draft.md)에 따라 초안을 수동 갱신합니다.
 - M0에서는 [ADR-015](decisions/ADR-015-contract-preview-mode.md)에 따라 생성 결과를 `build/contracts/`에만 기록하고, `docs/generated/` 상세 초안을 보존합니다.
 - M0의 미리보기 파일은 `build/contracts/openapi.yaml`, `events.yaml`, `data-dictionary.md`이며 커밋하지 않습니다.
-- M1에서 실제 컨트롤러와 도메인 테이블이 생기면 `docs/generated/` 기록 모드로 전환합니다.
+- M1·M2에서도 `build/contracts/` 미리보기 모드를 유지합니다. `docs/generated/` 기록 모드 전환은 [ADR-015](decisions/ADR-015-contract-preview-mode.md)에 따라 M4 또는 M8에서 판단합니다.
 - 계약 변경 시 코드와 생성 스크립트를 함께 갱신합니다.

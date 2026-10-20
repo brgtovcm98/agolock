@@ -101,7 +101,7 @@ class RoomController(
             roomService.update(
                 actor,
                 roomId,
-                UpdateNodeCommand(request.name, request.description, request.version),
+                UpdateNodeCommand(request.name, request.description, request.version ?: 0, request.descriptionPresent),
             )
         return room.toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
     }

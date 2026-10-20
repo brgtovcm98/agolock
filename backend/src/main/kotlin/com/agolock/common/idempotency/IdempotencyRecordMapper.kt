@@ -23,6 +23,11 @@ interface IdempotencyRecordMapper {
         @Param("key") key: String,
     ): IdempotencyRecord?
 
+    @Select("SELECT pg_advisory_xact_lock(hashtextextended(#{lockKey}, 0))")
+    fun lockKey(
+        @Param("lockKey") lockKey: String,
+    ): String?
+
     @Insert(
         """
         INSERT INTO idempotency_record (

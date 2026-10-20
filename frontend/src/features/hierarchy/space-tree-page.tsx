@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Box as BoxIcon,
   ChevronDown,
@@ -72,9 +72,11 @@ export function SpaceTreePage() {
   const [deleteTarget, setDeleteTarget] = useState<{ kind: NodeKind; node: AnyNode } | null>(null)
   const [mutationError, setMutationError] = useState<string | null>(null)
 
-  const roomsQuery = useQuery({
-    queryKey: ['hierarchy', 'rooms'],
-    queryFn: () => hierarchyApi.listRooms(),
+  const roomsQuery = useInfiniteQuery({
+    queryKey: ['hierarchy', 'rooms', 'tree'],
+    queryFn: ({ pageParam }) => hierarchyApi.listRooms(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   })
 
   const invalidate = async () => {
@@ -153,7 +155,7 @@ export function SpaceTreePage() {
       setMutationError(error instanceof ApiError ? error.message : '이동하지 못했습니다.'),
   })
 
-  const rooms = roomsQuery.data?.items ?? []
+  const rooms = roomsQuery.data?.pages.flatMap((page) => page.items) ?? []
   const roomsForMove = rooms.map((room) => ({ id: room.id, name: room.name }))
 
   function toggleRoom(roomId: string) {
@@ -181,9 +183,6 @@ export function SpaceTreePage() {
         </Button>
       </div>
 
-      {roomsQuery.isError ? (
-        <Alert variant="error">공간을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</Alert>
-      ) : null}
       {mutationError && !createTarget && !editTarget && !deleteTarget && !moveTarget ? (
         <Alert variant="error">{mutationError}</Alert>
       ) : null}
@@ -194,6 +193,15 @@ export function SpaceTreePage() {
             <p className="text-sm font-bold" role="status">
               공간을 불러오는 중…
             </p>
+          </CardBody>
+        </Card>
+      ) : roomsQuery.isError ? (
+        <Card>
+          <CardBody className="items-start gap-3">
+            <Alert variant="error">공간을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</Alert>
+            <Button type="button" variant="secondary" onClick={() => void roomsQuery.refetch()}>
+              다시 시도
+            </Button>
           </CardBody>
         </Card>
       ) : rooms.length === 0 ? (
@@ -223,8 +231,20 @@ export function SpaceTreePage() {
               onEditShelf={(shelf) => setEditTarget({ kind: 'shelf', node: shelf })}
               onDeleteShelf={(shelf) => setDeleteTarget({ kind: 'shelf', node: shelf })}
               onMoveShelf={(shelf) => setMoveTarget(shelf)}
+              onEditBox={(box) => setEditTarget({ kind: 'box', node: box })}
+              onDeleteBox={(box) => setDeleteTarget({ kind: 'box', node: box })}
             />
           ))}
+          {roomsQuery.hasNextPage ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={roomsQuery.isFetchingNextPage}
+              onClick={() => void roomsQuery.fetchNextPage()}
+            >
+              {roomsQuery.isFetchingNextPage ? '불러오는 중…' : 'Room 더 보기'}
+            </Button>
+          ) : null}
         </div>
       )}
 
@@ -281,6 +301,7 @@ export function SpaceTreePage() {
         title="Shelf 이동"
         label="이동할 Room"
         options={roomsForMove}
+        initialId={moveTarget?.roomId}
         pending={moveMutation.isPending}
         error={mutationError}
         onSubmit={(roomId) => moveTarget && moveMutation.mutate({ shelf: moveTarget, roomId })}
@@ -308,6 +329,8 @@ function RoomBranch({
   onEditShelf,
   onDeleteShelf,
   onMoveShelf,
+  onEditBox,
+  onDeleteBox,
 }: {
   room: Room
   expanded: boolean
@@ -319,13 +342,17 @@ function RoomBranch({
   onEditShelf: (shelf: Shelf) => void
   onDeleteShelf: (shelf: Shelf) => void
   onMoveShelf: (shelf: Shelf) => void
+  onEditBox: (box: Box) => void
+  onDeleteBox: (box: Box) => void
 }) {
-  const shelvesQuery = useQuery({
-    queryKey: ['hierarchy', 'shelves', room.id],
-    queryFn: () => hierarchyApi.listShelves(room.id),
+  const shelvesQuery = useInfiniteQuery({
+    queryKey: ['hierarchy', 'shelves', room.id, 'tree'],
+    queryFn: ({ pageParam }) => hierarchyApi.listShelves(room.id, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: expanded,
   })
-  const shelves = shelvesQuery.data?.items ?? []
+  const shelves = shelvesQuery.data?.pages.flatMap((page) => page.items) ?? []
 
   return (
     <div className="flex flex-col gap-2" role="treeitem" aria-expanded={expanded} aria-level={1}>
@@ -343,12 +370,13 @@ function RoomBranch({
           {room.name}
         </Link>
         <Badge variant="neutral">Shelf {room.shelfCount}</Badge>
-        <Badge variant={room.isShared ? 'info' : 'neutral'}>
-          {room.isShared ? '공유' : permissionLabel(room.effectivePermission)}
-        </Badge>
-        <div className="ml-auto flex items-center gap-1">
-          <NodeActions onAdd={onCreateShelf} onEdit={onEdit} onDelete={onDelete} />
-        </div>
+        <Badge variant="neutral">{permissionLabel(room.effectivePermission)}</Badge>
+        {room.isShared ? <Badge variant="info">공유</Badge> : null}
+        {room.effectivePermission === 'OWNER' ? (
+          <div className="ml-auto flex items-center gap-1">
+            <NodeActions onAdd={onCreateShelf} onEdit={onEdit} onDelete={onDelete} />
+          </div>
+        ) : null}
       </div>
       {expanded ? (
         <div className="border-border ml-[22px] flex flex-col gap-2 border-l-[2.5px] pl-[14px]">
@@ -357,7 +385,19 @@ function RoomBranch({
               Shelf를 불러오는 중…
             </p>
           ) : null}
-          {shelves.length === 0 && !shelvesQuery.isLoading ? (
+          {shelvesQuery.isError ? (
+            <div className="flex flex-col items-start gap-2">
+              <Alert variant="error">Shelf를 불러오지 못했습니다.</Alert>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => void shelvesQuery.refetch()}
+              >
+                다시 시도
+              </Button>
+            </div>
+          ) : shelves.length === 0 && !shelvesQuery.isLoading ? (
             <p className="text-foreground/60 text-xs">Shelf가 없습니다. + 버튼으로 추가하세요.</p>
           ) : null}
           {shelves.map((shelf) => (
@@ -368,8 +408,21 @@ function RoomBranch({
               onEdit={() => onEditShelf(shelf)}
               onDelete={() => onDeleteShelf(shelf)}
               onMove={() => onMoveShelf(shelf)}
+              onEditBox={onEditBox}
+              onDeleteBox={onDeleteBox}
             />
           ))}
+          {shelvesQuery.hasNextPage ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={shelvesQuery.isFetchingNextPage}
+              onClick={() => void shelvesQuery.fetchNextPage()}
+            >
+              {shelvesQuery.isFetchingNextPage ? '불러오는 중…' : 'Shelf 더 보기'}
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -382,20 +435,26 @@ function ShelfBranch({
   onEdit,
   onDelete,
   onMove,
+  onEditBox,
+  onDeleteBox,
 }: {
   shelf: Shelf
   onAddBox: () => void
   onEdit: () => void
   onDelete: () => void
   onMove: () => void
+  onEditBox: (box: Box) => void
+  onDeleteBox: (box: Box) => void
 }) {
   const [expanded, setExpanded] = useState(false)
-  const boxesQuery = useQuery({
-    queryKey: ['hierarchy', 'boxes', shelf.id],
-    queryFn: () => hierarchyApi.listBoxes(shelf.id),
+  const boxesQuery = useInfiniteQuery({
+    queryKey: ['hierarchy', 'boxes', shelf.id, 'tree'],
+    queryFn: ({ pageParam }) => hierarchyApi.listBoxes(shelf.id, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: expanded,
   })
-  const boxes = boxesQuery.data?.items ?? []
+  const boxes = boxesQuery.data?.pages.flatMap((page) => page.items) ?? []
 
   return (
     <div className="flex flex-col gap-2" role="treeitem" aria-expanded={expanded} aria-level={2}>
@@ -416,10 +475,12 @@ function ShelfBranch({
           {shelf.name}
         </Link>
         <Badge variant="neutral">Box {shelf.boxCount}</Badge>
-        <div className="ml-auto flex items-center gap-1">
-          <NodeActions onAdd={onAddBox} onEdit={onEdit} onDelete={onDelete} onMove={onMove} />
-        </div>
         <span className="text-[10px] font-bold">{permissionLabel(shelf.effectivePermission)}</span>
+        {shelf.effectivePermission === 'OWNER' ? (
+          <div className="ml-auto flex items-center gap-1">
+            <NodeActions onAdd={onAddBox} onEdit={onEdit} onDelete={onDelete} onMove={onMove} />
+          </div>
+        ) : null}
       </div>
       {expanded ? (
         <div className="border-border ml-[22px] flex flex-col gap-2 border-l-[2.5px] pl-[14px]">
@@ -428,19 +489,51 @@ function ShelfBranch({
               Box를 불러오는 중…
             </p>
           ) : null}
-          {boxes.length === 0 && !boxesQuery.isLoading ? (
+          {boxesQuery.isError ? (
+            <div className="flex flex-col items-start gap-2">
+              <Alert variant="error">Box를 불러오지 못했습니다.</Alert>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => void boxesQuery.refetch()}
+              >
+                다시 시도
+              </Button>
+            </div>
+          ) : boxes.length === 0 && !boxesQuery.isLoading ? (
             <p className="text-foreground/60 text-xs">Box가 없습니다.</p>
           ) : null}
           {boxes.map((box) => (
-            <Link
+            <div
               key={box.id}
-              to={`/space/boxes/${box.id}`}
-              className="border-border bg-blue-soft flex items-center gap-2 border-[2.5px] px-3 py-2 text-sm font-black"
+              className="border-border bg-blue-soft flex items-center gap-2 border-[2.5px] px-3 py-2"
             >
               <BoxIcon aria-hidden="true" className="size-4" />
-              {box.name}
-            </Link>
+              <Link
+                to={`/space/boxes/${box.id}`}
+                className="min-w-0 text-sm font-black hover:underline"
+              >
+                {box.name}
+              </Link>
+              {box.effectivePermission === 'OWNER' ? (
+                <div className="ml-auto">
+                  <NodeActions onEdit={() => onEditBox(box)} onDelete={() => onDeleteBox(box)} />
+                </div>
+              ) : null}
+            </div>
           ))}
+          {boxesQuery.hasNextPage ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={boxesQuery.isFetchingNextPage}
+              onClick={() => void boxesQuery.fetchNextPage()}
+            >
+              {boxesQuery.isFetchingNextPage ? '불러오는 중…' : 'Box 더 보기'}
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </div>

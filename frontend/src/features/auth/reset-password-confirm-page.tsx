@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { authApi } from '@/shared/api/auth'
+import { ApiError } from '@/shared/api/client'
 import { authErrorMessage } from '@/features/auth/errors'
 import { AuthLayout } from '@/features/auth/auth-layout'
 import { Alert } from '@/shared/ui/alert'
@@ -32,6 +33,7 @@ export function ResetPasswordConfirmPage() {
   const token = searchParams.get('token')
   const [serverError, setServerError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [tokenInvalid, setTokenInvalid] = useState(false)
   const {
     register,
     handleSubmit,
@@ -41,7 +43,7 @@ export function ResetPasswordConfirmPage() {
     defaultValues: { newPassword: '', confirmPassword: '' },
   })
 
-  if (!token) {
+  if (!token || tokenInvalid) {
     return (
       <AuthLayout
         eyebrow="SCR-001 · 비밀번호 재설정"
@@ -62,6 +64,10 @@ export function ResetPasswordConfirmPage() {
       await authApi.confirmPasswordReset(token, values.newPassword)
       setDone(true)
     } catch (error) {
+      if (error instanceof ApiError && error.code === 'PASSWORD_RESET_TOKEN_INVALID') {
+        setTokenInvalid(true)
+        return
+      }
       setServerError(authErrorMessage(error))
     }
   }

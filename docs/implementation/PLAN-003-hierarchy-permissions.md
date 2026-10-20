@@ -471,7 +471,7 @@ Base path는 `/api/v1`이고 인증은 세션 쿠키, 상태 변경은 CSRF를 �
 | 삭제 | `HierarchyDeleteGuard`가 하위 Shelf·Box를 검사하고 soft delete |
 | 화면 | `/space` 트리, Room·Shelf·Box 상세, 생성·수정·삭제·Shelf 이동 대화상자 |
 | 계약 | OpenAPI `OWNER`, `shelfCount`, `boxCount`, 목록 `nextCursor`, 설명 2000자 |
-| 테스트 | backend 50개, frontend 14개, E2E 6개 |
+| 테스트 | backend 55개, frontend 15개, E2E 6개 |
 
 ### 13.2 계획과 다른 점
 
@@ -498,11 +498,29 @@ Base path는 `/api/v1`이고 인증은 세션 쿠키, 상태 변경은 CSRF를 �
 
 | 검증 | 결과 |
 |---|---|
-| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 50개 테스트 |
-| `pnpm lint`, `pnpm format:check`, `pnpm test` | 통과, 14개 테스트 |
+| `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | 통과, 55개 테스트 |
+| `pnpm lint`, `pnpm format:check`, `pnpm test` | 통과, 15개 테스트 |
 | `pnpm build` | 통과 |
 | `pnpm test:e2e` | 데스크톱·모바일 6개 통과 |
 | `bash scripts/docs_generate.sh all` | OpenAPI 18 paths, 데이터 사전 12 tables, 이벤트 0 channels |
 | `python3 scripts/docs_check.py` | 통과, 41개 문서 |
 | 로컬 마이그레이션 | V4·V5 적용, Room·Shelf·Box·idempotency_record 생성 확인 |
 | 계약 | `OWNER`, `shelfCount`, `boxCount`, 목록 `nextCursor`, 설명 2000자 반영 |
+
+
+## 15. 코드리뷰 후 하드닝
+
+2026-10-21 코드리뷰에서 확인된 P1/P2를 다음처럼 보강했습니다.
+
+| 항목 | 변경 |
+|---|---|
+| PATCH merge | `UpdateNodeRequest`를 presence-tracking deserializer로 바꿔 생략=유지, null=삭제, 값=trim 후 저장 |
+| 삭제 경합 | Room/Shelf/Box의 create·move·delete에서 부모 row를 `SELECT ... FOR UPDATE`로 잠그고 하위 수를 재검사 |
+| idempotency 동시성 | `Idempotency-Key` 처리 전에 PostgreSQL transaction advisory lock으로 같은 키를 직렬화 |
+| 프론트 권한 | Box 수정·삭제를 연결하고 Room/Shelf/Box 액션을 `OWNER`로 제한, 권한과 `isShared`를 별도 배지로 표시 |
+| 이동 대화상자 | 현재 부모를 기본 선택하고 같은 부모는 no-op으로 비활성화 |
+| 오류·페이지 | 목록 오류를 빈 상태와 분리하고 retry를 추가, Room/Shelf/Box 목록에 `nextCursor` 기반 더 보기 추가 |
+| 계약 | OpenAPI에 CSRF 보안과 Shelf/Box `Idempotency-Key`를 반영, 데이터 사전에 M2 부분 인덱스 추가 |
+| 검증 | backend 55, frontend 15, E2E 6, docs 41 통과 |
+
+남은 항목은 M4 전 `AccessService`의 target/inheritance/resolveAll 전환, 목록 count의 batch화, 이메일 타이밍 완화, 회원가입·재설정의 Argon2 트랜잭션 분리, 트리 ARIA keyboard 보완입니다.

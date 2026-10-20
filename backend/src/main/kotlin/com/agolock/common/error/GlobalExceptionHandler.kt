@@ -9,13 +9,18 @@ import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.web.HttpMediaTypeNotSupportedException
+import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.net.URI
 
 @RestControllerAdvice
+@Suppress("TooManyFunctions")
 class GlobalExceptionHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -69,6 +74,33 @@ class GlobalExceptionHandler {
         )
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class, MissingServletRequestParameterException::class)
+    fun handleTypeMismatch(request: HttpServletRequest): ResponseEntity<ProblemDetail> =
+        problem(
+            status = HttpStatus.BAD_REQUEST,
+            code = "VALIDATION_FAILED",
+            detail = "요청 값의 형식이 올바르지 않습니다.",
+            request = request,
+        )
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
+    fun handleUnsupportedMediaType(request: HttpServletRequest): ResponseEntity<ProblemDetail> =
+        problem(
+            status = HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+            code = "UNSUPPORTED_MEDIA_TYPE",
+            detail = "지원하지 않는 Content-Type입니다.",
+            request = request,
+        )
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleMethodNotSupported(request: HttpServletRequest): ResponseEntity<ProblemDetail> =
+        problem(
+            status = HttpStatus.METHOD_NOT_ALLOWED,
+            code = "METHOD_NOT_ALLOWED",
+            detail = "지원하지 않는 HTTP 메서드입니다.",
+            request = request,
+        )
+
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleUnreadableMessage(request: HttpServletRequest): ResponseEntity<ProblemDetail> =
         problem(
@@ -121,13 +153,13 @@ class GlobalExceptionHandler {
         problem.instance = URI.create(request.requestURI)
         problem.setProperty("code", code)
         problem.setProperty("fieldErrors", fieldErrors)
-        val response =
-            ResponseEntity
-                .status(status)
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(problem)
-        retryAfterSeconds?.let { response.headers.set("Retry-After", it.toString()) }
-        return response
+        val headers = org.springframework.http.HttpHeaders()
+        retryAfterSeconds?.let { headers.set("Retry-After", it.toString()) }
+        return ResponseEntity
+            .status(status)
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+            .body(problem)
     }
 
     private fun titleOf(status: HttpStatus): String =
@@ -136,7 +168,9 @@ class GlobalExceptionHandler {
             HttpStatus.UNAUTHORIZED -> "인증이 필요합니다"
             HttpStatus.FORBIDDEN -> "권한이 없습니다"
             HttpStatus.NOT_FOUND -> "리소스를 찾을 수 없습니다"
+            HttpStatus.METHOD_NOT_ALLOWED -> "지원하지 않는 메서드입니다"
             HttpStatus.CONFLICT -> "요청이 충돌했습니다"
+            HttpStatus.UNSUPPORTED_MEDIA_TYPE -> "지원하지 않는 형식입니다"
             HttpStatus.UNPROCESSABLE_ENTITY -> "요청을 처리할 수 없습니다"
             HttpStatus.TOO_MANY_REQUESTS -> "요청이 너무 많습니다"
             HttpStatus.SERVICE_UNAVAILABLE -> "일시적으로 사용할 수 없습니다"

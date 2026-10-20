@@ -92,7 +92,6 @@ class AuthService(
         return AuthResult(user, space)
     }
 
-    @Transactional(readOnly = true)
     fun login(
         command: LoginCommand,
         clientKey: String,

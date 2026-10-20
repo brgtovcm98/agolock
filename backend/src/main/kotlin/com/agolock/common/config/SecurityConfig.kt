@@ -3,6 +3,7 @@ package com.agolock.common.config
 import com.agolock.common.security.RestAccessDeniedHandler
 import com.agolock.common.security.RestAuthenticationEntryPoint
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -23,6 +24,7 @@ class SecurityConfig(
     private val authenticationEntryPoint: RestAuthenticationEntryPoint,
     private val accessDeniedHandler: RestAccessDeniedHandler,
     private val sessionRepositoryProvider: ObjectProvider<JdbcIndexedSessionRepository>,
+    @Value("\${server.servlet.session.cookie.secure:false}") private val secureCookies: Boolean,
 ) {
     @Bean
     fun securityContextRepository(): SecurityContextRepository = HttpSessionSecurityContextRepository()
@@ -34,7 +36,7 @@ class SecurityConfig(
     fun csrfTokenRepository(): CookieCsrfTokenRepository =
         CookieCsrfTokenRepository.withHttpOnlyFalse().apply {
             setCookieCustomizer { cookie ->
-                cookie.path("/").sameSite("Lax")
+                cookie.path("/").sameSite("Lax").secure(secureCookies)
             }
         }
 

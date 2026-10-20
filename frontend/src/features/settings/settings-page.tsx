@@ -82,6 +82,8 @@ export function SettingsPage() {
     try {
       await logout()
       navigate('/login', { replace: true })
+    } catch (error) {
+      setServerError(authErrorMessage(error))
     } finally {
       setLoggingOut(false)
     }

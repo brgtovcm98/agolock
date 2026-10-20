@@ -28,9 +28,13 @@ spring:
   mail:
     host: ${MAIL_HOST:}
     port: ${MAIL_PORT:1025}
+    from: ${MAIL_FROM:no-reply@agolock.local}
     properties:
-      mail.smtp.auth: false
-      mail.smtp.starttls.enable: false
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_SMTP_STARTTLS:false}
+      mail.smtp.connectiontimeout: 3000
+      mail.smtp.timeout: 3000
+      mail.smtp.writetimeout: 3000
   jackson:
     default-property-inclusion: non_null
 mybatis:
@@ -41,6 +45,7 @@ mybatis:
 server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
   servlet:
     session:
       tracking-modes: cookie
@@ -81,6 +86,7 @@ agolock:
   mail:
     host: ${MAIL_HOST:}
     port: ${MAIL_PORT:1025}
+    from: ${MAIL_FROM:no-reply@agolock.local}
 auth:
   signup:
     invite-required: ${AUTH_SIGNUP_INVITE_REQUIRED:true}

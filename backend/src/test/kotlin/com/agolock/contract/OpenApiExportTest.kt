@@ -33,7 +33,11 @@ class OpenApiExportTest
             val response = restTemplate.getForEntity("/v3/api-docs", String::class.java)
 
             assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-            assertThat(response.body).contains("/api/v1/info")
+            assertThat(response.body)
+                .contains("/api/v1/info")
+                .contains("/api/v1/rooms")
+                .contains("createShelf")
+                .contains("0.3.0")
 
             val target =
                 Path.of(

@@ -117,6 +117,7 @@ docker compose -f infra/docker-compose.yml up -d
 ### 5.1 인증·세션
 
 - M1은 Spring Session JDBC를 사용하고 세션 인덱스의 principal name에는 이메일이 아니라 `user_id`를 저장합니다.
+- 클라이언트 IP는 기본적으로 `request.remoteAddr`을 사용합니다. 신뢰할 수 있는 프록시 뒤에서만 `FORWARD_HEADERS_STRATEGY=framework`를 설정하고, 프록시가 `X-Forwarded-For`를 덮어쓰도록 구성합니다.
 - 로그아웃과 비밀번호 재설정 완료 시 해당 사용자의 모든 세션을 삭제합니다.
 - 로그인 실패 10회/15분은 단일 인스턴스 메모리 카운터로 15분 잠급니다. 다중 인스턴스 전환 시 Redis로 교체합니다.
 - 초대코드는 `AGO-` + Crockford Base32 20자 형식이며 정규화 후 SHA-256 해시만 저장합니다.

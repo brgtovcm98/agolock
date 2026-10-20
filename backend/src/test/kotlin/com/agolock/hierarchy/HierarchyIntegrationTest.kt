@@ -14,6 +14,9 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -86,6 +89,24 @@ class HierarchyIntegrationTest
         }
 
         @Test
+        fun `PATCH는 생략한 설명을 유지하고 null이면 삭제한다`() {
+            val created = json(client.post("/api/v1/rooms", mapOf("name" to "거실", "description" to "창가 수납")).body)
+            val roomId = created["id"].asText()
+
+            val renamed = client.patch("/api/v1/rooms/$roomId", mapOf("name" to "큰 거실", "version" to 0))
+            assertThat(renamed.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(renamed.body)["description"].asText()).isEqualTo("창가 수납")
+
+            val cleared =
+                client.patchRaw(
+                    "/api/v1/rooms/$roomId",
+                    """{"description":null,"version":1}""",
+                )
+            assertThat(cleared.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(cleared.body).has("description")).isFalse()
+        }
+
+        @Test
         fun `커서 페이지네이션과 Idempotency-Key를 지원한다`() {
             val first = createRoom("A Room", idempotencyKey = "create-a")
             val firstReplay = createRoom("A Room", idempotencyKey = "create-a")
@@ -107,6 +128,37 @@ class HierarchyIntegrationTest
             assertThat(cursor).isNotBlank()
             val page2 = json(client.get("/api/v1/rooms?limit=2&cursor=$cursor").body)
             assertThat(page2["items"].size()).isEqualTo(1)
+        }
+
+        @Test
+        fun `같은 Idempotency-Key의 동시 요청은 한 번만 생성한다`() {
+            val email = "race-${UUID.randomUUID()}@example.com"
+            client.signup(email, "password-1234", "지민")
+            val other = AuthTestClient(restTemplate, objectMapper)
+            assertThat(other.login(email, "password-1234").statusCode).isEqualTo(HttpStatus.OK)
+
+            val start = CountDownLatch(1)
+            val pool = Executors.newFixedThreadPool(2)
+            val futures =
+                listOf(client, other).map { session ->
+                    pool.submit<org.springframework.http.ResponseEntity<String>> {
+                        start.await()
+                        session.post(
+                            "/api/v1/rooms",
+                            mapOf("name" to "동시 생성"),
+                            mapOf("Idempotency-Key" to "simultaneous-create"),
+                        )
+                    }
+                }
+            start.countDown()
+            val responses = futures.map { it.get(10, TimeUnit.SECONDS) }
+            pool.shutdown()
+
+            assertThat(responses.map { it.statusCode }).containsOnly(HttpStatus.CREATED)
+            val ids = responses.map { json(it.body)["id"].asText() }
+            assertThat(ids.distinct()).hasSize(1)
+            val rooms = json(client.get("/api/v1/rooms").body)["items"]
+            assertThat(rooms.count { it["name"].asText() == "동시 생성" }).isEqualTo(1)
         }
 
         @Test

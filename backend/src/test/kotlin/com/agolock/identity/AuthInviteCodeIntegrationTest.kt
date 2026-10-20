@@ -1,6 +1,8 @@
 package com.agolock.identity
 
+import com.agolock.identity.service.InMemoryRateLimiter
 import com.agolock.identity.service.InviteCodeService
+import com.agolock.identity.service.LoginAttemptService
 import com.agolock.support.AuthTestClient
 import com.agolock.support.FakeMailConfiguration
 import com.agolock.support.TestcontainersConfiguration
@@ -29,12 +31,16 @@ class AuthInviteCodeIntegrationTest
         private val restTemplate: TestRestTemplate,
         private val objectMapper: ObjectMapper,
         private val inviteCodeService: InviteCodeService,
+        private val rateLimiter: InMemoryRateLimiter,
+        private val loginAttempts: LoginAttemptService,
     ) {
         private lateinit var client: AuthTestClient
 
         @BeforeEach
         fun setUp() {
             client = AuthTestClient(restTemplate, objectMapper)
+            rateLimiter.clear()
+            loginAttempts.clear()
         }
 
         @Test

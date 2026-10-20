@@ -107,7 +107,7 @@ python3 scripts/docs_check.py
 
 - M0는 미리보기 모드입니다. 결과는 `build/contracts/`에만 쓰고 `docs/generated/`의 상세 설계 초안은 덮어쓰지 않습니다 ([ADR-015](docs/decisions/ADR-015-contract-preview-mode.md)).
 - `all`은 데이터 사전 생성을 위해 PostgreSQL이 실행 중이어야 합니다.
-- M1에서 실제 컨트롤러와 도메인 테이블이 생기면 `docs/generated/` 기록 모드로 전환합니다.
+- M1·M2에서도 `build/contracts/` 미리보기 모드를 유지합니다. 기록 모드 전환은 M4 또는 M8에서 판단합니다.
 
 ## 검증 명령
 

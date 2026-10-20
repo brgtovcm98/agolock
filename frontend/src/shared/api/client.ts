@@ -48,9 +48,9 @@ export function actionFor(error: ApiError): ApiErrorAction {
   return actionByStatus[error.status] ?? 'SHOW_MESSAGE'
 }
 
-let unauthorizedHandler: (() => void) | null = null
+let unauthorizedHandler: ((path: string) => void) | null = null
 
-export function setUnauthorizedHandler(handler: (() => void) | null) {
+export function setUnauthorizedHandler(handler: ((path: string) => void) | null) {
   unauthorizedHandler = handler
 }
 
@@ -154,7 +154,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
       if (Number.isFinite(seconds)) error.retryAfterSeconds = seconds
     }
     if (response.status === 401) {
-      unauthorizedHandler?.()
+      unauthorizedHandler?.(path)
     }
     throw error
   }

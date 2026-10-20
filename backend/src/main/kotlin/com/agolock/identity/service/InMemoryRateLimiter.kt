@@ -14,6 +14,10 @@ class InMemoryRateLimiter(
 ) {
     private val windows = mutableMapOf<String, ArrayDeque<Instant>>()
 
+    fun clear() {
+        synchronized(windows) { windows.clear() }
+    }
+
     fun check(
         key: String,
         limit: Int,
@@ -22,6 +26,16 @@ class InMemoryRateLimiter(
         val now = clock.instant()
         val cutoff = now.minus(window)
         synchronized(windows) {
+            if (windows.size >= MAX_KEYS && key !in windows) {
+                windows.entries.removeIf { (_, timestamps) ->
+                    timestamps.isEmpty() || timestamps.last().isBefore(cutoff)
+                }
+                if (windows.size >= MAX_KEYS) {
+                    windows.entries.minByOrNull { it.value.lastOrNull() ?: Instant.MIN }?.let {
+                        windows.remove(it.key)
+                    }
+                }
+            }
             val timestamps = windows.getOrPut(key) { ArrayDeque() }
             while (timestamps.isNotEmpty() && timestamps.first().isBefore(cutoff)) {
                 timestamps.removeFirst()
@@ -36,5 +50,9 @@ class InMemoryRateLimiter(
             }
             timestamps.addLast(now)
         }
+    }
+
+    private companion object {
+        const val MAX_KEYS = 10_000
     }
 }

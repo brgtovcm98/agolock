@@ -140,6 +140,10 @@
 
 - `UNIQUE (id, space_id)`
 
+인덱스:
+
+- `(space_id, name, id) WHERE deleted_at IS NULL`
+
 ### `shelf`
 
 | 컬럼 | 타입 | 제약 | 설명 |
@@ -159,6 +163,10 @@
 - `UNIQUE (id, space_id)`
 - `FOREIGN KEY (room_id, space_id) REFERENCES room(id, space_id)`
 
+인덱스:
+
+- `(space_id, room_id, name, id) WHERE deleted_at IS NULL`
+
 ### `box`
 
 | 컬럼 | 타입 | 제약 | 설명 |
@@ -177,6 +185,10 @@
 
 - `UNIQUE (id, space_id)`
 - `FOREIGN KEY (shelf_id, space_id) REFERENCES shelf(id, space_id)`
+
+인덱스:
+
+- `(space_id, shelf_id, name, id) WHERE deleted_at IS NULL`
 
 ## 5. 물품과 재고
 

@@ -17,6 +17,8 @@ type AuthContextValue = {
   config: AuthConfig | null
   isLoading: boolean
   isAuthenticated: boolean
+  authError: unknown | null
+  retryAuth: () => void
   login: (input: LoginInput) => Promise<AuthMe>
   signup: (input: SignupInput) => Promise<AuthMe>
   logout: () => Promise<void>
@@ -26,6 +28,12 @@ type AuthContextValue = {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function clearUserData(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.removeQueries({
+    predicate: (query) => query.queryKey[0] !== 'auth',
+  })
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
@@ -50,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   useEffect(() => {
-    setUnauthorizedHandler(() => {
+    setUnauthorizedHandler((path) => {
+      if (path === '/auth/me') return
+      queryClient.clear()
       queryClient.setQueryData<AuthMe | null>(['auth', 'me'], null)
     })
     return () => setUnauthorizedHandler(null)
@@ -59,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (input: LoginInput) => {
       const result = await authApi.login(input)
+      clearUserData(queryClient)
       queryClient.setQueryData<AuthMe | null>(['auth', 'me'], result)
       return result
     },
@@ -68,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = useCallback(
     async (input: SignupInput) => {
       const result = await authApi.signup(input)
+      clearUserData(queryClient)
       queryClient.setQueryData<AuthMe | null>(['auth', 'me'], result)
       return result
     },
@@ -79,9 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authApi.logout()
     } catch (error) {
       if (!(error instanceof ApiError && error.status === 401)) throw error
-    } finally {
-      queryClient.setQueryData<AuthMe | null>(['auth', 'me'], null)
     }
+    queryClient.clear()
+    queryClient.setQueryData<AuthMe | null>(['auth', 'me'], null)
   }, [queryClient])
 
   const updateProfile = useCallback(
@@ -120,6 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       config: configQuery.data ?? null,
       isLoading: meQuery.isLoading,
       isAuthenticated: Boolean(meQuery.data),
+      authError: meQuery.isError ? meQuery.error : null,
+      retryAuth: () => void meQuery.refetch(),
       login,
       signup,
       logout,
@@ -127,17 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateSpace,
       refresh,
     }),
-    [
-      configQuery.data,
-      login,
-      logout,
-      meQuery.data,
-      meQuery.isLoading,
-      refresh,
-      signup,
-      updateProfile,
-      updateSpace,
-    ],
+    [configQuery.data, login, logout, meQuery, refresh, signup, updateProfile, updateSpace],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

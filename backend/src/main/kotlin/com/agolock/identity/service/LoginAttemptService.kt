@@ -38,6 +38,17 @@ class LoginAttemptService(
         val now = clock.instant()
         val policy = authProperties.login
         synchronized(attempts) {
+            if (attempts.size >= MAX_KEYS && key !in attempts) {
+                attempts.entries.removeIf { (_, attempt) ->
+                    val unlocked = attempt.lockedUntil == null || !attempt.lockedUntil!!.isAfter(now)
+                    unlocked && now.isAfter(attempt.windowStartedAt.plus(policy.window))
+                }
+                if (attempts.size >= MAX_KEYS) {
+                    attempts.entries.minByOrNull { it.value.windowStartedAt }?.let {
+                        attempts.remove(it.key)
+                    }
+                }
+            }
             val attempt =
                 attempts.getOrPut(key) {
                     Attempt(windowStartedAt = now)
@@ -59,6 +70,10 @@ class LoginAttemptService(
         }
     }
 
+    fun clear() {
+        synchronized(attempts) { attempts.clear() }
+    }
+
     private fun lockedException(
         now: Instant,
         lockedUntil: Instant,
@@ -73,4 +88,8 @@ class LoginAttemptService(
                     .seconds
                     .coerceAtLeast(1),
         )
+
+    private companion object {
+        const val MAX_KEYS = 10_000
+    }
 }

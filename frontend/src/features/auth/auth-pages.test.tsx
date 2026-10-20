@@ -1,9 +1,15 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { queryClient } from '@/app/providers'
 import { renderApp, testAuthConfig } from '@/test/render-app'
 
 describe('인증 화면', () => {
+  afterEach(() => {
+    queryClient.clear()
+    vi.unstubAllGlobals()
+  })
+
   it('로그인 필수 입력을 검증한다', async () => {
     const user = userEvent.setup()
     renderApp(['/login'], { authenticated: false })
@@ -30,6 +36,22 @@ describe('인증 화면', () => {
     })
 
     expect(screen.getByLabelText('초대코드')).toBeInTheDocument()
+  })
+
+  it('로그아웃하면 이전 사용자의 계층 캐시를 비운다', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })))
+    renderApp(['/settings'])
+    queryClient.setQueryData(['hierarchy', 'rooms', 'tree'], {
+      items: [{ id: 'old-room', name: '이전 사용자의 방' }],
+      nextCursor: null,
+    })
+
+    await user.click(screen.getByRole('button', { name: '로그아웃' }))
+
+    await waitFor(() => {
+      expect(queryClient.getQueryData(['hierarchy', 'rooms', 'tree'])).toBeUndefined()
+    })
   })
 
   it('설정 화면에 현재 프로필과 Space가 표시된다', () => {

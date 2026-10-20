@@ -16,7 +16,6 @@ class AuthTestClient(
     private var sessionCookie: String? = null
     private var csrfCookie: String? = null
     private var csrfToken: String? = null
-    private val clientIp = "10.${(1..254).random()}.${(1..254).random()}.${(1..254).random()}"
 
     fun refreshCsrf(): String {
         val response =
@@ -85,6 +84,25 @@ class AuthTestClient(
         return response
     }
 
+    fun patchRaw(
+        path: String,
+        body: String,
+    ): ResponseEntity<String> {
+        if (csrfToken == null) refreshCsrf()
+        val httpHeaders = headers()
+        csrfToken?.let { httpHeaders.set("X-XSRF-TOKEN", it) }
+        httpHeaders.contentType = MediaType.APPLICATION_JSON
+        val response =
+            restTemplate.exchange(
+                path,
+                HttpMethod.PATCH,
+                HttpEntity(body, httpHeaders),
+                String::class.java,
+            )
+        captureCookies(response.headers)
+        return response
+    }
+
     fun delete(path: String): ResponseEntity<String> {
         if (csrfToken == null) refreshCsrf()
         val httpHeaders = headers()
@@ -117,7 +135,6 @@ class AuthTestClient(
 
     private fun headers(): HttpHeaders {
         val headers = HttpHeaders()
-        headers.set("X-Forwarded-For", clientIp)
         val cookies = listOfNotNull(sessionCookie, csrfCookie)
         if (cookies.isNotEmpty()) {
             headers.set(HttpHeaders.COOKIE, cookies.joinToString("; "))

@@ -25,6 +25,19 @@ interface BoxMapper {
 
     @Select(
         """
+        SELECT id, space_id, shelf_id, name, description, version, created_at, updated_at, deleted_at
+        FROM box
+        WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL
+        FOR UPDATE
+        """,
+    )
+    fun findByIdForUpdate(
+        @Param("spaceId") spaceId: UUID,
+        @Param("id") id: UUID,
+    ): Box?
+
+    @Select(
+        """
         <script>
         SELECT id, space_id, shelf_id, name, description, version, created_at, updated_at, deleted_at
         FROM box
