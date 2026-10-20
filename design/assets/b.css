@@ -1,0 +1,56 @@
+/* B안 SOFT HOME — 따뜻하고 둥근 라이프스타일 */
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
+:root{--bg:#fff6ec;--card:#fff;--ink:#3a2a22;--mute:#9a8577;--peach:#ff9a76;--mint:#7fd8b6;--sky:#8cc9ff;--lav:#c3b1ff;--sun:#ffd36e;--r:28px}
+*{box-sizing:border-box;margin:0}
+body{background:linear-gradient(135deg,#ffd9c0,#ffe9f0 50%,#d8ecff);font-family:'Gowun Dodum',sans-serif;color:var(--ink);min-height:100vh;display:grid;place-items:center;padding:24px}
+.stage{display:grid;gap:14px;justify-items:center}
+.tag{font:14px 'Jua';background:#fff;color:var(--peach);padding:6px 16px;border-radius:99px;box-shadow:0 4px 14px #ff9a7633}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:48px;box-shadow:0 30px 70px #a8603a40,0 0 0 10px #fff;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.scroll{flex:1;overflow:auto;padding:26px 20px 20px}
+h1{font:30px/1.2 'Jua'}
+.hello{color:var(--mute);font-size:14px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.av{width:44px;height:44px;border-radius:50%;background:var(--lav);display:grid;place-items:center;font:20px 'Jua';color:#fff;box-shadow:0 4px 0 #a48fff}
+.search{display:flex;align-items:center;gap:10px;background:#fff;border-radius:99px;padding:6px 6px 6px 20px;box-shadow:0 8px 24px #ff9a7626;margin:16px 0}
+.search input{flex:1;border:0;font:16px 'Gowun Dodum';outline:0;background:transparent}
+.search b{width:42px;height:42px;border-radius:50%;background:var(--peach);display:grid;place-items:center;color:#fff;font-size:18px}
+.chips{display:flex;gap:8px;overflow:auto;margin-bottom:18px}
+.chip{padding:8px 14px;border-radius:99px;background:#fff;font-size:13px;white-space:nowrap;box-shadow:0 2px 6px #0001}
+.chip.on{background:var(--ink);color:#fff}
+.sec{font:18px 'Jua';margin:20px 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+.sec small{font:13px 'Gowun Dodum';color:var(--mute)}
+.rail{display:flex;gap:12px;overflow:auto;padding-bottom:6px}
+.tile{flex:none;width:130px;background:#fff;border-radius:var(--r);padding:10px;box-shadow:0 6px 18px #7a4a2a14}
+.ph{height:100px;border-radius:20px;display:grid;place-items:center;font-size:44px}
+.c1{background:#ffe3a3}.c2{background:#cfe9ff}.c3{background:#ffd1c2}.c4{background:#c9f1de}.c5{background:#e3dbff}
+.tile b{display:block;margin-top:8px;font-size:14px}.tile small{color:var(--mute);font-size:12px}
+.card{background:#fff;border-radius:var(--r);padding:12px;margin-bottom:12px;box-shadow:0 6px 18px #7a4a2a14}
+.card .row{display:flex;gap:14px;align-items:center}
+.card .ph{width:76px;height:76px;flex:none;font-size:34px}
+.card h3{font:17px 'Jua'}
+.loc{color:var(--mute);font-size:13px;margin:2px 0 6px}
+.st{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px}
+.st.use{background:#c9f1de;color:#157a4f}.st.sto{background:#ffe9b8;color:#8a5a00}.st.dis{background:#eee;color:#777}
+.badge{font-size:11px;background:var(--lav);color:#fff;padding:2px 8px;border-radius:99px;margin-left:4px}
+.sub{margin-top:10px;background:var(--bg);border-radius:18px;padding:6px 12px;font-size:13px}
+.sub div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1.5px dotted #e5cfbd}.sub div:last-child{border:0}
+.more{text-align:center;color:var(--peach);font-size:13px;padding-top:8px}
+.tabs{display:flex;justify-content:space-around;background:#fff;margin:0 14px 14px;border-radius:99px;padding:8px;box-shadow:0 10px 30px #7a4a2a26}
+.tabs a{display:grid;justify-items:center;gap:2px;font-size:11px;color:var(--mute);padding:6px 12px;border-radius:99px;text-decoration:none}
+.tabs a.on{background:var(--peach);color:#fff}.tabs i{font-style:normal;font-size:18px}
+.btn{background:var(--peach);color:#fff;border-radius:99px;padding:14px;text-align:center;font:16px 'Jua';box-shadow:0 5px 0 #e5764f;display:block}
+.btn.w{background:#fff;color:var(--ink);box-shadow:0 5px 0 #eadbcc}
+.room{border-radius:var(--r);padding:16px;margin-bottom:14px;position:relative;overflow:hidden}
+.room h3{font:20px 'Jua'}.room small{opacity:.75}
+.room .big{position:absolute;right:-6px;bottom:-14px;font-size:76px;opacity:.9}
+.shelves{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;position:relative;z-index:1}
+.pill{background:#fff9;border-radius:99px;padding:6px 12px;font-size:13px}
+.hero{height:260px;border-radius:36px;background:linear-gradient(160deg,#cfe9ff,#e3dbff);display:grid;place-items:center;font-size:110px;position:relative;margin-bottom:16px;box-shadow:0 14px 30px #8cc9ff55}
+.hero .st{position:absolute;left:16px;top:16px}
+.dots{position:absolute;bottom:14px;display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:#fff9}.dots i:first-child{background:#fff;width:22px;border-radius:99px}
+.panel{background:#fff;border-radius:var(--r);padding:6px 18px;margin-bottom:14px;box-shadow:0 6px 18px #7a4a2a14}
+.panel div{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1.5px dotted #eadbcc}.panel div:last-child{border:0}
+.panel span{color:var(--mute)}.ov{font-size:10px;background:var(--sun);padding:1px 7px;border-radius:99px;margin-left:6px}
+.crumb{color:var(--mute);font-size:13px;margin-bottom:8px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.tl p{padding:8px 0 8px 18px;border-left:3px solid var(--sun);margin-left:6px;font-size:13px}

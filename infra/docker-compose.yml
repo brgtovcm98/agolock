@@ -1,0 +1,104 @@
+name: agolock
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg16
+    environment:
+      POSTGRES_DB: agolock
+      POSTGRES_USER: agolock
+      POSTGRES_PASSWORD: agolock
+    ports:
+      - "5432:5432"
+    volumes:
+      - agolock-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agolock -d agolock"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - agolock
+
+  rabbitmq:
+    image: rabbitmq:3.13.7-management
+    environment:
+      RABBITMQ_DEFAULT_USER: agolock
+      RABBITMQ_DEFAULT_PASS: agolock
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - agolock-rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    networks:
+      - agolock
+
+  # 공식 minio/minio 이미지는 Docker Hub에서 더 이상 제공되지 않습니다.
+  # 로컬 전용으로 고정 태그의 Bitnami legacy 이미지를 사용하며, 운영 이미지가 아닙니다.
+  minio:
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5
+    environment:
+      MINIO_ROOT_USER: agolock
+      MINIO_ROOT_PASSWORD: agolock-local-secret
+      MINIO_BROWSER: "on"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - agolock-minio:/bitnami/minio/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mc --config-dir /tmp/.mc alias set local http://127.0.0.1:9000 \"$${MINIO_ROOT_USER}\" \"$${MINIO_ROOT_PASSWORD}\" >/dev/null 2>&1 && mc --config-dir /tmp/.mc ready local >/dev/null 2>&1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    networks:
+      - agolock
+
+  minio-init:
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: agolock
+      MINIO_ROOT_PASSWORD: agolock-local-secret
+      S3_BUCKET: agolock-local
+    volumes:
+      - ./minio/init.sh:/opt/agolock/init.sh:ro
+    entrypoint: ["/bin/bash", "/opt/agolock/init.sh"]
+    restart: "no"
+    networks:
+      - agolock
+
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8025"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - agolock
+
+networks:
+  agolock:
+    name: agolock
+
+volumes:
+  agolock-postgres:
+    name: agolock-postgres
+  agolock-rabbitmq:
+    name: agolock-rabbitmq
+  agolock-minio:
+    name: agolock-minio

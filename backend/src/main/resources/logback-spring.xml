@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="APP_NAME" value="agolock"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"app":"agolock"}</customFields>
+            <includeMdc>true</includeMdc>
+            <timeZone>UTC</timeZone>
+        </encoder>
+    </appender>
+
+    <appender name="CONSOLE_PATTERN" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%X{request_id:-no-request-id}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="local,test,contract">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_PATTERN"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="!local &amp; !test &amp; !contract">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>

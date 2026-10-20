@@ -1,0 +1,2741 @@
+# AGO Lock HTTP API 계약 (설계 초안)
+# 설계 단계에서는 ADR-014에 따라 수동 갱신합니다.
+# 구현 단계에서는 springdoc-openapi로 재생성하고 직접 수정하지 않습니다.
+openapi: 3.0.3
+info:
+  title: AGO Lock API
+  version: 0.2.0
+  description: |
+    개인 물품 관리 앱의 HTTP API 계약입니다.
+    인증은 HttpOnly 세션 쿠키를 사용하며, 상태 변경 요청은 X-XSRF-TOKEN 헤더가 필요합니다.
+    CSRF 토큰은 GET /auth/csrf 또는 XSRF-TOKEN 쿠키로 획득합니다.
+    PATCH는 JSON Merge Patch 의미를 사용하고 version이 필요한 리소스는 version을 필수로 보냅니다.
+    생성 요청은 Idempotency-Key를 지원하며 24시간 동안 같은 응답을 재생합니다.
+    오류 응답은 application/problem+json 형식을 사용합니다.
+servers:
+  - url: /api/v1
+security:
+  - cookieAuth: []
+tags:
+  - name: auth
+  - name: hierarchy
+  - name: items
+  - name: inventories
+  - name: categories
+  - name: search
+  - name: images
+  - name: ai
+  - name: sharing
+paths:
+  /auth/config:
+    get:
+      tags: [auth]
+      operationId: getAuthConfig
+      security: []
+      responses:
+        '200':
+          description: 가입·로그인 설정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthConfig'
+  /auth/csrf:
+    get:
+      tags: [auth]
+      operationId: getCsrfToken
+      security: []
+      responses:
+        '200':
+          description: CSRF 토큰
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsrfTokenResponse'
+  /auth/signup:
+    post:
+      tags: [auth]
+      operationId: signup
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: 가입 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMe'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMe'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      responses:
+        '204':
+          description: 로그아웃 성공
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/me:
+    get:
+      tags: [auth]
+      operationId: getMe
+      responses:
+        '200':
+          description: 현재 사용자와 Space
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMe'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [auth]
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeRequest'
+      responses:
+        '200':
+          description: 사용자 정보 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/password-reset/request:
+    post:
+      tags: [auth]
+      operationId: requestPasswordReset
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '202':
+          description: 메일 발송 접수
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /auth/password-reset/confirm:
+    post:
+      tags: [auth]
+      operationId: confirmPasswordReset
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+      responses:
+        '204':
+          description: 비밀번호 변경 완료
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /spaces/{spaceId}:
+    parameters:
+      - $ref: '#/components/parameters/SpaceId'
+    patch:
+      tags: [auth]
+      operationId: updateSpace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSpaceRequest'
+      responses:
+        '200':
+          description: Space 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /rooms:
+    get:
+      tags: [hierarchy]
+      operationId: listRooms
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Room 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [hierarchy]
+      operationId: createRoom
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+      responses:
+        '201':
+          description: Room 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /shared:
+    get:
+      tags: [hierarchy]
+      operationId: listSharedResources
+      responses:
+        '200':
+          description: 공유받은 Room/Shelf 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedResourceList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /rooms/{roomId}:
+    parameters:
+      - $ref: '#/components/parameters/RoomId'
+    get:
+      tags: [hierarchy]
+      operationId: getRoom
+      responses:
+        '200':
+          description: Room 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [hierarchy]
+      operationId: updateRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoomRequest'
+      responses:
+        '200':
+          description: Room 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [hierarchy]
+      operationId: deleteRoom
+      responses:
+        '204':
+          description: Room 삭제
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /rooms/{roomId}/shelves:
+    parameters:
+      - $ref: '#/components/parameters/RoomId'
+    get:
+      tags: [hierarchy]
+      operationId: listShelves
+      responses:
+        '200':
+          description: Shelf 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfList'
+    post:
+      tags: [hierarchy]
+      operationId: createShelf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShelfRequest'
+      responses:
+        '201':
+          description: Shelf 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /shelves/{shelfId}:
+    parameters:
+      - $ref: '#/components/parameters/ShelfId'
+    get:
+      tags: [hierarchy]
+      operationId: getShelf
+      responses:
+        '200':
+          description: Shelf 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [hierarchy]
+      operationId: updateShelf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShelfRequest'
+      responses:
+        '200':
+          description: Shelf 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [hierarchy]
+      operationId: deleteShelf
+      responses:
+        '204':
+          description: Shelf 삭제
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /shelves/{shelfId}/parent:
+    parameters:
+      - $ref: '#/components/parameters/ShelfId'
+    patch:
+      tags: [hierarchy]
+      operationId: moveShelf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveShelfRequest'
+      responses:
+        '200':
+          description: Shelf 이동
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /shelves/{shelfId}/boxes:
+    parameters:
+      - $ref: '#/components/parameters/ShelfId'
+    get:
+      tags: [hierarchy]
+      operationId: listBoxes
+      responses:
+        '200':
+          description: Box 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoxList'
+    post:
+      tags: [hierarchy]
+      operationId: createBox
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBoxRequest'
+      responses:
+        '201':
+          description: Box 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Box'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /boxes/{boxId}:
+    parameters:
+      - $ref: '#/components/parameters/BoxId'
+    get:
+      tags: [hierarchy]
+      operationId: getBox
+      responses:
+        '200':
+          description: Box 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Box'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [hierarchy]
+      operationId: updateBox
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBoxRequest'
+      responses:
+        '200':
+          description: Box 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Box'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [hierarchy]
+      operationId: deleteBox
+      responses:
+        '204':
+          description: Box 삭제
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /boxes/{boxId}/parent:
+    parameters:
+      - $ref: '#/components/parameters/BoxId'
+    patch:
+      tags: [hierarchy]
+      operationId: moveBox
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveBoxRequest'
+      responses:
+        '200':
+          description: Box 이동
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Box'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /items:
+    get:
+      tags: [items]
+      operationId: listItems
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [ALL, OWNED, SHARED]
+            default: ALL
+        - name: hasImage
+          in: query
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [RELEVANCE, UPDATED_DESC, NAME_ASC, VIEWED_DESC]
+            default: UPDATED_DESC
+      responses:
+        '200':
+          description: Item 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+    post:
+      tags: [items]
+      operationId: createItem
+      description: Space 소유자만 신규 Item을 생성할 수 있습니다.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemRequest'
+      responses:
+        '201':
+          description: Item 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /items/{itemId}:
+    parameters:
+      - $ref: '#/components/parameters/ItemId'
+    get:
+      tags: [items]
+      operationId: getItem
+      responses:
+        '200':
+          description: Item 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [items]
+      operationId: updateItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemRequest'
+      responses:
+        '200':
+          description: Item 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [items]
+      operationId: deleteItem
+      responses:
+        '204':
+          description: Item 삭제
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /items/{itemId}/inventories:
+    parameters:
+      - $ref: '#/components/parameters/ItemId'
+    get:
+      tags: [items]
+      operationId: listItemInventories
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InventoryStatus'
+      responses:
+        '200':
+          description: Item의 Inventory 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /items/{itemId}/images:
+    parameters:
+      - $ref: '#/components/parameters/ItemId'
+    get:
+      tags: [images]
+      operationId: listItemImages
+      responses:
+        '200':
+          description: Item 이미지 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /items/{itemId}/update-impact:
+    parameters:
+      - $ref: '#/components/parameters/ItemId'
+    get:
+      tags: [items]
+      operationId: getItemUpdateImpact
+      responses:
+        '200':
+          description: 마스터 수정 영향 범위
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemUpdateImpact'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /inventories:
+    get:
+      tags: [inventories]
+      operationId: listInventories
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: itemId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InventoryStatus'
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: roomId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: shelfId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: boxId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [ALL, OWNED, SHARED]
+            default: ALL
+        - name: hasImage
+          in: query
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [UPDATED_DESC, NAME_ASC, STATUS_ASC, VIEWED_DESC]
+            default: UPDATED_DESC
+      responses:
+        '200':
+          description: Inventory 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryList'
+    post:
+      tags: [inventories]
+      operationId: createInventory
+      description: 기존 Item에 Inventory를 추가하거나 소유자가 신규 Item과 첫 Inventory를 함께 생성합니다.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInventoryRequest'
+      responses:
+        '201':
+          description: Inventory 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /inventories/{inventoryId}:
+    parameters:
+      - $ref: '#/components/parameters/InventoryId'
+    get:
+      tags: [inventories]
+      operationId: getInventory
+      responses:
+        '200':
+          description: Inventory 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [inventories]
+      operationId: updateInventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInventoryRequest'
+      responses:
+        '200':
+          description: Inventory 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [inventories]
+      operationId: deleteInventory
+      responses:
+        '204':
+          description: Inventory 삭제
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /inventories/{inventoryId}/location:
+    parameters:
+      - $ref: '#/components/parameters/InventoryId'
+    patch:
+      tags: [inventories]
+      operationId: moveInventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveInventoryRequest'
+      responses:
+        '200':
+          description: 이동 완료
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /inventories/{inventoryId}/move-targets:
+    parameters:
+      - $ref: '#/components/parameters/InventoryId'
+    get:
+      tags: [inventories]
+      operationId: listMoveTargets
+      responses:
+        '200':
+          description: 이동 가능한 위치
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationList'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /inventories/{inventoryId}/movements:
+    parameters:
+      - $ref: '#/components/parameters/InventoryId'
+    get:
+      tags: [inventories]
+      operationId: listInventoryMovements
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 이동 이력
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovementList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /inventories/{inventoryId}/images:
+    parameters:
+      - $ref: '#/components/parameters/InventoryId'
+    get:
+      tags: [images]
+      operationId: listInventoryImages
+      responses:
+        '200':
+          description: Inventory 이미지 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /categories:
+    get:
+      tags: [categories]
+      operationId: listCategories
+      responses:
+        '200':
+          description: Category 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryList'
+    post:
+      tags: [categories]
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Category 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /categories/{categoryId}:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    patch:
+      tags: [categories]
+      operationId: updateCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryRequest'
+      responses:
+        '200':
+          description: Category 수정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags: [categories]
+      operationId: deleteCategory
+      responses:
+        '204':
+          description: Category 삭제
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /categories/{categoryId}/merge:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    post:
+      tags: [categories]
+      operationId: mergeCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeCategoryRequest'
+      responses:
+        '204':
+          description: Category 병합 완료
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /search:
+    get:
+      tags: [search]
+      operationId: search
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/InventoryStatus'
+          style: form
+          explode: false
+        - name: roomId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: shelfId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: boxId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [ALL, OWNED, SHARED]
+            default: ALL
+        - name: ownerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: hasImage
+          in: query
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [RELEVANCE, UPDATED_DESC, NAME_ASC, VIEWED_DESC, STATUS_ASC]
+            default: RELEVANCE
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 검색 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+  /search/recent:
+    get:
+      tags: [search]
+      operationId: listRecentSearches
+      responses:
+        '200':
+          description: 최근 검색어
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecentSearchList'
+    delete:
+      tags: [search]
+      operationId: clearRecentSearches
+      responses:
+        '204':
+          description: 최근 검색어 전체 삭제
+  /search/frequent:
+    get:
+      tags: [search]
+      operationId: listFrequentItems
+      responses:
+        '200':
+          description: 자주 본 물건
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrequentItemList'
+  /search/suggestions:
+    get:
+      tags: [search]
+      operationId: listSearchSuggestions
+      responses:
+        '200':
+          description: 검색 추천 토큰
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchSuggestions'
+  /search/image:
+    post:
+      tags: [search]
+      operationId: searchByImage
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/InventoryStatus'
+          style: form
+          explode: false
+        - name: roomId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: shelfId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: boxId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [ALL, OWNED, SHARED]
+            default: ALL
+        - name: ownerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: hasImage
+          in: query
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [RELEVANCE, UPDATED_DESC, NAME_ASC, VIEWED_DESC, STATUS_ASC]
+            default: RELEVANCE
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: 이미지 검색 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /images/presign:
+    post:
+      tags: [images]
+      operationId: presignImage
+      description: ITEM은 OWNER, INVENTORY는 EDIT 이상, DRAFT는 인증된 사용자 본인의 Space만 허용합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImagePresignRequest'
+      responses:
+        '200':
+          description: 업로드 URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImagePresignResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /images/{imageId}/complete:
+    parameters:
+      - $ref: '#/components/parameters/ImageId'
+    post:
+      tags: [images]
+      operationId: completeImageUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageCompleteRequest'
+      responses:
+        '202':
+          description: 후처리 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /images/{imageId}/url:
+    parameters:
+      - $ref: '#/components/parameters/ImageId'
+    get:
+      tags: [images]
+      operationId: getImageUrl
+      parameters:
+        - name: variant
+          in: query
+          schema:
+            type: string
+            enum: [THUMB, ORIGINAL]
+            default: THUMB
+      responses:
+        '200':
+          description: 다운로드 URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUrlResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /images/urls:
+    post:
+      tags: [images]
+      operationId: getImageUrls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageUrlBatchRequest'
+      responses:
+        '200':
+          description: 다운로드 URL 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUrlBatchResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /images/{imageId}/primary:
+    parameters:
+      - $ref: '#/components/parameters/ImageId'
+    post:
+      tags: [images]
+      operationId: setPrimaryImage
+      responses:
+        '200':
+          description: 대표 이미지 변경
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /images/{imageId}:
+    parameters:
+      - $ref: '#/components/parameters/ImageId'
+    delete:
+      tags: [images]
+      operationId: deleteImage
+      responses:
+        '204':
+          description: 이미지 삭제
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /ai/recognitions:
+    post:
+      tags: [ai]
+      operationId: createRecognition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiRecognitionRequest'
+      responses:
+        '202':
+          description: 인식 job 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiJob'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /ai/jobs/{jobId}:
+    parameters:
+      - $ref: '#/components/parameters/JobId'
+    get:
+      tags: [ai]
+      operationId: getAiJob
+      responses:
+        '200':
+          description: AI job 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiJob'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /ai/jobs/{jobId}/retry:
+    parameters:
+      - $ref: '#/components/parameters/JobId'
+    post:
+      tags: [ai]
+      operationId: retryAiJob
+      responses:
+        '202':
+          description: 재시도 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiJob'
+  /ai/jobs/{jobId}/cancel:
+    parameters:
+      - $ref: '#/components/parameters/JobId'
+    post:
+      tags: [ai]
+      operationId: cancelAiJob
+      responses:
+        '202':
+          description: 취소 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiJob'
+  /shares:
+    get:
+      tags: [sharing]
+      operationId: listShares
+      responses:
+        '200':
+          description: 공유 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareList'
+  /shares/{shareId}:
+    parameters:
+      - $ref: '#/components/parameters/ShareId'
+    patch:
+      tags: [sharing]
+      operationId: updateShare
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShareRequest'
+      responses:
+        '200':
+          description: 권한 변경
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Share'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags: [sharing]
+      operationId: revokeShare
+      responses:
+        '204':
+          description: 공유 철회
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /share-invitations:
+    get:
+      tags: [sharing]
+      operationId: listShareInvitations
+      responses:
+        '200':
+          description: 보낸 초대 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareInvitationList'
+    post:
+      tags: [sharing]
+      operationId: createShareInvitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShareInvitationRequest'
+      responses:
+        '201':
+          description: 초대 생성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareInvitation'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /share-invitations/received:
+    get:
+      tags: [sharing]
+      operationId: listReceivedShareInvitations
+      responses:
+        '200':
+          description: 받은 초대 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareInvitationList'
+  /share-invitations/{invitationId}:
+    parameters:
+      - $ref: '#/components/parameters/InvitationId'
+    delete:
+      tags: [sharing]
+      operationId: revokeShareInvitation
+      responses:
+        '204':
+          description: 초대 철회
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /share-invitations/{token}/accept:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [sharing]
+      operationId: acceptShareInvitation
+      responses:
+        '200':
+          description: 초대 수락
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Share'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /share-invitations/{token}/decline:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [sharing]
+      operationId: declineShareInvitation
+      responses:
+        '204':
+          description: 초대 거절
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: SESSION
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+    CsrfToken:
+      name: X-XSRF-TOKEN
+      in: header
+      required: true
+      schema:
+        type: string
+    SpaceId:
+      name: spaceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RoomId:
+      name: roomId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ShelfId:
+      name: shelfId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BoxId:
+      name: boxId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ItemId:
+      name: itemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    InventoryId:
+      name: inventoryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ImageId:
+      name: imageId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ShareId:
+      name: shareId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    InvitationId:
+      name: invitationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: 잘못된 요청
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: 인증 필요
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 권한 없음
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: 리소스 없음
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: 상태 충돌
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UnprocessableEntity:
+      description: 검증 실패
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    TooManyRequests:
+      description: 요청 한도 초과
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    ServiceUnavailable:
+      description: 외부 AI·이미지 검색 일시 장애
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    User:
+      type: object
+      required: [id, email, displayName, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, LOCKED, DELETED]
+    Space:
+      type: object
+      required: [id, name, ownerUserId]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        ownerUserId:
+          type: string
+          format: uuid
+    AuthMe:
+      type: object
+      required: [user, space]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        space:
+          $ref: '#/components/schemas/Space'
+    AuthConfig:
+      type: object
+      required: [inviteRequired]
+      properties:
+        inviteRequired:
+          type: boolean
+        passwordMinLength:
+          type: integer
+          default: 10
+        passwordMaxLength:
+          type: integer
+          default: 128
+    CsrfTokenResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    UpdateMeRequest:
+      type: object
+      required: [displayName]
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 80
+    UpdateSpaceRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+    SignupRequest:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 10
+          maxLength: 128
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        inviteCode:
+          type: string
+          description: auth.signup.invite-required가 true인 환경에서 필수
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    PasswordResetRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordResetConfirmRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+          minLength: 10
+          maxLength: 128
+    SharedResource:
+      type: object
+      required: [resourceType, resourceId, name, ownerName, permission, sharedAt]
+      properties:
+        resourceType:
+          type: string
+          enum: [ROOM, SHELF]
+        resourceId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        path:
+          type: string
+          description: Room > Shelf 표시 경로
+        ownerUserId:
+          type: string
+          format: uuid
+        ownerName:
+          type: string
+        permission:
+          $ref: '#/components/schemas/Permission'
+        sharedAt:
+          type: string
+          format: date-time
+    SharedResourceList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SharedResource'
+    Room:
+      type: object
+      required: [id, name, version, effectivePermission, isShared]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        effectivePermission:
+          $ref: '#/components/schemas/Permission'
+        isShared:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RoomList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Room'
+        nextCursor:
+          type: string
+          nullable: true
+    CreateRoomRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+    UpdateRoomRequest:
+      type: object
+      required: [version]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          format: int64
+    Shelf:
+      type: object
+      required: [id, roomId, name, version, effectivePermission, isShared]
+      properties:
+        id:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        effectivePermission:
+          $ref: '#/components/schemas/Permission'
+        isShared:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    ShelfList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shelf'
+    CreateShelfRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+    UpdateShelfRequest:
+      type: object
+      required: [version]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          format: int64
+    MoveShelfRequest:
+      type: object
+      required: [roomId, version]
+      properties:
+        roomId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          format: int64
+    Box:
+      type: object
+      required: [id, shelfId, name, version, effectivePermission, isShared]
+      properties:
+        id:
+          type: string
+          format: uuid
+        shelfId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        effectivePermission:
+          $ref: '#/components/schemas/Permission'
+        isShared:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    BoxList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Box'
+    CreateBoxRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+    UpdateBoxRequest:
+      type: object
+      required: [version]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          format: int64
+    MoveBoxRequest:
+      type: object
+      required: [shelfId, version]
+      properties:
+        shelfId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          format: int64
+    InventoryStatus:
+      type: string
+      enum: [IN_USE, STORED, DISPOSED]
+    Permission:
+      type: string
+      enum: [VIEW, EDIT, MANAGE]
+    Category:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+          nullable: true
+        sortOrder:
+          type: integer
+    CategoryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    CreateCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        color:
+          type: string
+          nullable: true
+        sortOrder:
+          type: integer
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        color:
+          type: string
+          nullable: true
+        sortOrder:
+          type: integer
+    MergeCategoryRequest:
+      type: object
+      required: [targetCategoryId]
+      properties:
+        targetCategoryId:
+          type: string
+          format: uuid
+    Price:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          enum: [KRW]
+          default: KRW
+    Item:
+      type: object
+      required: [id, name, inventoryCount]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        category:
+          $ref: '#/components/schemas/Category'
+        price:
+          $ref: '#/components/schemas/Price'
+        primaryImageId:
+          type: string
+          format: uuid
+          nullable: true
+        inventoryCount:
+          type: integer
+        version:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ItemList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        nextCursor:
+          type: string
+          nullable: true
+    CreateItemRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        price:
+          $ref: '#/components/schemas/Price'
+    UpdateItemRequest:
+      type: object
+      required: [version]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        price:
+          $ref: '#/components/schemas/Price'
+        version:
+          type: integer
+          format: int64
+    ItemUpdateImpact:
+      type: object
+      required: [affectedInventoryCount]
+      properties:
+        affectedInventoryCount:
+          type: integer
+          minimum: 0
+        protectedByOverrideCount:
+          type: integer
+          minimum: 0
+    NewItemInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        price:
+          $ref: '#/components/schemas/Price'
+    Location:
+      type: object
+      required: [type, id, path]
+      properties:
+        type:
+          type: string
+          enum: [ROOM, SHELF, BOX]
+        id:
+          type: string
+          format: uuid
+        path:
+          type: string
+          description: Room > Shelf > Box 표시 경로
+    Inventory:
+      type: object
+      required: [id, itemId, status, location]
+      properties:
+        id:
+          type: string
+          format: uuid
+        itemId:
+          type: string
+          format: uuid
+        effectiveName:
+          type: string
+        effectiveDescription:
+          type: string
+          nullable: true
+        effectiveCategory:
+          $ref: '#/components/schemas/Category'
+        effectivePrice:
+          $ref: '#/components/schemas/Price'
+        primaryImageId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/InventoryStatus'
+        location:
+          $ref: '#/components/schemas/Location'
+        shared:
+          type: boolean
+        ownerName:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    InventoryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Inventory'
+        nextCursor:
+          type: string
+          nullable: true
+    CreateInventoryRequest:
+      type: object
+      required: [location]
+      description: itemId 또는 newItem 중 정확히 하나를 보냅니다. newItem은 OWNER만 사용할 수 있습니다.
+      properties:
+        itemId:
+          type: string
+          format: uuid
+          nullable: true
+        newItem:
+          $ref: '#/components/schemas/NewItemInput'
+        imageId:
+          type: string
+          format: uuid
+          nullable: true
+          description: 저장 시 연결할 DRAFT 이미지 ID
+        location:
+          type: object
+          required: [type, id]
+          properties:
+            type:
+              type: string
+              enum: [ROOM, SHELF, BOX]
+            id:
+              type: string
+              format: uuid
+        nameOverride:
+          type: string
+          nullable: true
+        descriptionOverride:
+          type: string
+          nullable: true
+        categoryIdOverride:
+          type: string
+          format: uuid
+          nullable: true
+        priceAmountOverride:
+          type: integer
+          minimum: 0
+          nullable: true
+        status:
+          $ref: '#/components/schemas/InventoryStatus'
+    UpdateInventoryRequest:
+      type: object
+      required: [version]
+      properties:
+        nameOverride:
+          type: string
+          nullable: true
+        descriptionOverride:
+          type: string
+          nullable: true
+        categoryIdOverride:
+          type: string
+          format: uuid
+          nullable: true
+        priceAmountOverride:
+          type: integer
+          minimum: 0
+          nullable: true
+        status:
+          $ref: '#/components/schemas/InventoryStatus'
+        confirmDisposal:
+          type: boolean
+          default: false
+          description: status를 DISPOSED로 바꿀 때 true여야 합니다.
+        version:
+          type: integer
+          format: int64
+    MoveInventoryRequest:
+      type: object
+      required: [location, version]
+      properties:
+        location:
+          type: object
+          required: [type, id]
+          properties:
+            type:
+              type: string
+              enum: [ROOM, SHELF, BOX]
+            id:
+              type: string
+              format: uuid
+        version:
+          type: integer
+          format: int64
+    SearchResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchItemGroup'
+        nextCursor:
+          type: string
+          nullable: true
+    SearchItemGroup:
+      type: object
+      required: [itemId, itemName, matchedInventoryCount, inventoryCount, hasMoreInventories, inventories]
+      properties:
+        itemId:
+          type: string
+          format: uuid
+        itemName:
+          type: string
+        matchedInventoryCount:
+          type: integer
+        inventoryCount:
+          type: integer
+          description: 그룹의 전체 일치 Inventory 수
+        hasMoreInventories:
+          type: boolean
+        primaryImageId:
+          type: string
+          format: uuid
+          nullable: true
+        effectiveCategory:
+          $ref: '#/components/schemas/Category'
+        inventories:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/Inventory'
+    SearchSuggestions:
+      type: object
+      properties:
+        recentSearches:
+          $ref: '#/components/schemas/RecentSearchList'
+        frequentItems:
+          $ref: '#/components/schemas/FrequentItemList'
+        recentlyAddedInventories:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Inventory'
+        recentlySharedResources:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/SharedResource'
+    RecentSearch:
+      type: object
+      required: [query, lastSearchedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        query:
+          type: string
+        lastSearchedAt:
+          type: string
+          format: date-time
+    RecentSearchList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentSearch'
+    FrequentItem:
+      type: object
+      required: [itemId, itemName, viewCount]
+      properties:
+        itemId:
+          type: string
+          format: uuid
+        itemName:
+          type: string
+        primaryImageId:
+          type: string
+          format: uuid
+          nullable: true
+        viewCount:
+          type: integer
+        lastViewedAt:
+          type: string
+          format: date-time
+    FrequentItemList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FrequentItem'
+    Movement:
+      type: object
+      required: [id, inventoryId, from, to, movedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        inventoryId:
+          type: string
+          format: uuid
+        from:
+          $ref: '#/components/schemas/Location'
+        to:
+          $ref: '#/components/schemas/Location'
+        movedBy:
+          type: string
+          format: uuid
+        movedAt:
+          type: string
+          format: date-time
+    MovementList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movement'
+        nextCursor:
+          type: string
+          nullable: true
+    LocationList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+    ImagePresignRequest:
+      type: object
+      required: [targetType, contentType, sizeBytes]
+      description: targetType이 DRAFT이면 targetId를 생략합니다.
+      properties:
+        targetType:
+          type: string
+          enum: [ITEM, INVENTORY, DRAFT]
+        targetId:
+          type: string
+          format: uuid
+          nullable: true
+        contentType:
+          type: string
+          enum: [image/webp]
+        sizeBytes:
+          type: integer
+          minimum: 1
+          maximum: 10485760
+    ImagePresignResponse:
+      type: object
+      required: [imageId, uploadUrl, objectKey, expiresAt]
+      properties:
+        imageId:
+          type: string
+          format: uuid
+        uploadUrl:
+          type: string
+        objectKey:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    ImageCompleteRequest:
+      type: object
+      required: [objectKey]
+      properties:
+        objectKey:
+          type: string
+        isPrimary:
+          type: boolean
+          default: false
+    Image:
+      type: object
+      required: [id, status, isPrimary]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [UPLOADING, DRAFT, PENDING, PROCESSING, READY, FAILED, DELETED]
+        isPrimary:
+          type: boolean
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        mimeType:
+          type: string
+          nullable: true
+        uploadExpiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    ImageList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+    ImageUrlResponse:
+      type: object
+      required: [url, expiresAt]
+      properties:
+        url:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    ImageUrlBatchRequest:
+      type: object
+      required: [imageIds]
+      properties:
+        imageIds:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+            format: uuid
+        variant:
+          type: string
+          enum: [THUMB, ORIGINAL]
+          default: THUMB
+    ImageUrlItem:
+      type: object
+      required: [imageId, url, expiresAt]
+      properties:
+        imageId:
+          type: string
+          format: uuid
+        url:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    ImageUrlBatchResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageUrlItem'
+    AiRecognitionRequest:
+      type: object
+      required: [imageId, mode]
+      properties:
+        imageId:
+          type: string
+          format: uuid
+        mode:
+          type: string
+          enum: [NEW_ITEM, INVENTORY_OVERRIDE]
+        inventoryId:
+          type: string
+          format: uuid
+          nullable: true
+          description: INVENTORY_OVERRIDE일 때 필수
+        language:
+          type: string
+          default: ko
+    RecognitionResult:
+      type: object
+      required: [name, confidence]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        categoryCandidate:
+          type: object
+          nullable: true
+          properties:
+            categoryId:
+              type: string
+              format: uuid
+              nullable: true
+            name:
+              type: string
+            isNew:
+              type: boolean
+        brand:
+          type: string
+          nullable: true
+        modelName:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        material:
+          type: string
+          nullable: true
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+    AiJob:
+      type: object
+      required: [id, jobType, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        jobType:
+          type: string
+          enum: [RECOGNITION, EMBEDDING]
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED]
+        provider:
+          type: string
+          nullable: true
+        model:
+          type: string
+          nullable: true
+        result:
+          type: object
+          nullable: true
+          properties:
+            recognition:
+              $ref: '#/components/schemas/RecognitionResult'
+            embeddingModel:
+              type: string
+            embeddingVersion:
+              type: string
+        error:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+    Share:
+      type: object
+      required: [id, granteeUserId, permission]
+      properties:
+        id:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+          nullable: true
+        shelfId:
+          type: string
+          format: uuid
+          nullable: true
+        granteeUserId:
+          type: string
+          format: uuid
+        granteeEmail:
+          type: string
+          format: email
+        permission:
+          $ref: '#/components/schemas/Permission'
+        createdAt:
+          type: string
+          format: date-time
+    ShareList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Share'
+    UpdateShareRequest:
+      type: object
+      required: [permission]
+      properties:
+        permission:
+          $ref: '#/components/schemas/Permission'
+    ShareInvitation:
+      type: object
+      required: [id, invitedEmail, permission, status, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+          nullable: true
+        shelfId:
+          type: string
+          format: uuid
+          nullable: true
+        invitedEmail:
+          type: string
+          format: email
+        permission:
+          $ref: '#/components/schemas/Permission'
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, DECLINED, REVOKED, EXPIRED]
+        expiresAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+          nullable: true
+        declinedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ShareInvitationList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShareInvitation'
+    CreateShareInvitationRequest:
+      type: object
+      required: [invitedEmail, permission]
+      properties:
+        roomId:
+          type: string
+          format: uuid
+          nullable: true
+        shelfId:
+          type: string
+          format: uuid
+          nullable: true
+        invitedEmail:
+          type: string
+          format: email
+        permission:
+          $ref: '#/components/schemas/Permission'

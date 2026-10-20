@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install docs dependencies
+        run: python3 -m pip install pyyaml==6.0.3
+      - name: Check docs and design contracts
+        run: python3 scripts/docs_check.py
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Lint, static analysis, tests
+        run: ./gradlew :backend:ktlintCheck :backend:detekt :backend:test
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Generate API types
+        run: pnpm generate:api
+      - name: Check generated API types
+        run: git diff --exit-code frontend/src/shared/api/schema.d.ts
+      - name: Lint
+        run: pnpm lint
+      - name: Format check
+        run: pnpm format:check
+      - name: Unit tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+      - name: Install Playwright
+        run: pnpm exec playwright install --with-deps chromium
+      - name: E2E smoke
+        run: pnpm test:e2e
+
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install contract dependencies
+        run: python3 -m pip install -r scripts/requirements.txt
+      - name: Generate OpenAPI preview
+        run: ./gradlew :backend:generateOpenApiPreview
+      - name: Normalize OpenAPI preview
+        run: python3 scripts/normalize_openapi.py
+      - name: Export events preview
+        run: python3 scripts/export_events.py
+      - name: Check contracts and docs
+        run: python3 scripts/docs_check.py

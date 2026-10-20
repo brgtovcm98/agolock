@@ -1,0 +1,28 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+  flyway:
+    enabled: false
+agolock:
+  contract-mode: true
+  environment: contract
+  public-base-url: http://localhost:8080
+  storage:
+    endpoint: http://localhost:9000
+    bucket: agolock-contract
+    access-key: contract
+    secret-key: contract
+  mail:
+    host: localhost
+    port: 1025
+management:
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: readinessState

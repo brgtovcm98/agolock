@@ -1,0 +1,13 @@
+asyncapi: 2.6.0
+info:
+  title: AGO Lock 이벤트 계약 원본
+  version: 0.1.0
+  description: |
+    M0에는 발행·소비하는 이벤트가 없으므로 채널을 비워 둡니다.
+    M1부터 도메인 이벤트가 생기면 이 파일에 채널과 메시지를 추가하고
+    scripts/export_events.py로 docs/generated/events.yaml 미리보기를 생성합니다.
+defaultContentType: application/json
+channels: {}
+components:
+  messages: {}
+  schemas: {}

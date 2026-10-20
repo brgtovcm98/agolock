@@ -1,0 +1,143 @@
+/* E안 NEO-BRUTAL TOKENS — 네오 브루탈리즘 + Noto Sans KR 단일 서체 + 라이트/다크 토큰
+   간격 규칙 (4px 배수 스케일, 컴포넌트에 margin을 박지 않고 컨테이너의 gap으로만 배치)
+   --sp-1 4  : 카드 안 제목 ↔ 위치
+   --sp-2 8  : 카드 안 위치 ↔ 태그, 태그·칩 사이, 트리 노드 사이, 섹션 제목 ↔ 구분선
+   --sp-3 12 : 카드 패딩, 썸네일 ↔ 텍스트, 섹션 제목 ↔ 본문
+   --sp-4 16 : 같은 영역의 형제 컴포넌트 사이 (모바일 화면 여백도 16)
+   --sp-6 24 : 섹션 사이, 데스크톱 컬럼 사이
+   --sp-8 32 : 데스크톱 페이지 여백 */
+.phone,.desk{
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-6:24px;--sp-8:32px;
+  --tag-h:28px;--background:#f1eee3;--foreground:#111111;--card:#ffffff;--sunken:#e7e3d4;
+  --border-color:#111111;--shadow-color:#111111;
+  --primary:#ff5a1f;--accent:#ffd93b;--success:#3fcf80;--info:#2f55e0;--on-info:#ffffff;
+  --blue-soft:#dbe6ff;--yellow-soft:#fff6c2;--stripe-a:#8ec5ff;--stripe-b:#a8d2ff;--on-accent:#111111;
+  --bw:2.5px;--sh:5px 5px 0 var(--shadow-color);
+}
+.phone.dark,.desk.dark{
+  --background:#15140f;--foreground:#f4f1e6;--card:#201e17;--sunken:#2a271e;
+  --border-color:#f4f1e6;--shadow-color:#f4f1e6;
+  --primary:#ff7a45;--accent:#ffd93b;--success:#4ede93;--info:#8fb0ff;--on-info:#111111;
+  --blue-soft:#1c2744;--yellow-soft:#2d2a14;--stripe-a:#1f3a66;--stripe-b:#27487c;
+}
+*{box-sizing:border-box;margin:0}
+.phone{width:390px;height:844px;background:var(--background);color:var(--foreground);border:4px solid var(--border-color);display:flex;flex-direction:column;overflow:hidden;font-family:'Noto Sans KR',sans-serif;font-weight:500;font-variant-numeric:tabular-nums}
+
+/* 레이아웃 컨테이너: 자식 사이 간격은 전부 여기서 */
+.stack{display:flex;flex-direction:column;gap:var(--sp-4)}
+.scroll{flex:1;overflow:hidden;padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-4)}
+.tx{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-1)}
+.tx .st{margin-top:var(--sp-1)}
+.card .row>div:last-child{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-1)}
+.card .row>div:last-child .st{margin-top:var(--sp-1)}
+
+h1{font-size:34px;line-height:1.05;font-weight:900;letter-spacing:-.04em}
+.meta{font-size:12px}
+h1+.meta{margin-top:calc(var(--sp-2) * -1)}
+.top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:900;font-size:15px;letter-spacing:.06em;background:var(--foreground);color:var(--background);padding:4px 8px}
+.av{width:34px;height:34px;border:var(--bw) solid var(--border-color);background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:900}
+.search{display:flex;border:var(--bw) solid var(--border-color);background:var(--card);box-shadow:var(--sh)}
+.search input{flex:1;min-width:0;border:0;padding:14px;font:500 15px 'Noto Sans KR';background:transparent;outline:0;color:var(--foreground)}
+.search b{background:var(--primary);color:var(--on-accent);border-left:var(--bw) solid var(--border-color);padding:0 16px;display:grid;place-items:center;font-size:20px}
+
+/* 태그류 단일 규격: 칩·상태·뱃지·오버라이드는 모두 높이 28px, 12px/700, 좌우 10px, 테두리 2px */
+.chip,.st,.badge,.ov{display:inline-flex;align-items:center;justify-content:center;height:var(--tag-h);padding:0 10px;font:700 12px/1 'Noto Sans KR';border:2px solid var(--border-color);white-space:nowrap;vertical-align:middle}
+.chip{position:relative;background:var(--card);color:var(--foreground)}
+.chip::after{content:'';position:absolute;inset:-8px -2px}
+.chip.on{background:var(--foreground);color:var(--background)}
+.chips{display:flex;gap:var(--sp-2);flex-wrap:wrap}
+.st{color:var(--on-accent)}
+.st.use{background:var(--success)}.st.sto{background:var(--accent)}.st.dis{background:var(--sunken);color:var(--foreground);text-decoration:line-through}
+.badge{background:var(--info);color:var(--on-info);margin-left:var(--sp-2)}
+.ov{background:var(--primary);color:var(--on-accent);margin-left:var(--sp-2)}
+
+/* 섹션 제목: 앞 블록과 24, 본문과 12 */
+.sec{font-weight:900;font-size:12px;letter-spacing:.08em;border-bottom:var(--bw) solid var(--border-color);padding-bottom:var(--sp-2);margin:var(--sp-2) 0 calc(var(--sp-1) * -1);display:flex;justify-content:space-between}
+.first{margin-top:0}
+
+.card{border:var(--bw) solid var(--border-color);background:var(--card);box-shadow:var(--sh)}
+.card .row{display:flex;gap:var(--sp-3);padding:var(--sp-3);align-items:center}
+.ph{width:64px;height:64px;border:var(--bw) solid var(--border-color);display:grid;place-items:center;flex:none;color:#111}
+.ico{width:56%;height:56%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.c1{background:var(--accent)}.c2{background:#8ec5ff}.c3{background:#ff9d80}.c4{background:#9be3b4}
+.card h3{font-size:16px;font-weight:900}
+.loc{font-size:12px}
+.sub{border-top:var(--bw) solid var(--border-color);background:var(--sunken)}
+.sub div{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-2) var(--sp-3);font-size:12px;border-bottom:1.5px dashed var(--border-color)}
+.sub div:last-child{border:0}
+.more{text-align:center;font-weight:900;font-size:12px;padding:var(--sp-2);border-top:var(--bw) solid var(--border-color);background:var(--accent);color:var(--on-accent)}
+
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:var(--bw) solid var(--border-color);background:var(--card)}
+.tabs a{padding:10px 0 12px;text-align:center;font-weight:900;font-size:11px;border-right:1.5px solid var(--border-color);color:var(--foreground);text-decoration:none}
+.tabs a:last-child{border:0}.tabs a.on{background:var(--primary);color:var(--on-accent)}
+.tabs i{display:block;font-style:normal;font-size:18px}
+.btn{border:var(--bw) solid var(--border-color);background:var(--primary);color:var(--on-accent);padding:12px;font:900 14px 'Noto Sans KR';box-shadow:4px 4px 0 var(--shadow-color);text-align:center;display:block;text-decoration:none}
+.btn.w{background:var(--card);color:var(--foreground)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)}
+
+.crumb{font-weight:700;font-size:12px}
+.scroll>.crumb{margin-bottom:calc(var(--sp-2) * -1)}
+.node{border:var(--bw) solid var(--border-color);background:var(--card);padding:10px var(--sp-3);display:flex;justify-content:space-between;align-items:center;font-weight:900}
+.node small{display:block;font-weight:500;font-size:11px}
+.tree{display:flex;flex-direction:column;gap:var(--sp-2)}
+.tree-l2,.tree-l3{display:flex;flex-direction:column;gap:var(--sp-2)}
+.l2{margin-left:22px;border-left:var(--bw) solid var(--border-color);display:flex;flex-direction:column;gap:var(--sp-2)}
+.l2>.node,.l2>.l3{margin-left:14px}
+.l2 .node{background:var(--yellow-soft)}
+.l3{display:flex;flex-direction:column;gap:var(--sp-2)}
+.l3 .node{background:var(--blue-soft)}
+.l2>.l3{margin-left:36px}
+.l2>.l3 .node{margin-left:0}
+
+.hero{height:230px;border:var(--bw) solid var(--border-color);background:repeating-linear-gradient(45deg,var(--stripe-a),var(--stripe-a) 14px,var(--stripe-b) 14px,var(--stripe-b) 28px);display:grid;place-items:center;box-shadow:6px 6px 0 var(--shadow-color);position:relative;color:var(--foreground)}
+.hero .ico{width:110px;height:110px;stroke-width:1.2}
+.hero .st{position:absolute;left:var(--sp-3);top:var(--sp-3)}
+table{width:100%;border-collapse:collapse;border:var(--bw) solid var(--border-color);background:var(--card);font-size:13px}
+td{padding:var(--sp-3);border-bottom:1.5px solid var(--border-color)}
+td:first-child{font-weight:900;font-size:11px;background:var(--accent);color:var(--on-accent);width:84px;border-right:var(--bw) solid var(--border-color)}
+.tl{border-left:var(--bw) solid var(--border-color);margin-left:var(--sp-2);padding-left:var(--sp-4);font-size:12px;display:flex;flex-direction:column;gap:var(--sp-3)}
+.tl p{position:relative}.tl p:before{content:'';position:absolute;left:-24px;top:3px;width:10px;height:10px;background:var(--primary);border:2px solid var(--border-color)}
+
+/* ---- 데스크톱 (사이드바 + 상단 검색, docs/frontend.md 2번 항목) ---- */
+.desk{min-height:860px;background:var(--background);color:var(--foreground);font-family:'Noto Sans KR',sans-serif;font-weight:500;font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap}
+.side{flex:0 0 248px;border-right:var(--bw) solid var(--border-color);background:var(--card);padding:var(--sp-6) var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-6)}
+.side .logo{align-self:flex-start;font-size:16px}
+.side h4{font-size:11px;font-weight:900;letter-spacing:.08em;margin-bottom:var(--sp-2)}
+.nav{display:flex;flex-direction:column;gap:var(--sp-2)}
+.nav a{display:flex;align-items:center;gap:var(--sp-3);height:44px;padding:0 var(--sp-3);border:var(--bw) solid transparent;font-weight:900;font-size:14px;text-decoration:none;color:var(--foreground)}
+.nav a.on{background:var(--primary);color:var(--on-accent);border-color:var(--border-color);box-shadow:var(--sh)}
+.nav a i{font-style:normal;width:18px;text-align:center}
+.nav a .badge{margin-left:auto}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column}
+.bar{display:flex;flex-wrap:wrap;gap:var(--sp-4);align-items:center;padding:var(--sp-4) var(--sp-8);border-bottom:var(--bw) solid var(--border-color)}
+.bar .search{flex:1 1 320px;max-width:640px}
+.bar .btn{height:48px;display:flex;align-items:center;padding:0 var(--sp-4);white-space:nowrap}
+.bar .grow{flex:1}
+.content{padding:var(--sp-8);display:flex;flex-direction:column;gap:var(--sp-6)}
+.head{display:flex;flex-wrap:wrap;gap:var(--sp-4);justify-content:space-between;align-items:flex-end}
+.head>div:first-child{display:flex;flex-direction:column;gap:var(--sp-2)}
+.head h1{font-size:30px}
+.cols{display:flex;flex-wrap:wrap;gap:var(--sp-6);align-items:flex-start}
+.cols>.l{flex:999 1 480px;min-width:0;display:flex;flex-direction:column;gap:var(--sp-4)}
+.cols>.r{flex:1 1 280px;min-width:260px;display:flex;flex-direction:column;gap:var(--sp-4)}
+.panel{border:var(--bw) solid var(--border-color);background:var(--card);box-shadow:var(--sh);padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3)}
+.panel .sec{margin:0}
+.fg{display:flex;flex-direction:column;gap:var(--sp-1)}
+.fg+.fg{margin-top:var(--sp-1)}
+.fg h5{font-size:12px;font-weight:900;margin-bottom:var(--sp-1)}
+.chk{display:flex;align-items:center;gap:var(--sp-3);height:32px;font-weight:700;font-size:13px}
+.chk i{width:18px;height:18px;border:var(--bw) solid var(--border-color);background:var(--card);display:grid;place-items:center;font-style:normal;font-size:12px;line-height:1;flex:none}
+.chk.on i{background:var(--primary);color:var(--on-accent)}
+.chk em{margin-left:auto;font-style:normal;font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--sp-4)}
+.grid .card .row{flex-direction:column;align-items:flex-start}
+.grid .ph{width:100%;height:84px}
+.list .li{display:grid;grid-template-columns:48px minmax(0,1fr) auto auto;gap:var(--sp-4);align-items:center;padding:var(--sp-3);border-bottom:1.5px solid var(--border-color)}
+.list .li:last-child{border:0}
+.list .ph{width:48px;height:48px}
+.thumbs{display:flex;gap:var(--sp-3)}
+.thumbs .ph{width:84px;height:64px}
+.desk .hero{height:380px}
+.desk .hero .ico{width:150px;height:150px}
+.desk .actions{max-width:420px}

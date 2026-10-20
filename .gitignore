@@ -1,0 +1,38 @@
+# Build outputs
+.gradle/
+build/
+backend/build/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+
+# Dependencies and local toolchain
+node_modules/
+.pnpm-store/
+.npm-cache/
+.tools/
+.venv/
+.python-packages/
+.pip-cache/
+.playwright-browsers/
+__pycache__/
+*.py[cod]
+
+# Local configuration and secrets
+.env
+.env.local
+!.env.local.example
+
+# IDE and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local infra data
+infra/data/
+
+# Gradle local user home
+.gradle-user/

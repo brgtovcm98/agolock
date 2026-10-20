@@ -1,0 +1,515 @@
+version: 1
+last_updated: "2026-10-20"
+docs:
+  - id: PRODUCT
+    path: docs/product-spec.md
+    title: 제품 사양
+    summary: 요구사항, 범위, 확정된 제품 결정, MVP 단계
+    read_when:
+      - 요구사항이나 범위를 확인할 때
+      - 기능의 포함·제외 여부를 판단할 때
+    code_paths: []
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ARCH
+    path: docs/architecture.md
+    title: 아키텍처
+    summary: 시스템 경계, 모듈 구조, 테넌트 격리, 인증 개요, 보안 불변식
+    read_when:
+      - 구조나 모듈 경계를 바꿀 때
+      - 테넌트 격리나 인증에 영향을 주는 변경을 할 때
+    code_paths:
+      - backend/src/main/kotlin/**/config/**
+      - backend/src/main/kotlin/**/security/**
+      - backend/src/main/kotlin/**/common/**
+      - infra/**
+    generated: false
+    related_adrs:
+      - ADR-001
+      - ADR-006
+      - ADR-011
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: DOMAIN
+    path: docs/domain.md
+    title: 도메인
+    summary: 계층·위치·이동, 마스터·재고·오버라이드, 상태, 카테고리, 생명주기
+    read_when:
+      - Room, Shelf, Box, Item, Inventory, Category를 변경할 때
+      - 상태, 오버라이드, 삭제, 이동 규칙을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/domain/**
+      - backend/src/main/resources/db/migration/**
+    generated: false
+    related_adrs:
+      - ADR-002
+      - ADR-003
+      - ADR-010
+      - ADR-011
+    last_verified_commit: "pending"
+
+  - id: SHARING
+    path: docs/sharing.md
+    title: 공유와 권한
+    summary: grant, 초대, 권한 매트릭스, 상속·우선순위, ACL 조회 규칙
+    read_when:
+      - 공유, 초대, 권한, 접근 제어를 변경할 때
+      - 검색·API에서 접근 범위를 결정할 때
+    code_paths:
+      - backend/src/main/kotlin/**/sharing/**
+      - backend/src/main/kotlin/**/security/**
+      - backend/src/main/kotlin/**/share/**
+    generated: false
+    related_adrs:
+      - ADR-003
+      - ADR-010
+      - ADR-013
+    last_verified_commit: "pending"
+
+  - id: SEARCH
+    path: docs/search.md
+    title: 검색과 추천
+    summary: 키워드 검색, 필터, 정렬, 최근 검색, 자주 본 물건, 결과 그룹핑
+    read_when:
+      - 검색 API, 인덱스, 랭킹, 추천을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/search/**
+      - backend/src/main/resources/db/migration/**
+    generated: false
+    related_adrs:
+      - ADR-012
+    last_verified_commit: "pending"
+
+  - id: MEDIA_AI
+    path: docs/media-ai.md
+    title: 이미지·임베딩·AI·MQ
+    summary: 이미지 저장, presigned URL, 임베딩, 이미지 검색, AI 인식, Outbox와 RabbitMQ
+    read_when:
+      - 이미지 업로드·다운로드·후처리를 변경할 때
+      - 임베딩 모델, 벡터 인덱스, AI job, 큐를 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/media/**
+      - backend/src/main/kotlin/**/ai/**
+      - backend/src/main/kotlin/**/messaging/**
+      - backend/src/main/resources/db/migration/**
+    generated: false
+    related_adrs:
+      - ADR-005
+      - ADR-007
+      - ADR-008
+      - ADR-009
+      - ADR-011
+      - ADR-012
+    last_verified_commit: "pending"
+
+  - id: CONTRACTS
+    path: docs/contracts.md
+    title: 계약
+    summary: API·이벤트 규칙, 인증, 오류 형식, 페이지네이션, 생성 계약 링크
+    read_when:
+      - API 요청·응답이나 이벤트 payload를 변경할 때
+      - 프론트엔드와 백엔드의 인터페이스를 맞출 때
+    code_paths:
+      - backend/src/main/kotlin/**/api/**
+      - backend/src/main/kotlin/**/controller/**
+      - backend/src/main/kotlin/**/event/**
+    generated: false
+    related_adrs:
+      - ADR-010
+      - ADR-011
+      - ADR-013
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: FRONTEND
+    path: docs/frontend.md
+    title: 화면과 흐름
+    summary: 화면 목록, 내비게이션, 주요 사용자 흐름, 로딩·빈 상태·오류·AI 분석 상태
+    read_when:
+      - 화면, 내비게이션, 사용자 흐름을 변경할 때
+      - 프론트엔드 상태나 권한별 UI를 변경할 때
+    code_paths:
+      - frontend/src/**
+    generated: false
+    related_adrs:
+      - ADR-010
+      - ADR-011
+      - ADR-013
+      - ADR-016
+    last_verified_commit: "pending"
+
+  - id: DESIGN
+    path: docs/design-system.md
+    title: 디자인 시스템
+    summary: E안 네오 브루탈 토큰, 컴포넌트, 반응형, 다크 모드, 화면별 요소
+    read_when:
+      - 화면의 시각 표현이나 디자인 토큰을 변경할 때
+      - 새 화면이나 UI 컴포넌트를 추가할 때
+    code_paths:
+      - frontend/src/styles/**
+      - frontend/src/shared/ui/**
+      - frontend/src/features/design-preview/**
+    generated: false
+    related_adrs:
+      - ADR-010
+      - ADR-013
+      - ADR-016
+    last_verified_commit: "pending"
+
+  - id: OPERATIONS
+    path: docs/operations.md
+    title: 운영과 검증
+    summary: 인프라, 배포, 보안, 테스트, 관측, 문서 검사, 로드맵
+    read_when:
+      - 인프라, 배포, 보안, 테스트, 운영을 변경할 때
+      - 단계별 범위와 종료 조건을 확인할 때
+    code_paths:
+      - infra/**
+      - .github/**
+      - scripts/**
+    generated: false
+    related_adrs:
+      - ADR-005
+      - ADR-006
+      - ADR-008
+      - ADR-010
+      - ADR-011
+      - ADR-012
+      - ADR-013
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: IMPLEMENTATION_ROADMAP
+    path: docs/implementation-roadmap.md
+    title: 구현 로드맵
+    summary: 구현 마일스톤, 의존성, 완료 조건, 로드맵 검토
+    read_when:
+      - 구현 순서나 마일스톤 범위를 확인할 때
+      - 다음 작업의 선행 조건과 완료 조건을 확인할 때
+    code_paths: []
+    generated: false
+    related_adrs:
+      - ADR-010
+      - ADR-011
+      - ADR-012
+      - ADR-013
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: PLAN_001_FOUNDATION
+    path: docs/implementation/PLAN-001-foundation.md
+    title: M0 기반 부트스트랩 상세 구현 계획
+    summary: 저장소, 인프라, 백엔드·프론트엔드 부트스트랩
+    read_when:
+      - M0 기반 작업을 시작하거나 검토할 때
+      - 로컬 인프라나 빌드 구성을 변경할 때
+    code_paths:
+      - backend/**
+      - frontend/**
+      - infra/**
+    generated: false
+    related_adrs:
+      - ADR-004
+      - ADR-005
+      - ADR-006
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: PLAN_001_DELIVERY
+    path: docs/implementation/PLAN-001-foundation-delivery.md
+    title: M0 계약·CI·검증 계획
+    summary: 계약 생성기, CI, 데이터 기준선, 테스트, 완료 조건
+    read_when:
+      - M0의 계약 생성기, CI, 검증을 구현할 때
+      - M0 완료 조건을 확인할 때
+    code_paths:
+      - backend/**
+      - scripts/**
+      - .github/**
+    generated: false
+    related_adrs:
+      - ADR-004
+      - ADR-005
+      - ADR-006
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: DATA_DICTIONARY
+    path: docs/generated/data-dictionary.md
+    title: 데이터 사전
+    summary: 테이블, 컬럼, 타입, 제약, 인덱스, enum, 관계 (설계 초안)
+    read_when:
+      - 테이블이나 컬럼을 추가·변경할 때
+      - 마이그레이션과 쿼리를 작성할 때
+    code_paths:
+      - backend/src/main/resources/db/migration/**
+    generated: true
+    generator: "pending: schema introspection (설계 초안 수동 갱신)"
+    related_adrs:
+      - ADR-001
+      - ADR-002
+      - ADR-011
+      - ADR-012
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: OPENAPI
+    path: docs/generated/openapi.yaml
+    title: OpenAPI 계약
+    summary: HTTP API 경로, 요청·응답 스키마, 인증, 오류 (설계 초안)
+    read_when:
+      - API를 구현하거나 호출할 때
+    code_paths:
+      - backend/src/main/kotlin/**/api/**
+      - backend/src/main/kotlin/**/controller/**
+      - backend/src/main/kotlin/**/dto/**
+    generated: true
+    generator: "pending: springdoc-openapi (설계 초안 수동 갱신)"
+    related_adrs:
+      - ADR-010
+      - ADR-011
+      - ADR-013
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: EVENTS
+    path: docs/generated/events.yaml
+    title: 이벤트 계약
+    summary: 큐, routing key, 메시지 payload, 소비자 멱등성 (설계 초안)
+    read_when:
+      - 비동기 이벤트나 큐를 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/event/**
+      - backend/src/main/kotlin/**/messaging/**
+    generated: true
+    generator: "pending: event schema export (설계 초안 수동 갱신)"
+    related_adrs:
+      - ADR-005
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: ADR_INDEX
+    path: docs/decisions/README.md
+    title: ADR 목록
+    summary: 설계 결정 목록과 상태
+    read_when:
+      - 결정의 배경이나 대안을 확인할 때
+    code_paths: []
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_001
+    path: docs/decisions/ADR-001-space-tenant.md
+    title: Space 테넌트 경계
+    summary: 공유 스키마, space_id, 복합 FK, 애플리케이션 ACL
+    read_when:
+      - 테넌트 격리나 데이터 소유권을 변경할 때
+    code_paths:
+      - backend/src/main/resources/db/migration/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_002
+    path: docs/decisions/ADR-002-inventory-location.md
+    title: Inventory 위치 모델
+    summary: room_id, shelf_id, box_id 중 정확히 하나를 사용하는 위치 모델
+    read_when:
+      - 위치 모델이나 계층 구조를 변경할 때
+    code_paths:
+      - backend/src/main/resources/db/migration/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_003
+    path: docs/decisions/ADR-003-permission-model.md
+    title: 권한 모델
+    summary: VIEW, EDIT, MANAGE 누적 권한과 다중 grant 최대 권한
+    read_when:
+      - 공유 권한이나 접근 제어를 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/sharing/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_004
+    path: docs/decisions/ADR-004-mybatis.md
+    title: MyBatis 선택
+    summary: 복잡한 검색·ACL·pgvector 쿼리를 위해 MyBatis와 Flyway 사용
+    read_when:
+      - 데이터 접근 계층을 변경할 때
+    code_paths:
+      - backend/src/main/resources/mapper/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_005
+    path: docs/decisions/ADR-005-rabbitmq-outbox.md
+    title: RabbitMQ와 Outbox
+    summary: 신뢰성 있는 비동기 처리를 위한 Transactional Outbox와 RabbitMQ
+    read_when:
+      - 비동기 처리나 큐를 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/messaging/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_006
+    path: docs/decisions/ADR-006-session-auth.md
+    title: 세션 인증
+    summary: 이메일+비밀번호, 스테이징 초대코드, HttpOnly 세션 쿠키
+    read_when:
+      - 인증이나 세션을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/auth/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_007
+    path: docs/decisions/ADR-007-embedding-model.md
+    title: 임베딩 모델
+    summary: Gemini 멀티모달 임베딩과 effective_embedding
+    read_when:
+      - 임베딩 모델이나 벡터 검색을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/ai/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_008
+    path: docs/decisions/ADR-008-presigned-images.md
+    title: Presigned 이미지
+    summary: S3 호환 스토리지와 presigned URL 기반 이미지 접근
+    read_when:
+      - 이미지 저장이나 접근 방식을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/media/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_009
+    path: docs/decisions/ADR-009-ai-confirmation.md
+    title: AI 확인 저장
+    summary: AI 인식 결과는 제안이며 사용자 확인 후 저장
+    read_when:
+      - AI 인식 결과 처리나 저장 흐름을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/ai/**
+      - frontend/src/**
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
+  - id: ADR_010
+    path: docs/decisions/ADR-010-item-creation-permissions.md
+    title: Item 생성과 마스터 수정 권한
+    summary: 신규 Item은 소유자만, 공유 MANAGE는 기존 Item에 Inventory 추가
+    read_when:
+      - Item 생성이나 마스터 수정 권한을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/inventory/**
+      - backend/src/main/kotlin/**/sharing/**
+    generated: false
+    related_adrs:
+      - ADR-003
+    last_verified_commit: "pending"
+
+  - id: ADR_011
+    path: docs/decisions/ADR-011-image-upload-lifecycle.md
+    title: 이미지 업로드 수명주기와 임시 이미지
+    summary: UPLOADING/DRAFT 상태, presign 이미지 행, 대표 이미지와 보관 정책
+    read_when:
+      - 이미지 업로드, 임시 이미지, 대표 이미지 정책을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/media/**
+      - backend/src/main/resources/db/migration/**
+    generated: false
+    related_adrs:
+      - ADR-008
+    last_verified_commit: "pending"
+
+  - id: ADR_012
+    path: docs/decisions/ADR-012-embedding-versioning.md
+    title: 임베딩 모델과 차원 버전 관리
+    summary: 1408차원 고정, 모델 간 fallback 금지, 재임베딩 마이그레이션
+    read_when:
+      - 임베딩 모델, 차원, 벡터 인덱스를 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/ai/**
+      - backend/src/main/resources/db/migration/**
+    generated: false
+    related_adrs:
+      - ADR-007
+    last_verified_commit: "pending"
+
+  - id: ADR_013
+    path: docs/decisions/ADR-013-invitation-only-sharing.md
+    title: 초대 전용 공유
+    summary: 초대 수락 후 효력, 직접 공유 제외, 거절과 중복 초대 규칙
+    read_when:
+      - 공유 생성, 초대, 수락, 거절 흐름을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/**/sharing/**
+      - frontend/src/**
+    generated: false
+    related_adrs:
+      - ADR-003
+    last_verified_commit: "pending"
+
+  - id: ADR_014
+    path: docs/decisions/ADR-014-generated-docs-draft.md
+    title: 설계 단계 생성 문서 운영
+    summary: 생성기 도입 전까지 generated 문서를 설계 초안으로 수동 갱신
+    read_when:
+      - generated 문서나 생성 절차를 변경할 때
+    code_paths:
+      - scripts/**
+      - docs/generated/**
+    generated: false
+    related_adrs:
+      - ADR-015
+    last_verified_commit: "pending"
+
+  - id: ADR_015
+    path: docs/decisions/ADR-015-contract-preview-mode.md
+    title: M0 계약 생성 미리보기 모드
+    summary: build/contracts 미리보기와 docs/generated 설계 초안 보존
+    read_when:
+      - 계약 생성 위치나 generated 문서 전환 시점을 확인할 때
+    code_paths:
+      - scripts/docs_generate.sh
+      - scripts/contract_validation.py
+      - scripts/normalize_openapi.py
+      - scripts/export_events.py
+      - scripts/generate_data_dictionary.py
+      - scripts/requirements.txt
+    generated: false
+    related_adrs:
+      - ADR-014
+    last_verified_commit: "pending"
+
+  - id: ADR_016
+    path: docs/decisions/ADR-016-neo-brutal-design-system.md
+    title: E안 네오 브루탈 디자인 시스템
+    summary: E안 채택, 토큰, 셀프 호스팅 서체, 다크 모드, 미리보기
+    read_when:
+      - 시각 디자인이나 UI 토큰을 변경할 때
+    code_paths:
+      - frontend/src/styles/**
+      - frontend/src/shared/ui/**
+    generated: false
+    related_adrs:
+      - ADR-010
+      - ADR-015
+    last_verified_commit: "pending"

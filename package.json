@@ -1,0 +1,25 @@
+{
+  "name": "agolock",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AGO Lock 개인 물품 관리 앱 monorepo",
+  "packageManager": "pnpm@10.34.7",
+  "engines": {
+    "node": ">=22.12.0 <25"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @agolock/frontend dev",
+    "build": "pnpm --filter @agolock/frontend build",
+    "lint": "pnpm --filter @agolock/frontend lint",
+    "test": "pnpm --filter @agolock/frontend test",
+    "test:e2e": "pnpm --filter @agolock/frontend e2e",
+    "generate:api": "pnpm --filter @agolock/frontend generate:api",
+    "format": "pnpm --filter @agolock/frontend format",
+    "format:check": "pnpm --filter @agolock/frontend format:check"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

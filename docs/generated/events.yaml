@@ -1,0 +1,262 @@
+# AGO Lock 비동기 이벤트 계약 (설계 초안)
+# 설계 단계에서는 ADR-014에 따라 수동 갱신합니다.
+# 구현 단계에서는 이벤트 스키마에서 재생성하고 직접 수정하지 않습니다.
+asyncapi: 2.6.0
+info:
+  title: AGO Lock 이벤트 계약
+  version: 0.2.0
+  description: |
+    RabbitMQ 기반 비동기 이벤트 계약입니다.
+    exchange는 agolock.events topic exchange를 사용하고 routing key는 eventType과 같습니다.
+    모든 메시지는 at-least-once로 전달되며 소비자는 eventId 또는 jobId로 멱등성을 보장합니다.
+    payload에는 최소 식별자만 포함하고 민감 정보를 넣지 않습니다.
+servers:
+  rabbitmq:
+    url: amqp://rabbitmq:5672
+    protocol: amqp
+    description: 로컬 개발 기본 브로커
+defaultContentType: application/json
+channels:
+  image.process:
+    description: |
+      routing key image.uploaded.
+      업로드 이미지의 재인코딩, EXIF 제거, 썸네일, 해시 계산을 수행합니다.
+      실패는 image.process.dlq로 보냅니다.
+    publish:
+      operationId: publishImageProcess
+      message:
+        $ref: '#/components/messages/ImageProcessRequested'
+  ai.recognition:
+    description: |
+      routing key ai.recognition.requested.
+      이미지 인식 요청을 처리합니다.
+      실패는 ai.recognition.dlq로 보냅니다.
+    publish:
+      operationId: publishAiRecognition
+      message:
+        $ref: '#/components/messages/AiRecognitionRequested'
+  ai.embedding:
+    description: |
+      routing key ai.embedding.requested.
+      이미지 임베딩 요청을 처리합니다.
+      모델 간 fallback 없이 같은 모델로 재시도하며 실패는 ai.embedding.dlq로 보냅니다.
+    publish:
+      operationId: publishAiEmbedding
+      message:
+        $ref: '#/components/messages/AiEmbeddingRequested'
+  notification:
+    description: |
+      routing key notification.requested.
+      이메일과 3차 인앱 알림 요청을 처리합니다.
+      실패는 notification.dlq로 보냅니다.
+    publish:
+      operationId: publishNotification
+      message:
+        $ref: '#/components/messages/NotificationRequested'
+  domain.events:
+    description: |
+      routing key inventory.*, share.*, image.processed, ai.*.completed.
+      검색·알림·감사가 소비할 수 있는 도메인 이벤트입니다.
+      실패는 domain.events.dlq로 보냅니다.
+    publish:
+      operationId: publishDomainEvent
+      message:
+        $ref: '#/components/messages/DomainEvent'
+components:
+  messages:
+    ImageProcessRequested:
+      name: ImageProcessRequested
+      title: 이미지 후처리 요청
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ImageProcessRequestedPayload'
+    AiRecognitionRequested:
+      name: AiRecognitionRequested
+      title: AI 인식 요청
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/AiRecognitionRequestedPayload'
+    AiEmbeddingRequested:
+      name: AiEmbeddingRequested
+      title: AI 임베딩 요청
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/AiEmbeddingRequestedPayload'
+    NotificationRequested:
+      name: NotificationRequested
+      title: 알림 요청
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/NotificationRequestedPayload'
+    DomainEvent:
+      name: DomainEvent
+      title: 도메인 이벤트
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DomainEventPayload'
+  schemas:
+    EventEnvelope:
+      type: object
+      required: [eventId, eventType, spaceId, occurredAt, schemaVersion, payload]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: 멱등성 키
+        eventType:
+          type: string
+        spaceId:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        schemaVersion:
+          type: integer
+          minimum: 1
+          default: 1
+        jobId:
+          type: string
+          format: uuid
+          nullable: true
+        payload:
+          type: object
+          additionalProperties: true
+    ImageProcessRequestedPayload:
+      allOf:
+        - $ref: '#/components/schemas/EventEnvelope'
+        - type: object
+          required: [eventType, payload]
+          properties:
+            eventType:
+              type: string
+              enum: [image.uploaded]
+            payload:
+              type: object
+              required: [imageId, objectKey]
+              properties:
+                imageId:
+                  type: string
+                  format: uuid
+                objectKey:
+                  type: string
+                inventoryId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                itemId:
+                  type: string
+                  format: uuid
+                  nullable: true
+    AiRecognitionRequestedPayload:
+      allOf:
+        - $ref: '#/components/schemas/EventEnvelope'
+        - type: object
+          required: [eventType, payload]
+          properties:
+            eventType:
+              type: string
+              enum: [ai.recognition.requested]
+            payload:
+              type: object
+              required: [jobId, imageId, mode]
+              properties:
+                jobId:
+                  type: string
+                  format: uuid
+                imageId:
+                  type: string
+                  format: uuid
+                inventoryId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                mode:
+                  type: string
+                  enum: [NEW_ITEM, INVENTORY_OVERRIDE]
+                language:
+                  type: string
+                  default: ko
+    AiEmbeddingRequestedPayload:
+      allOf:
+        - $ref: '#/components/schemas/EventEnvelope'
+        - type: object
+          required: [eventType, payload]
+          properties:
+            eventType:
+              type: string
+              enum: [ai.embedding.requested]
+            payload:
+              type: object
+              required: [jobId, imageId, model, version]
+              properties:
+                jobId:
+                  type: string
+                  format: uuid
+                imageId:
+                  type: string
+                  format: uuid
+                inventoryId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                itemId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                model:
+                  type: string
+                version:
+                  type: string
+    DomainEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/EventEnvelope'
+        - type: object
+          required: [eventType, payload]
+          properties:
+            eventType:
+              type: string
+              enum:
+                - inventory.created
+                - inventory.updated
+                - inventory.moved
+                - inventory.deleted
+                - image.processed
+                - ai.recognition.completed
+                - ai.embedding.completed
+                - share.invitation.created
+                - share.invitation.accepted
+                - share.invitation.declined
+                - share.created
+                - share.revoked
+            payload:
+              type: object
+              additionalProperties: true
+    NotificationRequestedPayload:
+      allOf:
+        - $ref: '#/components/schemas/EventEnvelope'
+        - type: object
+          required: [eventType, payload]
+          properties:
+            eventType:
+              type: string
+              enum: [notification.requested]
+            payload:
+              type: object
+              required: [userId, notificationType]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                notificationType:
+                  type: string
+                  enum: [SHARE_INVITATION, SHARE_ACCEPTED, SHARE_DECLINED, AI_JOB_COMPLETED, AI_JOB_FAILED]
+                templateKey:
+                  type: string
+                title:
+                  type: string
+                body:
+                  type: string
+                deepLink:
+                  type: string
+                  nullable: true

@@ -1,0 +1,174 @@
+@import 'tailwindcss';
+@import '@fontsource/noto-sans-kr/korean-500.css';
+@import '@fontsource/noto-sans-kr/korean-700.css';
+@import '@fontsource/noto-sans-kr/korean-900.css';
+@import '@fontsource/noto-sans-kr/latin-500.css';
+@import '@fontsource/noto-sans-kr/latin-700.css';
+@import '@fontsource/noto-sans-kr/latin-900.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  --background: #f1eee3;
+  --foreground: #111111;
+  --card: #ffffff;
+  --sunken: #e7e3d4;
+  --border-color: #111111;
+  --shadow-color: #111111;
+  --primary: #ff5a1f;
+  --accent: #ffd93b;
+  --success: #3fcf80;
+  --info: #2f55e0;
+  --on-info: #ffffff;
+  --on-accent: #111111;
+  --blue-soft: #dbe6ff;
+  --yellow-soft: #fff6c2;
+  --stripe-a: #8ec5ff;
+  --stripe-b: #a8d2ff;
+  --tag-h: 28px;
+  --bw: 2.5px;
+  --radius: 0px;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #15140f;
+  --foreground: #f4f1e6;
+  --card: #201e17;
+  --sunken: #2a271e;
+  --border-color: #f4f1e6;
+  --shadow-color: #f4f1e6;
+  --primary: #ff7a45;
+  --accent: #ffd93b;
+  --success: #4ede93;
+  --info: #8fb0ff;
+  --on-info: #111111;
+  --on-accent: #111111;
+  --blue-soft: #1c2744;
+  --yellow-soft: #2d2a14;
+  --stripe-a: #1f3a66;
+  --stripe-b: #27487c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-sunken: var(--sunken);
+  --color-border: var(--border-color);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-on-info: var(--on-info);
+  --color-on-accent: var(--on-accent);
+  --color-blue-soft: var(--blue-soft);
+  --color-yellow-soft: var(--yellow-soft);
+  --color-stripe-a: var(--stripe-a);
+  --color-stripe-b: var(--stripe-b);
+
+  --font-sans: 'Noto Sans KR', sans-serif;
+
+  --shadow-brutal-sm: 4px 4px 0 var(--shadow-color);
+  --shadow-brutal: 5px 5px 0 var(--shadow-color);
+  --shadow-brutal-lg: 6px 6px 0 var(--shadow-color);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border-color);
+  }
+
+  html {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    word-break: keep-all;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+}
+
+@layer components {
+  .surface {
+    border: 2.5px solid var(--border-color);
+    background: var(--card);
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .hero-stripes {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--stripe-a),
+      var(--stripe-a) 14px,
+      var(--stripe-b) 14px,
+      var(--stripe-b) 28px
+    );
+  }
+
+  .label-caps {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
