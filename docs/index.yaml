@@ -256,7 +256,7 @@ docs:
       - ADR-014
       - ADR-015
       - ADR-016
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: PLAN_003_HIERARCHY
     path: docs/implementation/PLAN-003-hierarchy-permissions.md
@@ -274,7 +274,7 @@ docs:
       - ADR-002
       - ADR-003
       - ADR-010
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: PLAN_004_INVENTORY
     path: docs/implementation/PLAN-004-inventory.md
@@ -292,7 +292,7 @@ docs:
       - ADR-004
       - ADR-010
       - ADR-011
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: PLAN_005_SHARING
     path: docs/implementation/PLAN-005-sharing.md
@@ -309,7 +309,7 @@ docs:
       - ADR-003
       - ADR-010
       - ADR-013
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: PLAN_006_MEDIA
     path: docs/implementation/PLAN-006-media-messaging.md
@@ -326,7 +326,7 @@ docs:
       - ADR-005
       - ADR-008
       - ADR-011
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: PLAN_007_SEARCH
     path: docs/implementation/PLAN-007-search.md
@@ -341,7 +341,7 @@ docs:
     related_adrs:
       - ADR-003
       - ADR-012
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: PLAN_008_AI
     path: docs/implementation/PLAN-008-ai-image-search.md
@@ -357,7 +357,7 @@ docs:
       - ADR-007
       - ADR-009
       - ADR-012
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: PLAN_009_HARDENING
     path: docs/implementation/PLAN-009-release-hardening.md
@@ -373,7 +373,7 @@ docs:
     related_adrs:
       - ADR-014
       - ADR-015
-    last_verified_commit: "pending"
+    last_verified_commit: "3b9fea90c7f6f088efd4696e1d344baf1a466f77"
 
   - id: DATA_DICTIONARY
     path: docs/generated/data-dictionary.md
