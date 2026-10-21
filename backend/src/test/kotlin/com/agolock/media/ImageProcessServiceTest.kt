@@ -59,6 +59,52 @@ class ImageProcessServiceTest {
                 .invocations
                 .any { it.method.name == "markReady" },
         ).isTrue()
+        assertThat(
+            org.mockito.Mockito
+                .mockingDetails(outbox)
+                .invocations
+                .any { it.method.name == "enqueueImageEvent" && it.arguments[2] == "image.processed" },
+        ).isTrue()
+    }
+
+    @Test
+    fun `처리 중 예외가 나면 FAILED로 전이한다`() {
+        val imageId = UUID.randomUUID()
+        val image =
+            Image(
+                imageId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                null,
+                "spaces/s/item/$imageId/original.webp",
+                null,
+                ImageStatus.PENDING,
+                OffsetDateTime.now().plusHours(1),
+                OffsetDateTime.now(),
+            )
+        val mapper = mock(ImageMapper::class.java)
+        val storage = mock(ImageStoragePort::class.java)
+        val outbox = mock(OutboxService::class.java)
+        val now = OffsetDateTime.of(2026, 10, 21, 12, 0, 0, 0, ZoneOffset.UTC)
+        `when`(mapper.claimForProcessing(imageId, now)).thenReturn(1)
+        `when`(mapper.findById(imageId)).thenReturn(image)
+        `when`(storage.getObject(image.objectKey)).thenThrow(IllegalStateException("storage down"))
+        val service =
+            ImageProcessService(
+                mapper,
+                storage,
+                outbox,
+                Clock.fixed(Instant.parse("2026-10-21T12:00:00Z"), ZoneOffset.UTC),
+            )
+
+        service.process(imageId)
+
+        assertThat(
+            org.mockito.Mockito
+                .mockingDetails(mapper)
+                .invocations
+                .any { it.method.name == "markProcessingFailed" },
+        ).isTrue()
     }
 
     private fun pngBytes(): ByteArray {
