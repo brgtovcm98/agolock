@@ -1,0 +1,3 @@
+[tools]
+# 프로젝트 공통 JDK. 로컬 .tools/ 고정본과 별개로 mise 사용 시 JDK 21을 선택합니다.
+java = "21"
