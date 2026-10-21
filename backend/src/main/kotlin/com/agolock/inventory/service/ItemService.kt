@@ -2,9 +2,11 @@
 
 package com.agolock.inventory.service
 
+import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.inventory.domain.Item
 import com.agolock.inventory.persistence.CategoryMapper
@@ -30,10 +32,17 @@ class ItemService(
         categoryId: UUID?,
         q: String?,
         limit: Int?,
-    ): List<Item> {
+        cursorRaw: String?,
+    ): PageResult<Item> {
         accessService.requireOwner(actor, actor.spaceId)
         val query = q?.trim()?.take(200)?.takeIf(String::isNotEmpty)
-        return itemMapper.list(actor.spaceId, categoryId, query, null, null, (limit ?: 100).coerceIn(1, 100))
+        val cursor = TimeCursorCodec.decode(cursorRaw)
+        val effectiveLimit = TimeCursorCodec.limit(limit)
+        val items =
+            itemMapper.list(actor.spaceId, categoryId, query, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
+        val page = items.take(effectiveLimit)
+        val next = if (items.size > effectiveLimit) page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) } else null
+        return PageResult(page, next)
     }
 
     fun get(

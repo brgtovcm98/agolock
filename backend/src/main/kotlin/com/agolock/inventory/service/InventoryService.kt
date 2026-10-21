@@ -13,9 +13,11 @@
 
 package com.agolock.inventory.service
 
+import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
@@ -56,12 +58,14 @@ class InventoryService(
         statuses: List<com.agolock.inventory.domain.InventoryStatus>?,
         limit: Int?,
         scope: String = "OWNED",
-    ): List<InventoryResponse> {
+        cursorRaw: String? = null,
+    ): PageResult<InventoryResponse> {
         val normalizedScope = scope.uppercase()
         if (normalizedScope !in setOf("OWNED", "SHARED", "ALL")) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "scope는 OWNED, SHARED, ALL 중 하나여야 합니다.")
         }
-        val effectiveLimit = (limit ?: 100).coerceIn(1, 100)
+        val effectiveLimit = TimeCursorCodec.limit(limit)
+        val cursor = TimeCursorCodec.decode(cursorRaw)
         val effectiveStatuses =
             (statuses?.distinct() ?: emptyList())
                 .ifEmpty {
@@ -76,14 +80,18 @@ class InventoryService(
             } else {
                 accessService.requireOwner(actor, actor.spaceId)
                 inventoryMapper
-                    .list(actor.spaceId, effectiveStatuses, null, null, null, effectiveLimit)
+                    .list(actor.spaceId, effectiveStatuses, null, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
                     .map { toResponse(actor, it, "OWNER") }
             }
-        if (normalizedScope == "OWNED") return owned
+        if (normalizedScope == "OWNED") {
+            val page = owned.take(effectiveLimit)
+            val next = if (owned.size > effectiveLimit) page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) } else null
+            return PageResult(page, next)
+        }
         val shared =
             shareMapper.listActiveByGrantee(actor.userId).flatMap { share ->
                 inventoryMapper
-                    .list(share.spaceId, effectiveStatuses, null, null, null, effectiveLimit)
+                    .list(share.spaceId, effectiveStatuses, null, null, null, effectiveLimit + 1)
                     .filter { inventory ->
                         val target = inventoryTarget(inventory)
                         (share.roomId != null && target.roomId == share.roomId) ||
@@ -98,10 +106,18 @@ class InventoryService(
                         }
                     }
             }
-        return (owned + shared)
-            .distinctBy { it.id }
-            .sortedByDescending { it.updatedAt }
-            .take(effectiveLimit)
+        val page =
+            (owned + shared)
+                .distinctBy { it.id }
+                .sortedWith(compareByDescending<InventoryResponse> { it.updatedAt }.thenByDescending { it.id })
+                .take(effectiveLimit)
+        val next =
+            if (owned.size + shared.size > effectiveLimit) {
+                page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) }
+            } else {
+                null
+            }
+        return PageResult(page, next)
     }
 
     fun listByItem(

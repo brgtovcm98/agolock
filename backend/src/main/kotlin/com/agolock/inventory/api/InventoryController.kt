@@ -40,7 +40,11 @@ class InventoryController(
         @RequestParam(required = false) status: List<InventoryStatus>?,
         @RequestParam(required = false) limit: Int?,
         @RequestParam(required = false, defaultValue = "OWNED") scope: String,
-    ): InventoryListResponse = InventoryListResponse(inventoryService.list(Actor.from(principal), status, limit, scope))
+        @RequestParam(required = false) cursor: String?,
+    ): InventoryListResponse {
+        val page = inventoryService.list(Actor.from(principal), status, limit, scope, cursor)
+        return InventoryListResponse(page.items, page.nextCursor)
+    }
 
     @PostMapping
     @Operation(operationId = "createInventory", summary = "Inventory 생성")

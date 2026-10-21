@@ -42,7 +42,11 @@ class ItemController(
         @RequestParam(required = false) categoryId: UUID?,
         @RequestParam(required = false) q: String?,
         @RequestParam(required = false) limit: Int?,
-    ): ItemListResponse = ItemListResponse(itemService.list(Actor.from(principal), categoryId, q, limit).map { it.toResponse() })
+        @RequestParam(required = false) cursor: String?,
+    ): ItemListResponse {
+        val page = itemService.list(Actor.from(principal), categoryId, q, limit, cursor)
+        return ItemListResponse(page.items.map { it.toResponse() }, page.nextCursor)
+    }
 
     @PostMapping
     @Operation(operationId = "createItem", summary = "Item 생성")
