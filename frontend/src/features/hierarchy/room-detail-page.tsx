@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import { hierarchyApi } from './api'
+import { LocationInventories } from '@/features/inventory/location-inventories'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
-import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { permissionLabel } from '@/shared/lib/permission'
 
 export function RoomDetailPage() {
   const { roomId = '' } = useParams()
@@ -38,11 +39,12 @@ export function RoomDetailPage() {
         <Link to="/space" className="text-xs font-bold underline underline-offset-2">
           ← 공간 지도
         </Link>
-        <p className="label-caps text-foreground/60">SCR-005 · Room</p>
+        <p className="label-caps text-foreground/60">공간</p>
         <div className="flex flex-wrap items-center gap-2">
           <PageTitle>{room.name}</PageTitle>
-          <Badge variant="info">{room.effectivePermission}</Badge>
+          <Badge variant="info">{permissionLabel(room.effectivePermission)}</Badge>
           <Badge>Shelf {room.shelfCount}</Badge>
+          <Badge>재고 {room.inventoryCount ?? 0}</Badge>
         </div>
         {room.description ? <MetaText>{room.description}</MetaText> : null}
       </div>
@@ -72,11 +74,14 @@ export function RoomDetailPage() {
               </Link>
             ))}
           </div>
-          <Button asChild variant="secondary">
-            <Link to="/space">공간 지도로 돌아가기</Link>
-          </Button>
         </CardBody>
       </Card>
+
+      <LocationInventories
+        roomId={room.id}
+        permission={room.effectivePermission}
+        isShared={room.isShared}
+      />
     </div>
   )
 }

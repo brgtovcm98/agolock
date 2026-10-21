@@ -27,7 +27,12 @@ export const testAuthConfig: AuthConfig = {
 
 export function renderApp(
   initialEntries: string[] = ['/'],
-  options: { authenticated?: boolean; auth?: AuthMe; config?: AuthConfig } = {},
+  options: {
+    authenticated?: boolean
+    auth?: AuthMe
+    config?: AuthConfig
+    seeds?: Array<[readonly unknown[], unknown]>
+  } = {},
 ) {
   const authenticated = options.authenticated ?? true
   queryClient.setQueryData(['auth', 'me'], authenticated ? (options.auth ?? testAuth) : null)
@@ -35,6 +40,14 @@ export function renderApp(
   queryClient.setQueryData(['inventory', 'categories'], { items: [] })
   queryClient.setQueryData(['inventory', 'items'], { items: [] })
   queryClient.setQueryData(['inventory', 'list'], { items: [] })
+  queryClient.setQueryData(['inventory', 'home', 'recent'], { items: [] })
+  queryClient.setQueryData(['inventory', 'list', { scope: 'ALL', statuses: [] }], {
+    pages: [{ items: [], nextCursor: null }],
+    pageParams: [undefined],
+  })
+  queryClient.setQueryData(['category', 'list'], { items: [] })
+  queryClient.setQueryData(['hierarchy', 'rooms', 'picker'], { items: [] })
+  queryClient.setQueryData(['item', 'search', 'recent'], { items: [] })
   queryClient.setQueryData(['hierarchy', 'rooms', 'inventory-picker'], { items: [] })
   queryClient.setQueryData(['sharing', 'shared'], { items: [] })
   queryClient.setQueryData(['sharing', 'shares'], { items: [] })
@@ -45,6 +58,9 @@ export function renderApp(
     pages: [{ items: [], nextCursor: null }],
     pageParams: [undefined],
   })
+  for (const [key, data] of options.seeds ?? []) {
+    queryClient.setQueryData(key, data)
+  }
 
   const router = createMemoryRouter(appRoutes, { initialEntries })
   return render(

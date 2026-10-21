@@ -115,7 +115,7 @@ export function SignupPage() {
 
   return (
     <AuthLayout
-      eyebrow="SCR-002 · 회원가입"
+      eyebrow="회원가입"
       title="내 물건을 시작해요"
       description="가입하면 나만의 Space가 만들어지고, Room·Shelf·Box로 물건을 정리할 수 있어요."
       footer={

@@ -1,280 +1,135 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { PackagePlus, Plus } from 'lucide-react'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { inventoryApi, type InventoryStatus } from './api'
-import { InventoryImages } from '@/features/media/inventory-images'
-import { ApiError } from '@/shared/api/client'
+import { useAddInventory } from './add-inventory-context'
+import { InventoryCard } from './components/inventory-card'
 import { Alert } from '@/shared/ui/alert'
-import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
-import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
-import { TextField } from '@/shared/ui/text-field'
+import { MetaText, PageTitle } from '@/shared/ui/typography'
 
-const statusLabels: Record<InventoryStatus, string> = {
-  IN_USE: '사용 중',
-  STORED: '보관 중',
-  DISPOSED: '폐기',
-}
+type FilterId = 'all' | InventoryStatus
+
+const filters: Array<{ id: FilterId; label: string; statuses?: InventoryStatus[] }> = [
+  { id: 'all', label: '전체' },
+  { id: 'IN_USE', label: '사용 중', statuses: ['IN_USE'] },
+  { id: 'STORED', label: '보관', statuses: ['STORED'] },
+  { id: 'DISPOSED', label: '폐기', statuses: ['DISPOSED'] },
+]
 
 export function InventoryPage() {
-  const queryClient = useQueryClient()
-  const [categoryName, setCategoryName] = useState('')
-  const [itemName, setItemName] = useState('')
-  const [itemPrice, setItemPrice] = useState('')
-  const [itemCategory, setItemCategory] = useState('')
-  const [selectedItem, setSelectedItem] = useState('')
-  const [selectedRoom, setSelectedRoom] = useState('')
-  const [imageInventory, setImageInventory] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const { openAdd } = useAddInventory()
+  const [filter, setFilter] = useState<FilterId>('all')
+  const statuses = filters.find((item) => item.id === filter)?.statuses
 
-  const categoriesQuery = useQuery({
-    queryKey: ['inventory', 'categories'],
-    queryFn: inventoryApi.categories,
-  })
-  const itemsQuery = useQuery({ queryKey: ['inventory', 'items'], queryFn: inventoryApi.items })
-  const inventoriesQuery = useQuery({
-    queryKey: ['inventory', 'list'],
-    queryFn: () => inventoryApi.inventories(),
-  })
-  const roomsQuery = useQuery({
-    queryKey: ['hierarchy', 'rooms', 'inventory-picker'],
-    queryFn: inventoryApi.rooms,
+  const inventoriesQuery = useInfiniteQuery({
+    queryKey: ['inventory', 'list', { scope: 'ALL', statuses: statuses ?? [] }],
+    queryFn: ({ pageParam }) =>
+      inventoryApi.inventories({
+        statuses,
+        scope: 'ALL',
+        limit: 20,
+        cursor: pageParam,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['inventory'] })
-  const fail = (cause: unknown) =>
-    setError(cause instanceof ApiError ? cause.message : '요청을 처리하지 못했습니다.')
-
-  const categoryMutation = useMutation({
-    mutationFn: () => inventoryApi.createCategory(categoryName),
-    onSuccess: async () => {
-      setCategoryName('')
-      setError(null)
-      await invalidate()
-    },
-    onError: fail,
-  })
-  const itemMutation = useMutation({
-    mutationFn: () =>
-      inventoryApi.createItem(itemName, itemPrice ? Number(itemPrice) : null, itemCategory || null),
-    onSuccess: async () => {
-      setItemName('')
-      setItemPrice('')
-      setError(null)
-      await invalidate()
-    },
-    onError: fail,
-  })
-  const inventoryMutation = useMutation({
-    mutationFn: () => inventoryApi.createInventory(selectedItem, selectedRoom),
-    onSuccess: async () => {
-      setSelectedItem('')
-      setSelectedRoom('')
-      setError(null)
-      await invalidate()
-    },
-    onError: fail,
-  })
-
-  const categories = categoriesQuery.data?.items ?? []
-  const items = itemsQuery.data?.items ?? []
-  const inventories = inventoriesQuery.data?.items ?? []
-  const rooms = roomsQuery.data?.items ?? []
+  const inventories = inventoriesQuery.data?.pages.flatMap((page) => page.items) ?? []
+  const hasNextPage = Boolean(inventoriesQuery.hasNextPage)
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <p className="label-caps text-foreground/60">SCR-008 · 재고</p>
-        <PageTitle>재고</PageTitle>
-        <MetaText>카테고리와 Item을 만들고, Room에 첫 Inventory를 등록합니다.</MetaText>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <p className="label-caps text-foreground/60">재고</p>
+          <PageTitle>재고</PageTitle>
+          <MetaText>등록한 물건을 찾고, 위치와 상태를 관리합니다.</MetaText>
+        </div>
       </div>
 
-      {error ? <Alert variant="error">{error}</Alert> : null}
+      <div className="flex flex-wrap gap-2" role="group" aria-label="재고 상태 필터">
+        {filters.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={filter === item.id}
+            onClick={() => setFilter(item.id)}
+            className={
+              filter === item.id
+                ? 'border-border bg-foreground text-background h-9 border-[2.5px] px-3 text-xs font-black'
+                : 'border-border bg-card hover:bg-sunken h-9 border-[2.5px] px-3 text-xs font-black'
+            }
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {inventoriesQuery.isLoading ? (
         <Card>
-          <CardBody className="gap-3">
-            <SectionTitle>카테고리</SectionTitle>
+          <CardBody>
+            <p role="status" className="text-sm font-bold">
+              재고를 불러오는 중…
+            </p>
+          </CardBody>
+        </Card>
+      ) : inventoriesQuery.isError ? (
+        <Card>
+          <CardBody className="items-start gap-3">
+            <Alert variant="error">재고를 불러오지 못했습니다.</Alert>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void inventoriesQuery.refetch()}
+            >
+              다시 시도
+            </Button>
+          </CardBody>
+        </Card>
+      ) : inventories.length === 0 ? (
+        <Card>
+          <CardBody className="items-start gap-3">
+            <p className="text-lg font-black">
+              {filter === 'all' ? '아직 등록한 물건이 없어요' : '이 상태의 재고가 없어요'}
+            </p>
+            <p className="text-foreground/70 text-xs">
+              {filter === 'all'
+                ? '지금 있는 위치를 골라 첫 물건을 등록해 보세요.'
+                : '다른 상태를 선택하거나 새 물건을 등록해 보세요.'}
+            </p>
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <Badge key={category.id} variant="neutral">
-                  {category.name}
-                </Badge>
-              ))}
-              {categories.length === 0 ? (
-                <span className="text-xs">아직 카테고리가 없습니다.</span>
+              <Button type="button" onClick={() => openAdd()}>
+                <Plus aria-hidden="true" className="size-4" />첫 물건 등록
+              </Button>
+              {filter !== 'all' ? (
+                <Button type="button" variant="secondary" onClick={() => setFilter('all')}>
+                  전체 보기
+                </Button>
               ) : null}
             </div>
-            <form
-              className="flex items-end gap-2"
-              onSubmit={(event) => {
-                event.preventDefault()
-                if (categoryName.trim()) categoryMutation.mutate()
-              }}
-            >
-              <TextField
-                label="새 카테고리"
-                value={categoryName}
-                onChange={(event) => setCategoryName(event.target.value)}
-              />
-              <Button type="submit" disabled={categoryMutation.isPending || !categoryName.trim()}>
-                <Plus aria-hidden="true" className="size-4" />
-                추가
-              </Button>
-            </form>
           </CardBody>
         </Card>
-
-        <Card>
-          <CardBody className="gap-3">
-            <SectionTitle>Item</SectionTitle>
-            <div className="flex flex-col gap-2">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="border-border bg-card flex items-center justify-between border-2 px-3 py-2"
-                >
-                  <span className="text-sm font-black">{item.name}</span>
-                  <span className="text-xs">
-                    {item.priceAmount ? `${item.priceAmount.toLocaleString()}원` : '가격 없음'}
-                  </span>
-                </div>
-              ))}
-              {items.length === 0 ? <span className="text-xs">아직 Item이 없습니다.</span> : null}
-            </div>
-            <form
-              className="grid gap-2 md:grid-cols-2"
-              onSubmit={(event) => {
-                event.preventDefault()
-                if (itemName.trim()) itemMutation.mutate()
-              }}
-            >
-              <TextField
-                label="Item 이름"
-                value={itemName}
-                onChange={(event) => setItemName(event.target.value)}
-              />
-              <TextField
-                label="가격"
-                type="number"
-                value={itemPrice}
-                onChange={(event) => setItemPrice(event.target.value)}
-              />
-              <label className="flex flex-col gap-1.5 md:col-span-2">
-                <span className="text-xs font-black">카테고리</span>
-                <select
-                  value={itemCategory}
-                  onChange={(event) => setItemCategory(event.target.value)}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
-                >
-                  <option value="">없음</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <Button
-                type="submit"
-                disabled={itemMutation.isPending || !itemName.trim()}
-                className="md:col-span-2"
-              >
-                Item 추가
-              </Button>
-            </form>
-          </CardBody>
-        </Card>
-      </div>
-
-      <Card>
-        <CardBody className="gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <SectionTitle>Inventory</SectionTitle>
-            <Badge variant="info">{inventories.length}개</Badge>
-          </div>
-          <form
-            className="grid gap-2 md:grid-cols-[1fr_1fr_auto]"
-            onSubmit={(event) => {
-              event.preventDefault()
-              if (selectedItem && selectedRoom) inventoryMutation.mutate()
-            }}
-          >
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-black">Item</span>
-              <select
-                value={selectedItem}
-                onChange={(event) => setSelectedItem(event.target.value)}
-                className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
-              >
-                <option value="">선택</option>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-black">Room</span>
-              <select
-                value={selectedRoom}
-                onChange={(event) => setSelectedRoom(event.target.value)}
-                className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
-              >
-                <option value="">선택</option>
-                {rooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Button
-              type="submit"
-              disabled={inventoryMutation.isPending || !selectedItem || !selectedRoom}
-              className="self-end"
-            >
-              <PackagePlus aria-hidden="true" className="size-4" />
-              Inventory 추가
-            </Button>
-          </form>
-
-          <div className="grid gap-2 md:grid-cols-2">
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div className="grid gap-3 md:grid-cols-2">
             {inventories.map((inventory) => (
-              <div
-                key={inventory.id}
-                className="border-border bg-card flex flex-col gap-1 border-[2.5px] p-3"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-black">{inventory.displayName}</span>
-                  <Badge variant="neutral">{statusLabels[inventory.status]}</Badge>
-                </div>
-                <span className="text-xs">
-                  {inventory.location.type} · {inventory.location.name}
-                </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() =>
-                    setImageInventory(imageInventory === inventory.id ? '' : inventory.id)
-                  }
-                >
-                  이미지
-                </Button>
-                {imageInventory === inventory.id ? (
-                  <InventoryImages inventoryId={inventory.id} />
-                ) : null}
-              </div>
+              <InventoryCard key={inventory.id} inventory={inventory} />
             ))}
-            {inventories.length === 0 ? (
-              <p className="text-xs">아직 Inventory가 없습니다.</p>
-            ) : null}
           </div>
-        </CardBody>
-      </Card>
+          {hasNextPage ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={inventoriesQuery.isFetchingNextPage}
+              onClick={() => void inventoriesQuery.fetchNextPage()}
+            >
+              {inventoriesQuery.isFetchingNextPage ? '불러오는 중…' : '더 보기'}
+            </Button>
+          ) : null}
+        </div>
+      )}
     </div>
   )
 }

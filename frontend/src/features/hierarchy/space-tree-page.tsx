@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { hierarchyApi, type Box, type Permission, type Room, type Shelf } from './api'
+import { hierarchyApi, type Box, type Room, type Shelf } from './api'
 import { DeleteDialog, MoveDialog, NodeFormDialog } from './components/hierarchy-dialogs'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
@@ -20,13 +20,10 @@ import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { permissionLabel } from '@/shared/lib/permission'
 
 type NodeKind = 'room' | 'shelf' | 'box'
 type AnyNode = Room | Shelf | Box
-
-function permissionLabel(permission: Permission) {
-  return permission === 'OWNER' ? '소유자' : permission
-}
 
 function NodeActions({
   onAdd,
@@ -171,7 +168,7 @@ export function SpaceTreePage() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <p className="label-caps text-foreground/60">SCR-004 · 공간</p>
+          <p className="label-caps text-foreground/60">공간</p>
           <PageTitle>공간 지도</PageTitle>
           <MetaText>
             Room &gt; Shelf &gt; Box 순서로 물건을 정리합니다. 소유자만 계층을 변경할 수 있어요.

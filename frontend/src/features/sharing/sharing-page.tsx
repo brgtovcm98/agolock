@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Plus, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { sharingApi, type SharePermission } from './api'
+import { sharingApi, type InvitationStatus, type SharePermission } from './api'
 import { useAuth } from '@/features/auth/auth-provider'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
@@ -11,6 +11,15 @@ import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
+import { permissionDescription, permissionLabel } from '@/shared/lib/permission'
+
+const invitationStatusLabels: Record<InvitationStatus, string> = {
+  PENDING: '대기',
+  ACCEPTED: '수락',
+  DECLINED: '거절',
+  REVOKED: '철회',
+  EXPIRED: '만료',
+}
 
 export function SharingPage() {
   const queryClient = useQueryClient()
@@ -107,7 +116,7 @@ export function SharingPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <p className="label-caps text-foreground/60">SCR-015 · 공유</p>
+        <p className="label-caps text-foreground/60">공유</p>
         <PageTitle>공유</PageTitle>
         <MetaText>초대를 수락한 사람만 공유 공간을 볼 수 있습니다.</MetaText>
       </div>
@@ -152,11 +161,12 @@ export function SharingPage() {
                   onChange={(event) => setPermission(event.target.value as SharePermission)}
                   className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
                 >
-                  <option value="VIEW">VIEW</option>
-                  <option value="EDIT">EDIT</option>
-                  <option value="MANAGE">MANAGE</option>
+                  <option value="VIEW">{permissionLabel('VIEW')}</option>
+                  <option value="EDIT">{permissionLabel('EDIT')}</option>
+                  <option value="MANAGE">{permissionLabel('MANAGE')}</option>
                 </select>
               </label>
+              <p className="text-foreground/60 text-[11px]">{permissionDescription(permission)}</p>
               <Button type="submit" disabled={inviteMutation.isPending || !email.trim() || !roomId}>
                 <Plus aria-hidden="true" className="size-4" />
                 초대 보내기
@@ -178,7 +188,7 @@ export function SharingPage() {
               <div key={invitation.id} className="border-border flex flex-col gap-2 border-2 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-black">{invitation.resourceName}</span>
-                  <Badge variant="info">{invitation.permission}</Badge>
+                  <Badge variant="info">{permissionLabel(invitation.permission)}</Badge>
                 </div>
                 <span className="text-xs">{invitation.invitedEmail}</span>
                 <div className="flex gap-2">
@@ -220,7 +230,7 @@ export function SharingPage() {
                 className="border-border bg-blue-soft flex items-center justify-between gap-2 border-2 p-3 hover:underline"
               >
                 <span className="text-sm font-black">{share.resourceName}</span>
-                <Badge variant="info">{share.permission}</Badge>
+                <Badge variant="info">{permissionLabel(share.permission)}</Badge>
               </Link>
             ))}
           </div>
@@ -237,7 +247,7 @@ export function SharingPage() {
             >
               <span className="font-black">{invitation.resourceName}</span>
               <span>{invitation.invitedEmail}</span>
-              <Badge>{invitation.status}</Badge>
+              <Badge>{invitationStatusLabels[invitation.status]}</Badge>
               {invitation.status === 'PENDING' ? (
                 <Button
                   type="button"
@@ -268,9 +278,9 @@ export function SharingPage() {
                 }
                 className="border-border bg-card border-2 px-2 py-1 text-xs"
               >
-                <option value="VIEW">VIEW</option>
-                <option value="EDIT">EDIT</option>
-                <option value="MANAGE">MANAGE</option>
+                <option value="VIEW">{permissionLabel('VIEW')}</option>
+                <option value="EDIT">{permissionLabel('EDIT')}</option>
+                <option value="MANAGE">{permissionLabel('MANAGE')}</option>
               </select>
               <Button
                 type="button"

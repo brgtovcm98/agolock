@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '@/features/auth/auth-provider'
 import { authErrorMessage } from '@/features/auth/errors'
@@ -93,11 +93,11 @@ export function SettingsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <p className="label-caps text-foreground/60">SCR-017 · 설정</p>
+          <p className="label-caps text-foreground/60">설정</p>
           <PageTitle>설정</PageTitle>
-          <MetaText>프로필과 Space 이름, 화면 모드를 관리합니다.</MetaText>
+          <MetaText>프로필과 Space 이름, 화면 모드, 카테고리를 관리합니다.</MetaText>
         </div>
-        <Badge variant="info">M1 IDENTITY</Badge>
+        <Badge variant="info">{space?.name ?? '내 Space'}</Badge>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -133,6 +133,18 @@ export function SettingsPage() {
                   {isSubmitting ? '저장 중…' : '변경 저장'}
                 </Button>
               </form>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody className="gap-3">
+              <SectionTitle>카테고리</SectionTitle>
+              <p className="text-foreground/70 text-xs">
+                물건을 묶어 볼 때 사용할 카테고리를 만들고 정리합니다.
+              </p>
+              <Button asChild variant="secondary">
+                <Link to="/settings/categories">카테고리 관리</Link>
+              </Button>
             </CardBody>
           </Card>
 

@@ -1,17 +1,33 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-provider'
+import { AddInventoryProvider } from '@/features/inventory/add-inventory-provider'
+import { useAddInventory } from '@/features/inventory/add-inventory-context'
 import { activeNavigationHref, mainNavigation } from '@/shared/navigation'
 import { Avatar } from '@/shared/ui/avatar'
 import { BottomTabs } from '@/shared/ui/bottom-tabs'
 import { Brand } from '@/shared/ui/brand'
+import { Button } from '@/shared/ui/button'
 import { NavList } from '@/shared/ui/nav-list'
 import { ThemeToggle } from '@/shared/ui/theme-toggle'
 
 export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <AddInventoryProvider>
+      <AppShellFrame>{children}</AppShellFrame>
+    </AddInventoryProvider>
+  )
+}
+
+function AppShellFrame({ children }: { children: ReactNode }) {
   const location = useLocation()
   const { user, space } = useAuth()
+  const { openAdd } = useAddInventory()
   const active = activeNavigationHref(location.pathname)
+  const hideAddFab = /^\/(inventory\/.+|items\/.+|space\/(rooms|shelves|boxes)\/.+)/.test(
+    location.pathname,
+  )
 
   return (
     <div className="bg-background min-h-dvh">
@@ -51,13 +67,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="lg:pl-[248px]">
         <header className="border-border bg-background sticky top-0 z-30 flex h-16 items-center justify-between border-b-[2.5px] px-4 lg:px-8">
           <Brand className="lg:hidden" />
-          <div className="hidden items-center gap-3 lg:flex">
-            <span className="label-caps text-foreground/70">M1 IDENTITY</span>
-            <span className="border-border bg-accent text-on-accent inline-flex h-7 items-center border-2 px-2 text-xs font-bold">
-              {import.meta.env.MODE}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => openAdd()}
+              className="hidden lg:inline-flex"
+            >
+              <Plus aria-hidden="true" className="size-4" />
+              등록
+            </Button>
             <ThemeToggle className="lg:hidden" />
             <Avatar name={user?.displayName ?? '?'} className="hidden lg:grid" />
           </div>
@@ -67,6 +86,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+
+      {!hideAddFab ? (
+        <Button
+          type="button"
+          size="lg"
+          onClick={() => openAdd()}
+          aria-label="물건 등록"
+          className="shadow-brutal fixed right-4 bottom-20 z-40 lg:hidden"
+        >
+          <Plus aria-hidden="true" className="size-5" />
+          등록
+        </Button>
+      ) : null}
 
       <BottomTabs items={mainNavigation} active={active} />
     </div>

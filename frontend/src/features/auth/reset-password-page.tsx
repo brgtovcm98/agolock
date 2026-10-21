@@ -44,7 +44,7 @@ export function ResetPasswordPage() {
 
   return (
     <AuthLayout
-      eyebrow="SCR-001 · 비밀번호 재설정"
+      eyebrow="비밀번호 재설정"
       title="비밀번호를 잊었어요"
       description="가입한 이메일을 입력하면 재설정 링크를 보내 드려요. 보안을 위해 가입 여부와 관계없이 같은 안내를 보여 줍니다."
       footer={

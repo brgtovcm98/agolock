@@ -7,6 +7,7 @@ export type Room = {
   name: string
   description: string | null
   shelfCount: number
+  inventoryCount: number
   version: number
   effectivePermission: Permission
   isShared: boolean
@@ -20,6 +21,7 @@ export type Shelf = {
   name: string
   description: string | null
   boxCount: number
+  inventoryCount: number
   version: number
   effectivePermission: Permission
   isShared: boolean
@@ -32,6 +34,7 @@ export type Box = {
   shelfId: string
   name: string
   description: string | null
+  inventoryCount: number
   version: number
   effectivePermission: Permission
   isShared: boolean

@@ -62,9 +62,9 @@ test('로그인 후 M1 홈과 설정으로 이동한다', async ({ page }) => {
   await page.getByRole('button', { name: '로그인' }).click()
 
   await expect(page).toHaveURL('/')
-  await expect(page.getByRole('heading', { name: '지민님, 반가워요' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '지민님, 무엇을 찾으세요?' })).toBeVisible()
 
-  await page.getByRole('link', { name: '설정 열기' }).click()
+  await page.locator('a[href="/settings"]:visible').first().click()
   await expect(page.getByRole('heading', { name: '설정' })).toBeVisible()
   await expect(page.getByLabel('표시 이름')).toHaveValue('지민')
   await expect(page.getByLabel('Space 이름')).toHaveValue('지민의 Space')

@@ -50,7 +50,7 @@ export function LoginPage() {
 
   return (
     <AuthLayout
-      eyebrow="SCR-001 · 로그인"
+      eyebrow="로그인"
       title="다시 만났네요"
       description="이메일과 비밀번호로 로그인하면 내 Space의 물건을 이어서 관리할 수 있어요."
       footer={

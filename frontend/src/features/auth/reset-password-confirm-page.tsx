@@ -46,7 +46,7 @@ export function ResetPasswordConfirmPage() {
   if (!token || tokenInvalid) {
     return (
       <AuthLayout
-        eyebrow="SCR-001 · 비밀번호 재설정"
+        eyebrow="비밀번호 재설정"
         title="링크가 올바르지 않아요"
         description="재설정 링크에 토큰이 없습니다. 메일을 다시 요청해 주세요."
       >
@@ -74,7 +74,7 @@ export function ResetPasswordConfirmPage() {
 
   return (
     <AuthLayout
-      eyebrow="SCR-001 · 비밀번호 재설정"
+      eyebrow="비밀번호 재설정"
       title={done ? '비밀번호를 바꿨어요' : '새 비밀번호를 정해요'}
       description={
         done

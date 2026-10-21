@@ -15,7 +15,10 @@ import { RoomDetailPage } from '@/features/hierarchy/room-detail-page'
 import { ShelfDetailPage } from '@/features/hierarchy/shelf-detail-page'
 import { SpaceTreePage } from '@/features/hierarchy/space-tree-page'
 import { HomePage } from '@/features/home/home-page'
+import { InventoryDetailPage } from '@/features/inventory/inventory-detail-page'
 import { InventoryPage } from '@/features/inventory/inventory-page'
+import { ItemDetailPage } from '@/features/inventory/item-detail-page'
+import { CategorySettingsPage } from '@/features/categories/category-settings-page'
 import { SettingsPage } from '@/features/settings/settings-page'
 import { SharingPage } from '@/features/sharing/sharing-page'
 import { InvitationTokenPage } from '@/features/sharing/invitation-token-page'
@@ -77,19 +80,26 @@ export const appRoutes: RouteObject[] = [
       { path: 'space/shelves/:shelfId', element: <ShelfDetailPage /> },
       { path: 'space/boxes/:boxId', element: <BoxDetailPage /> },
       { path: 'inventory', element: <InventoryPage /> },
+      { path: 'inventory/:inventoryId', element: <InventoryDetailPage /> },
+      { path: 'items/:itemId', element: <ItemDetailPage /> },
       { path: 'sharing', element: <SharingPage /> },
       { path: 'invitations', element: <InvitationTokenPage /> },
       {
         path: 'settings',
         element: <SettingsPage />,
       },
+      { path: 'settings/categories', element: <CategorySettingsPage /> },
     ],
   },
-  {
-    path: '/design-preview',
-    element: <DesignPreviewPage />,
-    errorElement: <RouteError />,
-  },
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: '/design-preview',
+          element: <DesignPreviewPage />,
+          errorElement: <RouteError />,
+        } satisfies RouteObject,
+      ]
+    : []),
   {
     path: '*',
     element: <NotFoundPage />,

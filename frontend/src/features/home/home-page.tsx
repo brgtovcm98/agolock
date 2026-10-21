@@ -1,111 +1,154 @@
+import { useQuery } from '@tanstack/react-query'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { inventoryApi } from '@/features/inventory/api'
+import { useAddInventory } from '@/features/inventory/add-inventory-context'
+import { InventoryCard } from '@/features/inventory/components/inventory-card'
 import { useAuth } from '@/features/auth/auth-provider'
-import { Badge } from '@/shared/ui/badge'
+import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
-import { Avatar } from '@/shared/ui/avatar'
+import { SearchField } from '@/shared/ui/search-field'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
-
-const m1Items = [
-  '이메일·비밀번호 가입과 로그인',
-  'Spring Session JDBC 세션과 CSRF',
-  '초대코드 가입 제한과 비밀번호 재설정',
-  '내 프로필·Space 이름·화면 모드 설정',
-]
-
-const nextSteps = [
-  'M2: Room·Shelf·Box 계층과 유효 권한',
-  'M3: Category·Item·Inventory와 이동 이력',
-  'M4: 초대 전용 공유와 권한 관리',
-]
+import { formatPrice } from '@/shared/lib/format'
 
 export function HomePage() {
   const { user, space } = useAuth()
-  const environment = import.meta.env.VITE_APP_ENV ?? import.meta.env.MODE
+  const { openAdd } = useAddInventory()
+  const [query, setQuery] = useState('')
+  const [submittedQuery, setSubmittedQuery] = useState('')
+
+  const recentQuery = useQuery({
+    queryKey: ['inventory', 'home', 'recent'],
+    queryFn: () => inventoryApi.inventories({ scope: 'ALL', limit: 5 }),
+  })
+  const itemsQuery = useQuery({
+    queryKey: ['item', 'search', submittedQuery],
+    queryFn: () => inventoryApi.items({ q: submittedQuery, limit: 20 }),
+    enabled: submittedQuery.length > 0,
+  })
+
+  const recent = recentQuery.data?.items ?? []
+  const results = itemsQuery.data?.items ?? []
 
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="flex flex-col gap-2">
-            <p className="label-caps text-foreground/70">AGO LOCK · M1</p>
-            <PageTitle>{user?.displayName ?? '반가워요'}님, 반가워요</PageTitle>
-            <MetaText>
-              {space?.name ?? '내 Space'}에서 물건을 정리할 준비가 됐어요. 프로필과 Space 이름은
-              설정에서 바꿀 수 있습니다.
-            </MetaText>
-          </div>
-          <Badge variant="info">{environment}</Badge>
+        <div className="flex flex-col gap-1">
+          <p className="label-caps text-foreground/60">홈·검색</p>
+          <PageTitle>{user?.displayName ?? '안녕하세요'}님, 무엇을 찾으세요?</PageTitle>
+          <MetaText>
+            {space?.name ?? '내 Space'}의 물건을 이름으로 찾거나, 최근에 등록한 물건을 이어서
+            관리하세요.
+          </MetaText>
         </div>
 
-        <Card>
-          <CardBody className="gap-4">
-            <div className="flex items-center gap-3">
-              <Avatar name={user?.displayName ?? '?'} />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black">{user?.displayName}</p>
-                <p className="text-foreground/60 truncate text-xs">{user?.email}</p>
+        <SearchField
+          value={query}
+          placeholder="물건 이름으로 검색"
+          onChange={setQuery}
+          onSubmit={(value) => setSubmittedQuery(value.trim())}
+        />
+
+        {submittedQuery ? (
+          <section className="flex flex-col gap-3">
+            <SectionTitle aside={<span>{results.length}개</span>}>
+              “{submittedQuery}” 검색 결과
+            </SectionTitle>
+            {itemsQuery.isLoading ? (
+              <p role="status" className="text-xs">
+                검색 중…
+              </p>
+            ) : itemsQuery.isError ? (
+              <Alert variant="error">검색하지 못했습니다. 잠시 후 다시 시도해 주세요.</Alert>
+            ) : results.length === 0 ? (
+              <Card>
+                <CardBody className="items-start gap-2">
+                  <p className="text-sm font-black">검색 결과가 없습니다.</p>
+                  <p className="text-foreground/70 text-xs">
+                    다른 이름으로 찾거나 새 물건으로 등록해 보세요.
+                  </p>
+                  <Button type="button" size="sm" onClick={() => openAdd()}>
+                    물건 등록
+                  </Button>
+                </CardBody>
+              </Card>
+            ) : (
+              <div className="grid gap-2 md:grid-cols-2">
+                {results.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/items/${item.id}`}
+                    className="surface hover:bg-sunken flex flex-col gap-1 p-3"
+                  >
+                    <span className="text-sm font-black">{item.name}</span>
+                    <span className="text-foreground/60 text-[11px]">
+                      {formatPrice(item.priceAmount)}
+                    </span>
+                    {item.description ? (
+                      <span className="text-foreground/70 line-clamp-2 text-xs">
+                        {item.description}
+                      </span>
+                    ) : null}
+                  </Link>
+                ))}
               </div>
-              <Badge variant="info" className="ml-auto">
-                {space?.name ?? '내 Space'}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link to="/settings">설정 열기</Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link to="/space">공간</Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link to="/inventory">재고</Link>
-              </Button>
-              {import.meta.env.DEV ? (
+            )}
+          </section>
+        ) : (
+          <>
+            <section className="flex flex-col gap-3">
+              <SectionTitle
+                aside={
+                  <Link to="/inventory" className="underline underline-offset-2">
+                    전체 보기
+                  </Link>
+                }
+              >
+                최근 추가
+              </SectionTitle>
+              {recentQuery.isLoading ? (
+                <p role="status" className="text-xs">
+                  불러오는 중…
+                </p>
+              ) : recentQuery.isError ? (
+                <Alert variant="error">최근 추가한 물건을 불러오지 못했습니다.</Alert>
+              ) : recent.length === 0 ? (
+                <Card>
+                  <CardBody className="items-start gap-2">
+                    <p className="text-sm font-black">아직 등록한 물건이 없어요.</p>
+                    <p className="text-foreground/70 text-xs">
+                      지금 있는 위치를 골라 첫 물건을 등록해 보세요.
+                    </p>
+                    <Button type="button" size="sm" onClick={() => openAdd()}>
+                      <Plus aria-hidden="true" className="size-4" />첫 물건 등록
+                    </Button>
+                  </CardBody>
+                </Card>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {recent.map((inventory) => (
+                    <InventoryCard key={inventory.id} inventory={inventory} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="flex flex-col gap-3">
+              <SectionTitle>바로가기</SectionTitle>
+              <div className="flex flex-wrap gap-2">
                 <Button asChild variant="secondary">
-                  <Link to="/design-preview?screen=home">디자인 미리보기</Link>
+                  <Link to="/space">공간 둘러보기</Link>
                 </Button>
-              ) : null}
-            </div>
-          </CardBody>
-        </Card>
+                <Button asChild variant="secondary">
+                  <Link to="/inventory">재고 전체 보기</Link>
+                </Button>
+              </div>
+            </section>
+          </>
+        )}
       </section>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <section className="flex flex-col gap-3">
-          <SectionTitle>M1에서 연결된 것</SectionTitle>
-          <ul className="flex flex-col gap-2">
-            {m1Items.map((item) => (
-              <li
-                key={item}
-                className="border-border bg-card flex items-start gap-2 border-[2.5px] p-3 text-xs font-bold"
-              >
-                <span
-                  aria-hidden="true"
-                  className="bg-success mt-0.5 inline-block size-3 shrink-0"
-                />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <SectionTitle>다음 단계</SectionTitle>
-          <ol className="flex flex-col gap-2">
-            {nextSteps.map((item, index) => (
-              <li
-                key={item}
-                className="border-border bg-card flex items-start gap-2 border-[2.5px] p-3 text-xs font-bold"
-              >
-                <span className="bg-accent text-on-accent inline-grid size-5 shrink-0 place-items-center text-[10px] font-black">
-                  {index + 1}
-                </span>
-                {item}
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
     </div>
   )
 }

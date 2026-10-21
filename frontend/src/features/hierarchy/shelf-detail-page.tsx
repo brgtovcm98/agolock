@@ -2,10 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import { Box as BoxIcon } from 'lucide-react'
 import { hierarchyApi } from './api'
+import { LocationInventories } from '@/features/inventory/location-inventories'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { permissionLabel } from '@/shared/lib/permission'
 
 export function ShelfDetailPage() {
   const { shelfId = '' } = useParams()
@@ -36,11 +38,12 @@ export function ShelfDetailPage() {
         <Link to="/space" className="text-xs font-bold underline underline-offset-2">
           ← 공간 지도
         </Link>
-        <p className="label-caps text-foreground/60">SCR-006 · Shelf</p>
+        <p className="label-caps text-foreground/60">공간</p>
         <div className="flex flex-wrap items-center gap-2">
           <PageTitle>{shelf.name}</PageTitle>
-          <Badge variant="info">{shelf.effectivePermission}</Badge>
+          <Badge variant="info">{permissionLabel(shelf.effectivePermission)}</Badge>
           <Badge>Box {shelf.boxCount}</Badge>
+          <Badge>재고 {shelf.inventoryCount ?? 0}</Badge>
         </div>
         {shelf.description ? <MetaText>{shelf.description}</MetaText> : null}
       </div>
@@ -69,6 +72,13 @@ export function ShelfDetailPage() {
           </div>
         </CardBody>
       </Card>
+
+      <LocationInventories
+        roomId={shelf.roomId}
+        shelfId={shelf.id}
+        permission={shelf.effectivePermission}
+        isShared={shelf.isShared}
+      />
     </div>
   )
 }

@@ -4,12 +4,13 @@ import { describe, expect, it } from 'vitest'
 import { renderApp } from '@/test/render-app'
 
 describe('앱 라우팅', () => {
-  it('M1 홈을 표시한다', () => {
+  it('검색과 최근 추가가 있는 홈을 표시한다', () => {
     renderApp(['/'])
 
-    expect(screen.getByRole('heading', { name: '지민님, 반가워요' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '설정 열기' })).toBeInTheDocument()
-    expect(screen.getByText('M1에서 연결된 것')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /무엇을 찾으세요/ })).toBeInTheDocument()
+    expect(screen.getByRole('search')).toBeInTheDocument()
+    expect(screen.getByText('최근 추가')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: '물건 등록' }).length).toBeGreaterThan(0)
   })
 
   it('인증되지 않으면 로그인 화면으로 보낸다', () => {
@@ -38,7 +39,8 @@ describe('앱 라우팅', () => {
     renderApp(['/inventory'])
 
     expect(screen.getByRole('heading', { name: '재고' })).toBeInTheDocument()
-    expect(screen.getByText('아직 Inventory가 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('아직 등록한 물건이 없어요')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /첫 물건 등록/ })).toBeInTheDocument()
   })
 
   it('공유 화면의 빈 상태를 안내한다', () => {

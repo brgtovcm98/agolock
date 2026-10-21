@@ -18,6 +18,7 @@ export const mainNavigation: NavigationItem[] = [
 
 export function activeNavigationHref(pathname: string): string {
   if (pathname === '/') return '/'
+  if (pathname.startsWith('/items')) return '/inventory'
   return (
     mainNavigation.find((item) => item.href !== '/' && pathname.startsWith(item.href))?.href ?? '/'
   )
