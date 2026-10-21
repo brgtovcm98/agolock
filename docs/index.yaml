@@ -11,7 +11,7 @@ docs:
     code_paths: []
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ARCH
     path: docs/architecture.md
@@ -31,7 +31,7 @@ docs:
       - ADR-006
       - ADR-011
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: DOMAIN
     path: docs/domain.md
@@ -49,7 +49,7 @@ docs:
       - ADR-003
       - ADR-010
       - ADR-011
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: SHARING
     path: docs/sharing.md
@@ -67,7 +67,7 @@ docs:
       - ADR-003
       - ADR-010
       - ADR-013
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: SEARCH
     path: docs/search.md
@@ -81,7 +81,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-012
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: MEDIA_AI
     path: docs/media-ai.md
@@ -103,7 +103,7 @@ docs:
       - ADR-009
       - ADR-011
       - ADR-012
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: CONTRACTS
     path: docs/contracts.md
@@ -122,7 +122,7 @@ docs:
       - ADR-011
       - ADR-013
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: FRONTEND
     path: docs/frontend.md
@@ -139,7 +139,7 @@ docs:
       - ADR-011
       - ADR-013
       - ADR-016
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: DESIGN
     path: docs/design-system.md
@@ -157,7 +157,7 @@ docs:
       - ADR-010
       - ADR-013
       - ADR-016
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: OPERATIONS
     path: docs/operations.md
@@ -180,7 +180,7 @@ docs:
       - ADR-012
       - ADR-013
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: IMPLEMENTATION_ROADMAP
     path: docs/implementation-roadmap.md
@@ -197,7 +197,7 @@ docs:
       - ADR-012
       - ADR-013
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_001_FOUNDATION
     path: docs/implementation/PLAN-001-foundation.md
@@ -216,7 +216,7 @@ docs:
       - ADR-005
       - ADR-006
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_001_DELIVERY
     path: docs/implementation/PLAN-001-foundation-delivery.md
@@ -235,7 +235,7 @@ docs:
       - ADR-005
       - ADR-006
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_002_IDENTITY
     path: docs/implementation/PLAN-002-identity-space.md
@@ -256,7 +256,7 @@ docs:
       - ADR-014
       - ADR-015
       - ADR-016
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_003_HIERARCHY
     path: docs/implementation/PLAN-003-hierarchy-permissions.md
@@ -274,7 +274,7 @@ docs:
       - ADR-002
       - ADR-003
       - ADR-010
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_004_INVENTORY
     path: docs/implementation/PLAN-004-inventory.md
@@ -292,7 +292,7 @@ docs:
       - ADR-004
       - ADR-010
       - ADR-011
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_005_SHARING
     path: docs/implementation/PLAN-005-sharing.md
@@ -309,7 +309,7 @@ docs:
       - ADR-003
       - ADR-010
       - ADR-013
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_006_MEDIA
     path: docs/implementation/PLAN-006-media-messaging.md
@@ -326,7 +326,7 @@ docs:
       - ADR-005
       - ADR-008
       - ADR-011
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_007_SEARCH
     path: docs/implementation/PLAN-007-search.md
@@ -341,7 +341,7 @@ docs:
     related_adrs:
       - ADR-003
       - ADR-012
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_008_AI
     path: docs/implementation/PLAN-008-ai-image-search.md
@@ -357,7 +357,7 @@ docs:
       - ADR-007
       - ADR-009
       - ADR-012
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: PLAN_009_HARDENING
     path: docs/implementation/PLAN-009-release-hardening.md
@@ -373,7 +373,7 @@ docs:
     related_adrs:
       - ADR-014
       - ADR-015
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: DATA_DICTIONARY
     path: docs/generated/data-dictionary.md
@@ -392,7 +392,7 @@ docs:
       - ADR-011
       - ADR-012
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: OPENAPI
     path: docs/generated/openapi.yaml
@@ -411,7 +411,7 @@ docs:
       - ADR-011
       - ADR-013
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: EVENTS
     path: docs/generated/events.yaml
@@ -427,7 +427,7 @@ docs:
     related_adrs:
       - ADR-005
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_INDEX
     path: docs/decisions/README.md
@@ -438,7 +438,7 @@ docs:
     code_paths: []
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_001
     path: docs/decisions/ADR-001-space-tenant.md
@@ -450,7 +450,7 @@ docs:
       - backend/src/main/resources/db/migration/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_002
     path: docs/decisions/ADR-002-inventory-location.md
@@ -462,7 +462,7 @@ docs:
       - backend/src/main/resources/db/migration/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_003
     path: docs/decisions/ADR-003-permission-model.md
@@ -474,7 +474,7 @@ docs:
       - backend/src/main/kotlin/**/sharing/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_004
     path: docs/decisions/ADR-004-mybatis.md
@@ -486,7 +486,7 @@ docs:
       - backend/src/main/resources/mapper/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_005
     path: docs/decisions/ADR-005-rabbitmq-outbox.md
@@ -498,7 +498,7 @@ docs:
       - backend/src/main/kotlin/**/messaging/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_006
     path: docs/decisions/ADR-006-session-auth.md
@@ -510,7 +510,7 @@ docs:
       - backend/src/main/kotlin/**/auth/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_007
     path: docs/decisions/ADR-007-embedding-model.md
@@ -522,7 +522,7 @@ docs:
       - backend/src/main/kotlin/**/ai/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_008
     path: docs/decisions/ADR-008-presigned-images.md
@@ -534,7 +534,7 @@ docs:
       - backend/src/main/kotlin/**/media/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_009
     path: docs/decisions/ADR-009-ai-confirmation.md
@@ -547,7 +547,7 @@ docs:
       - frontend/src/**
     generated: false
     related_adrs: []
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_010
     path: docs/decisions/ADR-010-item-creation-permissions.md
@@ -561,7 +561,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-003
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_011
     path: docs/decisions/ADR-011-image-upload-lifecycle.md
@@ -575,7 +575,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-008
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_012
     path: docs/decisions/ADR-012-embedding-versioning.md
@@ -589,7 +589,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-007
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_013
     path: docs/decisions/ADR-013-invitation-only-sharing.md
@@ -603,7 +603,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-003
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_014
     path: docs/decisions/ADR-014-generated-docs-draft.md
@@ -617,7 +617,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-015
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_015
     path: docs/decisions/ADR-015-contract-preview-mode.md
@@ -635,7 +635,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-014
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
 
   - id: ADR_016
     path: docs/decisions/ADR-016-neo-brutal-design-system.md
@@ -650,4 +650,4 @@ docs:
     related_adrs:
       - ADR-010
       - ADR-015
-    last_verified_commit: "3a10a1e5440278307117cc2aa4e44b28ebf56ecf"
+    last_verified_commit: "3039bd0c817908451a61f61305f473eced77beb6"
