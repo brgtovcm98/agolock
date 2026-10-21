@@ -8,6 +8,7 @@ import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.service.CreateInventoryCommand
 import com.agolock.inventory.service.InventoryService
 import com.agolock.inventory.service.MoveInventoryCommand
+import com.agolock.inventory.service.NewItemCommand
 import com.agolock.inventory.service.UpdateInventoryCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -41,8 +42,21 @@ class InventoryController(
         @RequestParam(required = false) limit: Int?,
         @RequestParam(required = false, defaultValue = "OWNED") scope: String,
         @RequestParam(required = false) cursor: String?,
+        @RequestParam(required = false) roomId: UUID?,
+        @RequestParam(required = false) shelfId: UUID?,
+        @RequestParam(required = false) boxId: UUID?,
     ): InventoryListResponse {
-        val page = inventoryService.list(Actor.from(principal), status, limit, scope, cursor)
+        val page =
+            inventoryService.list(
+                Actor.from(principal),
+                status,
+                limit,
+                scope,
+                cursor,
+                roomId,
+                shelfId,
+                boxId,
+            )
         return InventoryListResponse(page.items, page.nextCursor)
     }
 
@@ -68,6 +82,14 @@ class InventoryController(
                     actor,
                     CreateInventoryCommand(
                         request.itemId,
+                        request.newItem?.let {
+                            NewItemCommand(
+                                it.name,
+                                it.description,
+                                it.categoryId,
+                                it.priceAmount,
+                            )
+                        },
                         request.roomId,
                         request.shelfId,
                         request.boxId,

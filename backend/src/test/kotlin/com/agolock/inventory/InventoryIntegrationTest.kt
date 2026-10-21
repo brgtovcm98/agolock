@@ -290,5 +290,70 @@ class InventoryIntegrationTest
             assertThat(json(deleted.body)["code"].asText()).isEqualTo("CATEGORY_IN_USE")
         }
 
+        @Test
+        fun `새 물건과 첫 재고를 한 번에 만들고 위치 필터로 직접 재고만 조회한다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "거실")).body)
+            val roomId = room["id"].asText()
+            val shelf =
+                json(client.post("/api/v1/rooms/$roomId/shelves", mapOf("name" to "책장")).body)
+            val shelfId = shelf["id"].asText()
+            val box =
+                json(client.post("/api/v1/shelves/$shelfId/boxes", mapOf("name" to "파란 박스")).body)
+            val boxId = box["id"].asText()
+
+            val roomInventory =
+                client.post(
+                    "/api/v1/inventories",
+                    mapOf(
+                        "newItem" to mapOf("name" to "방 물건"),
+                        "roomId" to roomId,
+                    ),
+                )
+            assertThat(roomInventory.statusCode.is2xxSuccessful).isTrue()
+            assertThat(json(roomInventory.body)["displayName"].asText()).isEqualTo("방 물건")
+
+            val shelfInventory =
+                client.post(
+                    "/api/v1/inventories",
+                    mapOf(
+                        "newItem" to mapOf("name" to "선반 물건"),
+                        "shelfId" to shelfId,
+                    ),
+                )
+            assertThat(shelfInventory.statusCode.is2xxSuccessful).isTrue()
+            val boxInventory =
+                client.post(
+                    "/api/v1/inventories",
+                    mapOf(
+                        "newItem" to mapOf("name" to "박스 물건"),
+                        "boxId" to boxId,
+                    ),
+                )
+            assertThat(boxInventory.statusCode.is2xxSuccessful).isTrue()
+
+            val directRoom = json(client.get("/api/v1/inventories?roomId=$roomId").body)
+            assertThat(directRoom["items"].size()).isEqualTo(1)
+            assertThat(directRoom["items"][0]["displayName"].asText()).isEqualTo("방 물건")
+
+            val directShelf = json(client.get("/api/v1/inventories?shelfId=$shelfId").body)
+            assertThat(directShelf["items"].size()).isEqualTo(1)
+            assertThat(directShelf["items"][0]["displayName"].asText()).isEqualTo("선반 물건")
+
+            val directBox = json(client.get("/api/v1/inventories?boxId=$boxId").body)
+            assertThat(directBox["items"].size()).isEqualTo(1)
+            assertThat(directBox["items"][0]["displayName"].asText()).isEqualTo("박스 물건")
+
+            val both =
+                client.post(
+                    "/api/v1/inventories",
+                    mapOf(
+                        "itemId" to json(roomInventory.body)["itemId"].asText(),
+                        "newItem" to mapOf("name" to "중복"),
+                        "roomId" to roomId,
+                    ),
+                )
+            assertThat(both.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        }
+
         private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")
     }

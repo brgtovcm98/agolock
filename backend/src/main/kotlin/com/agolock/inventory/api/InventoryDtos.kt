@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -169,8 +170,16 @@ data class InventoryResponse(
     val primaryImageId: UUID? = null,
 )
 
+data class NewItemInput(
+    @field:NotBlank @field:Size(max = 120) val name: String,
+    @field:Size(max = 2000) val description: String? = null,
+    val categoryId: UUID? = null,
+    @field:Min(0) val priceAmount: Int? = null,
+)
+
 data class CreateInventoryRequest(
-    @field:NotNull val itemId: UUID,
+    val itemId: UUID? = null,
+    @field:Valid val newItem: NewItemInput? = null,
     val roomId: UUID? = null,
     val shelfId: UUID? = null,
     val boxId: UUID? = null,

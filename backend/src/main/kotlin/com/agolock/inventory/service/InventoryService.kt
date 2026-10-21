@@ -45,6 +45,7 @@ class InventoryService(
     private val inventoryMapper: InventoryMapper,
     private val movementMapper: InventoryMovementMapper,
     private val itemMapper: ItemMapper,
+    private val itemService: ItemService,
     private val categoryMapper: CategoryMapper,
     private val roomMapper: RoomMapper,
     private val shelfMapper: ShelfMapper,
@@ -59,10 +60,20 @@ class InventoryService(
         limit: Int?,
         scope: String = "OWNED",
         cursorRaw: String? = null,
+        roomId: UUID? = null,
+        shelfId: UUID? = null,
+        boxId: UUID? = null,
     ): PageResult<InventoryResponse> {
         val normalizedScope = scope.uppercase()
         if (normalizedScope !in setOf("OWNED", "SHARED", "ALL")) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "scope는 OWNED, SHARED, ALL 중 하나여야 합니다.")
+        }
+        if (listOfNotNull(roomId, shelfId, boxId).size > 1) {
+            throw ApiException(
+                "VALIDATION_FAILED",
+                HttpStatus.BAD_REQUEST,
+                "roomId, shelfId, boxId 중 하나만 보낼 수 있습니다.",
+            )
         }
         val effectiveLimit = TimeCursorCodec.limit(limit)
         val cursor = TimeCursorCodec.decode(cursorRaw)
@@ -80,8 +91,17 @@ class InventoryService(
             } else {
                 accessService.requireOwner(actor, actor.spaceId)
                 inventoryMapper
-                    .list(actor.spaceId, effectiveStatuses, null, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
-                    .map { toResponse(actor, it, "OWNER") }
+                    .list(
+                        actor.spaceId,
+                        effectiveStatuses,
+                        null,
+                        roomId,
+                        shelfId,
+                        boxId,
+                        cursor?.updatedAt,
+                        cursor?.id,
+                        effectiveLimit + 1,
+                    ).map { toResponse(actor, it, "OWNER") }
             }
         if (normalizedScope == "OWNED") {
             val page = owned.take(effectiveLimit)
@@ -91,11 +111,13 @@ class InventoryService(
         val shared =
             shareMapper.listActiveByGrantee(actor.userId).flatMap { share ->
                 inventoryMapper
-                    .list(share.spaceId, effectiveStatuses, null, null, null, effectiveLimit + 1)
+                    .list(share.spaceId, effectiveStatuses, null, null, null, null, null, null, effectiveLimit + 1)
                     .filter { inventory ->
                         val target = inventoryTarget(inventory)
-                        (share.roomId != null && target.roomId == share.roomId) ||
-                            (share.shelfId != null && target.shelfId == share.shelfId)
+                        val matchesShare =
+                            (share.roomId != null && target.roomId == share.roomId) ||
+                                (share.shelfId != null && target.shelfId == share.shelfId)
+                        matchesShare && matchesLocation(inventory, roomId, shelfId, boxId)
                     }.mapNotNull { inventory ->
                         val target = inventoryTarget(inventory)
                         val permission = accessService.effectivePermission(actor, target)
@@ -173,9 +195,36 @@ class InventoryService(
                 location.response.boxId,
             )
         val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.MANAGE)
+        if ((command.itemId == null) == (command.newItem == null)) {
+            throw ApiException(
+                "VALIDATION_FAILED",
+                HttpStatus.BAD_REQUEST,
+                "itemId 또는 newItem 중 정확히 하나를 보내야 합니다.",
+            )
+        }
         val item =
-            itemMapper.findByIdAny(command.itemId)
-                ?: throw notFound("Item을 찾을 수 없습니다.")
+            if (command.newItem != null) {
+                if (location.spaceId != actor.spaceId) {
+                    throw ApiException(
+                        "PERMISSION_DENIED",
+                        HttpStatus.FORBIDDEN,
+                        "새 물건은 내 Space의 위치에만 등록할 수 있습니다.",
+                    )
+                }
+                accessService.requireOwner(actor, location.spaceId)
+                itemService.create(
+                    actor,
+                    CreateItemCommand(
+                        command.newItem.name,
+                        command.newItem.description,
+                        command.newItem.categoryId,
+                        command.newItem.priceAmount,
+                    ),
+                )
+            } else {
+                itemMapper.findByIdAny(command.itemId!!)
+                    ?: throw notFound("Item을 찾을 수 없습니다.")
+            }
         if (item.spaceId != location.spaceId) throw notFound("Item을 찾을 수 없습니다.")
         val now = OffsetDateTime.now(clock)
         val inventory =
@@ -384,6 +433,19 @@ class InventoryService(
             movement.toResponse { roomId, shelfId, boxId -> location(actor.spaceId, roomId, shelfId, boxId) }
         }
     }
+
+    private fun matchesLocation(
+        inventory: Inventory,
+        roomId: UUID?,
+        shelfId: UUID?,
+        boxId: UUID?,
+    ): Boolean =
+        when {
+            roomId != null -> inventory.roomId == roomId && inventory.shelfId == null && inventory.boxId == null
+            shelfId != null -> inventory.shelfId == shelfId && inventory.boxId == null
+            boxId != null -> inventory.boxId == boxId
+            else -> true
+        }
 
     private fun requireInventory(
         actor: Actor,

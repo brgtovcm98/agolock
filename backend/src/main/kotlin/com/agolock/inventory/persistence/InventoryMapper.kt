@@ -37,6 +37,9 @@ interface InventoryMapper {
           </foreach>
         </if>
         <if test="itemId != null">AND item_id = #{itemId}</if>
+        <if test="roomId != null">AND room_id = #{roomId} AND shelf_id IS NULL AND box_id IS NULL</if>
+        <if test="shelfId != null">AND shelf_id = #{shelfId} AND box_id IS NULL</if>
+        <if test="boxId != null">AND box_id = #{boxId}</if>
         <if test="cursorUpdated != null">AND (updated_at, id) &lt; (#{cursorUpdated}, #{cursorId})</if>
         ORDER BY updated_at DESC, id DESC LIMIT #{limit}
         </script>
@@ -46,6 +49,9 @@ interface InventoryMapper {
         @Param("spaceId") spaceId: UUID,
         @Param("statuses") statuses: List<InventoryStatus>,
         @Param("itemId") itemId: UUID?,
+        @Param("roomId") roomId: UUID?,
+        @Param("shelfId") shelfId: UUID?,
+        @Param("boxId") boxId: UUID?,
         @Param("cursorUpdated") cursorUpdated: OffsetDateTime?,
         @Param("cursorId") cursorId: UUID?,
         @Param("limit") limit: Int,

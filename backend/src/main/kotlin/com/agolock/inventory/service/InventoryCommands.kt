@@ -33,8 +33,16 @@ data class UpdateItemCommand(
     val version: Long,
 )
 
+data class NewItemCommand(
+    val name: String,
+    val description: String?,
+    val categoryId: UUID?,
+    val priceAmount: Int?,
+)
+
 data class CreateInventoryCommand(
-    val itemId: UUID,
+    val itemId: UUID?,
+    val newItem: NewItemCommand?,
     val roomId: UUID?,
     val shelfId: UUID?,
     val boxId: UUID?,

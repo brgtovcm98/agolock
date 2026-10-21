@@ -258,5 +258,55 @@ class SharingIntegrationTest
             assertThat(accepted.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         }
 
+        @Test
+        fun `공유 MANAGE 사용자는 기존 물건의 재고를 공유 위치에 추가할 수 있다`() {
+            val owner = AuthTestClient(restTemplate, objectMapper)
+            val guestEmail = "manage-guest-${UUID.randomUUID()}@example.com"
+            owner.signup("manage-owner-${UUID.randomUUID()}@example.com", "password-1234", "소유자")
+            val room = json(owner.post("/api/v1/rooms", mapOf("name" to "공유 거실")).body)
+            val roomId = room["id"].asText()
+            val item = json(owner.post("/api/v1/items", mapOf("name" to "공유 물건")).body)
+
+            val invitation =
+                json(
+                    owner
+                        .post(
+                            "/api/v1/share-invitations",
+                            mapOf(
+                                "roomId" to roomId,
+                                "invitedEmail" to guestEmail,
+                                "permission" to "MANAGE",
+                            ),
+                        ).body,
+                )
+            outboxRelay.relay()
+            val guest = AuthTestClient(restTemplate, objectMapper)
+            guest.signup(guestEmail, "password-1234", "게스트")
+            val token = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            val accepted = guest.post("/api/v1/share-invitations/accept", mapOf("token" to token))
+            assertThat(accepted.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(invitation["permission"].asText()).isEqualTo("MANAGE")
+
+            val created =
+                guest.post(
+                    "/api/v1/inventories",
+                    mapOf("itemId" to item["id"].asText(), "roomId" to roomId),
+                )
+            assertThat(created.statusCode.is2xxSuccessful).isTrue()
+            assertThat(json(created.body)["effectivePermission"].asText()).isEqualTo("MANAGE")
+            assertThat(json(created.body)["isShared"].asBoolean()).isTrue()
+
+            val filtered = json(guest.get("/api/v1/inventories?scope=ALL&roomId=$roomId").body)
+            assertThat(filtered["items"].size()).isEqualTo(1)
+            assertThat(filtered["items"][0]["effectivePermission"].asText()).isEqualTo("MANAGE")
+
+            val newItemAttempt =
+                guest.post(
+                    "/api/v1/inventories",
+                    mapOf("newItem" to mapOf("name" to "새 물건"), "roomId" to roomId),
+                )
+            assertThat(newItemAttempt.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        }
+
         private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")
     }
