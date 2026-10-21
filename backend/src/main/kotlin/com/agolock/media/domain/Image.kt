@@ -19,6 +19,7 @@ data class Image(
     val itemId: UUID?,
     val inventoryId: UUID?,
     val objectKey: String,
+    val thumbnailKey: String? = null,
     val status: ImageStatus,
     val uploadExpiresAt: OffsetDateTime,
     val createdAt: OffsetDateTime,

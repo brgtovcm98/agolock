@@ -4,6 +4,7 @@ package com.agolock.media.persistence
 
 import com.agolock.media.domain.Image
 import com.agolock.media.domain.ImageStatus
+import org.apache.ibatis.annotations.Delete
 import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
 import org.apache.ibatis.annotations.Param
@@ -145,6 +146,41 @@ interface ImageMapper {
         @Param("sha256") sha256: String,
         @Param("thumbnailKey") thumbnailKey: String,
         @Param("now") now: OffsetDateTime,
+    ): Int
+
+    @Select(
+        """
+        SELECT * FROM image
+        WHERE deleted_at IS NULL
+          AND (
+            (status IN ('UPLOADING', 'DRAFT', 'FAILED') AND upload_expires_at <= #{now})
+            OR (status = 'DELETED' AND deleted_at <= #{deletedBefore})
+          )
+        ORDER BY upload_expires_at ASC
+        LIMIT #{limit}
+        """,
+    )
+    fun findExpired(
+        @Param("now") now: OffsetDateTime,
+        @Param("deletedBefore") deletedBefore: OffsetDateTime,
+        @Param("limit") limit: Int,
+    ): List<Image>
+
+    @Update(
+        """
+        UPDATE image
+        SET status = 'FAILED', last_error = 'PROCESSING_TIMEOUT', updated_at = #{now}
+        WHERE status = 'PROCESSING' AND updated_at < #{before}
+        """,
+    )
+    fun failStuckProcessing(
+        @Param("before") before: OffsetDateTime,
+        @Param("now") now: OffsetDateTime,
+    ): Int
+
+    @Delete("DELETE FROM image WHERE id = #{id}")
+    fun deleteRow(
+        @Param("id") id: UUID,
     ): Int
 
     @Update("UPDATE image SET status = 'FAILED', last_error = #{error}, updated_at = #{now} WHERE id = #{id} AND status = 'PROCESSING'")

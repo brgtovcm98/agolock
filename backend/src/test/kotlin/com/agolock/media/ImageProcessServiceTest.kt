@@ -30,6 +30,7 @@ class ImageProcessServiceTest {
                 UUID.randomUUID(),
                 null,
                 objectKey,
+                null,
                 ImageStatus.PENDING,
                 OffsetDateTime.now().plusHours(1),
                 OffsetDateTime.now(),
@@ -50,7 +51,10 @@ class ImageProcessServiceTest {
         service.process(imageId)
 
         assertThat(
-            org.mockito.Mockito.mockingDetails(mapper).invocations.any { it.method.name == "markReady" },
+            org.mockito.Mockito
+                .mockingDetails(mapper)
+                .invocations
+                .any { it.method.name == "markReady" },
         ).isTrue()
     }
 
