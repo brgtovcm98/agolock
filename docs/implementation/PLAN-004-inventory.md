@@ -456,3 +456,18 @@ M5는 `primaryImageId`·Inventory 이미지, M6은 M3 목록 필터를 검색 �
 - `InventoryIntegrationTest`: Item/Inventory cursor, 반복 status, Item q, DISPOSED Item 삭제 차단, Category merge 200건수
 - `SharingIntegrationTest`: 공유 Item/Inventory 읽기, 공유 MANAGE, Share 철회 감사
 - M3 완료 체크리스트 10번은 남은 항목(전체 화면·관측)을 제외하고 실제 테스트 증빙과 함께 갱신 필요
+
+### 10.1 현재 검증 상태 (2026-10-21)
+
+| 항목 | 상태 | 실제 증빙 |
+|---|---|---|
+| V6~V9 마이그레이션 | 완료 | `DatabaseMigrationTest`, Flyway 적용 |
+| 효과 필드·오버라이드 | 완료 | `InventoryIntegrationTest`, merge-patch 테스트 |
+| 위치 CHECK·이동·no-op | 완료 | `InventoryIntegrationTest` |
+| version·Idempotency-Key | 완료 | 통합 테스트·생성 API |
+| 폐기 확인·기본 제외 | 완료 | `InventoryIntegrationTest` |
+| Category 병합 | 완료 | `InventoryIntegrationTest` 200건수 |
+| 반복 status·Item q·cursor | 완료 | `InventoryCursorTest`, `InventoryIntegrationTest` |
+| Item 수정 영향·삭제 차단 | 완료 | DISPOSED 포함 테스트 |
+| M2 재고 개수·삭제 차단 | 완료 | `HierarchyIntegrationTest` |
+| 전체 화면·관측 | 부분 | 현재 프론트엔드 등록 UX 변경 진행 중, 메트릭 미구현 |

@@ -585,3 +585,18 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 - 초대 재발송·필터·cursor
 - 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key
 - 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key
+
+### 11.1 현재 검증 상태 (2026-10-21)
+
+| 항목 | 상태 | 실제 증빙 |
+|---|---|---|
+| V10~V16 마이그레이션 | 완료 | `DatabaseMigrationTest` |
+| Grant 상속·최대 권한 | 완료 | `SharingIntegrationTest` |
+| 공유 MANAGE Inventory | 완료 | `SharingIntegrationTest` |
+| 초대 token-only·handoff | 완료 | `SharingIntegrationTest`, `InvitationTokenPage` |
+| 이메일 인증 | 완료 | `AuthWebIntegrationTest` |
+| 재발송·만료 job·deliveryStatus | 완료 | `SharingIntegrationTest` |
+| Outbox lease·retry·DLQ | 완료 | `OutboxRelayService`, `RabbitTopologyConfigTest` |
+| 공유 Item/Inventory 읽기 | 완료 | `SharingIntegrationTest` |
+| 화면 E2E | 부분 | 등록 UX 변경과 충돌, `sharing.spec.ts` 미추가 |
+| 초대 필터·cursor·재발송 세부 | 부분 | 후속 |
