@@ -45,6 +45,16 @@ export const sharingApi = {
     apiFetch<Share>(`/share-invitations/received/${invitationId}/accept`, { method: 'POST' }),
   decline: (invitationId: string) =>
     apiFetch<void>(`/share-invitations/received/${invitationId}/decline`, { method: 'POST' }),
+  acceptByToken: (token: string) =>
+    apiFetch<Share>('/share-invitations/accept', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+  declineByToken: (token: string) =>
+    apiFetch<void>('/share-invitations/decline', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
   revokeInvitation: (invitationId: string) =>
     apiFetch<void>(`/share-invitations/${invitationId}`, { method: 'DELETE' }),
   revokeShare: (shareId: string) => apiFetch<void>(`/shares/${shareId}`, { method: 'DELETE' }),

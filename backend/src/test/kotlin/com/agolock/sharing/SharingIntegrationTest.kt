@@ -4,7 +4,10 @@ package com.agolock.sharing
 
 import com.agolock.identity.service.InMemoryRateLimiter
 import com.agolock.identity.service.LoginAttemptService
+import com.agolock.messaging.outbox.OutboxRelayService
 import com.agolock.support.AuthTestClient
+import com.agolock.support.FakeMailConfiguration
+import com.agolock.support.FakeMailPort
 import com.agolock.support.TestcontainersConfiguration
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -23,7 +26,7 @@ import java.util.UUID
     properties = ["auth.signup.invite-required=false"],
 )
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration::class)
+@Import(TestcontainersConfiguration::class, FakeMailConfiguration::class)
 class SharingIntegrationTest
     @Autowired
     constructor(
@@ -31,6 +34,8 @@ class SharingIntegrationTest
         private val objectMapper: ObjectMapper,
         private val rateLimiter: InMemoryRateLimiter,
         private val loginAttempts: LoginAttemptService,
+        private val mailPort: FakeMailPort,
+        private val outboxRelay: OutboxRelayService,
     ) {
         @org.junit.jupiter.api.BeforeEach
         fun resetLimits() {
@@ -71,6 +76,8 @@ class SharingIntegrationTest
                 )
             assertThat(invite["status"].asText()).isEqualTo("PENDING")
 
+            outboxRelay.relay()
+            assertThat(mailPort.invitationMessages.any { it.email == guestEmail }).isTrue()
             val guest = AuthTestClient(restTemplate, objectMapper)
             guest.signup(guestEmail, "password-1234", "게스트")
             val received = json(guest.get("/api/v1/share-invitations/received").body)

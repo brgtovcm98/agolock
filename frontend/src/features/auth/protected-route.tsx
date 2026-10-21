@@ -29,7 +29,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     )
   }
   if (!isAuthenticated) {
-    const redirect = encodeURIComponent(`${location.pathname}${location.search}`)
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)
     return <Navigate to={`/login?redirect=${redirect}`} replace />
   }
   return children

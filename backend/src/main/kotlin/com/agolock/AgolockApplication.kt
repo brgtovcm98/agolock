@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 
+@org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication(exclude = [UserDetailsServiceAutoConfiguration::class])
 @ConfigurationPropertiesScan
 class AgolockApplication

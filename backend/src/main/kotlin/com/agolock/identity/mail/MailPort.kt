@@ -6,4 +6,11 @@ interface MailPort {
         displayName: String,
         token: String,
     )
+
+    fun sendShareInvitation(
+        email: String,
+        resourceType: String,
+        token: String,
+        expiresAt: java.time.OffsetDateTime,
+    )
 }

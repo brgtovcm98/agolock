@@ -17,6 +17,7 @@ import { HomePage } from '@/features/home/home-page'
 import { InventoryPage } from '@/features/inventory/inventory-page'
 import { SettingsPage } from '@/features/settings/settings-page'
 import { SharingPage } from '@/features/sharing/sharing-page'
+import { InvitationTokenPage } from '@/features/sharing/invitation-token-page'
 
 function AppLayout() {
   return (
@@ -71,6 +72,7 @@ export const appRoutes: RouteObject[] = [
       { path: 'space/boxes/:boxId', element: <BoxDetailPage /> },
       { path: 'inventory', element: <InventoryPage /> },
       { path: 'sharing', element: <SharingPage /> },
+      { path: 'invitations', element: <InvitationTokenPage /> },
       {
         path: 'settings',
         element: <SettingsPage />,
