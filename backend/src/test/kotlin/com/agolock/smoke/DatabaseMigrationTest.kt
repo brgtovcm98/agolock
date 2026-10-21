@@ -62,6 +62,7 @@ class DatabaseMigrationTest
                 "share",
                 "audit_log",
                 "outbox_event",
+                "image",
                 "spring_session",
                 "spring_session_attributes",
             )

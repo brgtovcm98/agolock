@@ -19,6 +19,7 @@ export type Item = {
   version: number
   createdAt: string
   updatedAt: string
+  primaryImageId?: string | null
 }
 
 export type InventoryLocation = {
@@ -48,6 +49,7 @@ export type Inventory = {
   isShared: boolean
   createdAt: string
   updatedAt: string
+  primaryImageId?: string | null
 }
 
 export type Room = { id: string; name: string }

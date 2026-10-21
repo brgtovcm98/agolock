@@ -1,4 +1,4 @@
-@file:Suppress("ThrowsCount", "MagicNumber", "ComplexCondition", "TooManyFunctions")
+@file:Suppress("ThrowsCount", "MagicNumber", "ComplexCondition", "TooManyFunctions", "MaxLineLength")
 
 package com.agolock.inventory.service
 

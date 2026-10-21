@@ -164,6 +164,7 @@ data class InventoryResponse(
     val isShared: Boolean,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
+    val primaryImageId: UUID? = null,
 )
 
 data class CreateInventoryRequest(

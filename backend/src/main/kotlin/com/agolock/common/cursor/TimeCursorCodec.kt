@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package com.agolock.common.cursor
 
 import com.agolock.common.error.ApiException

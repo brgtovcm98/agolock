@@ -82,7 +82,7 @@
 
 ### 3.3 마이그레이션
 
-- `V5__image.sql`, `V6__outbox_event.sql`. expand만 수행하고 backfill은 없다. 적용 후 `bash scripts/docs_generate.sh schema`로 데이터 사전을 재생성하고, 생성기 전환이 전이면 [ADR-014](../decisions/ADR-014-generated-docs-draft.md)에 따라 초안을 수동 갱신한다.
+- `V15__image.sql`. Outbox는 M4 `V14`를 재사용한다. expand만 수행하고 backfill은 없다. 적용 후 `bash scripts/docs_generate.sh schema`로 데이터 사전을 재생성하고, 생성기 전환이 전이면 [ADR-014](../decisions/ADR-014-generated-docs-draft.md)에 따라 초안을 수동 갱신한다.
 - 검증: `./gradlew :backend:test --tests "com.agolock.media.ImageSchemaTest"`, `python3 -B scripts/docs_check.py`.
 
 ## 4. 백엔드·미디어·워커·메시징 설계
