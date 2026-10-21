@@ -12,6 +12,7 @@ import {
 } from './api'
 import type { AddInventoryTarget } from './add-inventory-context'
 import { CategoryCombobox } from './components/category-combobox'
+import { InventoryImages } from '@/features/media/inventory-images'
 import { ItemCombobox } from './components/item-combobox'
 import { LocationPicker } from './components/location-picker'
 import { useAuth } from '@/features/auth/auth-provider'
@@ -21,6 +22,7 @@ import { Button } from '@/shared/ui/button'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import { TextField } from '@/shared/ui/text-field'
 import { locationTypeLabel } from '@/shared/lib/format'
+import { canEdit } from '@/shared/lib/permission'
 
 type Mode = 'new' | 'existing'
 
@@ -48,7 +50,10 @@ export function AddInventorySheet({
   const queryClient = useQueryClient()
   const owner = Boolean(user && space && user.id === space.ownerUserId)
 
-  const [mode, setMode] = useState<Mode>(context.itemId ? 'existing' : owner ? 'new' : 'existing')
+  const canCreateNew = owner && context.source !== 'shared'
+  const [mode, setMode] = useState<Mode>(
+    context.itemId || context.source === 'shared' ? 'existing' : owner ? 'new' : 'existing',
+  )
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
@@ -60,16 +65,14 @@ export function AddInventorySheet({
     boxId: context.boxId,
   })
   const [selection, setSelection] = useState<Item | null | undefined>(undefined)
-  const [createdItemId, setCreatedItemId] = useState<string | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<SuccessState | null>(null)
   const [touched, setTouched] = useState(false)
   const [discardOpen, setDiscardOpen] = useState(false)
+  const [photoOpen, setPhotoOpen] = useState(false)
 
-  const itemKeyRef = useRef(newKey())
   const inventoryKeyRef = useRef(newKey())
-  const itemSignatureRef = useRef('')
   const inventorySignatureRef = useRef('')
 
   const categoriesQuery = useQuery({
@@ -84,58 +87,51 @@ export function AddInventorySheet({
 
   const categories = categoriesQuery.data?.items ?? []
   const selectedItem = selection === undefined ? (contextItemQuery.data ?? null) : selection
-  const itemCreated = mode === 'new' && Boolean(createdItemId)
 
   const submitMutation = useMutation({
     mutationFn: async () => {
       if (!location.roomId) throw new FormError('위치를 선택해 주세요.')
 
-      let itemId = mode === 'existing' ? (selectedItem?.id ?? null) : createdItemId
-      let itemName = mode === 'existing' ? (selectedItem?.name ?? '') : ''
-
-      if (mode === 'new' && !itemId) {
+      if (mode === 'new') {
         if (!name.trim()) throw new FormError('물건 이름을 입력해 주세요.')
         const priceAmount = price.trim() ? Number(price) : null
         if (priceAmount !== null && (!Number.isInteger(priceAmount) || priceAmount < 0)) {
           throw new FormError('가격은 0원 이상의 정수로 입력해 주세요.')
         }
-        const signature = JSON.stringify({
-          name: name.trim(),
-          description: description.trim(),
-          categoryId,
-          priceAmount,
-        })
-        if (itemSignatureRef.current !== signature) {
-          itemKeyRef.current = newKey()
-          itemSignatureRef.current = signature
-        }
-        const item = await inventoryApi.createItem({
+        const newItem = {
           name: name.trim(),
           description: description.trim() || null,
           categoryId: categoryId || null,
           priceAmount,
-          idempotencyKey: itemKeyRef.current,
+        }
+        const signature = JSON.stringify({ newItem, ...location, status })
+        if (inventorySignatureRef.current !== signature) {
+          inventoryKeyRef.current = newKey()
+          inventorySignatureRef.current = signature
+        }
+        const inventory = await inventoryApi.createInventory({
+          newItem,
+          ...location,
+          status,
+          idempotencyKey: inventoryKeyRef.current,
         })
-        itemId = item.id
-        itemName = item.name
-        setCreatedItemId(item.id)
-        setSelection(item)
+        return { inventory, itemId: inventory.itemId, itemName: inventory.itemName }
       }
 
-      if (!itemId) throw new FormError('물건을 선택해 주세요.')
+      if (!selectedItem) throw new FormError('물건을 선택해 주세요.')
 
-      const signature = JSON.stringify({ itemId, ...location, status })
+      const signature = JSON.stringify({ itemId: selectedItem.id, ...location, status })
       if (inventorySignatureRef.current !== signature) {
         inventoryKeyRef.current = newKey()
         inventorySignatureRef.current = signature
       }
       const inventory = await inventoryApi.createInventory({
-        itemId,
+        itemId: selectedItem.id,
         ...location,
         status,
         idempotencyKey: inventoryKeyRef.current,
       })
-      return { inventory, itemId, itemName: itemName || name.trim() }
+      return { inventory, itemId: selectedItem.id, itemName: selectedItem.name }
     },
     onSuccess: async (data) => {
       setError(null)
@@ -176,7 +172,6 @@ export function AddInventorySheet({
     setError(null)
     if (next === 'new') {
       setSelection(null)
-      setCreatedItemId(null)
     } else {
       setSelection(undefined)
     }
@@ -186,17 +181,15 @@ export function AddInventorySheet({
     setSuccess(null)
     setError(null)
     setDetailsOpen(false)
+    setPhotoOpen(false)
     setTouched(false)
     if (mode === 'new') {
       setName('')
       setPrice('')
       setDescription('')
-      setCreatedItemId(null)
       setSelection(null)
     }
-    itemKeyRef.current = newKey()
     inventoryKeyRef.current = newKey()
-    itemSignatureRef.current = ''
     inventorySignatureRef.current = ''
   }
 
@@ -253,6 +246,19 @@ export function AddInventorySheet({
                       </Link>
                     </Button>
                   </div>
+                  {canEdit(success.inventory.effectivePermission) ? (
+                    <div className="border-border flex flex-col gap-2 border-t-[2.5px] pt-3">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setPhotoOpen((current) => !current)}
+                        aria-expanded={photoOpen}
+                      >
+                        사진 추가 (선택)
+                      </Button>
+                      {photoOpen ? <InventoryImages inventoryId={success.inventory.id} /> : null}
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <form
@@ -272,7 +278,7 @@ export function AddInventorySheet({
                       type="button"
                       role="tab"
                       aria-selected={mode === 'new'}
-                      disabled={!owner}
+                      disabled={!canCreateNew}
                       onClick={() => switchMode('new')}
                       className={
                         mode === 'new'
@@ -311,22 +317,16 @@ export function AddInventorySheet({
                         label="물건 이름"
                         value={name}
                         maxLength={120}
-                        disabled={itemCreated}
                         onChange={(event) => {
                           setName(event.target.value)
                           setTouched(true)
                         }}
                         autoFocus
                       />
-                      {itemCreated ? (
-                        <Alert variant="info">
-                          물건 정보는 이미 저장됐어요. 재고 등록만 다시 시도합니다.
-                        </Alert>
-                      ) : null}
                       <CategoryCombobox
                         value={categoryId}
                         categories={categories}
-                        canCreate={owner && !itemCreated}
+                        canCreate={owner}
                         onChange={(next) => {
                           setCategoryId(next)
                           setTouched(true)
@@ -355,6 +355,7 @@ export function AddInventorySheet({
 
                   <LocationPicker
                     value={location}
+                    defaultSource={context.source}
                     onChange={(next) => {
                       setLocation(next)
                       setTouched(true)
@@ -411,8 +412,7 @@ export function AddInventorySheet({
                           min={0}
                           inputMode="numeric"
                           value={price}
-                          disabled={itemCreated}
-                          onChange={(event) => {
+                            onChange={(event) => {
                             setPrice(event.target.value)
                             setTouched(true)
                           }}
@@ -422,8 +422,7 @@ export function AddInventorySheet({
                           <textarea
                             value={description}
                             maxLength={2000}
-                            disabled={itemCreated}
-                            onChange={(event) => {
+                                onChange={(event) => {
                               setDescription(event.target.value)
                               setTouched(true)
                             }}
@@ -449,11 +448,7 @@ export function AddInventorySheet({
                   disabled={!canSubmit}
                   aria-busy={submitMutation.isPending}
                 >
-                  {submitMutation.isPending
-                    ? '등록 중…'
-                    : itemCreated
-                      ? '재고 등록 다시 시도'
-                      : '등록'}
+                  {submitMutation.isPending ? '등록 중…' : '등록'}
                 </Button>
               </div>
             ) : null}

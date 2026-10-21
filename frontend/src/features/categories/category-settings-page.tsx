@@ -1,8 +1,9 @@
+import * as Dialog from '@radix-ui/react-dialog'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { inventoryApi, type Category } from '@/features/inventory/api'
+import { inventoryApi, type Category, type CategoryMergeResult } from '@/features/inventory/api'
 import { useAuth } from '@/features/auth/auth-provider'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
@@ -12,6 +13,156 @@ import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
 
+function DialogFrame({
+  open,
+  onOpenChange,
+  title,
+  children,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="bg-foreground/40 fixed inset-0 z-50" />
+        <Dialog.Content className="border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+          <div className="flex items-start justify-between gap-3">
+            <Dialog.Title className="text-xl font-black">{title}</Dialog.Title>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                aria-label="닫기"
+                className="border-border bg-card grid size-9 shrink-0 place-items-center border-[2.5px]"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            </Dialog.Close>
+          </div>
+          <div className="mt-4">{children}</div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
+function CategoryEditDialog({
+  category,
+  onClose,
+  onSaved,
+}: {
+  category: Category
+  onClose: () => void
+  onSaved: () => Promise<void>
+}) {
+  const [name, setName] = useState(category.name)
+  const [error, setError] = useState<string | null>(null)
+  const mutation = useMutation({
+    mutationFn: () => inventoryApi.updateCategory(category.id, { name: name.trim() }),
+    onSuccess: async () => {
+      await onSaved()
+      onClose()
+    },
+    onError: (cause) => setError(cause instanceof ApiError ? cause.message : '저장하지 못했습니다.'),
+  })
+
+  return (
+    <DialogFrame open onOpenChange={(next) => !next && onClose()} title="카테고리 이름 변경">
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (name.trim()) mutation.mutate()
+        }}
+      >
+        {error ? <Alert variant="error">{error}</Alert> : null}
+        <TextField
+          label="카테고리 이름"
+          value={name}
+          maxLength={80}
+          onChange={(event) => setName(event.target.value)}
+          autoFocus
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            취소
+          </Button>
+          <Button type="submit" disabled={!name.trim() || mutation.isPending}>
+            {mutation.isPending ? '저장 중…' : '저장'}
+          </Button>
+        </div>
+      </form>
+    </DialogFrame>
+  )
+}
+
+function CategoryMergeDialog({
+  source,
+  categories,
+  onClose,
+  onMerged,
+}: {
+  source: Category
+  categories: Category[]
+  onClose: () => void
+  onMerged: (result: CategoryMergeResult) => Promise<void>
+}) {
+  const targets = categories.filter((category) => category.id !== source.id)
+  const [targetId, setTargetId] = useState(targets[0]?.id ?? '')
+  const [error, setError] = useState<string | null>(null)
+  const mutation = useMutation({
+    mutationFn: () => inventoryApi.mergeCategory(source.id, targetId),
+    onSuccess: async (result) => {
+      await onMerged(result)
+      onClose()
+    },
+    onError: (cause) => setError(cause instanceof ApiError ? cause.message : '병합하지 못했습니다.'),
+  })
+
+  return (
+    <DialogFrame open onOpenChange={(next) => !next && onClose()} title={`“${source.name}” 병합`}>
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (targetId) mutation.mutate()
+        }}
+      >
+        {error ? <Alert variant="error">{error}</Alert> : null}
+        <p className="text-foreground/70 text-xs">
+          이 카테고리를 사용하는 물건과 재고값을 선택한 카테고리로 옮기고, 현재 카테고리는
+          삭제합니다.
+        </p>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-black">옮길 카테고리</span>
+          <select
+            aria-label="옮길 카테고리"
+            value={targetId}
+            onChange={(event) => setTargetId(event.target.value)}
+            className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
+          >
+            {targets.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            취소
+          </Button>
+          <Button type="submit" disabled={!targetId || mutation.isPending}>
+            {mutation.isPending ? '병합 중…' : '병합'}
+          </Button>
+        </div>
+      </form>
+    </DialogFrame>
+  )
+}
+
 export function CategorySettingsPage() {
   const queryClient = useQueryClient()
   const { user, space } = useAuth()
@@ -19,6 +170,9 @@ export function CategorySettingsPage() {
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null)
+  const [editTarget, setEditTarget] = useState<Category | null>(null)
+  const [mergeTarget, setMergeTarget] = useState<Category | null>(null)
+  const [mergeResult, setMergeResult] = useState<CategoryMergeResult | null>(null)
 
   const categoriesQuery = useQuery({
     queryKey: ['category', 'list'],
@@ -30,6 +184,7 @@ export function CategorySettingsPage() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['category', 'list'] }),
       queryClient.invalidateQueries({ queryKey: ['inventory', 'categories'] }),
+      queryClient.invalidateQueries({ queryKey: ['inventory'] }),
       queryClient.invalidateQueries({ queryKey: ['item'] }),
     ])
   }
@@ -56,7 +211,7 @@ export function CategorySettingsPage() {
       setError(
         cause instanceof ApiError
           ? cause.code === 'CATEGORY_IN_USE'
-            ? '물건이 사용 중인 카테고리는 삭제할 수 없어요. 다른 카테고리로 옮긴 뒤 삭제해 주세요.'
+            ? '물건이 사용 중인 카테고리는 삭제할 수 없어요. 다른 카테고리로 병합한 뒤 삭제해 주세요.'
             : cause.message
           : '카테고리를 삭제하지 못했습니다.',
       )
@@ -75,8 +230,16 @@ export function CategorySettingsPage() {
         <MetaText>물건을 묶어 볼 때 사용할 카테고리를 관리합니다.</MetaText>
       </div>
 
-      {!owner ? <Alert variant="info">카테고리는 Space 소유자만 관리할 수 있어요.</Alert> : null}
+      {!owner ? (
+        <Alert variant="info">카테고리는 Space 소유자만 관리할 수 있어요.</Alert>
+      ) : null}
       {error ? <Alert variant="error">{error}</Alert> : null}
+      {mergeResult ? (
+        <Alert variant="success">
+          카테고리를 병합했어요. 물건 {mergeResult.mergedItemCount}개, 재고{' '}
+          {mergeResult.mergedInventoryCount}개를 옮겼습니다.
+        </Alert>
+      ) : null}
 
       <Card>
         <CardBody className="gap-3">
@@ -94,21 +257,49 @@ export function CategorySettingsPage() {
               {categories.map((category) => (
                 <li
                   key={category.id}
-                  className="border-border bg-card flex items-center justify-between gap-2 border-2 px-3 py-2"
+                  className="border-border bg-card flex flex-wrap items-center justify-between gap-2 border-2 px-3 py-2"
                 >
                   <span className="text-sm font-black">{category.name}</span>
                   {owner ? (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="border-danger text-danger"
-                      aria-label={`${category.name} 삭제`}
-                      onClick={() => setDeleteTarget(category)}
-                    >
-                      <Trash2 aria-hidden="true" className="size-4" />
-                      삭제
-                    </Button>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        aria-label={`${category.name} 이름 변경`}
+                        onClick={() => {
+                          setMergeResult(null)
+                          setEditTarget(category)
+                        }}
+                      >
+                        <Pencil aria-hidden="true" className="size-4" />
+                        이름 변경
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        aria-label={`${category.name} 병합`}
+                        disabled={categories.length < 2}
+                        onClick={() => {
+                          setMergeResult(null)
+                          setMergeTarget(category)
+                        }}
+                      >
+                        병합
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="border-danger text-danger"
+                        aria-label={`${category.name} 삭제`}
+                        onClick={() => setDeleteTarget(category)}
+                      >
+                        <Trash2 aria-hidden="true" className="size-4" />
+                        삭제
+                      </Button>
+                    </div>
                   ) : null}
                 </li>
               ))}
@@ -156,6 +347,29 @@ export function CategorySettingsPage() {
         destructive
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
       />
+
+      {editTarget ? (
+        <CategoryEditDialog
+          key={editTarget.id}
+          category={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={invalidate}
+        />
+      ) : null}
+
+      {mergeTarget ? (
+        <CategoryMergeDialog
+          key={mergeTarget.id}
+          source={mergeTarget}
+          categories={categories}
+          onClose={() => setMergeTarget(null)}
+          onMerged={async (result) => {
+            setMergeResult(result)
+            setError(null)
+            await invalidate()
+          }}
+        />
+      ) : null}
     </div>
   )
 }

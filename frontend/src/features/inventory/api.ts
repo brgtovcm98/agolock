@@ -61,10 +61,29 @@ export type Inventory = {
   primaryImageId?: string | null
 }
 
+export type Movement = {
+  id: string
+  inventoryId: string
+  from: InventoryLocation
+  to: InventoryLocation
+  movedAt: string
+}
+
+export type ItemUpdateImpact = {
+  affectedInventoryCount: number
+  protectedByOverrideCount: number
+}
+
+export type CategoryMergeResult = {
+  mergedItemCount: number
+  mergedInventoryCount: number
+}
+
 export type ItemQuery = {
   q?: string
   limit?: number
   cursor?: string
+  scope?: InventoryScope
 }
 
 export type InventoryQuery = {
@@ -72,6 +91,9 @@ export type InventoryQuery = {
   scope?: InventoryScope
   limit?: number
   cursor?: string
+  roomId?: string
+  shelfId?: string
+  boxId?: string
 }
 
 export type CreateItemInput = {
@@ -88,8 +110,16 @@ export type LocationInput = {
   boxId?: string | null
 }
 
+export type NewItemInput = {
+  name: string
+  description?: string | null
+  categoryId?: string | null
+  priceAmount?: number | null
+}
+
 export type CreateInventoryInput = LocationInput & {
-  itemId: string
+  itemId?: string
+  newItem?: NewItemInput
   status?: InventoryStatus
   idempotencyKey?: string
 }
@@ -108,6 +138,20 @@ export type MoveInventoryInput = LocationInput & {
   version: number
 }
 
+export type UpdateItemInput = {
+  version: number
+  name: string
+  description: string | null
+  categoryId: string | null
+  priceAmount: number | null
+}
+
+export type UpdateCategoryInput = {
+  name?: string
+  color?: string | null
+  sortOrder?: number
+}
+
 function queryString(params: Record<string, string | number | undefined>) {
   const search = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
@@ -121,15 +165,32 @@ export const inventoryApi = {
   categories: () => apiFetch<{ items: Category[] }>('/categories'),
   createCategory: (name: string) =>
     apiFetch<Category>('/categories', { method: 'POST', body: JSON.stringify({ name }) }),
+  updateCategory: (categoryId: string, input: UpdateCategoryInput) =>
+    apiFetch<Category>(`/categories/${categoryId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+  mergeCategory: (categoryId: string, targetCategoryId: string) =>
+    apiFetch<CategoryMergeResult>(`/categories/${categoryId}/merge`, {
+      method: 'POST',
+      body: JSON.stringify({ targetCategoryId }),
+    }),
   deleteCategory: (categoryId: string) =>
     apiFetch<void>(`/categories/${categoryId}`, { method: 'DELETE' }),
 
   items: (params: ItemQuery = {}) =>
     apiFetch<Page<Item>>(
-      `/items${queryString({ q: params.q, limit: params.limit ?? 20, cursor: params.cursor })}`,
+      `/items${queryString({ q: params.q, limit: params.limit ?? 20, cursor: params.cursor, scope: params.scope })}`,
     ),
   item: (itemId: string) => apiFetch<Item>(`/items/${itemId}`),
   itemInventories: (itemId: string) => apiFetch<Page<Inventory>>(`/items/${itemId}/inventories`),
+  itemUpdateImpact: (itemId: string) =>
+    apiFetch<ItemUpdateImpact>(`/items/${itemId}/update-impact`),
+  updateItem: (itemId: string, input: UpdateItemInput) =>
+    apiFetch<Item>(`/items/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
   createItem: (input: CreateItemInput) =>
     apiFetch<Item>('/items', {
       method: 'POST',
@@ -146,17 +207,23 @@ export const inventoryApi = {
     const search = new URLSearchParams()
     params.statuses?.forEach((status) => search.append('status', status))
     if (params.scope) search.set('scope', params.scope)
+    if (params.roomId) search.set('roomId', params.roomId)
+    if (params.shelfId) search.set('shelfId', params.shelfId)
+    if (params.boxId) search.set('boxId', params.boxId)
     search.set('limit', String(params.limit ?? 20))
     if (params.cursor) search.set('cursor', params.cursor)
     return apiFetch<Page<Inventory>>(`/inventories?${search.toString()}`)
   },
   inventory: (inventoryId: string) => apiFetch<Inventory>(`/inventories/${inventoryId}`),
+  movements: (inventoryId: string) =>
+    apiFetch<Movement[]>(`/inventories/${inventoryId}/movements`),
   createInventory: (input: CreateInventoryInput) =>
     apiFetch<Inventory>('/inventories', {
       method: 'POST',
       headers: input.idempotencyKey ? { 'Idempotency-Key': input.idempotencyKey } : undefined,
       body: JSON.stringify({
-        itemId: input.itemId,
+        itemId: input.itemId ?? null,
+        newItem: input.newItem ?? null,
         roomId: input.roomId ?? null,
         shelfId: input.shelfId ?? null,
         boxId: input.boxId ?? null,

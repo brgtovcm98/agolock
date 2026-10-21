@@ -25,12 +25,12 @@ export function ItemCombobox({
 
   const recentQuery = useQuery({
     queryKey: ['item', 'search', 'recent'],
-    queryFn: () => inventoryApi.items({ limit: 6 }),
+    queryFn: () => inventoryApi.items({ limit: 6, scope: 'ALL' }),
     enabled: !value && !debounced,
   })
   const searchQuery = useQuery({
     queryKey: ['item', 'search', debounced],
-    queryFn: () => inventoryApi.items({ q: debounced, limit: 12 }),
+    queryFn: () => inventoryApi.items({ q: debounced, limit: 12, scope: 'ALL' }),
     enabled: !value && debounced.length > 0,
   })
 

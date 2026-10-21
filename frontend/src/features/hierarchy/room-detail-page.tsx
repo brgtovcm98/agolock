@@ -1,15 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { hierarchyApi } from './api'
 import { LocationInventories } from '@/features/inventory/location-inventories'
+import { ShareDialog } from '@/features/sharing/share-dialog'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
+import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { permissionLabel } from '@/shared/lib/permission'
 
 export function RoomDetailPage() {
   const { roomId = '' } = useParams()
+  const [roomShareOpen, setRoomShareOpen] = useState(false)
   const roomQuery = useQuery({
     queryKey: ['hierarchy', 'room', roomId],
     queryFn: () => hierarchyApi.getRoom(roomId),
@@ -47,6 +51,16 @@ export function RoomDetailPage() {
           <Badge>재고 {room.inventoryCount ?? 0}</Badge>
         </div>
         {room.description ? <MetaText>{room.description}</MetaText> : null}
+        {room.effectivePermission === 'OWNER' ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="self-start"
+            onClick={() => setRoomShareOpen(true)}
+          >
+            공유
+          </Button>
+        ) : null}
       </div>
 
       <Card>
@@ -82,6 +96,13 @@ export function RoomDetailPage() {
         permission={room.effectivePermission}
         isShared={room.isShared}
       />
+
+      {roomShareOpen ? (
+        <ShareDialog
+          target={{ roomId: room.id, name: room.name }}
+          onClose={() => setRoomShareOpen(false)}
+        />
+      ) : null}
     </div>
   )
 }

@@ -32,14 +32,28 @@ export type SharingTarget = { id: string; name: string }
 
 export const sharingApi = {
   shared: () => apiFetch<{ items: Share[] }>('/shared'),
+  sharedShelf: (shelfId: string) =>
+    apiFetch<{ id: string; roomId: string; name: string; effectivePermission: string }>(
+      `/shared/shelves/${shelfId}`,
+    ),
   shares: () => apiFetch<{ items: Share[] }>('/shares'),
   invitations: () => apiFetch<{ items: Invitation[] }>('/share-invitations'),
   received: () => apiFetch<{ items: Invitation[] }>('/share-invitations/received'),
   rooms: () => apiFetch<{ items: SharingTarget[] }>('/rooms?limit=100'),
-  createInvitation: (roomId: string, invitedEmail: string, permission: SharePermission) =>
+  createInvitation: (target: {
+    roomId?: string
+    shelfId?: string
+    invitedEmail: string
+    permission: SharePermission
+  }) =>
     apiFetch<Invitation>('/share-invitations', {
       method: 'POST',
-      body: JSON.stringify({ roomId, invitedEmail, permission }),
+      body: JSON.stringify({
+        roomId: target.roomId ?? null,
+        shelfId: target.shelfId ?? null,
+        invitedEmail: target.invitedEmail,
+        permission: target.permission,
+      }),
     }),
   accept: (invitationId: string) =>
     apiFetch<Share>(`/share-invitations/received/${invitationId}/accept`, { method: 'POST' }),

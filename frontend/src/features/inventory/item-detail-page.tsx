@@ -100,6 +100,11 @@ export function ItemDetailPage() {
                 <dd className="font-medium">{item.description?.trim() || '설명 없음'}</dd>
               </div>
             </dl>
+            {item.effectivePermission === 'OWNER' ? (
+              <Button asChild variant="secondary">
+                <Link to={`/items/${item.id}/edit`}>물건 정보 수정</Link>
+              </Button>
+            ) : null}
           </CardBody>
         </Card>
 
@@ -110,15 +115,13 @@ export function ItemDetailPage() {
               같은 물건을 여러 곳에 두면 재고를 추가하세요.
             </p>
             {canAdd ? (
-              <Button type="button" onClick={() => openAdd({ itemId: item.id })}>
+              <Button type="button" onClick={() => openAdd({ itemId: item.id, source: item.isShared ? 'shared' : 'owned' })}>
                 <PackagePlus aria-hidden="true" className="size-4" />
                 재고 추가
               </Button>
             ) : (
               <p className="text-foreground/60 text-xs">
-                {item.isShared
-                  ? '공유받은 물건의 재고 추가는 다음 단계에서 지원해요.'
-                  : '재고를 추가할 권한이 없습니다.'}
+                재고를 추가할 권한이 없습니다.
               </p>
             )}
           </CardBody>
@@ -138,7 +141,7 @@ export function ItemDetailPage() {
             <CardBody className="items-start gap-2">
               <p className="text-sm font-black">아직 이 물건의 재고가 없어요.</p>
               {canAdd ? (
-                <Button type="button" size="sm" onClick={() => openAdd({ itemId: item.id })}>
+                <Button type="button" size="sm" onClick={() => openAdd({ itemId: item.id, source: item.isShared ? 'shared' : 'owned' })}>
                   첫 재고 추가
                 </Button>
               ) : null}

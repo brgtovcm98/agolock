@@ -71,7 +71,6 @@ const inventory = {
 test.use({ viewport: { width: 1280, height: 900 } })
 
 test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page }) => {
-  let itemBody: Record<string, unknown> | null = null
   let inventoryBody: Record<string, unknown> | null = null
 
   await page.route('**/api/v1/auth/me', (route) =>
@@ -85,6 +84,9 @@ test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page 
   await page.route('**/api/v1/categories', (route) =>
     route.fulfill({ json: { items: [] } }),
   )
+  await page.route('**/api/v1/shared', (route) =>
+    route.fulfill({ json: { items: [] } }),
+  )
   await page.route('**/api/v1/inventories**', async (route) => {
     if (route.request().method() === 'POST') {
       inventoryBody = route.request().postDataJSON() as Record<string, unknown>
@@ -93,14 +95,9 @@ test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page 
     }
     await route.fulfill({ json: { items: [], nextCursor: null } })
   })
-  await page.route('**/api/v1/items', async (route) => {
-    if (route.request().method() === 'POST') {
-      itemBody = route.request().postDataJSON() as Record<string, unknown>
-      await route.fulfill({ status: 201, json: item })
-      return
-    }
-    await route.fulfill({ json: { items: [], nextCursor: null } })
-  })
+  await page.route('**/api/v1/items', (route) =>
+    route.fulfill({ json: { items: [], nextCursor: null } }),
+  )
   await page.route('**/api/v1/rooms?limit=100', (route) =>
     route.fulfill({ json: { items: [room], nextCursor: null } }),
   )
@@ -123,9 +120,8 @@ test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page 
 
   await expect(dialog.getByText('등록했어요.')).toBeVisible()
   await expect(dialog.getByRole('button', { name: /계속 등록/ })).toBeVisible()
-  expect(itemBody).toMatchObject({ name: '새 드릴' })
   expect(inventoryBody).toMatchObject({
-    itemId: item.id,
+    newItem: { name: '새 드릴' },
     roomId: room.id,
     status: 'STORED',
   })

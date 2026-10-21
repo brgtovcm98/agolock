@@ -5,6 +5,7 @@ export type AddInventoryTarget = {
   shelfId?: string
   boxId?: string
   itemId?: string
+  source?: 'owned' | 'shared'
 }
 
 export type AddInventoryContextValue = {

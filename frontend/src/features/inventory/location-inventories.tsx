@@ -1,27 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { inventoryApi, type Inventory, type Permission } from './api'
+import { inventoryApi, type Permission } from './api'
 import { useAddInventory } from './add-inventory-context'
 import { InventoryCard } from './components/inventory-card'
 import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { SectionTitle } from '@/shared/ui/typography'
 import { canManage } from '@/shared/lib/permission'
-
-function isDirectInventory(
-  inventory: Inventory,
-  location: { roomId?: string; shelfId?: string; boxId?: string },
-) {
-  if (location.boxId) return inventory.location.boxId === location.boxId
-  if (location.shelfId) {
-    return inventory.location.shelfId === location.shelfId && !inventory.location.boxId
-  }
-  return (
-    inventory.location.roomId === location.roomId &&
-    !inventory.location.shelfId &&
-    !inventory.location.boxId
-  )
-}
 
 export function LocationInventories({
   roomId,
@@ -37,16 +22,15 @@ export function LocationInventories({
   isShared?: boolean
 }) {
   const { openAdd } = useAddInventory()
-  const canAdd = canManage(permission) && !isShared
+  const canAdd = canManage(permission)
 
   const inventoriesQuery = useQuery({
-    queryKey: ['inventory', 'location-pool'],
-    queryFn: () => inventoryApi.inventories({ scope: 'ALL', limit: 100 }),
+    queryKey: ['inventory', 'location', roomId ?? '', shelfId ?? '', boxId ?? ''],
+    queryFn: () =>
+      inventoryApi.inventories({ scope: 'ALL', limit: 100, roomId, shelfId, boxId }),
   })
 
-  const inventories = (inventoriesQuery.data?.items ?? []).filter((inventory) =>
-    isDirectInventory(inventory, { roomId, shelfId, boxId }),
-  )
+  const inventories = inventoriesQuery.data?.items ?? []
 
   return (
     <section className="flex flex-col gap-3">
@@ -61,7 +45,7 @@ export function LocationInventories({
         <div className="border-border bg-card flex flex-col items-start gap-2 border-[2.5px] p-4">
           <p className="text-sm font-black">이 위치에 아직 물건이 없어요.</p>
           {canAdd ? (
-            <Button type="button" size="sm" onClick={() => openAdd({ roomId, shelfId, boxId })}>
+            <Button type="button" size="sm" onClick={() => openAdd({ roomId, shelfId, boxId, source: isShared ? 'shared' : 'owned' })}>
               <Plus aria-hidden="true" className="size-4" />이 위치에 등록
             </Button>
           ) : null}
@@ -77,16 +61,13 @@ export function LocationInventories({
             <Button
               type="button"
               variant="secondary"
-              onClick={() => openAdd({ roomId, shelfId, boxId })}
+              onClick={() => openAdd({ roomId, shelfId, boxId, source: isShared ? 'shared' : 'owned' })}
             >
               <Plus aria-hidden="true" className="size-4" />이 위치에 등록
             </Button>
           ) : null}
         </>
       )}
-      {!canAdd && isShared ? (
-        <p className="text-foreground/60 text-xs">공유 위치 등록은 다음 단계에서 지원해요.</p>
-      ) : null}
     </section>
   )
 }

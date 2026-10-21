@@ -1,16 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Box as BoxIcon } from 'lucide-react'
 import { hierarchyApi } from './api'
 import { LocationInventories } from '@/features/inventory/location-inventories'
+import { ShareDialog } from '@/features/sharing/share-dialog'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
+import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { permissionLabel } from '@/shared/lib/permission'
 
 export function ShelfDetailPage() {
   const { shelfId = '' } = useParams()
+  const [shelfShareOpen, setShelfShareOpen] = useState(false)
   const shelfQuery = useQuery({
     queryKey: ['hierarchy', 'shelf', shelfId],
     queryFn: () => hierarchyApi.getShelf(shelfId),
@@ -46,6 +50,16 @@ export function ShelfDetailPage() {
           <Badge>재고 {shelf.inventoryCount ?? 0}</Badge>
         </div>
         {shelf.description ? <MetaText>{shelf.description}</MetaText> : null}
+        {shelf.effectivePermission === 'OWNER' ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="self-start"
+            onClick={() => setShelfShareOpen(true)}
+          >
+            공유
+          </Button>
+        ) : null}
       </div>
       <Card>
         <CardBody className="gap-3">
@@ -79,6 +93,13 @@ export function ShelfDetailPage() {
         permission={shelf.effectivePermission}
         isShared={shelf.isShared}
       />
+
+      {shelfShareOpen ? (
+        <ShareDialog
+          target={{ shelfId: shelf.id, name: shelf.name }}
+          onClose={() => setShelfShareOpen(false)}
+        />
+      ) : null}
     </div>
   )
 }

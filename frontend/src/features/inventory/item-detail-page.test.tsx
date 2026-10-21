@@ -13,8 +13,8 @@ describe('물건 상세', () => {
         [['item', 'inventories', 'i1'], { items: [testInventory()], nextCursor: null }],
         [['category', 'list'], { items: [testCategory] }],
         [['hierarchy', 'rooms', 'picker'], { items: [testRoom()] }],
-        [['hierarchy', 'shelves', 'picker', 'r1'], { items: [] }],
-        [['hierarchy', 'boxes', 'picker', 's1'], { items: [] }],
+        [['hierarchy', 'shelves', 'picker', 'owned', 'r1'], { items: [] }],
+        [['hierarchy', 'boxes', 'picker', 'owned', 's1'], { items: [] }],
       ],
     })
 

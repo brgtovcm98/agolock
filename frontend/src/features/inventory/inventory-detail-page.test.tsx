@@ -22,9 +22,33 @@ function renderDetail() {
       [['hierarchy', 'shelf', 's1'], testShelf()],
       [['hierarchy', 'box', 'b1'], testBox()],
       [['hierarchy', 'rooms', 'picker'], { items: [testRoom()] }],
-      [['hierarchy', 'shelves', 'picker', 'r1'], { items: [testShelf()] }],
-      [['hierarchy', 'boxes', 'picker', 's1'], { items: [testBox()] }],
+      [['hierarchy', 'shelves', 'picker', 'owned', 'r1'], { items: [testShelf()] }],
+      [['hierarchy', 'boxes', 'picker', 'owned', 's1'], { items: [testBox()] }],
       [['images', 'inventory', 'v1'], { items: [] }],
+      [
+        ['inventory', 'movements', 'v1'],
+        [
+          {
+            id: 'm1',
+            inventoryId: 'v1',
+            from: {
+              type: 'ROOM',
+              roomId: 'r1',
+              shelfId: null,
+              boxId: null,
+              name: '거실',
+            },
+            to: {
+              type: 'BOX',
+              roomId: 'r1',
+              shelfId: 's1',
+              boxId: 'b1',
+              name: '파란 박스',
+            },
+            movedAt: '2026-10-02T00:00:00Z',
+          },
+        ],
+      ],
     ],
   })
 }
@@ -39,6 +63,8 @@ describe('재고 상세', () => {
 
     expect(screen.getByRole('heading', { name: '전동 드릴 18V' })).toBeInTheDocument()
     expect(screen.getAllByText('거실 › 공구함 › 파란 박스').length).toBeGreaterThan(0)
+    expect(screen.getByText('이동 이력')).toBeInTheDocument()
+    expect(screen.getByText('거실 → 파란 박스')).toBeInTheDocument()
     expect(screen.getByText('129,000원')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /물건 상세/ })).toHaveAttribute('href', '/items/i1')
   })

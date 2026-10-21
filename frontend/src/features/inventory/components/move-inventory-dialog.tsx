@@ -82,6 +82,7 @@ export function MoveInventoryDialog({
             {error ? <Alert variant="error">{error}</Alert> : null}
             <LocationPicker
               value={location}
+              defaultSource={inventory.isShared ? 'shared' : 'owned'}
               onChange={(next) => {
                 setLocation(next)
                 setError(null)

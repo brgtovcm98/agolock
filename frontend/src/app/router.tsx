@@ -16,8 +16,10 @@ import { ShelfDetailPage } from '@/features/hierarchy/shelf-detail-page'
 import { SpaceTreePage } from '@/features/hierarchy/space-tree-page'
 import { HomePage } from '@/features/home/home-page'
 import { InventoryDetailPage } from '@/features/inventory/inventory-detail-page'
+import { InventoryEditPage } from '@/features/inventory/inventory-edit-page'
 import { InventoryPage } from '@/features/inventory/inventory-page'
 import { ItemDetailPage } from '@/features/inventory/item-detail-page'
+import { ItemEditPage } from '@/features/inventory/item-edit-page'
 import { CategorySettingsPage } from '@/features/categories/category-settings-page'
 import { SettingsPage } from '@/features/settings/settings-page'
 import { SharingPage } from '@/features/sharing/sharing-page'
@@ -81,7 +83,9 @@ export const appRoutes: RouteObject[] = [
       { path: 'space/boxes/:boxId', element: <BoxDetailPage /> },
       { path: 'inventory', element: <InventoryPage /> },
       { path: 'inventory/:inventoryId', element: <InventoryDetailPage /> },
+      { path: 'inventory/:inventoryId/edit', element: <InventoryEditPage /> },
       { path: 'items/:itemId', element: <ItemDetailPage /> },
+      { path: 'items/:itemId/edit', element: <ItemEditPage /> },
       { path: 'sharing', element: <SharingPage /> },
       { path: 'invitations', element: <InvitationTokenPage /> },
       {

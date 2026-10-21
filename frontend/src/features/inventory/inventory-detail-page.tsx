@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { inventoryApi, type InventoryStatus } from './api'
 import { MoveInventoryDialog } from './components/move-inventory-dialog'
+import { MovementTimeline } from './components/movement-timeline'
 import { useLocationPath } from './use-location-path'
 import { InventoryImages } from '@/features/media/inventory-images'
 import { ApiError } from '@/shared/api/client'
@@ -199,9 +200,16 @@ export function InventoryDetailPage() {
                     물건 상세
                   </Link>
                 </Button>
+                {editable ? (
+                  <Button asChild variant="secondary">
+                    <Link to={`/inventory/${inventory.id}/edit`}>편집</Link>
+                  </Button>
+                ) : null}
               </div>
             </CardBody>
           </Card>
+
+          {!inventory.isShared ? <MovementTimeline inventory={inventory} /> : null}
         </div>
 
         <div className="flex flex-col gap-4">

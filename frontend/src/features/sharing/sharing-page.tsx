@@ -57,7 +57,8 @@ export function SharingPage() {
     setError(cause instanceof ApiError ? cause.message : '요청을 처리하지 못했습니다.')
 
   const inviteMutation = useMutation({
-    mutationFn: () => sharingApi.createInvitation(roomId, email, permission),
+    mutationFn: () =>
+      sharingApi.createInvitation({ roomId, invitedEmail: email, permission }),
     onSuccess: async () => {
       setEmail('')
       setError(null)
