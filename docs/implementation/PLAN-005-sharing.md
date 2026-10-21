@@ -570,7 +570,7 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 | 영역 | 결과 |
 |---|---|
 | 스키마 | `V10__share_invitation.sql`, `V11__share.sql`, `V12__audit_log.sql`, `V13__outbox_event.sql` |
-| 권한 | `ShareGrantLookup`으로 Room/Shelf Grant 최대 권한 조회, 기존 Room·Inventory 상세 읽기 |
+| 권한 | `ShareGrantLookup`으로 Room/Shelf Grant 최대 권한 조회, 공유 Room의 Shelf·Box 목록과 Inventory scope 조회 |
 | 초대 | 생성·받은 목록·ID/토큰 수락·거절·철회, 이메일 일치, 중복 Grant·중복 PENDING 차단 |
 | Grant | 목록·권한 변경·철회, 철회 즉시 `/shared`에서 제외 |
 | 감사 | Share/Invitation 생성·수락·거절·철회·권한 변경 감사 기록 |
