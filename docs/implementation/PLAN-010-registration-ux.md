@@ -1,6 +1,6 @@
 # PLAN-010: 등록 행동 중심 UX P0
 
-> 상태: P0 핵심 구현 완료 (2026-10-21)
+> 상태: P0·P1 핵심 구현 완료 (2026-10-22). AI·등록 전 사진은 M7 의존
 > 역할: [ADR-020](../decisions/ADR-020-registration-action-ia.md)의 결정을 P0 화면·작업·검증으로 분해
 > 상위 문서: [화면과 흐름](../frontend.md), [디자인 시스템](../design-system.md), [구현 로드맵](../implementation-roadmap.md)
 > 관련 문서: [제품 사양](../product-spec.md), [M3 계획](PLAN-004-inventory.md), [M5 계획](PLAN-006-media-messaging.md)
@@ -132,4 +132,25 @@ P0 비목표:
 - 위치 상세 재고는 `scope=ALL&limit=100` 조회 후 클라이언트 필터입니다.
 - 공유 위치 등록과 공유 물건의 재고 추가는 P1입니다.
 - 등록 사진, 오버라이드 편집, 이동 이력, 물건 마스터 수정은 P1입니다.
-- 새 물건과 첫 재고는 서버 트랜잭션으로 묶이지 않아 Inventory 실패 시 Item만 남을 수 있습니다. 재시도 UI로 복구합니다.
+- 새 물건과 첫 재고의 비원자성은 P1의 `newItem` 서버 트랜잭션으로 해소했습니다.
+
+## 9. P1 구현 결과 (2026-10-22)
+
+| 영역 | 결과 |
+|---|---|
+| 새 물건 저장 | `POST /inventories`의 `newItem`으로 Item+Inventory를 한 트랜잭션에서 생성. 클라이언트 2단계와 부분 실패 UI 제거 |
+| 위치 필터 | `GET /inventories`에 `roomId`·`shelfId`·`boxId` 직접 필터 추가. 위치 상세가 서버 필터 사용 |
+| 공유 위치 | 공유 `MANAGE` Room/Shelf를 위치 선택에 추가. 공유 위치에서 기존 물건 재고 등록, 새 물건 생성은 차단 |
+| 재고 편집 | 이름·설명·카테고리·가격 오버라이드 입력과 해제, 409 재조회 |
+| 이동 이력 | `GET /inventories/{id}/movements` 타임라인과 “등록” 합성 |
+| 물건 수정 | 마스터 이름·설명·카테고리·가격 수정, `update-impact` 영향 범위 확인 |
+| 카테고리 | 이름 변경, 병합(영향 건수), 삭제 |
+| 공유 초대 | Room/Shelf 상세의 문맥형 공유 대화상자, Shelf 초대 지원 |
+| 사진 | 등록 완료 화면에서 사진 갤러리 추가. 등록 전 DRAFT 업로드는 M7 |
+| 검증 | Vitest, lint, build, Playwright 등록·smoke, backend Inventory/Sharing 통합 테스트 |
+
+P1 잔여:
+
+- AI 인식 제안과 등록 전 사진은 M7 `ai_job`·DRAFT 연결이 필요합니다. 현재 백엔드에 AI 모듈이 없어 UI만 만들지 않습니다.
+- Item 대표 이미지 갤러리는 물건 수정 화면에 아직 넣지 않았습니다.
+- 위치 필터는 직접 위치만 지원합니다. 하위 위치 포함 검색은 M6에서 다룹니다.
