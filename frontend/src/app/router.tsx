@@ -6,6 +6,7 @@ import { LoginPage } from '@/features/auth/login-page'
 import { PublicOnlyRoute, RequireAuth } from '@/features/auth/protected-route'
 import { ResetPasswordConfirmPage } from '@/features/auth/reset-password-confirm-page'
 import { ResetPasswordPage } from '@/features/auth/reset-password-page'
+import { VerifyEmailPage } from '@/features/auth/verify-email-page'
 import { SignupPage } from '@/features/auth/signup-page'
 import { DesignPreviewPage } from '@/features/design-preview/design-preview-page'
 import { NotFoundPage } from '@/features/errors/not-found-page'
@@ -44,6 +45,11 @@ export const appRoutes: RouteObject[] = [
         <SignupPage />
       </PublicOnlyRoute>
     ),
+    errorElement: <RouteError />,
+  },
+  {
+    path: '/verify-email',
+    element: <VerifyEmailPage />,
     errorElement: <RouteError />,
   },
   {

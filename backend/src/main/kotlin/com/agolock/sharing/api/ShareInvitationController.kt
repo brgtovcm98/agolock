@@ -3,6 +3,7 @@ package com.agolock.sharing.api
 import com.agolock.common.config.AuthProperties
 import com.agolock.common.error.ApiException
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.identity.persistence.UserMapper
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.sharing.service.CreateInvitationCommand
 import com.agolock.sharing.service.ShareInvitationService
@@ -27,6 +28,7 @@ import java.util.UUID
 class ShareInvitationController(
     private val invitationService: ShareInvitationService,
     private val authProperties: AuthProperties,
+    private val userMapper: UserMapper,
 ) {
     @GetMapping
     @Operation(operationId = "listShareInvitations", summary = "보낸 초대 목록")
@@ -128,5 +130,17 @@ class ShareInvitationController(
                 "메일의 초대 링크로 수락해 주세요.",
             )
         }
+        val user = userMapper.findById(principalUserId()) ?: throw ApiException("UNAUTHENTICATED", HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.")
+        if (user.emailVerifiedAt == null) {
+            throw ApiException("EMAIL_VERIFICATION_REQUIRED", HttpStatus.FORBIDDEN, "이메일 인증 후 받은 초대를 사용할 수 있습니다.")
+        }
     }
+
+    private fun principalUserId(): java.util.UUID =
+        org.springframework.security.core.context.SecurityContextHolder
+            .getContext()
+            .authentication
+            .principal
+            .let { it as com.agolock.identity.security.AppUserPrincipal }
+            .userId
 }

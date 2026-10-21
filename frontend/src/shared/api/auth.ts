@@ -5,6 +5,7 @@ export type AuthUser = {
   email: string
   displayName: string
   status: 'ACTIVE' | 'LOCKED' | 'DELETED'
+  emailVerified?: boolean
 }
 
 export type AuthSpace = {
@@ -70,6 +71,13 @@ export const authApi = {
     apiFetch<void>('/auth/password-reset/request', {
       method: 'POST',
       body: JSON.stringify({ email }),
+    }),
+  requestEmailVerification: () =>
+    apiFetch<void>('/auth/email-verification/request', { method: 'POST' }),
+  confirmEmailVerification: (token: string) =>
+    apiFetch<void>('/auth/email-verification/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     }),
   confirmPasswordReset: (token: string, newPassword: string) =>
     apiFetch<void>('/auth/password-reset/confirm', {

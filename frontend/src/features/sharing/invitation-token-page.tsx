@@ -7,20 +7,20 @@ import { sharingApi } from '@/features/sharing/api'
 
 export function InvitationTokenPage() {
   const navigate = useNavigate()
-  const [token, setToken] = useState<string | null>(null)
+  const [token] = useState<string | null>(() => {
+    const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('token')
+    return fromHash ?? sessionStorage.getItem('agolock.invitation.token')
+  })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
     const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('token')
-    const stored = sessionStorage.getItem('agolock.invitation.token')
-    const next = fromHash ?? stored
     if (fromHash) {
       sessionStorage.setItem('agolock.invitation.token', fromHash)
       window.history.replaceState(null, '', '/invitations')
     }
-    setToken(next)
   }, [])
 
   const run = async (action: 'accept' | 'decline') => {

@@ -155,6 +155,38 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /auth/email-verification/request:
+    post:
+      tags: [auth]
+      operationId: requestEmailVerification
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      responses:
+        '202':
+          description: 인증 메일 요청
+  /auth/email-verification/confirm:
+    post:
+      tags: [auth]
+      operationId: confirmEmailVerification
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '204':
+          description: 이메일 인증 완료
+        '422':
+          description: 인증 토큰 무효·만료
   /auth/password-reset/request:
     post:
       tags: [auth]
@@ -1818,8 +1850,10 @@ components:
                 type: string
     User:
       type: object
-      required: [id, email, displayName, status]
+      required: [id, email, displayName, status, emailVerified]
       properties:
+        emailVerified:
+          type: boolean
         id:
           type: string
           format: uuid
