@@ -46,3 +46,6 @@ deploy/.env.staging
 # Local Docker build state
 .docker-config/
 .docker-buildx/
+
+# Temporary design review artifacts
+.tmp-ux/
