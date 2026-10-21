@@ -20,6 +20,15 @@ class S3ImageStorageAdapter(
     private val presigner: S3Presigner,
     private val properties: AppProperties,
 ) : ImageStoragePort {
+    override fun healthCheck() {
+        s3Client.headBucket(
+            software.amazon.awssdk.services.s3.model.HeadBucketRequest
+                .builder()
+                .bucket(properties.storage.bucket)
+                .build(),
+        )
+    }
+
     override fun presignPut(
         objectKey: String,
         contentType: String,

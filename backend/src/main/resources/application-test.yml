@@ -18,3 +18,10 @@ spring:
     listener:
       simple:
         auto-startup: false
+
+management:
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: db,rabbit

@@ -46,7 +46,13 @@ class ImageService(
         actor: Actor,
         request: PresignImageRequest,
     ): PresignImageResponse {
-        val target = resolveTarget(actor, request.targetType, request.targetId, Permission.EDIT)
+        val target =
+            resolveTarget(
+                actor,
+                request.targetType,
+                request.targetId,
+                mutationPermission(request.targetType),
+            )
         if (request.contentType != "image/webp") throw validation("이미지는 image/webp만 업로드할 수 있습니다.")
         if (request.sizeBytes !in 1..MAX_IMAGE_BYTES) throw validation("이미지 크기는 1~10MB여야 합니다.")
         if (imageMapper.countActiveByTarget(target.itemId, target.inventoryId) >= MAX_IMAGES_PER_TARGET) {
@@ -81,7 +87,7 @@ class ImageService(
         val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
         val targetType = if (image.itemId != null) "ITEM" else "INVENTORY"
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
-        resolveTarget(actor, targetType, targetId, Permission.EDIT)
+        resolveTarget(actor, targetType, targetId, mutationPermission(targetType))
         if (image.objectKey != request.objectKey) throw validation("객체 키가 일치하지 않습니다.")
         if (image.status != ImageStatus.UPLOADING) throw ApiException("IMAGE_INVALID_STATE", HttpStatus.CONFLICT, "업로드 대기 상태가 아닙니다.")
         if (!image.uploadExpiresAt.isAfter(OffsetDateTime.now(clock))) {
@@ -168,7 +174,12 @@ class ImageService(
     ): ImageResponse {
         val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
-        resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, Permission.EDIT)
+        resolveTarget(
+            actor,
+            if (image.itemId != null) "ITEM" else "INVENTORY",
+            targetId,
+            mutationPermission(if (image.itemId != null) "ITEM" else "INVENTORY"),
+        )
         if (image.status != ImageStatus.READY) throw ApiException("IMAGE_NOT_READY", HttpStatus.CONFLICT, "처리된 이미지가 아닙니다.")
         val now = OffsetDateTime.now(clock)
         if (image.itemId !=
@@ -189,7 +200,12 @@ class ImageService(
     ) {
         val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
-        resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, Permission.EDIT)
+        resolveTarget(
+            actor,
+            if (image.itemId != null) "ITEM" else "INVENTORY",
+            targetId,
+            mutationPermission(if (image.itemId != null) "ITEM" else "INVENTORY"),
+        )
         imageMapper.softDelete(imageId, OffsetDateTime.now(clock))
         outboxService.enqueueImageEvent(
             image.spaceId,
@@ -238,6 +254,9 @@ class ImageService(
             }
             else -> throw validation("targetType은 ITEM 또는 INVENTORY여야 합니다.")
         }
+
+    private fun mutationPermission(targetType: String): Permission =
+        if (targetType == "ITEM") Permission.OWNER else Permission.EDIT
 
     private fun validation(message: String) = ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, message)
 

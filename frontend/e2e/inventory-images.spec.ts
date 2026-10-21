@@ -132,7 +132,7 @@ test('Inventory 이미지를 업로드하고 READY 갤러리에 표시한다', a
   await expect(page.getByRole('heading', { name: '재고' })).toBeVisible()
   await page.getByRole('link', { name: /책/ }).click()
   await expect(page.getByRole('heading', { name: '책' })).toBeVisible()
-  await page.getByRole('button', { name: 'WebP 추가' }).click()
+  await page.getByRole('button', { name: '사진 추가' }).click()
   await page.locator('input[type=file]').setInputFiles({
     name: 'photo.webp',
     mimeType: 'image/webp',

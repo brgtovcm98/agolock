@@ -71,7 +71,7 @@ management:
         liveness:
           include: livenessState
         readiness:
-          include: db,rabbit
+          include: db,rabbit,s3
   health:
     rabbit:
       enabled: true

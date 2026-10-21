@@ -3,6 +3,8 @@ import { apiFetch } from '@/shared/api/client'
 export type ImageStatus =
   'UPLOADING' | 'DRAFT' | 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED' | 'DELETED'
 
+export type ImageTargetType = 'ITEM' | 'INVENTORY'
+
 export type ImageItem = {
   id: string
   status: ImageStatus
@@ -22,15 +24,22 @@ type PresignResponse = {
   uploadExpiresAt: string
 }
 
+function targetPath(targetType: ImageTargetType, targetId: string) {
+  return targetType === 'ITEM' ? `/items/${targetId}/images` : `/inventories/${targetId}/images`
+}
+
 export const mediaApi = {
+  images: (targetType: ImageTargetType, targetId: string) =>
+    apiFetch<{ items: ImageItem[] }>(targetPath(targetType, targetId)),
   inventoryImages: (inventoryId: string) =>
     apiFetch<{ items: ImageItem[] }>(`/inventories/${inventoryId}/images`),
-  presign: (inventoryId: string, sizeBytes: number) =>
+  itemImages: (itemId: string) => apiFetch<{ items: ImageItem[] }>(`/items/${itemId}/images`),
+  presign: (targetType: ImageTargetType, targetId: string, sizeBytes: number) =>
     apiFetch<PresignResponse>('/images/presign', {
       method: 'POST',
       body: JSON.stringify({
-        targetType: 'INVENTORY',
-        targetId: inventoryId,
+        targetType,
+        targetId,
         contentType: 'image/webp',
         sizeBytes,
       }),

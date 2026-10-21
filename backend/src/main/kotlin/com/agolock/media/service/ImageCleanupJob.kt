@@ -5,12 +5,14 @@ package com.agolock.media.service
 import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.storage.ImageStoragePort
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime
 
 @Service
+@Profile("worker")
 class ImageCleanupJob(
     private val imageMapper: ImageMapper,
     private val storage: ImageStoragePort,

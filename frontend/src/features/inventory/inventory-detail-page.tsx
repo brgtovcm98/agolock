@@ -161,14 +161,12 @@ export function InventoryDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-4">
-          {editable ? (
-            <Card>
-              <CardBody className="gap-3">
-                <SectionTitle>사진</SectionTitle>
-                <InventoryImages inventoryId={inventory.id} />
-              </CardBody>
-            </Card>
-          ) : null}
+          <Card>
+            <CardBody className="gap-3">
+              <SectionTitle>사진</SectionTitle>
+              <InventoryImages inventoryId={inventory.id} canUpload={editable} />
+            </CardBody>
+          </Card>
 
           <Card>
             <CardBody className="gap-3">

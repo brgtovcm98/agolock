@@ -1,0 +1,9 @@
+spring:
+  main:
+    web-application-type: none
+  flyway:
+    enabled: false
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: true

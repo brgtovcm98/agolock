@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { inventoryApi } from './api'
 import { useAddInventory } from './add-inventory-context'
 import { InventoryCard } from './components/inventory-card'
+import { ItemImages } from '@/features/media/item-images'
 import { useAuth } from '@/features/auth/auth-provider'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
@@ -79,34 +80,43 @@ export function ItemDetailPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Card>
-          <CardBody className="gap-3">
-            <SectionTitle>물건 정보</SectionTitle>
-            <dl className="flex flex-col gap-2 text-xs">
-              <div className="flex justify-between gap-3">
-                <dt className="text-foreground/60 font-bold">이름</dt>
-                <dd className="font-black">{item.name}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-foreground/60 font-bold">카테고리</dt>
-                <dd className="font-black">{categoryName}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-foreground/60 font-bold">가격</dt>
-                <dd className="font-black">{formatPrice(item.priceAmount)}</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-foreground/60 font-bold">설명</dt>
-                <dd className="font-medium">{item.description?.trim() || '설명 없음'}</dd>
-              </div>
-            </dl>
-            {item.effectivePermission === 'OWNER' ? (
-              <Button asChild variant="secondary">
-                <Link to={`/items/${item.id}/edit`}>물건 정보 수정</Link>
-              </Button>
-            ) : null}
-          </CardBody>
-        </Card>
+        <div className="flex flex-col gap-4">
+          <Card>
+            <CardBody className="gap-3">
+              <SectionTitle>물건 정보</SectionTitle>
+              <dl className="flex flex-col gap-2 text-xs">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-foreground/60 font-bold">이름</dt>
+                  <dd className="font-black">{item.name}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-foreground/60 font-bold">카테고리</dt>
+                  <dd className="font-black">{categoryName}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-foreground/60 font-bold">가격</dt>
+                  <dd className="font-black">{formatPrice(item.priceAmount)}</dd>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-foreground/60 font-bold">설명</dt>
+                  <dd className="font-medium">{item.description?.trim() || '설명 없음'}</dd>
+                </div>
+              </dl>
+              {item.effectivePermission === 'OWNER' ? (
+                <Button asChild variant="secondary">
+                  <Link to={`/items/${item.id}/edit`}>물건 정보 수정</Link>
+                </Button>
+              ) : null}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody className="gap-3">
+              <SectionTitle>사진</SectionTitle>
+              <ItemImages itemId={item.id} canUpload={item.effectivePermission === 'OWNER'} />
+            </CardBody>
+          </Card>
+        </div>
 
         <Card>
           <CardBody className="gap-3">

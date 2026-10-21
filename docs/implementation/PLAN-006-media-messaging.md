@@ -1,6 +1,6 @@
 # PLAN-006: M5 이미지·메시징 상세 구현 계획
 
-> 상태: M5 구현 진행 중 (V15 schema·S3·presign/complete·목록/URL·대표/삭제·Outbox/Rabbit 발행, worker 착수). 완료 후 M5.5 close-out review를 거칩니다.
+> 상태: M5 구현 진행 중. 2026-10-22 M5.5 P0(Item 이미지 OWNER 권한, S3 health, worker 프로필, Item 갤러리, 업로드 상태·취소·재시도)를 구현했고, 나머지 M5.5 항목을 계속 검증합니다.
 > 역할: M5 이미지 수명주기, S3/MinIO, 후처리 worker, Outbox, 정리 job, 갤러리 UI 실행 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 계획: [PLAN-001 기반](PLAN-001-foundation.md), [PLAN-001 후속](PLAN-001-foundation-delivery.md)
@@ -317,6 +317,8 @@ M5 기능·테스트·계약이 green이 된 직후, M6 착수 전 1~2일 동안
 - runbook: DLQ 재처리, `PROCESSING` 30분 초과, Outbox `FAILED` 복구, S3 CORS·버킷 권한 오류, 고아 객체 확인. S3 장애 시 이미지 API는 `503 IMAGE_STORAGE_UNAVAILABLE`, CRUD는 계속 동작한다.
 
 ## 11. 완료 체크리스트
+
+> 2026-10-22: M5.5 P0 중 Item 이미지 OWNER 권한, S3 readiness, worker 프로필, Item 갤러리, 업로드 상태·취소·재시도와 관련 테스트를 구현했습니다. 아래 전체 체크는 M5.5 종료 시 갱신합니다.
 
 - [ ] `image` 7개 상태와 전이 가드가 마이그레이션·서비스·테스트에 구현되었다.
 - [ ] presign이 `UPLOADING` 행과 5분 URL을 만들고 complete가 객체·매직 바이트·크기·해시를 검증한다.
