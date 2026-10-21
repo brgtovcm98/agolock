@@ -19,6 +19,7 @@ import com.agolock.media.domain.Image
 import com.agolock.media.domain.ImageStatus
 import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.storage.ImageStoragePort
+import com.agolock.messaging.outbox.OutboxService
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,6 +36,7 @@ class ImageService(
     private val boxMapper: BoxMapper,
     private val accessService: AccessService,
     private val storage: ImageStoragePort,
+    private val outboxService: OutboxService,
     private val clock: Clock,
 ) {
     @Transactional
@@ -90,6 +92,17 @@ class ImageService(
         if (imageMapper.completeUpload(image.id, ImageStatus.PENDING, stored.contentType ?: "image/webp", stored.sizeBytes, now) == 0) {
             throw ApiException("IMAGE_INVALID_STATE", HttpStatus.CONFLICT, "이미지 상태를 변경할 수 없습니다.")
         }
+        outboxService.enqueueImageUploaded(
+            image.spaceId,
+            image.id,
+            mapOf(
+                "imageId" to image.id,
+                "targetType" to if (image.itemId != null) "ITEM" else "INVENTORY",
+                "targetId" to (image.itemId ?: image.inventoryId),
+                "objectKey" to image.objectKey,
+                "declaredSizeBytes" to stored.sizeBytes,
+            ),
+        )
         return ImageResponse(
             image.id,
             ImageStatus.PENDING,

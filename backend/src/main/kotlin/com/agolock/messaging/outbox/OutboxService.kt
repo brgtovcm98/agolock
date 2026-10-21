@@ -13,6 +13,24 @@ class OutboxService(
     private val objectMapper: ObjectMapper,
     private val clock: Clock,
 ) {
+    fun enqueueImageUploaded(
+        spaceId: UUID,
+        imageId: UUID,
+        payload: Map<String, Any?>,
+    ) {
+        val now = OffsetDateTime.now(clock)
+        mapper.insert(
+            id = UuidV7.generate(clock),
+            spaceId = spaceId,
+            aggregateType = "IMAGE",
+            aggregateId = imageId,
+            eventType = "image.uploaded",
+            payload = objectMapper.writeValueAsString(payload),
+            availableAt = now,
+            createdAt = now,
+        )
+    }
+
     fun enqueueInvitation(
         spaceId: UUID,
         invitationId: UUID,

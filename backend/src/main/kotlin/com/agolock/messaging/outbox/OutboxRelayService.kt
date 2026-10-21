@@ -4,6 +4,7 @@ package com.agolock.messaging.outbox
 
 import com.agolock.common.id.UuidV7
 import com.agolock.identity.mail.MailPort
+import com.agolock.media.messaging.RabbitImagePublisher
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -17,6 +18,7 @@ class OutboxRelayService(
     private val mapper: OutboxEventMapper,
     private val objectMapper: ObjectMapper,
     private val mailPort: MailPort,
+    private val rabbitImagePublisher: RabbitImagePublisher,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -63,6 +65,10 @@ class OutboxRelayService(
     }
 
     private fun deliver(event: ClaimedOutboxEvent) {
+        if (event.eventType == "image.uploaded") {
+            rabbitImagePublisher.publishImageUploaded(event.payload)
+            return
+        }
         if (event.eventType != "notification.requested") throw UnsupportedEventTypeException(event.eventType)
         val payload = objectMapper.readTree(event.payload)
         val email = payload["recipientEmail"]?.asText() ?: throw IllegalArgumentException("recipientEmail 누락")
