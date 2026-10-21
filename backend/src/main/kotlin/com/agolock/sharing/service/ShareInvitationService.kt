@@ -13,6 +13,7 @@ import com.agolock.hierarchy.service.AccessService
 import com.agolock.identity.persistence.UserMapper
 import com.agolock.identity.service.TokenService
 import com.agolock.messaging.outbox.OutboxService
+import com.agolock.sharing.api.InvitationDeliveryStatus
 import com.agolock.sharing.api.ShareInvitationResponse
 import com.agolock.sharing.domain.InvitationStatus
 import com.agolock.sharing.domain.ShareInvitation
@@ -291,6 +292,12 @@ class ShareInvitationService(
         invitedEmail = invitedEmail,
         permission = permission,
         status = status,
+        deliveryStatus =
+            when (invitationMapper.latestDeliveryStatus(id)) {
+                "PUBLISHED" -> InvitationDeliveryStatus.SENT
+                "FAILED" -> InvitationDeliveryStatus.FAILED
+                else -> InvitationDeliveryStatus.PENDING
+            },
         expiresAt = expiresAt,
         createdAt = createdAt,
     )

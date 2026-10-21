@@ -60,6 +60,17 @@ interface ShareInvitationMapper {
         @Param("now") now: OffsetDateTime,
     ): Int
 
+    @Select(
+        """
+        SELECT status::text FROM outbox_event
+        WHERE aggregate_type = 'SHARE_INVITATION' AND aggregate_id = #{invitationId}
+        ORDER BY created_at DESC, id DESC LIMIT 1
+        """,
+    )
+    fun latestDeliveryStatus(
+        @Param("invitationId") invitationId: UUID,
+    ): String?
+
     @Update("UPDATE share_invitation SET token_hash = #{tokenHash} WHERE id = #{id} AND status = 'PENDING'")
     fun updateTokenHash(
         @Param("id") id: UUID,

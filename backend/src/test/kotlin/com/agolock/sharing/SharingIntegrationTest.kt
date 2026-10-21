@@ -89,6 +89,8 @@ class SharingIntegrationTest
 
             outboxRelay.relay()
             assertThat(mailPort.invitationMessages.any { it.email == guestEmail }).isTrue()
+            val sentInvitation = json(owner.get("/api/v1/share-invitations").body)["items"][0]
+            assertThat(sentInvitation["deliveryStatus"].asText()).isEqualTo("SENT")
             val resent = owner.post("/api/v1/share-invitations/${invite["id"].asText()}/resend", mapOf("x" to "y"))
             assertThat(resent.statusCode).isEqualTo(HttpStatus.ACCEPTED)
             outboxRelay.relay()

@@ -35,6 +35,12 @@ data class ShareListResponse(
     val items: List<ShareResponse>,
 )
 
+enum class InvitationDeliveryStatus {
+    PENDING,
+    SENT,
+    FAILED,
+}
+
 data class ShareInvitationResponse(
     val id: UUID,
     val resourceType: String,
@@ -44,6 +50,7 @@ data class ShareInvitationResponse(
     val invitedEmail: String,
     val permission: Permission,
     val status: InvitationStatus,
+    val deliveryStatus: InvitationDeliveryStatus,
     val expiresAt: OffsetDateTime,
     val createdAt: OffsetDateTime,
 )
