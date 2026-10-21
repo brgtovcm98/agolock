@@ -57,7 +57,7 @@ class InventoryService(
         accessService.requireOwner(actor, actor.spaceId)
         return inventoryMapper
             .list(actor.spaceId, status, null, null, null, (limit ?: 100).coerceIn(1, 100))
-            .map { toResponse(actor, it) }
+            .map { toResponse(actor, it, "OWNER") }
     }
 
     fun listByItem(
@@ -66,7 +66,7 @@ class InventoryService(
     ): List<InventoryResponse> {
         accessService.requireOwner(actor, actor.spaceId)
         itemMapper.findById(actor.spaceId, itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        return inventoryMapper.listByItem(actor.spaceId, itemId).map { toResponse(actor, it) }
+        return inventoryMapper.listByItem(actor.spaceId, itemId).map { toResponse(actor, it, "OWNER") }
     }
 
     fun get(
@@ -105,7 +105,7 @@ class InventoryService(
                 location.response.shelfId,
                 location.response.boxId,
             )
-        accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.MANAGE)
+        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.MANAGE)
         val item =
             itemMapper.findByIdAny(command.itemId)
                 ?: throw notFound("Item을 찾을 수 없습니다.")
@@ -125,7 +125,7 @@ class InventoryService(
                 updatedAt = now,
             )
         inventoryMapper.insert(inventory)
-        return toResponse(actor, inventory)
+        return toResponse(actor, inventory, permission.name)
     }
 
     @Transactional
@@ -173,7 +173,7 @@ class InventoryService(
             priceAmountOverride == current.priceAmountOverride &&
             command.status == current.status
         ) {
-            return toResponse(actor, current)
+            return toResponse(actor, current, permission.name)
         }
         val updated =
             inventoryMapper.update(
@@ -372,7 +372,7 @@ class InventoryService(
     private fun toResponse(
         actor: Actor,
         inventory: Inventory,
-        permission: String = "OWNER",
+        permission: String,
     ): InventoryResponse {
         val item = itemMapper.findById(inventory.spaceId, inventory.itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
         val name = inventory.nameOverride ?: item.name

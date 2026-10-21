@@ -144,6 +144,32 @@ class InventoryIntegrationTest
         }
 
         @Test
+        fun `DISPOSED Inventory가 남아 있으면 Item을 삭제할 수 없다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "폐기방")).body)
+            val item = json(client.post("/api/v1/items", mapOf("name" to "폐기 Item")).body)
+            val inventory =
+                json(
+                    client
+                        .post(
+                            "/api/v1/inventories",
+                            mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
+                        ).body,
+                )
+            val disposed =
+                client.patch(
+                    "/api/v1/inventories/${inventory["id"].asText()}",
+                    mapOf("status" to "DISPOSED", "confirmDisposal" to true, "version" to 0),
+                )
+            assertThat(disposed.statusCode).isEqualTo(HttpStatus.OK)
+
+            val impact = json(client.get("/api/v1/items/${item["id"].asText()}/update-impact").body)
+            assertThat(impact["affectedInventoryCount"].asInt()).isEqualTo(1)
+            val deleted = client.delete("/api/v1/items/${item["id"].asText()}")
+            assertThat(deleted.statusCode).isEqualTo(HttpStatus.CONFLICT)
+            assertThat(client.get("/api/v1/items/${item["id"].asText()}").statusCode).isEqualTo(HttpStatus.OK)
+        }
+
+        @Test
         fun `카테고리를 병합하면 Item과 Inventory override가 대상으로 이동한다`() {
             val sourceResponse = client.post("/api/v1/categories", mapOf("name" to "원본"))
             assertThat(sourceResponse.statusCode).isEqualTo(HttpStatus.CREATED)

@@ -54,15 +54,25 @@ class BoxService(
     fun get(
         actor: Actor,
         boxId: UUID,
-    ): Box {
+    ): Box = getDetail(actor, boxId).box
+
+    @Transactional(readOnly = true)
+    fun getDetail(
+        actor: Actor,
+        boxId: UUID,
+    ): BoxDetail {
         val box = boxMapper.findByIdAny(boxId) ?: throw notFound("Box를 찾을 수 없습니다.")
         val shelf = shelfMapper.findById(box.spaceId, box.shelfId)
-        accessService.require(
-            actor,
-            accessService.target(box.spaceId, shelf?.roomId, box.shelfId, box.id),
-            com.agolock.hierarchy.domain.Permission.VIEW,
+        val permission =
+            accessService.require(
+                actor,
+                accessService.target(box.spaceId, shelf?.roomId, box.shelfId, box.id),
+                com.agolock.hierarchy.domain.Permission.VIEW,
+            )
+        return BoxDetail(
+            box.copy(inventoryCount = inventoryMapper.countByBox(box.spaceId, box.id)),
+            permission,
         )
-        return box.copy(inventoryCount = inventoryMapper.countByBox(box.spaceId, box.id))
     }
 
     @Transactional
@@ -219,3 +229,8 @@ class BoxService(
         const val MAX_NAME_LENGTH = 120
     }
 }
+
+data class BoxDetail(
+    val box: Box,
+    val permission: com.agolock.hierarchy.domain.Permission,
+)

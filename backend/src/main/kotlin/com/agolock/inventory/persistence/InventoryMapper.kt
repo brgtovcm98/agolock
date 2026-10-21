@@ -53,6 +53,18 @@ interface InventoryMapper {
         @Param("itemId") itemId: UUID,
     ): List<Inventory>
 
+    @Select("SELECT * FROM inventory WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL")
+    fun listAllByItem(
+        @Param("spaceId") spaceId: UUID,
+        @Param("itemId") itemId: UUID,
+    ): List<Inventory>
+
+    @Select("SELECT COUNT(*) FROM inventory WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL")
+    fun countByItem(
+        @Param("spaceId") spaceId: UUID,
+        @Param("itemId") itemId: UUID,
+    ): Int
+
     @Select(
         "SELECT COUNT(*) FROM inventory WHERE space_id = #{spaceId} AND room_id = #{locationId} AND deleted_at IS NULL",
     )

@@ -68,8 +68,23 @@ class ShareService(
         actor: Actor,
         shareId: UUID,
     ) {
-        requireOwnedShare(actor, shareId)
-        shareMapper.revoke(shareId, OffsetDateTime.now(clock))
+        val share = requireOwnedShare(actor, shareId)
+        if (shareMapper.revoke(shareId, OffsetDateTime.now(clock)) == 0) {
+            throw notFound("Share를 찾을 수 없습니다.")
+        }
+        auditService.record(
+            share.spaceId,
+            actor.userId,
+            "SHARE_REVOKED",
+            "SHARE",
+            share.id,
+            mapOf(
+                "roomId" to share.roomId,
+                "shelfId" to share.shelfId,
+                "permission" to share.permission,
+                "granteeUserId" to share.granteeUserId,
+            ),
+        )
     }
 
     fun hasActiveGrant(

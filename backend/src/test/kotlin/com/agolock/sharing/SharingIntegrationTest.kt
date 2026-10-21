@@ -1,4 +1,4 @@
-@file:Suppress("MaxLineLength")
+@file:Suppress("MaxLineLength", "LongParameterList")
 
 package com.agolock.sharing
 
@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import java.util.UUID
 
@@ -36,6 +37,7 @@ class SharingIntegrationTest
         private val loginAttempts: LoginAttemptService,
         private val mailPort: FakeMailPort,
         private val outboxRelay: OutboxRelayService,
+        private val jdbcTemplate: JdbcTemplate,
     ) {
         @org.junit.jupiter.api.BeforeEach
         fun resetLimits() {
@@ -52,6 +54,15 @@ class SharingIntegrationTest
             owner.signup(ownerEmail, "password-1234", "소유자")
             val room = json(owner.post("/api/v1/rooms", mapOf("name" to "공유 거실")).body)
             val roomId = room["id"].asText()
+            val shelf = json(owner.post("/api/v1/rooms/$roomId/shelves", mapOf("name" to "공유 선반")).body)
+            val box =
+                json(
+                    owner
+                        .post(
+                            "/api/v1/shelves/${shelf["id"].asText()}/boxes",
+                            mapOf("name" to "공유 상자"),
+                        ).body,
+                )
             val item = json(owner.post("/api/v1/items", mapOf("name" to "공유 물건")).body)
             val inventory =
                 json(
@@ -101,6 +112,10 @@ class SharingIntegrationTest
             assertThat(guest.get("/api/v1/rooms/$roomId").statusCode).isEqualTo(HttpStatus.OK)
             assertThat(guest.get("/api/v1/inventories/${inventory["id"].asText()}").statusCode)
                 .isEqualTo(HttpStatus.OK)
+            val sharedBox = guest.get("/api/v1/boxes/${box["id"].asText()}")
+            assertThat(sharedBox.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(sharedBox.body)["effectivePermission"].asText()).isEqualTo("VIEW")
+            assertThat(json(sharedBox.body)["isShared"].asBoolean()).isTrue()
             val alreadyShared =
                 owner.post(
                     "/api/v1/share-invitations",
@@ -111,6 +126,13 @@ class SharingIntegrationTest
             assertThat(invalidPermission.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
 
             assertThat(owner.delete("/api/v1/shares/$shareId").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            val auditCount =
+                jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM audit_log WHERE action = 'SHARE_REVOKED' AND resource_id = ?",
+                    Int::class.java,
+                    UUID.fromString(shareId),
+                )
+            assertThat(auditCount).isEqualTo(1)
             assertThat(json(guest.get("/api/v1/shared").body)["items"].size()).isEqualTo(0)
             assertThat(guest.get("/api/v1/shared/rooms/$roomId").statusCode).isEqualTo(HttpStatus.NOT_FOUND)
             assertThat(guest.get("/api/v1/rooms/$roomId").statusCode).isEqualTo(HttpStatus.NOT_FOUND)
@@ -149,6 +171,8 @@ class SharingIntegrationTest
                     mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
                 )
             assertThat(created.statusCode).isEqualTo(HttpStatus.CREATED)
+            assertThat(json(created.body)["effectivePermission"].asText()).isEqualTo("MANAGE")
+            assertThat(json(created.body)["isShared"].asBoolean()).isTrue()
             val inventoryId = json(created.body)["id"].asText()
             val moved =
                 guest.patch(

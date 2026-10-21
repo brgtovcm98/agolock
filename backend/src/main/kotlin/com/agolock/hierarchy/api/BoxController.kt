@@ -83,13 +83,11 @@ class BoxController(
         @PathVariable boxId: UUID,
     ): BoxResponse {
         val actor = Actor.from(principal)
-        val box = boxService.get(actor, boxId)
-        val permission =
-            accessService.effectivePermission(
-                actor,
-                accessService.target(box.spaceId, shelfId = box.shelfId, boxId = box.id),
-            )
-        return box.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+        val detail = boxService.getDetail(actor, boxId)
+        return detail.box.toResponse(
+            detail.permission,
+            detail.permission != com.agolock.hierarchy.domain.Permission.OWNER,
+        )
     }
 
     @PatchMapping("/boxes/{boxId}")

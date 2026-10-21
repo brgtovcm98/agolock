@@ -48,7 +48,7 @@ class ItemService(
     ): Pair<Int, Int> {
         accessService.requireOwner(actor, actor.spaceId)
         requireItem(actor, itemId)
-        val inventories = inventoryMapper.listByItem(actor.spaceId, itemId)
+        val inventories = inventoryMapper.listAllByItem(actor.spaceId, itemId)
         val protectedCount =
             inventories.count {
                 it.nameOverride != null ||
@@ -134,8 +134,8 @@ class ItemService(
     ) {
         accessService.requireOwner(actor, actor.spaceId)
         requireItem(actor, itemId)
-        if (inventoryMapper.listByItem(actor.spaceId, itemId).isNotEmpty()) {
-            throw conflict("ITEM_IN_USE", "Inventory가 있는 Item은 삭제할 수 없습니다.")
+        if (inventoryMapper.countByItem(actor.spaceId, itemId) > 0) {
+            throw conflict("ITEM_HAS_INVENTORIES", "Inventory가 있는 Item은 삭제할 수 없습니다.")
         }
         itemMapper.softDelete(actor.spaceId, itemId, OffsetDateTime.now(clock))
     }
