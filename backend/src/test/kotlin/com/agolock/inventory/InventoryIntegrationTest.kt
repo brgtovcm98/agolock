@@ -82,6 +82,8 @@ class InventoryIntegrationTest
             assertThat(impact["affectedInventoryCount"].asInt()).isEqualTo(1)
             val targets = json(client.get("/api/v1/inventories/$inventoryId/move-targets").body)
             assertThat(targets["items"].size()).isGreaterThanOrEqualTo(2)
+            val searchedItems = json(client.get("/api/v1/items?q=책").body)
+            assertThat(searchedItems["items"].any { it["name"].asText() == "책" }).isTrue()
             assertThat(createdInventory["displayName"].asText()).isEqualTo("책")
             assertThat(createdInventory["status"].asText()).isEqualTo("STORED")
             assertThat(createdInventory["location"]["type"].asText()).isEqualTo("ROOM")

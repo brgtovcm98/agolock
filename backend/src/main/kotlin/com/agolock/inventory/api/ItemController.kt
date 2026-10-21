@@ -40,8 +40,9 @@ class ItemController(
     fun list(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @RequestParam(required = false) categoryId: UUID?,
+        @RequestParam(required = false) q: String?,
         @RequestParam(required = false) limit: Int?,
-    ): ItemListResponse = ItemListResponse(itemService.list(Actor.from(principal), categoryId, limit).map { it.toResponse() })
+    ): ItemListResponse = ItemListResponse(itemService.list(Actor.from(principal), categoryId, q, limit).map { it.toResponse() })
 
     @PostMapping
     @Operation(operationId = "createItem", summary = "Item 생성")

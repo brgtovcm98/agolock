@@ -37,7 +37,7 @@ class InventoryController(
     @Operation(operationId = "listInventories", summary = "Inventory 목록")
     fun list(
         @AuthenticationPrincipal principal: AppUserPrincipal,
-        @RequestParam(required = false) status: InventoryStatus?,
+        @RequestParam(required = false) status: List<InventoryStatus>?,
         @RequestParam(required = false) limit: Int?,
         @RequestParam(required = false, defaultValue = "OWNED") scope: String,
     ): InventoryListResponse = InventoryListResponse(inventoryService.list(Actor.from(principal), status, limit, scope))

@@ -28,10 +28,12 @@ class ItemService(
     fun list(
         actor: Actor,
         categoryId: UUID?,
+        q: String?,
         limit: Int?,
     ): List<Item> {
         accessService.requireOwner(actor, actor.spaceId)
-        return itemMapper.list(actor.spaceId, categoryId, null, null, (limit ?: 100).coerceIn(1, 100))
+        val query = q?.trim()?.take(200)?.takeIf(String::isNotEmpty)
+        return itemMapper.list(actor.spaceId, categoryId, query, null, null, (limit ?: 100).coerceIn(1, 100))
     }
 
     fun get(

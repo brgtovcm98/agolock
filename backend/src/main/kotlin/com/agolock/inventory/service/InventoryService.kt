@@ -53,7 +53,7 @@ class InventoryService(
 ) {
     fun list(
         actor: Actor,
-        status: com.agolock.inventory.domain.InventoryStatus?,
+        statuses: List<com.agolock.inventory.domain.InventoryStatus>?,
         limit: Int?,
         scope: String = "OWNED",
     ): List<InventoryResponse> {
@@ -62,20 +62,28 @@ class InventoryService(
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "scope는 OWNED, SHARED, ALL 중 하나여야 합니다.")
         }
         val effectiveLimit = (limit ?: 100).coerceIn(1, 100)
+        val effectiveStatuses =
+            (statuses?.distinct() ?: emptyList())
+                .ifEmpty {
+                    listOf(
+                        com.agolock.inventory.domain.InventoryStatus.IN_USE,
+                        com.agolock.inventory.domain.InventoryStatus.STORED,
+                    )
+                }
         val owned =
             if (normalizedScope == "SHARED") {
                 emptyList()
             } else {
                 accessService.requireOwner(actor, actor.spaceId)
                 inventoryMapper
-                    .list(actor.spaceId, status, null, null, null, effectiveLimit)
+                    .list(actor.spaceId, effectiveStatuses, null, null, null, effectiveLimit)
                     .map { toResponse(actor, it, "OWNER") }
             }
         if (normalizedScope == "OWNED") return owned
         val shared =
             shareMapper.listActiveByGrantee(actor.userId).flatMap { share ->
                 inventoryMapper
-                    .list(share.spaceId, status, null, null, null, effectiveLimit)
+                    .list(share.spaceId, effectiveStatuses, null, null, null, effectiveLimit)
                     .filter { inventory ->
                         val target = inventoryTarget(inventory)
                         (share.roomId != null && target.roomId == share.roomId) ||

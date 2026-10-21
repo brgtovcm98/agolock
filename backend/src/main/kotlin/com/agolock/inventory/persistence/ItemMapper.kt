@@ -30,6 +30,7 @@ interface ItemMapper {
         SELECT * FROM item
         WHERE space_id = #{spaceId} AND deleted_at IS NULL
         <if test="categoryId != null">AND category_id = #{categoryId}</if>
+        <if test="q != null and q != ''">AND name ILIKE '%' || #{q} || '%'</if>
         <if test="cursorUpdated != null">AND (updated_at, id) &lt; (#{cursorUpdated}, #{cursorId})</if>
         ORDER BY updated_at DESC, id DESC LIMIT #{limit}
         </script>
@@ -38,6 +39,7 @@ interface ItemMapper {
     fun list(
         @Param("spaceId") spaceId: UUID,
         @Param("categoryId") categoryId: UUID?,
+        @Param("q") q: String?,
         @Param("cursorUpdated") cursorUpdated: OffsetDateTime?,
         @Param("cursorId") cursorId: UUID?,
         @Param("limit") limit: Int,
