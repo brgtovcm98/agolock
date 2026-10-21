@@ -65,7 +65,8 @@ function CategoryEditDialog({
       await onSaved()
       onClose()
     },
-    onError: (cause) => setError(cause instanceof ApiError ? cause.message : '저장하지 못했습니다.'),
+    onError: (cause) =>
+      setError(cause instanceof ApiError ? cause.message : '저장하지 못했습니다.'),
   })
 
   return (
@@ -118,7 +119,8 @@ function CategoryMergeDialog({
       await onMerged(result)
       onClose()
     },
-    onError: (cause) => setError(cause instanceof ApiError ? cause.message : '병합하지 못했습니다.'),
+    onError: (cause) =>
+      setError(cause instanceof ApiError ? cause.message : '병합하지 못했습니다.'),
   })
 
   return (
@@ -230,9 +232,7 @@ export function CategorySettingsPage() {
         <MetaText>물건을 묶어 볼 때 사용할 카테고리를 관리합니다.</MetaText>
       </div>
 
-      {!owner ? (
-        <Alert variant="info">카테고리는 Space 소유자만 관리할 수 있어요.</Alert>
-      ) : null}
+      {!owner ? <Alert variant="info">카테고리는 Space 소유자만 관리할 수 있어요.</Alert> : null}
       {error ? <Alert variant="error">{error}</Alert> : null}
       {mergeResult ? (
         <Alert variant="success">

@@ -26,8 +26,7 @@ export function LocationInventories({
 
   const inventoriesQuery = useQuery({
     queryKey: ['inventory', 'location', roomId ?? '', shelfId ?? '', boxId ?? ''],
-    queryFn: () =>
-      inventoryApi.inventories({ scope: 'ALL', limit: 100, roomId, shelfId, boxId }),
+    queryFn: () => inventoryApi.inventories({ scope: 'ALL', limit: 100, roomId, shelfId, boxId }),
   })
 
   const inventories = inventoriesQuery.data?.items ?? []
@@ -45,7 +44,13 @@ export function LocationInventories({
         <div className="border-border bg-card flex flex-col items-start gap-2 border-[2.5px] p-4">
           <p className="text-sm font-black">이 위치에 아직 물건이 없어요.</p>
           {canAdd ? (
-            <Button type="button" size="sm" onClick={() => openAdd({ roomId, shelfId, boxId, source: isShared ? 'shared' : 'owned' })}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() =>
+                openAdd({ roomId, shelfId, boxId, source: isShared ? 'shared' : 'owned' })
+              }
+            >
               <Plus aria-hidden="true" className="size-4" />이 위치에 등록
             </Button>
           ) : null}
@@ -61,7 +66,9 @@ export function LocationInventories({
             <Button
               type="button"
               variant="secondary"
-              onClick={() => openAdd({ roomId, shelfId, boxId, source: isShared ? 'shared' : 'owned' })}
+              onClick={() =>
+                openAdd({ roomId, shelfId, boxId, source: isShared ? 'shared' : 'owned' })
+              }
             >
               <Plus aria-hidden="true" className="size-4" />이 위치에 등록
             </Button>

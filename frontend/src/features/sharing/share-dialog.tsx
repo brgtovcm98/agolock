@@ -62,9 +62,7 @@ export function ShareDialog({
 
           {sent ? (
             <div className="mt-4 flex flex-col gap-3">
-              <Alert variant="success">
-                초대를 보냈어요. 상대가 수락하면 공유가 시작됩니다.
-              </Alert>
+              <Alert variant="success">초대를 보냈어요. 상대가 수락하면 공유가 시작됩니다.</Alert>
               <Button type="button" onClick={onClose}>
                 닫기
               </Button>

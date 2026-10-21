@@ -115,14 +115,17 @@ export function ItemDetailPage() {
               같은 물건을 여러 곳에 두면 재고를 추가하세요.
             </p>
             {canAdd ? (
-              <Button type="button" onClick={() => openAdd({ itemId: item.id, source: item.isShared ? 'shared' : 'owned' })}>
+              <Button
+                type="button"
+                onClick={() =>
+                  openAdd({ itemId: item.id, source: item.isShared ? 'shared' : 'owned' })
+                }
+              >
                 <PackagePlus aria-hidden="true" className="size-4" />
                 재고 추가
               </Button>
             ) : (
-              <p className="text-foreground/60 text-xs">
-                재고를 추가할 권한이 없습니다.
-              </p>
+              <p className="text-foreground/60 text-xs">재고를 추가할 권한이 없습니다.</p>
             )}
           </CardBody>
         </Card>
@@ -141,7 +144,13 @@ export function ItemDetailPage() {
             <CardBody className="items-start gap-2">
               <p className="text-sm font-black">아직 이 물건의 재고가 없어요.</p>
               {canAdd ? (
-                <Button type="button" size="sm" onClick={() => openAdd({ itemId: item.id, source: item.isShared ? 'shared' : 'owned' })}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() =>
+                    openAdd({ itemId: item.id, source: item.isShared ? 'shared' : 'owned' })
+                  }
+                >
                   첫 재고 추가
                 </Button>
               ) : null}

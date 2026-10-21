@@ -36,6 +36,7 @@ class InventoryController(
 ) {
     @GetMapping
     @Operation(operationId = "listInventories", summary = "Inventory 목록")
+    @Suppress("LongParameterList")
     fun list(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @RequestParam(required = false) status: List<InventoryStatus>?,

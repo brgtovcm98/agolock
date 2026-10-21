@@ -215,8 +215,7 @@ export const inventoryApi = {
     return apiFetch<Page<Inventory>>(`/inventories?${search.toString()}`)
   },
   inventory: (inventoryId: string) => apiFetch<Inventory>(`/inventories/${inventoryId}`),
-  movements: (inventoryId: string) =>
-    apiFetch<Movement[]>(`/inventories/${inventoryId}/movements`),
+  movements: (inventoryId: string) => apiFetch<Movement[]>(`/inventories/${inventoryId}/movements`),
   createInventory: (input: CreateInventoryInput) =>
     apiFetch<Inventory>('/inventories', {
       method: 'POST',

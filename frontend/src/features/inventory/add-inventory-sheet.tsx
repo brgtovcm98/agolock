@@ -412,7 +412,7 @@ export function AddInventorySheet({
                           min={0}
                           inputMode="numeric"
                           value={price}
-                            onChange={(event) => {
+                          onChange={(event) => {
                             setPrice(event.target.value)
                             setTouched(true)
                           }}
@@ -422,7 +422,7 @@ export function AddInventorySheet({
                           <textarea
                             value={description}
                             maxLength={2000}
-                                onChange={(event) => {
+                            onChange={(event) => {
                               setDescription(event.target.value)
                               setTouched(true)
                             }}

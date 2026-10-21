@@ -44,20 +44,14 @@ describe('카테고리 관리', () => {
       mergedInventoryCount: 3,
     })
     vi.spyOn(inventoryApi, 'categories').mockResolvedValue({
-      items: [
-        testCategory,
-        { id: 'c2', name: '캠핑', color: null, sortOrder: 1 },
-      ],
+      items: [testCategory, { id: 'c2', name: '캠핑', color: null, sortOrder: 1 }],
     })
     renderApp(['/settings/categories'], {
       seeds: [
         [
           ['category', 'list'],
           {
-            items: [
-              testCategory,
-              { id: 'c2', name: '캠핑', color: null, sortOrder: 1 },
-            ],
+            items: [testCategory, { id: 'c2', name: '캠핑', color: null, sortOrder: 1 }],
           },
         ],
       ],

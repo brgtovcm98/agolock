@@ -11,7 +11,10 @@ describe('Box 상세', () => {
       seeds: [
         [['hierarchy', 'box', 'b1'], testBox()],
         [['hierarchy', 'shelf', 's1'], testShelf()],
-        [['inventory', 'location', 'r1', 's1', 'b1'], { items: [testInventory()], nextCursor: null }],
+        [
+          ['inventory', 'location', 'r1', 's1', 'b1'],
+          { items: [testInventory()], nextCursor: null },
+        ],
         [['hierarchy', 'rooms', 'picker'], { items: [testRoom()] }],
         [['hierarchy', 'shelves', 'picker', 'owned', 'r1'], { items: [testShelf()] }],
         [['hierarchy', 'boxes', 'picker', 'owned', 's1'], { items: [testBox()] }],
@@ -39,23 +42,29 @@ describe('공유 Box 상세', () => {
     renderApp(['/space/boxes/b1'], {
       seeds: [
         [['hierarchy', 'box', 'b1'], sharedBox],
-        [['hierarchy', 'shelf', 's1'], testShelf({ isShared: true, effectivePermission: 'MANAGE' })],
+        [
+          ['hierarchy', 'shelf', 's1'],
+          testShelf({ isShared: true, effectivePermission: 'MANAGE' }),
+        ],
         [['inventory', 'location', 'r1', 's1', 'b1'], { items: [], nextCursor: null }],
-        [['sharing', 'shared'], {
-          items: [
-            {
-              id: 'sh1',
-              resourceType: 'ROOM',
-              resourceName: '민지네 베란다',
-              roomId: 'r1',
-              shelfId: null,
-              permission: 'MANAGE',
-              granteeUserId: 'u1',
-              granteeDisplayName: null,
-              createdAt: '2026-10-01T00:00:00Z',
-            },
-          ],
-        }],
+        [
+          ['sharing', 'shared'],
+          {
+            items: [
+              {
+                id: 'sh1',
+                resourceType: 'ROOM',
+                resourceName: '민지네 베란다',
+                roomId: 'r1',
+                shelfId: null,
+                permission: 'MANAGE',
+                granteeUserId: 'u1',
+                granteeDisplayName: null,
+                createdAt: '2026-10-01T00:00:00Z',
+              },
+            ],
+          },
+        ],
         [['hierarchy', 'shelves', 'picker', 'shared', 'r1'], { items: [testShelf()] }],
         [['hierarchy', 'boxes', 'picker', 'shared', 's1'], { items: [testBox()] }],
       ],
@@ -68,8 +77,6 @@ describe('공유 Box 상세', () => {
       'aria-pressed',
       'true',
     )
-    expect(within(dialog).getByRole('combobox', { name: '공유받은 위치' })).toHaveValue(
-      'ROOM:r1',
-    )
+    expect(within(dialog).getByRole('combobox', { name: '공유받은 위치' })).toHaveValue('ROOM:r1')
   })
 })

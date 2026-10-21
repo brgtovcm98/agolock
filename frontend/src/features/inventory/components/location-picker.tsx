@@ -47,9 +47,7 @@ export function LocationPicker({
     (share) => share.permission === 'MANAGE',
   )
   const matchedShare = sharedOptions.find((share) =>
-    share.resourceType === 'ROOM'
-      ? share.roomId === roomId
-      : share.shelfId === shelfId,
+    share.resourceType === 'ROOM' ? share.roomId === roomId : share.shelfId === shelfId,
   )
   const selectedSharedKey =
     sharedKey ||
@@ -63,12 +61,8 @@ export function LocationPicker({
       ? shareKey('ROOM', share.roomId) === selectedSharedKey
       : shareKey('SHELF', share.shelfId) === selectedSharedKey,
   )
-  const sharedRoomId = selectedSharedKey.startsWith('ROOM:')
-    ? selectedSharedKey.slice(5)
-    : roomId
-  const sharedShelfId = selectedSharedKey.startsWith('SHELF:')
-    ? selectedSharedKey.slice(6)
-    : ''
+  const sharedRoomId = selectedSharedKey.startsWith('ROOM:') ? selectedSharedKey.slice(5) : roomId
+  const sharedShelfId = selectedSharedKey.startsWith('SHELF:') ? selectedSharedKey.slice(6) : ''
 
   const sharedShelfQuery = useQuery({
     queryKey: ['shared', 'shelf', sharedShelfId],
@@ -131,7 +125,12 @@ export function LocationPicker({
     return (
       <div className="flex flex-col gap-2">
         <Alert variant="error">공간을 불러오지 못했습니다.</Alert>
-        <Button type="button" size="sm" variant="secondary" onClick={() => void roomsQuery.refetch()}>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={() => void roomsQuery.refetch()}
+        >
           다시 시도
         </Button>
       </div>

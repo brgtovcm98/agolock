@@ -1,12 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import {
-  inventoryApi,
-  type Category,
-  type Inventory,
-  type Item,
-} from './api'
+import { inventoryApi, type Category, type Inventory, type Item } from './api'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'

@@ -73,20 +73,14 @@ test.use({ viewport: { width: 1280, height: 900 } })
 test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page }) => {
   let inventoryBody: Record<string, unknown> | null = null
 
-  await page.route('**/api/v1/auth/me', (route) =>
-    route.fulfill({ json: authMe }),
-  )
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ json: authMe }))
   await page.route('**/api/v1/auth/config', (route) =>
     route.fulfill({
       json: { inviteRequired: false, passwordMinLength: 10, passwordMaxLength: 128 },
     }),
   )
-  await page.route('**/api/v1/categories', (route) =>
-    route.fulfill({ json: { items: [] } }),
-  )
-  await page.route('**/api/v1/shared', (route) =>
-    route.fulfill({ json: { items: [] } }),
-  )
+  await page.route('**/api/v1/categories', (route) => route.fulfill({ json: { items: [] } }))
+  await page.route('**/api/v1/shared', (route) => route.fulfill({ json: { items: [] } }))
   await page.route('**/api/v1/inventories**', async (route) => {
     if (route.request().method() === 'POST') {
       inventoryBody = route.request().postDataJSON() as Record<string, unknown>
@@ -114,7 +108,9 @@ test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page 
 
   await dialog.getByLabel('물건 이름').fill('새 드릴')
   const roomSelect = dialog.getByRole('combobox', { name: '방' })
-  await expect(roomSelect.locator('option[value="018f0000-0000-7000-8000-000000000010"]')).toHaveCount(1)
+  await expect(
+    roomSelect.locator('option[value="018f0000-0000-7000-8000-000000000010"]'),
+  ).toHaveCount(1)
   await roomSelect.selectOption('018f0000-0000-7000-8000-000000000010')
   await dialog.getByRole('button', { name: '등록', exact: true }).click()
 
