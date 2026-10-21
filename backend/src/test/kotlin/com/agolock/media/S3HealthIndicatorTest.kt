@@ -4,8 +4,8 @@ import com.agolock.media.storage.ImageStoragePort
 import com.agolock.media.storage.S3HealthIndicator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.doThrow
+import org.mockito.Mockito.mock
 import org.springframework.boot.actuate.health.Status
 
 class S3HealthIndicatorTest {

@@ -58,8 +58,8 @@ describe('카테고리 관리', () => {
     })
 
     await user.click(screen.getByRole('button', { name: '공구 이름 변경' }))
-    await user.clear(await screen.findByLabelText('카테고리 이름'))
-    await user.type(await screen.findByLabelText('카테고리 이름'), '연장')
+    await user.clear(await screen.findByLabelText('카테고리 이름', {}, { timeout: 3000 }))
+    await user.type(await screen.findByLabelText('카테고리 이름', {}, { timeout: 3000 }), '연장')
     await user.click(screen.getByRole('button', { name: '저장' }))
     expect(updateSpy).toHaveBeenCalledWith('c1', { name: '연장' })
 

@@ -255,8 +255,7 @@ class ImageService(
             else -> throw validation("targetType은 ITEM 또는 INVENTORY여야 합니다.")
         }
 
-    private fun mutationPermission(targetType: String): Permission =
-        if (targetType == "ITEM") Permission.OWNER else Permission.EDIT
+    private fun mutationPermission(targetType: String): Permission = if (targetType == "ITEM") Permission.OWNER else Permission.EDIT
 
     private fun validation(message: String) = ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, message)
 

@@ -5,6 +5,7 @@ import java.time.Duration
 
 interface ImageStoragePort {
     fun healthCheck()
+
     fun presignPut(
         objectKey: String,
         contentType: String,
