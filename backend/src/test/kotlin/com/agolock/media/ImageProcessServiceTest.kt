@@ -5,6 +5,7 @@ import com.agolock.media.domain.ImageStatus
 import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.service.ImageProcessService
 import com.agolock.media.storage.ImageStoragePort
+import com.agolock.messaging.outbox.OutboxService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -41,10 +42,12 @@ class ImageProcessServiceTest {
         `when`(mapper.claimForProcessing(imageId, now)).thenReturn(1)
         `when`(mapper.findById(imageId)).thenReturn(image)
         `when`(storage.getObject(objectKey)).thenReturn(pngBytes())
+        val outbox = mock(OutboxService::class.java)
         val service =
             ImageProcessService(
                 mapper,
                 storage,
+                outbox,
                 Clock.fixed(Instant.parse("2026-10-21T12:00:00Z"), ZoneOffset.UTC),
             )
 

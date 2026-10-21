@@ -191,6 +191,15 @@ class ImageService(
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
         resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, Permission.EDIT)
         imageMapper.softDelete(imageId, OffsetDateTime.now(clock))
+        outboxService.enqueueImageEvent(
+            image.spaceId,
+            image.id,
+            "image.deleted",
+            mapOf(
+                "imageId" to image.id,
+                "wasPrimary" to image.isPrimary,
+            ),
+        )
     }
 
     private fun Image.toResponse() = ImageResponse(id, status, itemId, inventoryId, mimeType, sizeBytes, isPrimary, createdAt)

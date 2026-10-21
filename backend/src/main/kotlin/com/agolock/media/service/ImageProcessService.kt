@@ -5,6 +5,7 @@ package com.agolock.media.service
 import com.agolock.media.domain.ImageStatus
 import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.storage.ImageStoragePort
+import com.agolock.messaging.outbox.OutboxService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +23,7 @@ import javax.imageio.ImageIO
 class ImageProcessService(
     private val imageMapper: ImageMapper,
     private val storage: ImageStoragePort,
+    private val outboxService: OutboxService,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -52,6 +54,20 @@ class ImageProcessService(
                 sha256,
                 thumbnailKey,
                 OffsetDateTime.now(clock),
+            )
+            outboxService.enqueueImageEvent(
+                image.spaceId,
+                image.id,
+                "image.processed",
+                mapOf(
+                    "imageId" to image.id,
+                    "targetType" to if (image.itemId != null) "ITEM" else "INVENTORY",
+                    "targetId" to (image.itemId ?: image.inventoryId),
+                    "width" to normalized.width,
+                    "height" to normalized.height,
+                    "sha256" to sha256,
+                    "thumbnailKey" to thumbnailKey,
+                ),
             )
         } catch (exception: Exception) {
             imageMapper.markProcessingFailed(image.id, exception.javaClass.simpleName, OffsetDateTime.now(clock))

@@ -69,6 +69,10 @@ class OutboxRelayService(
             rabbitImagePublisher.publishImageUploaded(event.payload)
             return
         }
+        if (event.eventType == "image.processed" || event.eventType == "image.deleted") {
+            rabbitImagePublisher.publishDomainEvent(event.eventType, event.payload)
+            return
+        }
         if (event.eventType != "notification.requested") throw UnsupportedEventTypeException(event.eventType)
         val payload = objectMapper.readTree(event.payload)
         val email = payload["recipientEmail"]?.asText() ?: throw IllegalArgumentException("recipientEmail 누락")
