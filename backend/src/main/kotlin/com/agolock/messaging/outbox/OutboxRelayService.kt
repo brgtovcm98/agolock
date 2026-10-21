@@ -1,4 +1,4 @@
-@file:Suppress("TooGenericExceptionCaught", "MaxLineLength", "MagicNumber")
+@file:Suppress("TooGenericExceptionCaught", "MaxLineLength", "MagicNumber", "SwallowedException", "ThrowsCount")
 
 package com.agolock.messaging.outbox
 
