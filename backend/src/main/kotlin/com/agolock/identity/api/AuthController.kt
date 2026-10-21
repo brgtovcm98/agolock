@@ -3,6 +3,7 @@ package com.agolock.identity.api
 import com.agolock.common.config.AuthProperties
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.identity.service.AuthService
+import com.agolock.identity.service.EmailVerificationService
 import com.agolock.identity.service.LoginCommand
 import com.agolock.identity.service.SessionService
 import com.agolock.identity.service.SignupCommand
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "auth")
 class AuthController(
     private val authService: AuthService,
+    private val emailVerificationService: EmailVerificationService,
     private val sessionService: SessionService,
     private val authProperties: AuthProperties,
 ) {
@@ -105,6 +107,27 @@ class AuthController(
         @Valid @RequestBody request: UpdateMeRequest,
     ): UserResponse = authService.updateDisplayName(principal.userId, request.displayName).user.toResponse()
 
+    @PostMapping("/email-verification/request")
+    @Operation(operationId = "requestEmailVerification", summary = "이메일 인증 요청")
+    fun requestEmailVerification(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+    ): ResponseEntity<Void> {
+        emailVerificationService.request(
+            com.agolock.hierarchy.domain.Actor
+                .from(principal),
+        )
+        return ResponseEntity.accepted().build()
+    }
+
+    @PostMapping("/email-verification/confirm")
+    @Operation(operationId = "confirmEmailVerification", summary = "이메일 인증 확인")
+    fun confirmEmailVerification(
+        @Valid @RequestBody request: EmailVerificationConfirmRequest,
+    ): ResponseEntity<Void> {
+        emailVerificationService.confirm(request.token)
+        return ResponseEntity.noContent().build()
+    }
+
     @PostMapping("/password-reset/request")
     @Operation(operationId = "requestPasswordReset", summary = "비밀번호 재설정 요청")
     fun requestPasswordReset(
@@ -134,6 +157,7 @@ private fun com.agolock.identity.domain.AppUser.toResponse(): UserResponse =
         email = email,
         displayName = displayName,
         status = status,
+        emailVerified = emailVerifiedAt != null,
     )
 
 private fun com.agolock.identity.service.AuthResult.toResponse(): UserResponse = user.toResponse()

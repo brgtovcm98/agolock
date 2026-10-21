@@ -78,6 +78,7 @@ data class UserResponse(
     val email: String,
     val displayName: String,
     val status: UserStatus,
+    val emailVerified: Boolean,
 )
 
 data class SpaceResponse(
@@ -94,6 +95,7 @@ fun AuthResult.toAuthMeResponse(): AuthMeResponse =
                 email = user.email,
                 displayName = user.displayName,
                 status = user.status,
+                emailVerified = user.emailVerifiedAt != null,
             ),
         space =
             SpaceResponse(
@@ -102,3 +104,7 @@ fun AuthResult.toAuthMeResponse(): AuthMeResponse =
                 ownerUserId = space.ownerUserId,
             ),
     )
+
+data class EmailVerificationConfirmRequest(
+    val token: String,
+)

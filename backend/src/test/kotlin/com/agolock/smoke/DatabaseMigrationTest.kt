@@ -63,6 +63,7 @@ class DatabaseMigrationTest
                 "audit_log",
                 "outbox_event",
                 "image",
+                "email_verification_token",
                 "spring_session",
                 "spring_session_attributes",
             )

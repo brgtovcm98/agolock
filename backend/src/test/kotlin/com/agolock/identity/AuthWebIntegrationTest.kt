@@ -44,8 +44,25 @@ class AuthWebIntegrationTest
         fun setUp() {
             client = AuthTestClient(restTemplate, objectMapper)
             fakeMailPort.messages.clear()
+            fakeMailPort.verificationMessages.clear()
             rateLimiter.clear()
             loginAttempts.clear()
+        }
+
+        @Test
+        fun `이메일 인증 토큰을 확인하면 emailVerified가 참이 된다`() {
+            client.signup(email(), PASSWORD, "지민")
+            assertThat(client.post("/api/v1/auth/email-verification/request", mapOf("x" to "y")).statusCode)
+                .isEqualTo(HttpStatus.ACCEPTED)
+            val token = fakeMailPort.verificationMessages.last().token
+            assertThat(
+                client.post("/api/v1/auth/email-verification/confirm", mapOf("token" to token)).statusCode,
+            ).isEqualTo(HttpStatus.NO_CONTENT)
+            val me = objectMapper.readTree(client.get("/api/v1/auth/me").body)
+            assertThat(me["user"]["emailVerified"].asBoolean()).isTrue()
+            assertThat(
+                client.post("/api/v1/auth/email-verification/confirm", mapOf("token" to token)).statusCode,
+            ).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
         }
 
         @Test

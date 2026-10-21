@@ -64,6 +64,7 @@ class SecurityConfig(
                         "/api/v1/auth/login",
                         "/api/v1/auth/password-reset/request",
                         "/api/v1/auth/password-reset/confirm",
+                        "/api/v1/auth/email-verification/confirm",
                         "/api/v1/info",
                         "/actuator/health/**",
                         "/v3/api-docs/**",

@@ -14,7 +14,7 @@ interface UserMapper {
     @Select(
         """
         SELECT id, email, password_hash, display_name, status::text AS status,
-               created_at, updated_at, deleted_at
+               created_at, updated_at, deleted_at, email_verified_at
         FROM app_user
         WHERE email = #{email} AND deleted_at IS NULL
         """,
@@ -26,7 +26,7 @@ interface UserMapper {
     @Select(
         """
         SELECT id, email, password_hash, display_name, status::text AS status,
-               created_at, updated_at, deleted_at
+               created_at, updated_at, deleted_at, email_verified_at
         FROM app_user
         WHERE id = #{id}
         """,
@@ -39,10 +39,10 @@ interface UserMapper {
         """
         INSERT INTO app_user (
             id, email, password_hash, display_name, status,
-            created_at, updated_at, deleted_at
+            created_at, updated_at, deleted_at, email_verified_at
         ) VALUES (
             #{id}, #{email}, #{passwordHash}, #{displayName},
-            CAST(#{status} AS user_status), #{createdAt}, #{updatedAt}, #{deletedAt}
+            CAST(#{status} AS user_status), #{createdAt}, #{updatedAt}, #{deletedAt}, #{emailVerifiedAt}
         )
         """,
     )
@@ -59,6 +59,18 @@ interface UserMapper {
         @Param("id") id: UUID,
         @Param("displayName") displayName: String,
         @Param("updatedAt") updatedAt: OffsetDateTime,
+    ): Int
+
+    @Update(
+        """
+        UPDATE app_user
+        SET email_verified_at = #{now}, updated_at = #{now}
+        WHERE id = #{id} AND deleted_at IS NULL
+        """,
+    )
+    fun markEmailVerified(
+        @Param("id") id: UUID,
+        @Param("now") now: OffsetDateTime,
     ): Int
 
     @Update(

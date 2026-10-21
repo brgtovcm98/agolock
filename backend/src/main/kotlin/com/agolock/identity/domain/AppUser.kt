@@ -18,4 +18,5 @@ data class AppUser(
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
     val deletedAt: OffsetDateTime? = null,
+    val emailVerifiedAt: OffsetDateTime? = null,
 )

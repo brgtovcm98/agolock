@@ -7,6 +7,12 @@ interface MailPort {
         token: String,
     )
 
+    fun sendEmailVerification(
+        email: String,
+        displayName: String,
+        token: String,
+    )
+
     fun sendShareInvitation(
         email: String,
         resourceType: String,

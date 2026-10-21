@@ -12,6 +12,12 @@ data class SentMail(
     val token: String,
 )
 
+data class SentVerificationMail(
+    val email: String,
+    val displayName: String,
+    val token: String,
+)
+
 data class SentInvitationMail(
     val email: String,
     val resourceType: String,
@@ -21,6 +27,7 @@ data class SentInvitationMail(
 class FakeMailPort : MailPort {
     val messages = CopyOnWriteArrayList<SentMail>()
     val invitationMessages = CopyOnWriteArrayList<SentInvitationMail>()
+    val verificationMessages = CopyOnWriteArrayList<SentVerificationMail>()
 
     override fun sendPasswordReset(
         email: String,
@@ -28,6 +35,14 @@ class FakeMailPort : MailPort {
         token: String,
     ) {
         messages += SentMail(email, displayName, token)
+    }
+
+    override fun sendEmailVerification(
+        email: String,
+        displayName: String,
+        token: String,
+    ) {
+        verificationMessages += SentVerificationMail(email, displayName, token)
     }
 
     override fun sendShareInvitation(

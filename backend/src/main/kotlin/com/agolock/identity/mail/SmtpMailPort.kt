@@ -61,6 +61,22 @@ class SmtpMailPort(
         mailSender.send(message)
     }
 
+    override fun sendEmailVerification(
+        email: String,
+        displayName: String,
+        token: String,
+    ) {
+        val sender = mailSenderProvider.getIfAvailable() ?: error("메일 발송이 설정되지 않았습니다.")
+        val link = "${appProperties.publicBaseUrl.trimEnd('/')}/verify-email#token=$token"
+        val message = sender.createMimeMessage()
+        val helper = MimeMessageHelper(message, true, "UTF-8")
+        helper.setFrom(appProperties.mail.from)
+        helper.setTo(email)
+        helper.setSubject("[AGO Lock] 이메일을 인증해 주세요")
+        helper.setText("안녕하세요 ${escapeHtml(displayName)}님.\n\n이메일 인증: $link\n24시간 안에 인증해 주세요.")
+        sender.send(message)
+    }
+
     override fun sendShareInvitation(
         email: String,
         resourceType: String,
