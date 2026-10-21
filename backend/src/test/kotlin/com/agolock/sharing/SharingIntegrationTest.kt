@@ -86,6 +86,25 @@ class SharingIntegrationTest
                         ).body,
                 )
             assertThat(invite["status"].asText()).isEqualTo("PENDING")
+            json(
+                owner
+                    .post(
+                        "/api/v1/share-invitations",
+                        mapOf(
+                            "roomId" to roomId,
+                            "invitedEmail" to "other-$guestEmail",
+                            "permission" to "VIEW",
+                        ),
+                    ).body,
+            )
+            val invitationPage = owner.get("/api/v1/share-invitations?status=PENDING&limit=1")
+            assertThat(invitationPage.statusCode).isEqualTo(HttpStatus.OK)
+            val invitationNext = json(invitationPage.body)["nextCursor"].asText()
+            assertThat(invitationNext).isNotBlank()
+            assertThat(owner.get("/api/v1/share-invitations?cursor=$invitationNext").statusCode)
+                .isEqualTo(HttpStatus.OK)
+            assertThat(owner.get("/api/v1/share-invitations?cursor=bad").statusCode)
+                .isEqualTo(HttpStatus.BAD_REQUEST)
 
             outboxRelay.relay()
             assertThat(mailPort.invitationMessages.any { it.email == guestEmail }).isTrue()

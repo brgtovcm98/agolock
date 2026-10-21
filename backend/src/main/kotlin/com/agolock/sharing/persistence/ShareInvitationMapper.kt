@@ -1,4 +1,4 @@
-@file:Suppress("LongParameterList", "MaxLineLength")
+@file:Suppress("LongParameterList", "MaxLineLength", "TooManyFunctions")
 
 package com.agolock.sharing.persistence
 
@@ -37,9 +37,43 @@ interface ShareInvitationMapper {
         @Param("now") now: OffsetDateTime,
     ): List<ShareInvitation>
 
-    @Select("SELECT * FROM share_invitation WHERE space_id = #{spaceId} ORDER BY created_at DESC")
-    fun listBySpace(
+    @Select(
+        """
+        <script>
+        SELECT * FROM share_invitation
+        WHERE space_id = #{spaceId}
+        <if test="status != null">AND status = CAST(#{status} AS invitation_status)</if>
+        <if test="cursorCreatedAt != null">AND (created_at, id) &lt; (#{cursorCreatedAt}, #{cursorId})</if>
+        ORDER BY created_at DESC, id DESC
+        LIMIT #{limit}
+        </script>
+        """,
+    )
+    fun listPageBySpace(
         @Param("spaceId") spaceId: UUID,
+        @Param("status") status: InvitationStatus?,
+        @Param("cursorCreatedAt") cursorCreatedAt: OffsetDateTime?,
+        @Param("cursorId") cursorId: UUID?,
+        @Param("limit") limit: Int,
+    ): List<ShareInvitation>
+
+    @Select(
+        """
+        <script>
+        SELECT * FROM share_invitation
+        WHERE invited_email = #{email} AND status = 'PENDING' AND expires_at > #{now}
+        <if test="cursorCreatedAt != null">AND (created_at, id) &lt; (#{cursorCreatedAt}, #{cursorId})</if>
+        ORDER BY created_at DESC, id DESC
+        LIMIT #{limit}
+        </script>
+        """,
+    )
+    fun listPagePendingReceived(
+        @Param("email") email: String,
+        @Param("now") now: OffsetDateTime,
+        @Param("cursorCreatedAt") cursorCreatedAt: OffsetDateTime?,
+        @Param("cursorId") cursorId: UUID?,
+        @Param("limit") limit: Int,
     ): List<ShareInvitation>
 
     @Insert(

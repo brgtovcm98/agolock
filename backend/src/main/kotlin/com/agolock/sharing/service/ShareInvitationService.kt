@@ -3,9 +3,11 @@
 package com.agolock.sharing.service
 
 import com.agolock.common.audit.AuditService
+import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.domain.Permission
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
@@ -109,16 +111,47 @@ class ShareInvitationService(
         return invitation.toResponse(room?.name, shelf?.name)
     }
 
-    fun listOwner(actor: Actor): List<ShareInvitationResponse> {
+    fun listOwner(
+        actor: Actor,
+        status: InvitationStatus?,
+        cursorRaw: String?,
+        limit: Int?,
+    ): PageResult<ShareInvitationResponse> {
         accessService.requireOwner(actor, actor.spaceId)
-        return invitationMapper.listBySpace(actor.spaceId).map { toResponse(it) }
+        val cursor = TimeCursorCodec.decode(cursorRaw)
+        val pageSize = TimeCursorCodec.limit(limit)
+        val rows =
+            invitationMapper.listPageBySpace(
+                actor.spaceId,
+                status,
+                cursor?.updatedAt,
+                cursor?.id,
+                pageSize + 1,
+            )
+        val page = rows.take(pageSize)
+        val next = if (rows.size > pageSize) page.lastOrNull()?.let { TimeCursorCodec.encode(it.createdAt, it.id) } else null
+        return PageResult(page.map { toResponse(it) }, next)
     }
 
-    fun listReceived(actor: Actor): List<ShareInvitationResponse> {
+    fun listReceived(
+        actor: Actor,
+        cursorRaw: String?,
+        limit: Int?,
+    ): PageResult<ShareInvitationResponse> {
         val user = userMapper.findById(actor.userId) ?: throw unauthenticated()
-        return invitationMapper
-            .listPendingReceived(user.email, OffsetDateTime.now(clock))
-            .map { toResponse(it) }
+        val cursor = TimeCursorCodec.decode(cursorRaw)
+        val pageSize = TimeCursorCodec.limit(limit)
+        val rows =
+            invitationMapper.listPagePendingReceived(
+                user.email,
+                OffsetDateTime.now(clock),
+                cursor?.updatedAt,
+                cursor?.id,
+                pageSize + 1,
+            )
+        val page = rows.take(pageSize)
+        val next = if (rows.size > pageSize) page.lastOrNull()?.let { TimeCursorCodec.encode(it.createdAt, it.id) } else null
+        return PageResult(page.map { toResponse(it) }, next)
     }
 
     @Transactional

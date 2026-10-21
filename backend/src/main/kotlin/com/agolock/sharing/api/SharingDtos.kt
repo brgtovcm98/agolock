@@ -57,6 +57,7 @@ data class ShareInvitationResponse(
 
 data class ShareInvitationListResponse(
     val items: List<ShareInvitationResponse>,
+    val nextCursor: String? = null,
 )
 
 data class InvitationTokenRequest(

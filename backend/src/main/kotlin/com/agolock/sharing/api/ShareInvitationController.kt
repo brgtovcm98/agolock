@@ -7,6 +7,7 @@ import com.agolock.common.error.ApiException
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.identity.persistence.UserMapper
 import com.agolock.identity.security.AppUserPrincipal
+import com.agolock.sharing.domain.InvitationStatus
 import com.agolock.sharing.service.CreateInvitationCommand
 import com.agolock.sharing.service.ShareInvitationService
 import io.swagger.v3.oas.annotations.Operation
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -36,7 +38,13 @@ class ShareInvitationController(
     @Operation(operationId = "listShareInvitations", summary = "보낸 초대 목록")
     fun list(
         @AuthenticationPrincipal principal: AppUserPrincipal,
-    ): ShareInvitationListResponse = ShareInvitationListResponse(invitationService.listOwner(Actor.from(principal)))
+        @RequestParam(required = false) status: InvitationStatus?,
+        @RequestParam(required = false) cursor: String?,
+        @RequestParam(required = false) limit: Int?,
+    ): ShareInvitationListResponse {
+        val page = invitationService.listOwner(Actor.from(principal), status, cursor, limit)
+        return ShareInvitationListResponse(page.items, page.nextCursor)
+    }
 
     @PostMapping
     @Operation(operationId = "createShareInvitation", summary = "공유 초대 생성")
@@ -61,9 +69,12 @@ class ShareInvitationController(
     @Operation(operationId = "listReceivedShareInvitations", summary = "받은 초대 목록")
     fun received(
         @AuthenticationPrincipal principal: AppUserPrincipal,
+        @RequestParam(required = false) cursor: String?,
+        @RequestParam(required = false) limit: Int?,
     ): ShareInvitationListResponse {
         ensureEmailDiscovery()
-        return ShareInvitationListResponse(invitationService.listReceived(Actor.from(principal)))
+        val page = invitationService.listReceived(Actor.from(principal), cursor, limit)
+        return ShareInvitationListResponse(page.items, page.nextCursor)
     }
 
     @PostMapping("/received/{invitationId}/accept")

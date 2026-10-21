@@ -1516,6 +1516,22 @@ paths:
     get:
       tags: [sharing]
       operationId: listShareInvitations
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, ACCEPTED, DECLINED, EXPIRED, REVOKED]
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
       responses:
         '200':
           description: 보낸 초대 목록
@@ -1592,6 +1608,17 @@ paths:
     get:
       tags: [sharing]
       operationId: listReceivedShareInvitations
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
       responses:
         '200':
           description: 받은 초대 목록
@@ -2965,6 +2992,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShareInvitation'
+        nextCursor:
+          type: [string, 'null']
     InvitationTokenRequest:
       type: object
       required: [token]
