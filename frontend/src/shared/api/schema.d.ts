@@ -1566,6 +1566,7 @@ export interface components {
         };
         ShareInvitationList: {
             items: components["schemas"]["ShareInvitation"][];
+            nextCursor?: string | null;
         };
         InvitationTokenRequest: {
             token: string;
@@ -3460,7 +3461,11 @@ export interface operations {
     };
     listShareInvitations: {
         parameters: {
-            query?: never;
+            query?: {
+                status?: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "REVOKED";
+                cursor?: string;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3561,7 +3566,10 @@ export interface operations {
     };
     listReceivedShareInvitations: {
         parameters: {
-            query?: never;
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
