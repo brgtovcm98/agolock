@@ -8,6 +8,7 @@
     "ComplexCondition",
     "UnusedParameter",
     "NestedBlockDepth",
+    "LongMethod",
 )
 
 package com.agolock.inventory.service
@@ -143,14 +144,28 @@ class InventoryService(
         if (command.status != com.agolock.inventory.domain.InventoryStatus.DISPOSED && command.confirmDisposal) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "폐기 확인은 DISPOSED 전환에만 사용할 수 있습니다.")
         }
-        if (command.categoryIdOverride != null && categoryMapper.findById(current.spaceId, command.categoryIdOverride) == null) {
+        if (command.categoryIdOverridePresent &&
+            command.categoryIdOverride != null &&
+            categoryMapper.findById(current.spaceId, command.categoryIdOverride) == null
+        ) {
             throw notFound("카테고리를 찾을 수 없습니다.")
         }
-        val nameOverride = command.nameOverride?.trim()?.takeIf(String::isNotEmpty) ?: current.nameOverride
+        val nameOverride =
+            if (command.nameOverridePresent) {
+                command.nameOverride?.trim()?.takeIf(String::isNotEmpty)
+            } else {
+                current.nameOverride
+            }
         val descriptionOverride =
-            command.descriptionOverride?.trim()?.takeIf(String::isNotEmpty) ?: current.descriptionOverride
-        val categoryIdOverride = command.categoryIdOverride ?: current.categoryIdOverride
-        val priceAmountOverride = command.priceAmountOverride ?: current.priceAmountOverride
+            if (command.descriptionOverridePresent) {
+                command.descriptionOverride?.trim()?.takeIf(String::isNotEmpty)
+            } else {
+                current.descriptionOverride
+            }
+        val categoryIdOverride =
+            if (command.categoryIdOverridePresent) command.categoryIdOverride else current.categoryIdOverride
+        val priceAmountOverride =
+            if (command.priceAmountOverridePresent) command.priceAmountOverride else current.priceAmountOverride
         if (
             nameOverride == current.nameOverride &&
             descriptionOverride == current.descriptionOverride &&

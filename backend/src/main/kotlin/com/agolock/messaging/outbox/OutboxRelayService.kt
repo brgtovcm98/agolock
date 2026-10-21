@@ -29,7 +29,8 @@ class OutboxRelayService(
                 deliver(event)
                 mapper.markPublished(event.id, now)
             } catch (exception: Exception) {
-                mapper.markFailed(event.id, exception.javaClass.simpleName)
+                val retryAt = now.plusSeconds((event.attempts + 1).toLong() * 30L)
+                mapper.markFailed(event.id, exception.javaClass.simpleName, retryAt)
                 log.warn("Outbox 발송 실패 id={} type={} reason={}", event.id, event.eventType, exception.javaClass.simpleName)
             }
         }

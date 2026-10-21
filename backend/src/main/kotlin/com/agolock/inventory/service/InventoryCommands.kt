@@ -27,6 +27,9 @@ data class UpdateItemCommand(
     val description: String?,
     val categoryId: UUID?,
     val priceAmount: Int?,
+    val descriptionPresent: Boolean,
+    val categoryIdPresent: Boolean,
+    val priceAmountPresent: Boolean,
     val version: Long,
 )
 
@@ -43,6 +46,10 @@ data class UpdateInventoryCommand(
     val descriptionOverride: String?,
     val categoryIdOverride: UUID?,
     val priceAmountOverride: Int?,
+    val nameOverridePresent: Boolean,
+    val descriptionOverridePresent: Boolean,
+    val categoryIdOverridePresent: Boolean,
+    val priceAmountOverridePresent: Boolean,
     val status: InventoryStatus,
     val confirmDisposal: Boolean,
     val version: Long,

@@ -93,6 +93,9 @@ class ItemController(
                     request.description,
                     request.categoryId,
                     request.priceAmount,
+                    request.descriptionPresent,
+                    request.categoryIdPresent,
+                    request.priceAmountPresent,
                     request.version ?: 0,
                 ),
             )

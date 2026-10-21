@@ -99,10 +99,33 @@ class InventoryIntegrationTest
             assertThat(json(updated.body)["displayName"].asText()).isEqualTo("내 책")
             assertThat(json(updated.body)["status"].asText()).isEqualTo("IN_USE")
 
+            val statusOnly =
+                client.patch(
+                    "/api/v1/inventories/$inventoryId",
+                    mapOf("status" to "IN_USE", "version" to 1),
+                )
+            assertThat(json(statusOnly.body)["displayName"].asText()).isEqualTo("내 책")
+            assertThat(json(statusOnly.body)["version"].asLong()).isEqualTo(1)
+            val cleared =
+                client.patchRaw(
+                    "/api/v1/inventories/$inventoryId",
+                    """{"nameOverride":null,"status":"IN_USE","version":1}""",
+                )
+            assertThat(json(cleared.body)["displayName"].asText()).isEqualTo("책")
+            assertThat(json(cleared.body)["version"].asLong()).isEqualTo(2)
+
+            val priceOnly =
+                client.patch(
+                    "/api/v1/items/${item["id"].asText()}",
+                    mapOf("priceAmount" to 15000, "version" to 0),
+                )
+            assertThat(json(priceOnly.body)["description"].asText()).isEqualTo("마스터 설명")
+            assertThat(json(priceOnly.body)["priceAmount"].asInt()).isEqualTo(15000)
+
             val moved =
                 client.patch(
                     "/api/v1/inventories/$inventoryId/location",
-                    mapOf("shelfId" to shelf["id"].asText(), "version" to 1),
+                    mapOf("shelfId" to shelf["id"].asText(), "version" to 2),
                 )
             assertThat(moved.statusCode).isEqualTo(HttpStatus.OK)
             assertThat(json(moved.body)["location"]["type"].asText()).isEqualTo("SHELF")

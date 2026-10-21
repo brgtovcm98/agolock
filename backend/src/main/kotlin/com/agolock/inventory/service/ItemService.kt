@@ -97,9 +97,14 @@ class ItemService(
         validateCategory(actor, command.categoryId)
         val name = command.name?.trim() ?: current.name
         if (name.isEmpty() || name.length > 120) throw validation("Item 이름은 1~120자여야 합니다.")
-        val description = command.description?.trim()?.takeIf(String::isNotEmpty) ?: current.description
-        val categoryId = command.categoryId ?: current.categoryId
-        val priceAmount = command.priceAmount ?: current.priceAmount
+        val description =
+            if (command.descriptionPresent) {
+                command.description?.trim()?.takeIf(String::isNotEmpty)
+            } else {
+                current.description
+            }
+        val categoryId = if (command.categoryIdPresent) command.categoryId else current.categoryId
+        val priceAmount = if (command.priceAmountPresent) command.priceAmount else current.priceAmount
         if (name == current.name &&
             description == current.description &&
             categoryId == current.categoryId &&

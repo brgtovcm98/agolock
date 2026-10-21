@@ -52,9 +52,19 @@ interface OutboxEventMapper {
         @Param("now") now: OffsetDateTime,
     ): Int
 
-    @Update("UPDATE outbox_event SET status = 'FAILED', attempts = attempts + 1, last_error = #{error} WHERE id = #{id}")
+    @Update(
+        """
+        UPDATE outbox_event
+        SET attempts = attempts + 1,
+            last_error = #{error},
+            status = CASE WHEN attempts + 1 >= 5 THEN 'FAILED' ELSE 'PENDING' END,
+            available_at = #{availableAt}
+        WHERE id = #{id}
+        """,
+    )
     fun markFailed(
         @Param("id") id: UUID,
         @Param("error") error: String,
+        @Param("availableAt") availableAt: OffsetDateTime,
     ): Int
 }

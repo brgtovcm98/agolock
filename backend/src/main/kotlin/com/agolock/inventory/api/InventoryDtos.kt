@@ -6,6 +6,13 @@ import com.agolock.inventory.domain.Category
 import com.agolock.inventory.domain.InventoryMovement
 import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.domain.Item
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -39,13 +46,84 @@ data class CreateItemRequest(
     @field:Min(0) val priceAmount: Int? = null,
 )
 
-data class UpdateItemRequest(
-    @field:Size(min = 1, max = 120) val name: String? = null,
-    @field:Size(max = 2000) val description: String? = null,
-    val categoryId: UUID? = null,
-    @field:Min(0) val priceAmount: Int? = null,
-    @field:NotNull val version: Long? = null,
-)
+@JsonDeserialize(using = UpdateItemRequestDeserializer::class)
+class UpdateItemRequest {
+    @field:Size(min = 1, max = 120)
+    var name: String? = null
+        private set
+
+    @field:Size(max = 2000)
+    var description: String? = null
+        private set
+
+    var categoryId: UUID? = null
+        private set
+
+    @field:Min(0)
+    var priceAmount: Int? = null
+        private set
+
+    @field:NotNull
+    var version: Long? = null
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var descriptionPresent: Boolean = false
+        private set
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var categoryIdPresent: Boolean = false
+        private set
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var priceAmountPresent: Boolean = false
+        private set
+
+    fun applyName(value: String?) {
+        name = value
+    }
+
+    fun applyDescription(value: String?) {
+        description = value
+        descriptionPresent = true
+    }
+
+    fun applyCategoryId(value: UUID?) {
+        categoryId = value
+        categoryIdPresent = true
+    }
+
+    fun applyPriceAmount(value: Int?) {
+        priceAmount = value
+        priceAmountPresent = true
+    }
+}
+
+class UpdateItemRequestDeserializer : StdDeserializer<UpdateItemRequest>(UpdateItemRequest::class.java) {
+    override fun deserialize(
+        parser: JsonParser,
+        context: DeserializationContext,
+    ): UpdateItemRequest {
+        val node = parser.readValueAsTree<JsonNode>()
+        val request = UpdateItemRequest()
+        request.applyName(node.get("name")?.takeUnless(JsonNode::isNull)?.asText())
+        if (node.has("description")) request.applyDescription(node.get("description").takeUnless(JsonNode::isNull)?.asText())
+        if (node.has("categoryId")) {
+            request.applyCategoryId(
+                node
+                    .get("categoryId")
+                    .takeUnless(JsonNode::isNull)
+                    ?.asText()
+                    ?.let(UUID::fromString),
+            )
+        }
+        if (node.has("priceAmount")) request.applyPriceAmount(node.get("priceAmount").takeUnless(JsonNode::isNull)?.asInt())
+        request.version = node.get("version")?.takeUnless(JsonNode::isNull)?.asLong()
+        return request
+    }
+}
 
 data class ItemResponse(
     val id: UUID,
@@ -96,15 +174,108 @@ data class CreateInventoryRequest(
     val status: InventoryStatus = InventoryStatus.STORED,
 )
 
-data class UpdateInventoryRequest(
-    @field:Size(max = 120) val nameOverride: String? = null,
-    @field:Size(max = 2000) val descriptionOverride: String? = null,
-    val categoryIdOverride: UUID? = null,
-    @field:Min(0) val priceAmountOverride: Int? = null,
-    @field:NotNull val status: InventoryStatus? = null,
-    val confirmDisposal: Boolean = false,
-    @field:NotNull val version: Long? = null,
-)
+@JsonDeserialize(using = UpdateInventoryRequestDeserializer::class)
+class UpdateInventoryRequest {
+    @field:Size(max = 120)
+    var nameOverride: String? = null
+        private set
+
+    @field:Size(max = 2000)
+    var descriptionOverride: String? = null
+        private set
+
+    var categoryIdOverride: UUID? = null
+        private set
+
+    @field:Min(0)
+    var priceAmountOverride: Int? = null
+        private set
+
+    @field:NotNull
+    var status: InventoryStatus? = null
+
+    var confirmDisposal: Boolean = false
+
+    @field:NotNull
+    var version: Long? = null
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var nameOverridePresent: Boolean = false
+        private set
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var descriptionOverridePresent: Boolean = false
+        private set
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var categoryIdOverridePresent: Boolean = false
+        private set
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var priceAmountOverridePresent: Boolean = false
+        private set
+
+    fun applyNameOverride(value: String?) {
+        nameOverride = value
+        nameOverridePresent = true
+    }
+
+    fun applyDescriptionOverride(value: String?) {
+        descriptionOverride = value
+        descriptionOverridePresent = true
+    }
+
+    fun applyCategoryIdOverride(value: UUID?) {
+        categoryIdOverride = value
+        categoryIdOverridePresent = true
+    }
+
+    fun applyPriceAmountOverride(value: Int?) {
+        priceAmountOverride = value
+        priceAmountOverridePresent = true
+    }
+}
+
+class UpdateInventoryRequestDeserializer : StdDeserializer<UpdateInventoryRequest>(UpdateInventoryRequest::class.java) {
+    override fun deserialize(
+        parser: JsonParser,
+        context: DeserializationContext,
+    ): UpdateInventoryRequest {
+        val node = parser.readValueAsTree<JsonNode>()
+        val request = UpdateInventoryRequest()
+        if (node.has("nameOverride")) {
+            request.applyNameOverride(node.get("nameOverride").takeUnless(JsonNode::isNull)?.asText())
+        }
+        if (node.has("descriptionOverride")) {
+            request.applyDescriptionOverride(node.get("descriptionOverride").takeUnless(JsonNode::isNull)?.asText())
+        }
+        if (node.has("categoryIdOverride")) {
+            request.applyCategoryIdOverride(
+                node
+                    .get("categoryIdOverride")
+                    .takeUnless(JsonNode::isNull)
+                    ?.asText()
+                    ?.let(UUID::fromString),
+            )
+        }
+        if (node.has("priceAmountOverride")) {
+            request.applyPriceAmountOverride(node.get("priceAmountOverride").takeUnless(JsonNode::isNull)?.asInt())
+        }
+        request.status =
+            node
+                .get("status")
+                ?.takeUnless(JsonNode::isNull)
+                ?.asText()
+                ?.let(InventoryStatus::valueOf)
+        request.confirmDisposal = node.get("confirmDisposal")?.asBoolean() ?: false
+        request.version = node.get("version")?.takeUnless(JsonNode::isNull)?.asLong()
+        return request
+    }
+}
 
 data class MoveInventoryRequest(
     val roomId: UUID? = null,
