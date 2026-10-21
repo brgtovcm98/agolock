@@ -80,7 +80,12 @@ class ItemController(
     fun get(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable itemId: UUID,
-    ): ItemResponse = itemService.get(Actor.from(principal), itemId).toResponse()
+    ): ItemResponse {
+        val actor = Actor.from(principal)
+        val item = itemService.getReadable(actor, itemId)
+        val permission = itemService.permission(actor, item)
+        return item.toResponse(permission.name, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+    }
 
     @PatchMapping("/{itemId}")
     @Operation(operationId = "updateItem", summary = "Item 수정")

@@ -1,4 +1,4 @@
-@file:Suppress("ThrowsCount", "MagicNumber", "ComplexCondition", "TooManyFunctions", "MaxLineLength")
+@file:Suppress("ThrowsCount", "MagicNumber", "ComplexCondition", "TooManyFunctions", "MaxLineLength", "LongParameterList")
 
 package com.agolock.inventory.service
 
@@ -7,6 +7,8 @@ import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.PageResult
+import com.agolock.hierarchy.persistence.BoxMapper
+import com.agolock.hierarchy.persistence.ShelfMapper
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.inventory.domain.Item
 import com.agolock.inventory.persistence.CategoryMapper
@@ -24,6 +26,8 @@ class ItemService(
     private val itemMapper: ItemMapper,
     private val categoryMapper: CategoryMapper,
     private val inventoryMapper: InventoryMapper,
+    private val shelfMapper: ShelfMapper,
+    private val boxMapper: BoxMapper,
     private val accessService: AccessService,
     private val clock: Clock,
 ) {
@@ -51,6 +55,41 @@ class ItemService(
     ): Item {
         accessService.requireOwner(actor, actor.spaceId)
         return requireItem(actor, itemId)
+    }
+
+    fun getReadable(
+        actor: Actor,
+        itemId: UUID,
+    ): Item {
+        val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
+        if (permission(actor, item) == com.agolock.hierarchy.domain.Permission.NONE) {
+            throw notFound("Item을 찾을 수 없습니다.")
+        }
+        return item
+    }
+
+    fun permission(
+        actor: Actor,
+        item: Item,
+    ): com.agolock.hierarchy.domain.Permission {
+        if (item.spaceId == actor.spaceId) {
+            return accessService.effectivePermission(actor, accessService.target(item.spaceId))
+        }
+        return inventoryMapper
+            .listAllByItem(item.spaceId, item.id)
+            .map { inventory ->
+                val shelf = inventory.shelfId?.let { shelfMapper.findByIdAny(it) }
+                val boxShelf = inventory.boxId?.let { boxMapper.findByIdAny(it)?.let { box -> shelfMapper.findByIdAny(box.shelfId) } }
+                accessService.effectivePermission(
+                    actor,
+                    accessService.target(
+                        item.spaceId,
+                        inventory.roomId ?: shelf?.roomId ?: boxShelf?.roomId,
+                        inventory.shelfId,
+                        inventory.boxId,
+                    ),
+                )
+            }.fold(com.agolock.hierarchy.domain.Permission.NONE) { max, next -> if (next > max) next else max }
     }
 
     fun updateImpact(
@@ -166,6 +205,8 @@ class ItemService(
             throw ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다.")
         }
     }
+
+    private fun notFound(message: String) = ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, message)
 
     private fun validation(message: String) = ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, message)
 

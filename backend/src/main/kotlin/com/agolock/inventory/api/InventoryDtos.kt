@@ -135,6 +135,8 @@ data class ItemResponse(
     val version: Long,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
+    val effectivePermission: String = "OWNER",
+    val isShared: Boolean = false,
 )
 
 data class InventoryLocationResponse(
@@ -321,7 +323,11 @@ data class CategoryListResponse(
 
 fun Category.toResponse(): CategoryResponse = CategoryResponse(id, name, color, sortOrder)
 
-fun Item.toResponse(): ItemResponse = ItemResponse(id, name, description, categoryId, priceAmount, currency, version, createdAt, updatedAt)
+fun Item.toResponse(
+    permission: String = "OWNER",
+    isShared: Boolean = false,
+): ItemResponse =
+    ItemResponse(id, name, description, categoryId, priceAmount, currency, version, createdAt, updatedAt, permission, isShared)
 
 fun InventoryMovement.toResponse(locationLoader: (UUID?, UUID?, UUID?) -> InventoryLocationResponse): MovementResponse =
     MovementResponse(

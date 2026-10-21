@@ -124,9 +124,16 @@ class InventoryService(
         actor: Actor,
         itemId: UUID,
     ): List<InventoryResponse> {
-        accessService.requireOwner(actor, actor.spaceId)
-        itemMapper.findById(actor.spaceId, itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        return inventoryMapper.listByItem(actor.spaceId, itemId).map { toResponse(actor, it, "OWNER") }
+        val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
+        if (item.spaceId == actor.spaceId) {
+            accessService.requireOwner(actor, actor.spaceId)
+            return inventoryMapper.listByItem(actor.spaceId, itemId).map { toResponse(actor, it, "OWNER") }
+        }
+        return inventoryMapper.listAllByItem(item.spaceId, itemId).mapNotNull { inventory ->
+            val target = inventoryTarget(inventory)
+            val permission = accessService.effectivePermission(actor, target)
+            if (permission == com.agolock.hierarchy.domain.Permission.NONE) null else toResponse(actor, inventory, permission.name)
+        }
     }
 
     fun get(
