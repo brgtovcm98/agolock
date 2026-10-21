@@ -60,6 +60,12 @@ interface ShareInvitationMapper {
         @Param("now") now: OffsetDateTime,
     ): Int
 
+    @Update("UPDATE share_invitation SET token_hash = #{tokenHash} WHERE id = #{id} AND status = 'PENDING'")
+    fun updateTokenHash(
+        @Param("id") id: UUID,
+        @Param("tokenHash") tokenHash: String,
+    ): Int
+
     @Update(
         """
         UPDATE share_invitation SET status = CAST(#{status} AS invitation_status), invited_user_id = #{invitedUserId},

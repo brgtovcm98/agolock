@@ -217,6 +217,42 @@ class ShareInvitationService(
     }
 
     @Transactional
+    fun resend(
+        actor: Actor,
+        invitationId: UUID,
+    ): ShareInvitationResponse {
+        accessService.requireOwner(actor, actor.spaceId)
+        val invitation = invitationMapper.findByIdForUpdate(invitationId) ?: throw notFound("초대를 찾을 수 없습니다.")
+        if (invitation.spaceId != actor.spaceId || invitation.status != InvitationStatus.PENDING) throw notPending()
+        if (!invitation.expiresAt.isAfter(OffsetDateTime.now(clock))) {
+            throw ApiException("INVITATION_EXPIRED", HttpStatus.CONFLICT, "만료된 초대입니다.")
+        }
+        val rawToken = tokenService.createToken()
+        if (invitationMapper.updateTokenHash(invitation.id, tokenService.hashToken(rawToken)) == 0) throw notPending()
+        outboxService.enqueueInvitation(
+            invitation.spaceId,
+            invitation.id,
+            mapOf(
+                "recipientEmail" to invitation.invitedEmail,
+                "templateKey" to "SHARE_INVITATION",
+                "invitationId" to invitation.id,
+                "token" to rawToken,
+                "expiresAt" to invitation.expiresAt,
+                "resourceType" to if (invitation.roomId != null) "ROOM" else "SHELF",
+            ),
+        )
+        auditService.record(
+            invitation.spaceId,
+            actor.userId,
+            "SHARE_INVITATION_RESENT",
+            "SHARE_INVITATION",
+            invitation.id,
+            mapOf("roomId" to invitation.roomId, "shelfId" to invitation.shelfId),
+        )
+        return toResponse(invitation)
+    }
+
+    @Transactional
     fun revoke(
         actor: Actor,
         invitationId: UUID,

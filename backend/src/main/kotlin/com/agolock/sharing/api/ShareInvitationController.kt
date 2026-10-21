@@ -90,6 +90,16 @@ class ShareInvitationController(
         return ResponseEntity.noContent().build()
     }
 
+    @PostMapping("/{invitationId}/resend")
+    @Operation(operationId = "resendShareInvitation", summary = "초대 재발송")
+    fun resend(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable invitationId: UUID,
+    ): ResponseEntity<ShareInvitationResponse> =
+        ResponseEntity.status(HttpStatus.ACCEPTED).body(
+            invitationService.resend(Actor.from(principal), invitationId),
+        )
+
     @DeleteMapping("/{invitationId}")
     @Operation(operationId = "revokeShareInvitation", summary = "초대 철회")
     fun revoke(
