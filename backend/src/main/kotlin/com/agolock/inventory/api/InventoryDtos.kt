@@ -191,7 +191,6 @@ class UpdateInventoryRequest {
     var priceAmountOverride: Int? = null
         private set
 
-    @field:NotNull
     var status: InventoryStatus? = null
 
     var confirmDisposal: Boolean = false
@@ -218,6 +217,16 @@ class UpdateInventoryRequest {
     @get:Schema(hidden = true)
     var priceAmountOverridePresent: Boolean = false
         private set
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var statusPresent: Boolean = false
+        private set
+
+    fun applyStatus(value: InventoryStatus?) {
+        status = value
+        statusPresent = true
+    }
 
     fun applyNameOverride(value: String?) {
         nameOverride = value
@@ -265,12 +274,15 @@ class UpdateInventoryRequestDeserializer : StdDeserializer<UpdateInventoryReques
         if (node.has("priceAmountOverride")) {
             request.applyPriceAmountOverride(node.get("priceAmountOverride").takeUnless(JsonNode::isNull)?.asInt())
         }
-        request.status =
-            node
-                .get("status")
-                ?.takeUnless(JsonNode::isNull)
-                ?.asText()
-                ?.let(InventoryStatus::valueOf)
+        if (node.has("status")) {
+            request.applyStatus(
+                node
+                    .get("status")
+                    .takeUnless(JsonNode::isNull)
+                    ?.asText()
+                    ?.let(InventoryStatus::valueOf),
+            )
+        }
         request.confirmDisposal = node.get("confirmDisposal")?.asBoolean() ?: false
         request.version = node.get("version")?.takeUnless(JsonNode::isNull)?.asLong()
         return request
@@ -331,6 +343,11 @@ data class LocationListResponse(
 
 data class MergeCategoryRequest(
     @field:NotNull val targetCategoryId: UUID? = null,
+)
+
+data class CategoryMergeResponse(
+    val mergedItemCount: Int,
+    val mergedInventoryCount: Int,
 )
 
 data class ItemUpdateImpactResponse(

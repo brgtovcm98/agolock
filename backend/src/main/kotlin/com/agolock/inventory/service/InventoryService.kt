@@ -174,10 +174,20 @@ class InventoryService(
         val target = inventoryTarget(current)
         val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.EDIT)
         if (current.version != command.version) throw versionConflict()
-        if (command.status == com.agolock.inventory.domain.InventoryStatus.DISPOSED && !command.confirmDisposal) {
+        val targetStatus =
+            if (command.statusPresent) {
+                command.status ?: throw ApiException(
+                    "VALIDATION_FAILED",
+                    HttpStatus.BAD_REQUEST,
+                    "status는 null일 수 없습니다.",
+                )
+            } else {
+                current.status
+            }
+        if (targetStatus == com.agolock.inventory.domain.InventoryStatus.DISPOSED && !command.confirmDisposal) {
             throw ApiException("DISPOSAL_CONFIRMATION_REQUIRED", HttpStatus.UNPROCESSABLE_ENTITY, "폐기 확인이 필요합니다.")
         }
-        if (command.status != com.agolock.inventory.domain.InventoryStatus.DISPOSED && command.confirmDisposal) {
+        if (targetStatus != com.agolock.inventory.domain.InventoryStatus.DISPOSED && command.confirmDisposal) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "폐기 확인은 DISPOSED 전환에만 사용할 수 있습니다.")
         }
         if (command.categoryIdOverridePresent &&
@@ -207,7 +217,7 @@ class InventoryService(
             descriptionOverride == current.descriptionOverride &&
             categoryIdOverride == current.categoryIdOverride &&
             priceAmountOverride == current.priceAmountOverride &&
-            command.status == current.status
+            targetStatus == current.status
         ) {
             return toResponse(actor, current, permission.name)
         }
@@ -219,7 +229,7 @@ class InventoryService(
                 descriptionOverride,
                 categoryIdOverride,
                 priceAmountOverride,
-                command.status,
+                targetStatus,
                 command.version,
                 OffsetDateTime.now(clock),
             )

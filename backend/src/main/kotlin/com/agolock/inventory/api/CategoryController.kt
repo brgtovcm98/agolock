@@ -80,9 +80,10 @@ class CategoryController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable categoryId: UUID,
         @Valid @RequestBody request: MergeCategoryRequest,
-    ): ResponseEntity<Void> {
-        categoryService.merge(Actor.from(principal), categoryId, request.targetCategoryId!!)
-        return ResponseEntity.noContent().build()
+    ): CategoryMergeResponse {
+        val (items, inventories) =
+            categoryService.merge(Actor.from(principal), categoryId, request.targetCategoryId!!)
+        return CategoryMergeResponse(items, inventories)
     }
 
     @DeleteMapping("/{categoryId}")

@@ -50,7 +50,8 @@ data class UpdateInventoryCommand(
     val descriptionOverridePresent: Boolean,
     val categoryIdOverridePresent: Boolean,
     val priceAmountOverridePresent: Boolean,
-    val status: InventoryStatus,
+    val statusPresent: Boolean,
+    val status: InventoryStatus?,
     val confirmDisposal: Boolean,
     val version: Long,
 )

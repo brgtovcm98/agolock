@@ -190,7 +190,9 @@ class InventoryIntegrationTest
                     "/api/v1/categories/${source["id"].asText()}/merge",
                     mapOf("targetCategoryId" to target["id"].asText()),
                 )
-            assertThat(merged.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            assertThat(merged.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(merged.body)["mergedItemCount"].asInt()).isEqualTo(1)
+            assertThat(json(merged.body)["mergedInventoryCount"].asInt()).isEqualTo(0)
             val afterMerge = client.get("/api/v1/items/${item["id"].asText()}")
             assertThat(afterMerge.statusCode).isEqualTo(HttpStatus.OK)
             assertThat(json(afterMerge.body)["categoryId"].asText()).isEqualTo(target["id"].asText())

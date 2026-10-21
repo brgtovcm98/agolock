@@ -93,15 +93,16 @@ class CategoryService(
         actor: Actor,
         sourceId: UUID,
         targetId: UUID,
-    ) {
+    ): Pair<Int, Int> {
         accessService.requireOwner(actor, actor.spaceId)
         if (sourceId == targetId) throw validation("같은 카테고리로 병합할 수 없습니다.")
         requireCategory(actor, sourceId)
         requireCategory(actor, targetId)
         val now = OffsetDateTime.now(clock)
-        itemMapper.reassignCategory(actor.spaceId, sourceId, targetId, now)
-        inventoryMapper.reassignCategoryOverride(actor.spaceId, sourceId, targetId, now)
+        val items = itemMapper.reassignCategory(actor.spaceId, sourceId, targetId, now)
+        val inventories = inventoryMapper.reassignCategoryOverride(actor.spaceId, sourceId, targetId, now)
         categoryMapper.softDelete(actor.spaceId, sourceId, now)
+        return items to inventories
     }
 
     @Transactional
