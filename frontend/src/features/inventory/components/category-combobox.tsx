@@ -44,6 +44,7 @@ export function CategoryCombobox({
         <label className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className="text-xs font-black">카테고리 (선택)</span>
           <select
+            aria-label="카테고리"
             value={value}
             onChange={(event) => onChange(event.target.value)}
             className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"

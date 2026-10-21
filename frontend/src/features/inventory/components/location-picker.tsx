@@ -86,6 +86,7 @@ export function LocationPicker({
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] font-black">방</span>
           <select
+            aria-label="방"
             value={roomId}
             onChange={(event) => {
               const next = event.target.value
@@ -104,6 +105,7 @@ export function LocationPicker({
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] font-black">선반 (선택)</span>
           <select
+            aria-label="선반"
             value={shelfId}
             disabled={!roomId}
             onChange={(event) => {
@@ -123,6 +125,7 @@ export function LocationPicker({
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] font-black">박스 (선택)</span>
           <select
+            aria-label="박스"
             value={boxId}
             disabled={!shelfId}
             onChange={(event) => {
