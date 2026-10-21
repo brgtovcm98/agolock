@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.bouncycastle)
     implementation(libs.aws.s3)
     implementation(libs.aws.url.connection.client)
+    implementation(libs.webp.imageio)
     implementation(libs.springdoc.openapi)
     implementation(libs.mybatis.spring.boot.starter)
     implementation(libs.logstash.logback.encoder)

@@ -72,6 +72,33 @@ class S3ImageStorageAdapter(
             null
         }
 
+    override fun getObject(objectKey: String): ByteArray =
+        s3Client
+            .getObjectAsBytes(
+                software.amazon.awssdk.services.s3.model.GetObjectRequest
+                    .builder()
+                    .bucket(properties.storage.bucket)
+                    .key(objectKey)
+                    .build(),
+            ).asByteArray()
+
+    override fun putObject(
+        objectKey: String,
+        bytes: ByteArray,
+        contentType: String,
+    ) {
+        s3Client.putObject(
+            PutObjectRequest
+                .builder()
+                .bucket(properties.storage.bucket)
+                .key(objectKey)
+                .contentType(contentType)
+                .build(),
+            software.amazon.awssdk.core.sync.RequestBody
+                .fromBytes(bytes),
+        )
+    }
+
     override fun delete(objectKey: String) {
         s3Client.deleteObject(
             DeleteObjectRequest

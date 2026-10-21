@@ -17,6 +17,14 @@ interface ImageStoragePort {
 
     fun head(objectKey: String): StoredObject?
 
+    fun getObject(objectKey: String): ByteArray
+
+    fun putObject(
+        objectKey: String,
+        bytes: ByteArray,
+        contentType: String,
+    )
+
     fun delete(objectKey: String)
 }
 

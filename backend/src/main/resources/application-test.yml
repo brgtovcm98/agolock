@@ -14,3 +14,7 @@ spring:
     host: localhost
     port: 1025
     from: no-reply@agolock.local
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false

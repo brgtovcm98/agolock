@@ -118,6 +118,45 @@ interface ImageMapper {
     @Update(
         """
         UPDATE image
+        SET status = 'PROCESSING', processing_attempts = processing_attempts + 1, updated_at = #{now}
+        WHERE id = #{id} AND status IN ('PENDING', 'FAILED') AND processing_attempts < 5
+        """,
+    )
+    fun claimForProcessing(
+        @Param("id") id: UUID,
+        @Param("now") now: OffsetDateTime,
+    ): Int
+
+    @Update(
+        """
+        UPDATE image
+        SET status = 'READY', mime_type = #{mimeType}, size_bytes = #{sizeBytes},
+            width = #{width}, height = #{height}, sha256 = #{sha256},
+            thumbnail_key = #{thumbnailKey}, processed_at = #{now}, updated_at = #{now}
+        WHERE id = #{id} AND status = 'PROCESSING'
+        """,
+    )
+    fun markReady(
+        @Param("id") id: UUID,
+        @Param("mimeType") mimeType: String,
+        @Param("sizeBytes") sizeBytes: Long,
+        @Param("width") width: Int,
+        @Param("height") height: Int,
+        @Param("sha256") sha256: String,
+        @Param("thumbnailKey") thumbnailKey: String,
+        @Param("now") now: OffsetDateTime,
+    ): Int
+
+    @Update("UPDATE image SET status = 'FAILED', last_error = #{error}, updated_at = #{now} WHERE id = #{id} AND status = 'PROCESSING'")
+    fun markProcessingFailed(
+        @Param("id") id: UUID,
+        @Param("error") error: String,
+        @Param("now") now: OffsetDateTime,
+    ): Int
+
+    @Update(
+        """
+        UPDATE image
         SET status = CAST(#{status} AS image_status), mime_type = #{mimeType},
             size_bytes = #{sizeBytes}, upload_completed_at = #{now}, updated_at = #{now}
         WHERE id = #{id} AND status = 'UPLOADING'

@@ -1,6 +1,6 @@
 # PLAN-006: M5 이미지·메시징 상세 구현 계획
 
-> 상태: M5 기반 구현 착수 (V15 schema·S3·presign/complete·목록/URL·Outbox/Rabbit 발행)
+> 상태: M5 구현 진행 중 (V15 schema·S3·presign/complete·목록/URL·대표/삭제·Outbox/Rabbit 발행, worker 착수). 완료 후 M5.5 close-out review를 거칩니다.
 > 역할: M5 이미지 수명주기, S3/MinIO, 후처리 worker, Outbox, 정리 job, 갤러리 UI 실행 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 계획: [PLAN-001 기반](PLAN-001-foundation.md), [PLAN-001 후속](PLAN-001-foundation-delivery.md)
@@ -12,7 +12,7 @@
 
 | 구분 | 내용 |
 |---|---|
-| 포함 | `image` 7개 상태, presign·complete·URL·배치 URL·대표·삭제 API, Item/Inventory/DRAFT 바인딩, 비공개 버킷·객체 키, WebP 재인코딩·EXIF 제거·512/128 썸네일·SHA-256, `image.process` worker, Outbox·confirm, S3 health, 만료·soft delete 정리, 업로드·갤러리 UI |
+| 포함 | `image` 7개 상태, presign·complete·URL·배치 URL·대표·삭제 API, Item/Inventory/DRAFT 바인딩, 비공개 버킷·객체 키, WebP 재인코딩·EXIF 제거·512 썸네일·SHA-256, `image.process` worker, Outbox·confirm, S3 health, 만료·soft delete 정리, 업로드·갤러리 UI |
 | 제외 | AI 인식·임베딩·이미지 검색(M7), 검색 인덱스(M6), DRAFT 연결 공개 API(M7), HEIC 서버 디코딩, 바이러스 스캔, CDN, 다중 리전, S3 수명주기 자동화, 관리자 UI |
 
 - 이미지 규칙의 단일 원본은 [미디어·AI](../media-ai.md) 2~4번, 7번, 9번 항목이다. 전체 DDL·제품 규칙은 [데이터 사전](../generated/data-dictionary.md)과 [미디어·AI](../media-ai.md)를 링크하고 재정의하지 않는다.
@@ -28,7 +28,7 @@
 | M3 | `item`, `inventory`, 상세·목록 API, `primaryImageId` | M3 없이는 시작하지 않는다. M5의 최소 선행은 M3다. |
 | M4 | Grant 상속, 공유 사용자 `EDIT` | 병렬 가능. 공유 테스트는 `@Tag("sharing")`으로 분리하고 M4 병합 후 활성화 |
 
-- 마이그레이션은 `V5__image.sql`, `V6__outbox_event.sql`을 제안한다. M4가 V5를 먼저 쓰면 병합 전에 V6·V7로 옮기고 적용된 마이그레이션은 수정하지 않는다. 착수 전 M3 DTO의 `primaryImageId`, M4 `AccessService` 시그니처, 로컬 MinIO CORS를 확인한다.
+- 마이그레이션은 `V15__image.sql`을 쓰고 Outbox는 M4의 `V13__outbox_event.sql`·`V14__sharing_ops_hardening.sql`을 재사용한다. 적용된 마이그레이션은 수정하지 않는다. 착수 전 M3 DTO의 `primaryImageId`, M4 `AccessService` 시그니처, 로컬 MinIO CORS를 확인한다.
 
 ## 3. 데이터 모델과 마이그레이션
 
@@ -46,7 +46,7 @@
 | `image` 인덱스 | `(item_id, created_at DESC) WHERE deleted_at IS NULL`, `(inventory_id, created_at DESC) WHERE deleted_at IS NULL`, `(status, updated_at)`, `(status, deleted_at)` |
 | `outbox_event` | `schema_version integer NOT NULL DEFAULT 1`, `(status, created_at)` |
 
-- `thumbnail_key`는 512 키다. 128은 `thumb-128.webp`로 유도한다. `object_key`는 최종 원본 키이고 worker가 같은 키에 재인코딩 결과를 덮어쓴다. S3 PUT은 원자적이고 READY 전에는 노출하지 않는다.
+- `thumbnail_key`는 512 키다. 128은 M6.0에서 필요가 확인될 때 `thumb-128.webp`로 추가하며, M5에서는 생성하지 않는다. `object_key`는 최종 원본 키이고 worker가 같은 키에 재인코딩 결과를 덮어쓴다. S3 PUT은 원자적이고 READY 전에는 노출하지 않는다.
 - `sha256`은 complete에서 원본 기준, worker가 정규화 결과 기준으로 기록한다. `outbox_event.payload`에는 payload만 저장하고 릴레이가 `id`, `event_type`, `space_id`, `created_at`, `schema_version`으로 envelope을 조립한다. `aggregate_type=IMAGE`, `aggregate_id=imageId`다.
 
 ### 3.1 상태 전이
@@ -75,7 +75,7 @@
 | `INVENTORY` | `inventory_id` | `EDIT` 이상 | `spaces/{spaceId}/inventory/{inventoryId}/{imageId}/original.webp` |
 | `DRAFT` | 없음 | 생성자, 개인 Space | `spaces/{spaceId}/draft/{imageId}/original.webp` |
 
-- 썸네일은 같은 prefix의 `thumb-512.webp`, `thumb-128.webp`다. worker 임시 키는 `spaces/{spaceId}/tmp/{imageId}/{attempt}.webp`이고 성공·실패 후 삭제한다.
+- 썸네일은 같은 prefix의 `thumb-512.webp`다. 128은 M6.0 결정 후 추가한다. worker 임시 키는 `spaces/{spaceId}/tmp/{imageId}/{attempt}.webp`이고 성공·실패 후 삭제한다.
 - 키는 서버의 `ImageObjectKey`가 UUID로만 조립한다. complete는 `objectKey`가 행의 `object_key`와 정확히 같은지 확인한다. 키는 최대 512자, `[a-z0-9-/.]`만 허용하고 `..`를 거부한다.
 - 대표는 대상별 1장이고 partial unique index가 최종 방어선이다. 첫 `READY`가 자동 승격하며, 수동 변경은 `READY`만 허용하고 대상 행을 `FOR UPDATE`로 잠근다. 삭제·실패 시 최신 `READY`를 `ORDER BY created_at DESC, id DESC`로 승격한다.
 - 쿼터는 `deleted_at IS NULL` 행 기준 10장이며 `UPLOADING`·`FAILED`도 포함한다. 검사는 대상 부모 행 `FOR UPDATE`, DRAFT는 사용자 advisory lock·20장이다. 삭제는 `deleted_at`을 즉시 설정해 쿼터를 해제한다.
@@ -100,8 +100,8 @@
 | `backend/src/main/kotlin/com/agolock/messaging/outbox/`, `rabbit/` | `OutboxRelay`, `OutboxCleanupJob`, `RabbitTopologyConfig`, `PublisherConfirmConfig` |
 | `backend/src/main/kotlin/com/agolock/common/config/SchedulingConfig.kt` | `@EnableScheduling`, worker 스케줄 |
 
-- 외부 연동은 `ImageStoragePort`(`presignPut`, `presignGet`, `head`, `openStream`, `put`, `delete`)와 `ImageProcessorPort.process(bytes)` 뒤에 둔다. 후자는 `originalBytes`, `thumb512Bytes`, `thumb128Bytes`, `width`, `height`, `sha256`을 반환한다.
-- 설정: `agolock.storage.endpoint`/`public-endpoint`(`http://localhost:9000`), `region`/`bucket`/`path-style-access`(`us-east-1`/`agolock-local`/`true`), `media.presign-ttl` 5분, `upload-expiry`/`failed-expiry`/`deleted-retention` 24시간/7일/30일, `max-size`/`max-per-target`/`max-draft-per-user` 10MB/10/20, `max-edge`/`max-pixels`/`webp-quality`/`thumbnails` 2048/40MP/0.8/512,128, `worker-concurrency` 4, `outbox.batch-size`/`lease`/`max-attempts` 50/30초/10.
+- 외부 연동은 `ImageStoragePort`(`presignPut`, `presignGet`, `head`, `getObject`, `putObject`, `delete`)와 `ImageProcessorPort.process(bytes)` 뒤에 둔다. 후자는 `originalBytes`, `thumb512Bytes`, `thumb128Bytes?`, `width`, `height`, `sha256`을 반환한다.
+- 설정: `agolock.storage.endpoint`/`public-endpoint`(`http://localhost:9000`), `region`/`bucket`/`path-style-access`(`us-east-1`/`agolock-local`/`true`), `media.presign-ttl` 5분, `upload-expiry`/`failed-expiry`/`deleted-retention` 24시간/7일/30일, `max-size`/`max-per-target`/`max-draft-per-user` 10MB/10/20, `max-edge`/`max-pixels`/`webp-quality`/`thumbnails` 2048/40MP/0.8/512, `worker-concurrency` 4, `outbox.batch-size`/`lease`/`max-attempts` 50/30초/10. 128 썸네일은 M6.0 결정 전까지 비활성화한다.
 - AWS SDK v2 `S3Client`, `S3Presigner`를 쓰고 `gradle/libs.versions.toml`에 `software.amazon.awssdk:bom`, `s3`, `url-connection-client`를 추가한다. 버킷은 비공개이며 `infra/minio/init.sh`의 `mc anonymous set none`과 운영 public access block을 유지한다.
 - 브라우저 PUT을 위해 `infra/minio/cors.json`(로컬·staging·production origin, `PUT`/`GET`/`HEAD`, `content-type`·`x-amz-*`, `ETag`, 3600초)을 `minio-init`에 마운트하고 `init.sh`에서 적용한다. MinIO `mc` 버전에 따라 `mc cors set` 또는 `mc admin config set api`를 쓰고 `OPTIONS`로 확인한다.
 - 운영 IAM은 `s3:GetObject`, `PutObject`, `DeleteObject`, `AbortMultipartUpload`, `ListBucket`만 허용한다. `S3HealthIndicator`는 `headBucket` 1초 타임아웃·10초 캐시로 readiness `s3` 그룹에 넣고 상세 오류는 숨긴다. `LogMasker`에 `X-Amz-Signature`, `X-Amz-Credential`을 추가한다.
@@ -121,7 +121,7 @@
 | claim | `UPDATE image SET status='PROCESSING', processing_attempts=processing_attempts+1 WHERE id=? AND status IN ('PENDING','FAILED')`가 1행일 때만 진행. 0행이면 중복으로 보고 ack |
 | 로드·검증 | 메시지 `objectKey` 대신 DB `object_key` 사용. 없거나 `DELETED`면 객체 삭제 후 종료. 매직 바이트, 10MB, `maxPixels` 40MP, 애니메이션 WebP 거부 |
 | 재인코딩·EXIF | 긴 변 2048px, WebP quality 0.8, 알파 유지. `IIOImage(image, null, null)`로 메타데이터 없이 쓰고 `EXIF`·`XMP` 청크가 없는지 확인 |
-| 썸네일·해시 | 긴 변 512·128 WebP(비율 유지, 자르지 않음), 정규화 원본 SHA-256 |
+| 썸네일·해시 | 긴 변 512 WebP(비율 유지, 자르지 않음), 정규화 원본 SHA-256. 128은 M6.0 결정 후 추가 |
 | 업로드·저장 | `original.webp` 덮어쓰기, 썸네일 쓰기, 임시 키 삭제. `READY`, MIME·크기·해상도·해시·썸네일·`processed_at`을 한 트랜잭션으로 갱신 |
 | 이벤트 | 같은 트랜잭션에 `image.processed` Outbox. 대표가 없으면 승격. 커밋 후 ack |
 
@@ -162,7 +162,7 @@ Base path `/api/v1`, 오류는 `application/problem+json`. 스키마·operationI
 | `GET /inventories/{inventoryId}/images` | `VIEW` 이상 | 없음 | `200` `ImageList` |
 
 - 목록은 presigned URL 없이 `id`, `status`, `isPrimary`, `width`, `height`, `mimeType`, `uploadExpiresAt`, `createdAt`만 반환한다. 정렬은 `is_primary DESC, created_at DESC, id DESC`, `DELETED` 제외·`FAILED` 포함.
-- 배치는 접근 가능한 `READY`만 반환하고 나머지는 `unavailableImageIds`에 넣는다(additive). 단건 URL은 `READY`가 아니면 `409 IMAGE_NOT_READY`, `FAILED`면 `409 IMAGE_PROCESSING_FAILED`, `THUMB_SMALL`이 없으면 512로 fallback한다.
+- 배치는 접근 가능한 `READY`만 반환하고 나머지는 `unavailableImageIds`에 넣는다(additive). 단건 URL은 `READY`가 아니면 `409 IMAGE_NOT_READY`, `FAILED`면 `409 IMAGE_PROCESSING_FAILED`, `THUMB_SMALL`은 M6.0에서 128을 생성하기 전까지 512로 fallback한다.
 - `primary`는 `READY`가 아니면 409, 이미 대표면 200 no-op. `DELETE`는 이미 `DELETED`면 no-op, `PROCESSING` 중에도 허용한다. DRAFT에 `targetId`를 보내면 `422 IMAGE_TARGET_INVALID`.
 - URL 응답은 `Cache-Control: no-store`이고 presigned URL은 로그에 남기지 않는다.
 
@@ -241,11 +241,11 @@ Base path `/api/v1`, 오류는 `application/problem+json`. 스키마·operationI
 |---|---|---|---|
 | 0 | M3·M4 병합, 마이그레이션 번호, MinIO CORS, `primaryImageId` 확인 | 체크리스트 | `git log`, `grep primaryImageId`, `docker compose config` |
 | 1 | 의존성·설정 | `gradle/libs.versions.toml`, `backend/build.gradle.kts`, `application*.yml`, `AppProperties.kt`, `MediaProperties.kt` | `./gradlew :backend:compileKotlin`, `MediaPropertiesTest` |
-| 2 | 이미지·Outbox 마이그레이션 | `V5__image.sql`, `V6__outbox_event.sql` | `ImageSchemaTest`, `bash scripts/docs_generate.sh schema` |
+| 2 | 이미지 마이그레이션·Outbox 재사용 | `V15__image.sql`, M4 `V13`·`V14` | `ImageSchemaTest`, `bash scripts/docs_generate.sh schema` |
 | 3 | 키·S3·health·CORS | `ImageObjectKey.kt`, `ImageStoragePort.kt`, `S3ImageStorageAdapter.kt`, `S3HealthIndicator.kt`, `infra/minio/cors.json`, `infra/minio/init.sh`, `infra/docker-compose.yml` | `ImageObjectKeyTest`, `S3ImageStorageAdapterIT`, `S3HealthIndicatorTest`, `MinioCorsIT` |
 | 4 | presign | `ImagePresignService.kt`, `ImageController.kt`, `ImageDtos.kt`, `ImageMapper.kt`/`.xml` | `ImagePresignServiceTest`, `ImagePresignIT` |
 | 5 | complete | `ImageCompleteService.kt` | `ImageCompleteServiceTest`, `ImageMagicBytesTest` |
-| 6 | Outbox·토폴로지·confirm | `OutboxEvent.kt`, `OutboxMapper`, `OutboxRelay.kt`, `RabbitTopologyConfig.kt`, `PublisherConfirmConfig.kt` | `OutboxRelayTest`, `RabbitTopologyTest` |
+| 6 | Outbox·토폴로지·confirm | `OutboxEventHandler.kt`, `OutboxRelayService.kt`, `RabbitTopologyConfig.kt`, `PublisherConfirmConfig.kt` | `OutboxRelayTest`, `RabbitTopologyTest` |
 | 7 | worker·processor | `ImageProcessConsumer.kt`, `ImageProcessService.kt`, `WebpImageProcessor.kt`, `ImageProcessorPort.kt` | `WebpImageProcessorTest`, `ImageProcessConsumerTest` |
 | 8 | 대표·쿼터·삭제·DRAFT 연결 | `ImagePrimaryService.kt`, `ImageDeleteService.kt`, `ImageAttachmentService.kt`, `ImageQuotaService.kt` | `ImagePrimaryServiceTest`, `ImageQuotaServiceTest`, `ImagePermissionTest` |
 | 9 | 만료·purge·stuck·Outbox 정리 | `ImageExpiryJob.kt`, `ImagePurgeJob.kt`, `ImageStuckJob.kt`, `OutboxCleanupJob.kt` | `ImageCleanupJobTest`, `OutboxCleanupJobTest` |
@@ -255,12 +255,33 @@ Base path `/api/v1`, 오류는 `application/problem+json`. 스키마·operationI
 
 - Step 4~5로 API를 닫고 Step 6~7에서 worker를 붙인다. Step 8~9는 상태 전이가 안정된 뒤 진행한다. 각 Step에서 새 테스트가 실패하면 다음으로 넘어가지 않는다. 프론트 타입은 Step 10 후 `pnpm generate:api`로만 만든다.
 
+### 8.1 M5.5 close-out review
+
+M5 기능·테스트·계약이 green이 된 직후, M6 착수 전 1~2일 동안 수행한다. 리뷰는 전체를 하되 수정은 P0/P1만 하고 P2는 이슈로 이월한다.
+
+| 구분 | 항목 | 완료 기준 |
+|---|---|---|
+| P0 | 권한 | Item `OWNER`, Inventory `EDIT` 이상, `VIEW` 조회, 철회·교차 Space 404. 현재 `ImageService.resolveTarget`이 Item도 `EDIT`로 검사하므로 수정 |
+| P0 | 상태·계약 | presign 200, complete 202, DRAFT, 재생 202, `Idempotency-Key`, 상태 전이 가드 |
+| P0 | complete 검증 | `RIFF/WEBP` 매직 바이트, 크기, SHA-256, 키 일치, 만료, 객체 없음 오류 |
+| P0 | worker | 매직 바이트·EXIF 제거·애니메이션 거부·maxPixels, 512 썸네일, `REQUIRES_NEW` 실패, 재시도·DLQ, `image.processed`, 대표 승격, ack |
+| P0 | 트랜잭션·동시성 | complete+Outbox 원자성, 쿼터 부모 행 `FOR UPDATE`, claim/READY 0행 처리 |
+| P0 | Outbox | 이벤트 타입 분기 대신 핸들러 구조, confirm·재시도·DLQ, 기존 M4 lease 재사용 |
+| P0 | 저장소·테스트 | S3 health, CORS, MinIO IT, 권한 matrix·상태·동시성·계약 테스트 |
+| P1 | 구조 | `ImageObjectKey`, `ImageQuotaService`, `ImageAttachmentService`, use-case별 서비스 분리, 위치 resolver 공통화, 명시 컬럼 |
+| P1 | 프론트 | 업로드 상태 머신 1곳, 배치 URL 캐시, 생성 타입, 권한·오류·접근성 |
+| P2 | 이월 | 128 썸네일(M6.0), `inventory_search`, 범용 미디어 추상화, 전체 E2E, 패키지 전면 개편, S3 SSE |
+
+- 프론트 리뷰는 M5 갤러리·업로드 UI가 완료된 뒤 같은 기준으로 한다.
+- 리뷰 방법: 특성화 테스트를 먼저 두고, 작은 커밋으로 수정하며, 계약 동결 후 스키마·API를 바꾸지 않는다. 1~2일을 넘기면 P0만 남기고 P1/P2는 이슈로 이월한다.
+- 종료 조건: P0 0건, P1 완료 또는 이슈 등록, M5 체크리스트·계약 재생성·`docs_check` 통과, M6.0 입력 목록 확정.
+
 ## 9. 테스트
 
 | 백엔드 테스트 | 확인 |
 |---|---|
-| `ImageSchemaTest` / `ImageObjectKeyTest` | 상태·대상·READY·DRAFT CHECK, partial unique, 인덱스, 키·128 유도·`..`·타 Space 거부 |
-| `ImageMagicBytesTest` / `WebpImageProcessorTest` | RIFF/WEBP, JPEG·PNG 위장, 잘린 파일, 0바이트·10MB, 재인코딩·2048px·512/128·알파·EXIF 제거·SHA-256 |
+| `ImageSchemaTest` / `ImageObjectKeyTest` | 상태·대상·READY·DRAFT CHECK, partial unique, 인덱스, 키·512 유도·`..`·타 Space 거부 |
+| `ImageMagicBytesTest` / `WebpImageProcessorTest` | RIFF/WEBP, JPEG·PNG 위장, 잘린 파일, 0바이트·10MB, 재인코딩·2048px·512·알파·EXIF 제거·SHA-256 |
 | `ImagePresignServiceTest` / `ImageCompleteServiceTest` | `UPLOADING` 행·TTL·권한·10장·DRAFT 20장·Idempotency-Key, 객체 없음·키 불일치·크기·만료·중복·PENDING/DRAFT·Outbox |
 | `ImageQuotaServiceTest` / `ImagePrimaryServiceTest` | 동시 11번째 거부, 삭제 후 재업로드, 첫 READY·수동·삭제·실패 승격, unique 경합 |
 | `ImagePermissionTest` | Item OWNER, Inventory EDIT, VIEW, 철회 후 404, DRAFT, 교차 Space |
@@ -287,7 +308,7 @@ Base path `/api/v1`, 오류는 `application/problem+json`. 스키마·operationI
 | `docs/generated/data-dictionary.md` | 3번 항목의 컬럼·제약·인덱스 |
 | `frontend/src/shared/api/schema.d.ts` | `pnpm generate:api` |
 | `docs/contracts.md` / `docs/operations.md` | 오류 코드 링크, `agolock.media.*`·`agolock.outbox.*`, 정리 job·health 갱신 |
-| `docs/media-ai.md` / `docs/index.yaml` | 128 채택 시 3.3 갱신, 승인 후 `PLAN_006_MEDIA_MESSAGING` 등록(현재는 변경 금지) |
+| `docs/media-ai.md` / `docs/index.yaml` | 128 채택 시 3.3 갱신, M5.5/M6.0 gate와 ADR-019 연결 |
 
 - generated 문서는 생성기 전환이 끝났으면 직접 수정하지 않는다. 아직이면 [ADR-014](../decisions/ADR-014-generated-docs-draft.md)에 따라 초안을 수동 갱신한다.
 - CI: `backend` `./gradlew :backend:ktlintCheck :backend:detekt :backend:test`+Testcontainers MinIO, `frontend` `pnpm generate:api`·`pnpm lint`·`pnpm test`·`pnpm build`·`pnpm exec playwright test`, `docs` `python3 -B scripts/docs_check.py`, `contract` `bash scripts/docs_generate.sh all`+타입 diff. WebP native 로드는 `WebpImageProcessorTest`로 확인한다.
@@ -304,7 +325,7 @@ Base path `/api/v1`, 오류는 `application/problem+json`. 스키마·operationI
 - [ ] 대표 자동 승격·수동 변경·삭제·실패 후 승격이 테스트된다.
 - [ ] 대상별 10장, DRAFT 20장 제한이 동시 요청에서도 지켜진다.
 - [ ] 비공개 버킷, CORS, path-style, public endpoint가 로컬에서 동작한다.
-- [ ] worker가 재인코딩·EXIF 제거·512/128·SHA-256을 수행하고 READY에서만 노출한다.
+- [ ] worker가 재인코딩·EXIF 제거·512·SHA-256을 수행하고 READY에서만 노출한다. 128은 M6.0 결정 전까지 만들지 않는다.
 - [ ] `image.uploaded` Outbox가 complete와 같은 트랜잭션에 저장되고 `image.process`가 소비한다.
 - [ ] publisher confirm, 재시도, `FAILED`, DLQ, lease 재기동이 테스트된다.
 - [ ] S3 health가 readiness에 포함되고 상세 오류를 노출하지 않는다.
@@ -313,6 +334,7 @@ Base path `/api/v1`, 오류는 `application/problem+json`. 스키마·operationI
 - [ ] OpenAPI·이벤트·데이터 사전·`schema.d.ts`가 재생성되고 `docs_check`가 통과한다.
 - [ ] `./gradlew :backend:ktlintCheck :backend:detekt :backend:test`와 `pnpm lint`, `pnpm test`, `pnpm build`, `pnpm exec playwright test`가 통과한다.
 - [ ] [구현 로드맵](../implementation-roadmap.md) M5 완료 조건과 일치한다.
+- [ ] M5.5 close-out review의 P0/P1을 통과하고 M6.0 입력 목록을 확정했다.
 
 ## 12. 위험, 미결정, 후속
 
@@ -325,18 +347,19 @@ Base path `/api/v1`, 오류는 `application/problem+json`. 스키마·operationI
 | 만료 정리와 DRAFT 연결 경합 | 행 잠금·`upload_expires_at` 재확인, `PENDING` 전이 |
 | presigned URL 로그 유출 | `LogMasker` 확장, `LogMaskingTest`, `no-store` |
 | 마이그레이션 번호 충돌 | M4와 번호 예약, 적용 후 수정 금지 |
+| M5 코드 부채가 M6 검색으로 전파 | M5.5 P0/P1 gate와 계약 동결로 차단 |
 
 | 미결정 | 권장안 |
 |---|---|
-| 썸네일 변형(확인 필요) | 512(`THUMB`)와 128(`THUMB_SMALL`)을 생성하고 [미디어·AI](../media-ai.md) 3.3을 갱신. 성능 이슈가 없으면 512만 유지 |
+| 썸네일 변형(확인 필요) | M5는 512(`THUMB`)만 생성한다. 128(`THUMB_SMALL`)은 M6.0에서 성능·UI 사용처를 확인한 뒤 추가하고, 추가 시 [미디어·AI](../media-ai.md) 3.3을 갱신한다 |
 | WebP 코덱(확인 필요) | `com.github.usefulness:webp-imageio` 우선, ARM64·Java 21 실패 시 `org.sejda.imageio:webp-imageio` |
 | 원본 키 덮어쓰기(확인 필요) | 같은 키에 원자적 덮어쓰기. 원본 보존 필요 시 `source_key`와 ADR |
 | 배치 URL 접근 불가 ID(확인 필요) | `unavailableImageIds` additive, 전체 요청 200 |
 | worker 배포 형태(확인 필요) | 같은 이미지 `worker` 프로필·웹 비활성, 프로세스 감독·큐 메트릭 |
 | `ai_job.image_id` FK와 물리 삭제(확인 필요) | M7에서 `ON DELETE SET NULL`/nullable 검토, M5는 만료 행 물리 삭제 |
-| `THUMB_SMALL` 공개·크롭 비율(확인 필요) | M6 성능 측정 후 enum 추가, 크롭은 4:3 기본·원본 비율 선택 |
+| `THUMB_SMALL` 공개·크롭 비율(확인 필요) | M5는 `THUMB_SMALL`을 512로 fallback한다. 128 생성과 enum 노출은 M6.0에서 결정하고, 크롭은 4:3 기본·원본 비율 선택 |
 | S3 SSE(확인 필요) | M8에서 SSE-S3와 presign 헤더 서명 검토 |
 
-- ADR-017 “이미지 후처리 파이프라인과 객체 키”: WebP 코덱, 512/128, 원본 키 덮어쓰기, worker 프로필, S3 CORS·public endpoint.
+- ADR-017 “이미지 후처리 파이프라인과 객체 키”: WebP 코덱, 512 썸네일, 원본 키 덮어쓰기, worker 프로필, S3 CORS·public endpoint.
 - ADR-018 “이미지 보관과 삭제 참조 정책”: M7 `ai_job` FK, DRAFT 만료, 30일 purge. M7 착수 전 작성.
-- M6 검색은 `primaryImageId`, `hasImage`, `image.processed`를 사용하고 목록에 presigned URL을 넣지 않는다. M7 AI는 DRAFT와 `ImageAttachmentService`를 재사용하고 READY 해시를 캐시 키로 쓴다. M8은 실제 MinIO E2E, SSE, 접근성·성능·백업을 다룬다.
+- M6 검색은 `primaryImageId`, `hasImage`, `image.processed`를 사용하고 목록에 presigned URL을 넣지 않는다. 검색 ACL·페이지네이션은 [ADR-019](../decisions/ADR-019-search-acl-pagination.md)를 따른다. M7 AI는 DRAFT와 `ImageAttachmentService`를 재사용하고 READY 해시를 캐시 키로 쓴다. M8은 실제 MinIO E2E, SSE, 접근성·성능·백업을 다룬다.
