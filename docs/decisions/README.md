@@ -23,6 +23,9 @@
 | [ADR-014](ADR-014-generated-docs-draft.md) | 설계 단계 생성 문서 운영 | 승인됨 | [AGENTS.md](../../AGENTS.md) |
 | [ADR-015](ADR-015-contract-preview-mode.md) | M0 계약 생성 미리보기 모드 | 승인됨 | [계약](../contracts.md) |
 | [ADR-016](ADR-016-neo-brutal-design-system.md) | E안 네오 브루탈 디자인 시스템 | 승인됨 | [디자인 시스템](../design-system.md) |
+| [ADR-019](ADR-019-search-acl-pagination.md) | 검색 ACL과 Item 그룹 페이지네이션 | 승인됨 | [검색](../search.md), [PLAN-007](../implementation/PLAN-007-search.md) |
+
+ADR-017·018은 [PLAN-006](../implementation/PLAN-006-media-messaging.md)의 이미지 후처리·보관 정책용으로 예약된 번호이며 아직 작성 전입니다.
 
 ## 작성 규칙
 

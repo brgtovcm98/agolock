@@ -80,7 +80,9 @@ docs:
       - backend/src/main/resources/db/migration/**
     generated: false
     related_adrs:
+      - ADR-003
       - ADR-012
+      - ADR-019
     last_verified_commit: "e59719cfa22df34791efc9075439c34be5681a5a"
 
   - id: MEDIA_AI
@@ -341,6 +343,7 @@ docs:
     related_adrs:
       - ADR-003
       - ADR-012
+      - ADR-019
     last_verified_commit: "e59719cfa22df34791efc9075439c34be5681a5a"
 
   - id: PLAN_008_AI

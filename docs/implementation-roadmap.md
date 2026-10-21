@@ -55,7 +55,8 @@ flowchart LR
 ```
 
 - M4와 M5는 M3 이후에 병렬로 진행할 수 있습니다.
-- M6은 공유 범위와 이미지 ID 응답이 필요하므로 M4와 M5 이후에 시작합니다.
+- M5 완료 후 M5.5 close-out review를 통과해야 M6.0을 시작할 수 있습니다.
+- M6은 공유 범위와 이미지 ID 응답이 필요하므로 M4와 M5 이후에 시작합니다. M6.0 de-risk spike를 통과한 뒤 M6.1 기능 구현으로 넘어갑니다.
 - M7은 M6의 검색 그룹핑과 M5의 이미지 파이프라인을 재사용합니다.
 
 ## 4. 마일스톤 상세
@@ -217,10 +218,14 @@ flowchart LR
 - 대표 이미지 자동 승격과 대상별 최대 10장이 테스트됩니다.
 - Outbox 발행, 재시도, DLQ가 테스트됩니다.
 - OpenAPI, 이벤트 계약, 데이터 사전이 재생성됩니다.
+- M5.5 close-out review의 P0/P1을 통과하고 M6.0 입력 목록을 확정합니다.
+
+> M5 완료 게이트: 기능·테스트·계약이 green이 된 뒤 1~2일의 [M5.5 close-out review](implementation/PLAN-006-media-messaging.md)를 수행합니다. 권한·상태 전이·트랜잭션·Outbox·S3 health·프론트 업로드 상태를 P0/P1로 정리하고, 128 썸네일·읽기 모델·전체 E2E는 P2로 이월합니다.
 
 ### M6. 검색과 추천
 
 > 상세 계획: [PLAN-007-search](implementation/PLAN-007-search.md)
+> 착수 게이트: M5.5 완료 후 2~3일의 [M6.0 de-risk spike](implementation/PLAN-007-search.md)를 수행합니다. 계약·시드·ACL parity·p95를 먼저 검증하고, 통과 전에는 검색 UI를 시작하지 않습니다.
 
 범위:
 
@@ -228,7 +233,7 @@ flowchart LR
 - Item 그룹 커서 페이지네이션
 - 상태·위치·카테고리·공유 범위·소유자·사진 유무 필터
 - 정렬 5종
-- 최근 검색, 자주 본 물건, 검색 제안
+- 최근 검색, 자주 본 물건, 검색 제안, `POST /items/{itemId}/view`
 - 조회 기록 디바운스
 - 공유 ACL 조건과 후보 overfetch
 - 검색 성능 측정용 시드 데이터와 p95 기준
@@ -236,6 +241,7 @@ flowchart LR
 
 완료 조건:
 
+- M6.0에서 `GET /search`·`POST /items/{itemId}/view` 계약, ACL parity, p95 기준을 통과합니다.
 - `DISPOSED` 기본 제외와 명시 포함이 테스트됩니다.
 - 그룹당 Inventory 5개, `inventoryCount`, `hasMoreInventories`가 테스트됩니다.
 - 공유 결과의 출처와 접근 범위가 테스트됩니다.
@@ -346,6 +352,8 @@ flowchart LR
 - M1에 메일 발송 포트와 템플릿 기반을 추가했습니다.
 - M4에 감사 로그 마이그레이션을, M5에 worker 프로필과 S3 health를 추가했습니다.
 - M6에 성능 측정용 시드와 p95 gate를, M7에 모델 백필·인덱스 교체 절차를 추가했습니다.
+- M5 완료 후 M5.5 close-out review, M6 착수 전 M6.0 de-risk spike를 gate로 추가했습니다.
+- M6 ACL은 접근 가능한 Room/Shelf ID 주입으로 시작하고, p95 실패 시 SQL EXISTS로 최적화하도록 ADR-019에 고정했습니다.
 - M8에 PWA 설치 요건, 접근성, 의존성·비밀 스캔, OpenAPI 호환성 검사를 추가했습니다.
 - M0 스모크 테스트에 Spring 컨텍스트, Flyway, MyBatis, RabbitMQ 연결을 포함했습니다.
 - M0 상세 계획은 문서 길이 제한 때문에 기반 부트스트랩과 계약·CI·검증 두 문서로 분할했습니다.
@@ -355,6 +363,7 @@ flowchart LR
 - M0는 첫 번째 요소로 적합합니다. 인증이나 도메인보다 먼저 빌드·인프라·계약·테스트 기반을 고정해야 이후 마일스톤의 재작업을 줄일 수 있습니다.
 - M0에 공통 기반, API 타입 생성, 품질 gate를 포함해 예상 규모를 6~7일로 조정합니다.
 - M4와 M5는 병렬화할 수 있지만, M6은 두 마일스톤의 결과에 의존하므로 순차적으로 시작합니다.
+- M5 완료 직후 M5.5로 권한·상태·트랜잭션·계약을 정리하고, M6 착수 전 M6.0으로 ACL·p95를 검증합니다.
 - 1차 출시 범위는 M0~M6, 2차 범위는 M7, M8은 지속적 경화 작업으로 정의합니다.
 
 ## 7. 위험과 대응
@@ -368,11 +377,17 @@ flowchart LR
 | ACL 누락 | 데이터 노출 | 마일스톤별 교차 테넌트 테스트 |
 | 프론트엔드 후행 | UI 재작업 | 마일스톤별 vertical slice |
 | 이미지 고아 객체 | 저장소 비용 | M5에 만료 정리 job 포함 |
+| M5 코드 부채가 M6로 전파 | 검색 계약·이미지 ID 재작업 | M5.5 P0/P1 gate와 계약 동결 |
+| 검색 ACL 의미 불일치 | 데이터 노출·누락 | M6.0 `SearchAclParityTest`, ADR-019 |
+| 검색 p95 미달 | M6 일정 지연 | M6.0 스파이크, 인덱스·쿼리 튜닝, 읽기 모델은 2회 실패 후 |
 | AI 비용·지연 | 출시 지연 | M7에서 timeout, cache, quota 먼저 구현 |
 
 ## 8. 다음 문서
 
 - 첫 번째 요소 상세 계획: [PLAN-001 기반 부트스트랩](implementation/PLAN-001-foundation.md)
 - M0 계약·CI·검증: [PLAN-001 후속 계획](implementation/PLAN-001-foundation-delivery.md)
+- M5 완료 게이트: [PLAN-006 M5.5](implementation/PLAN-006-media-messaging.md)
+- M6 계획·M6.0 gate: [PLAN-007 검색](implementation/PLAN-007-search.md)
+- 검색 ACL 결정: [ADR-019](decisions/ADR-019-search-acl-pagination.md)
 - 제품 단계와 종료 조건: [운영](operations.md)
 - API·이벤트 계약: [계약](contracts.md)

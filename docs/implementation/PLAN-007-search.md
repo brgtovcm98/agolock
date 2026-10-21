@@ -416,6 +416,7 @@ Playwright `frontend/e2e/search.spec.ts`는 백엔드·시드가 있는 E2E 환�
 ### 9.1 계약과 문서
 
 - [OpenAPI](../generated/openapi.yaml)에 `POST /items/{itemId}/view`, 커서 최대 길이, `400 INVALID_CURSOR` 예시, `inventoryCount`·`hasMoreInventories` 설명을 반영합니다.
+- 검색 ACL·커서·그룹 페이지네이션 결정은 [ADR-019](../decisions/ADR-019-search-acl-pagination.md)를 링크하고, 접근 ID 주입과 SQL EXISTS 최적화 조건을 [검색](../search.md)에 반영합니다.
 - [데이터 사전](../generated/data-dictionary.md)에 3.2번 신규 인덱스와 3.3번 정리 인덱스를 반영하고, [검색](../search.md)에 커서 지문, 빈 q 정렬 대체, `matchedInventoryCount`, 조회 기록 API, 그룹 대표 이미지 우선순위를 반영합니다.
 - [계약](../contracts.md)은 페이지네이션 규칙과 링크만 두고 검색 세부 규칙을 복제하지 않습니다. generated 문서는 생성기 기록 모드에서 재생성하며, 생성기가 아직 없으면 [ADR-014](../decisions/ADR-014-generated-docs-draft.md)에 따라 초안을 수동 갱신하고 머리말을 유지합니다.
 
