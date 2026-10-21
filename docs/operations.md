@@ -376,3 +376,21 @@ docker compose -f infra/docker-compose.yml up -d
 | REQ-OPS | [AGENTS.md](../AGENTS.md), 이 문서 | 문서 검사 |
 
 - 로컬 MinIO는 `MINIO_API_CORS_ALLOW_ORIGIN`으로 Vite 개발 서버 origin만 허용합니다. 운영 CORS는 배포 환경에서 별도로 제한합니다.
+
+## DLQ 재처리
+
+`image.process.dlq`의 메시지는 RabbitMQ Management API로 조회해 `agolock.events`/`image.uploaded`로 재발행할 수 있습니다.
+
+```bash
+# 건수 확인만
+python3 scripts/dlq_replay.py --dry-run --limit 10
+
+# 실제 재발행
+RABBITMQ_MANAGEMENT_URL=http://localhost:15672 \
+RABBITMQ_USER=agolock \
+RABBITMQ_PASSWORD=agolock-local-secret \
+python3 scripts/dlq_replay.py --limit 10
+```
+
+- 기본값은 `--dry-run`과 동일하게 안전하게 건수만 확인합니다. 재발행은 `--dry-run`을 생략해야 합니다.
+- 재발행은 at-least-once이므로 worker의 `imageId` 상태 멱등성에 의존합니다.
