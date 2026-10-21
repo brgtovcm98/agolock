@@ -14,9 +14,12 @@
 - M1 가입·로그인·세션·CSRF·초대코드·비밀번호 재설정·설정 화면이 동작합니다.
 - M2 Room·Shelf·Box CRUD·이동·삭제 차단, 커서 페이지네이션, Idempotency-Key, 공간 트리가 동작합니다.
 - M3 카테고리·Item·Inventory·이동 이력과 M4 공유·초대·Grant·감사/Outbox 기반을 구현했습니다.
+- M5 이미지 presign·갤러리·worker 기반과 M5.5 P0(Item OWNER 권한, S3 health, worker 분리, Item 갤러리, 업로드 상태)을 구현했습니다.
+- P1 재고 편집·이동 이력·물건 수정·카테고리 병합·문맥형 공유·공유 위치 등록을 구현했습니다.
 - 공유 사용자는 기존 Room·Inventory 상세, shared MANAGE Inventory 생성·이동·삭제를 사용할 수 있습니다.
 - 초대 메일은 Outbox 릴레이로 발송되며 `/invitations#token=...` 링크에서 수락·거절합니다.
-- 남은 후속 보완은 PLAN-004 13번, PLAN-005 14번에 정리했습니다.
+- staging 배포 골격(Dockerfile·nginx·Compose·프로필·GHCR workflow)을 추가했습니다.
+- 다음 1차 작업은 M6 검색과 1차 프리즈입니다. M7 AI는 2차입니다.
 - 제품 기준 문서는 [docs/product-spec.md](docs/product-spec.md)입니다.
 - AI 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다.
 
