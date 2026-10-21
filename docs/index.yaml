@@ -141,6 +141,7 @@ docs:
       - ADR-011
       - ADR-013
       - ADR-016
+      - ADR-020
     last_verified_commit: "2076350cb162d60b6b7199f7a417dd81a6984134"
 
   - id: DESIGN
@@ -159,6 +160,7 @@ docs:
       - ADR-010
       - ADR-013
       - ADR-016
+      - ADR-020
     last_verified_commit: "2076350cb162d60b6b7199f7a417dd81a6984134"
 
   - id: OPERATIONS
@@ -376,6 +378,25 @@ docs:
     related_adrs:
       - ADR-014
       - ADR-015
+    last_verified_commit: "2076350cb162d60b6b7199f7a417dd81a6984134"
+
+  - id: PLAN_010_REGISTRATION_UX
+    path: docs/implementation/PLAN-010-registration-ux.md
+    title: 등록 행동 중심 UX P0
+    summary: 전역 등록 시트, 재고 목록·상세, 물건 상세, 위치 상세 재고, 홈 검색·최근 추가
+    read_when:
+      - 등록 흐름이나 재고 목록·상세 화면을 구현할 때
+      - P0 UX 개선 범위와 검증을 확인할 때
+    code_paths:
+      - frontend/src/features/inventory/**
+      - frontend/src/features/hierarchy/**
+      - frontend/src/features/home/**
+      - frontend/src/app/**
+    generated: false
+    related_adrs:
+      - ADR-010
+      - ADR-016
+      - ADR-020
     last_verified_commit: "2076350cb162d60b6b7199f7a417dd81a6984134"
 
   - id: DATA_DICTIONARY
