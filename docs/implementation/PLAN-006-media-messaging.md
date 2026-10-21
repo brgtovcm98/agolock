@@ -1,6 +1,6 @@
 # PLAN-006: M5 이미지·메시징 상세 구현 계획
 
-> 상태: M5 기반 구현 착수 (V15 schema·S3 adapter·presign/complete)
+> 상태: M5 기반 구현 착수 (V15 schema·S3 adapter·presign/complete·목록/URL/대표/삭제)
 > 역할: M5 이미지 수명주기, S3/MinIO, 후처리 worker, Outbox, 정리 job, 갤러리 UI 실행 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md)
 > 선행 계획: [PLAN-001 기반](PLAN-001-foundation.md), [PLAN-001 후속](PLAN-001-foundation-delivery.md)

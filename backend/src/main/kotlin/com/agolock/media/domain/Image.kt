@@ -22,4 +22,7 @@ data class Image(
     val status: ImageStatus,
     val uploadExpiresAt: OffsetDateTime,
     val createdAt: OffsetDateTime,
+    val mimeType: String? = null,
+    val sizeBytes: Long? = null,
+    val isPrimary: Boolean = false,
 )

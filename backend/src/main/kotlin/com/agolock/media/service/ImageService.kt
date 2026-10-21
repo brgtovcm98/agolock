@@ -1,4 +1,4 @@
-@file:Suppress("LongParameterList", "ThrowsCount", "MaxLineLength", "MagicNumber")
+@file:Suppress("LongParameterList", "ThrowsCount", "MaxLineLength", "MagicNumber", "TooManyFunctions")
 
 package com.agolock.media.service
 
@@ -15,6 +15,7 @@ import com.agolock.media.api.CompleteImageRequest
 import com.agolock.media.api.ImageResponse
 import com.agolock.media.api.PresignImageRequest
 import com.agolock.media.api.PresignImageResponse
+import com.agolock.media.domain.Image
 import com.agolock.media.domain.ImageStatus
 import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.storage.ImageStoragePort
@@ -96,9 +97,71 @@ class ImageService(
             image.inventoryId,
             stored.contentType,
             stored.sizeBytes,
+            false,
             image.createdAt,
         )
     }
+
+    fun listByItem(
+        actor: Actor,
+        itemId: java.util.UUID,
+    ): List<ImageResponse> {
+        resolveTarget(actor, "ITEM", itemId, Permission.VIEW)
+        return imageMapper.listByItem(itemId).map { it.toResponse() }
+    }
+
+    fun listByInventory(
+        actor: Actor,
+        inventoryId: java.util.UUID,
+    ): List<ImageResponse> {
+        resolveTarget(actor, "INVENTORY", inventoryId, Permission.VIEW)
+        return imageMapper.listByInventory(inventoryId).map { it.toResponse() }
+    }
+
+    fun url(
+        actor: Actor,
+        imageId: java.util.UUID,
+    ): String {
+        val image = imageMapper.findById(imageId) ?: throw notFound()
+        val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
+        resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, Permission.VIEW)
+        if (image.status != ImageStatus.READY) throw ApiException("IMAGE_NOT_READY", HttpStatus.CONFLICT, "처리된 이미지가 아닙니다.")
+        return storage.presignGet(image.objectKey, Duration.ofMinutes(5)).toString()
+    }
+
+    @Transactional
+    fun primary(
+        actor: Actor,
+        imageId: java.util.UUID,
+    ): ImageResponse {
+        val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
+        val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
+        resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, Permission.EDIT)
+        if (image.status != ImageStatus.READY) throw ApiException("IMAGE_NOT_READY", HttpStatus.CONFLICT, "처리된 이미지가 아닙니다.")
+        val now = OffsetDateTime.now(clock)
+        if (image.itemId !=
+            null
+        ) {
+            imageMapper.clearPrimaryByItem(image.itemId, now)
+        } else {
+            imageMapper.clearPrimaryByInventory(image.inventoryId!!, now)
+        }
+        if (imageMapper.markPrimary(imageId, now) == 0) throw ApiException("IMAGE_NOT_READY", HttpStatus.CONFLICT, "대표 이미지로 설정할 수 없습니다.")
+        return image.copy(isPrimary = true).toResponse()
+    }
+
+    @Transactional
+    fun delete(
+        actor: Actor,
+        imageId: java.util.UUID,
+    ) {
+        val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
+        val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
+        resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, Permission.EDIT)
+        imageMapper.softDelete(imageId, OffsetDateTime.now(clock))
+    }
+
+    private fun Image.toResponse() = ImageResponse(id, status, itemId, inventoryId, mimeType, sizeBytes, isPrimary, createdAt)
 
     private data class Target(
         val type: String,

@@ -30,5 +30,15 @@ data class ImageResponse(
     val inventoryId: UUID?,
     val mimeType: String?,
     val sizeBytes: Long?,
+    val isPrimary: Boolean,
     val createdAt: OffsetDateTime,
+)
+
+data class ImageListResponse(
+    val items: List<ImageResponse>,
+)
+
+data class ImageUrlResponse(
+    val url: String,
+    val expiresAt: OffsetDateTime,
 )

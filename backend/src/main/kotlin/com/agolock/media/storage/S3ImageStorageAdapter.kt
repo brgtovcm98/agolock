@@ -43,6 +43,20 @@ class S3ImageStorageAdapter(
             .toURI()
     }
 
+    override fun presignGet(
+        objectKey: String,
+        ttl: Duration,
+    ): URI =
+        presigner
+            .presignGetObject(
+                software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
+                    .builder()
+                    .signatureDuration(ttl)
+                    .getObjectRequest { it.bucket(properties.storage.bucket).key(objectKey) }
+                    .build(),
+            ).url()
+            .toURI()
+
     override fun head(objectKey: String): StoredObject? =
         try {
             val response =

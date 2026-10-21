@@ -1,4 +1,4 @@
-@file:Suppress("LongParameterList")
+@file:Suppress("LongParameterList", "TooManyFunctions", "MaxLineLength")
 
 package com.agolock.media.persistence
 
@@ -39,6 +39,59 @@ interface ImageMapper {
         @Param("createdBy") createdBy: UUID,
         @Param("createdAt") createdAt: OffsetDateTime,
     )
+
+    @Select("SELECT * FROM image WHERE id = #{id} AND deleted_at IS NULL")
+    fun findById(
+        @Param("id") id: UUID,
+    ): Image?
+
+    @Select(
+        """
+        SELECT * FROM image
+        WHERE item_id = #{itemId} AND deleted_at IS NULL AND status <> 'DELETED'
+        ORDER BY created_at DESC, id DESC
+        """,
+    )
+    fun listByItem(
+        @Param("itemId") itemId: UUID,
+    ): List<Image>
+
+    @Select(
+        """
+        SELECT * FROM image
+        WHERE inventory_id = #{inventoryId} AND deleted_at IS NULL AND status <> 'DELETED'
+        ORDER BY created_at DESC, id DESC
+        """,
+    )
+    fun listByInventory(
+        @Param("inventoryId") inventoryId: UUID,
+    ): List<Image>
+
+    @Update("UPDATE image SET is_primary = false, updated_at = #{now} WHERE item_id = #{itemId} AND deleted_at IS NULL")
+    fun clearPrimaryByItem(
+        @Param("itemId") itemId: UUID,
+        @Param("now") now: OffsetDateTime,
+    )
+
+    @Update("UPDATE image SET is_primary = false, updated_at = #{now} WHERE inventory_id = #{inventoryId} AND deleted_at IS NULL")
+    fun clearPrimaryByInventory(
+        @Param("inventoryId") inventoryId: UUID,
+        @Param("now") now: OffsetDateTime,
+    )
+
+    @Update("UPDATE image SET is_primary = true, updated_at = #{now} WHERE id = #{id} AND status = 'READY' AND deleted_at IS NULL")
+    fun markPrimary(
+        @Param("id") id: UUID,
+        @Param("now") now: OffsetDateTime,
+    ): Int
+
+    @Update(
+        "UPDATE image SET status = 'DELETED', is_primary = false, deleted_at = #{now}, updated_at = #{now} WHERE id = #{id} AND deleted_at IS NULL",
+    )
+    fun softDelete(
+        @Param("id") id: UUID,
+        @Param("now") now: OffsetDateTime,
+    ): Int
 
     @Select("SELECT * FROM image WHERE id = #{id} AND deleted_at IS NULL FOR UPDATE")
     fun findByIdForUpdate(

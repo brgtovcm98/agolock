@@ -10,6 +10,11 @@ interface ImageStoragePort {
         ttl: Duration,
     ): URI
 
+    fun presignGet(
+        objectKey: String,
+        ttl: Duration,
+    ): URI
+
     fun head(objectKey: String): StoredObject?
 
     fun delete(objectKey: String)
