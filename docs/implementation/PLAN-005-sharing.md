@@ -574,7 +574,7 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 | 초대 | 생성·받은 목록·ID/토큰 수락·거절·철회, 이메일 일치, 중복 Grant·중복 PENDING 차단 |
 | Grant | 목록·권한 변경·철회, 철회 즉시 `/shared`에서 제외 |
 | 감사 | Share/Invitation 생성·수락·거절·철회·권한 변경 감사 기록 |
-| Outbox | 초대 생성 시 `notification.requested` 적재, 스케줄 릴레이로 메일 발송 |
+| Outbox | 초대 생성 시 `notification.requested` 적재, V14 lease/claim 기반 릴레이 |
 | 화면 | `/sharing`에서 Room 초대·수락·거절·권한 변경·철회 |
 | 검증 | backend 63, frontend 17, E2E 6, docs 41 |
 
