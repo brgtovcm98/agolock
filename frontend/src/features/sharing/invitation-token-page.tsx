@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
@@ -7,10 +7,21 @@ import { sharingApi } from '@/features/sharing/api'
 
 export function InvitationTokenPage() {
   const navigate = useNavigate()
-  const token = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('token')
+  const [token, setToken] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('token')
+    const stored = sessionStorage.getItem('agolock.invitation.token')
+    const next = fromHash ?? stored
+    if (fromHash) {
+      sessionStorage.setItem('agolock.invitation.token', fromHash)
+      window.history.replaceState(null, '', '/invitations')
+    }
+    setToken(next)
+  }, [])
 
   const run = async (action: 'accept' | 'decline') => {
     if (!token) return
@@ -20,9 +31,11 @@ export function InvitationTokenPage() {
     try {
       if (action === 'accept') {
         await sharingApi.acceptByToken(token)
+        sessionStorage.removeItem('agolock.invitation.token')
         navigate('/sharing', { replace: true })
       } else {
         await sharingApi.declineByToken(token)
+        sessionStorage.removeItem('agolock.invitation.token')
         setMessage('초대를 거절했습니다.')
       }
     } catch {

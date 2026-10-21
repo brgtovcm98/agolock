@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '@/features/auth/auth-provider'
 import { AuthLayout } from '@/features/auth/auth-layout'
@@ -26,6 +26,7 @@ type LoginValues = z.infer<typeof loginSchema>
 export function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const [serverError, setServerError] = useState<string | null>(null)
   const {
@@ -55,7 +56,10 @@ export function LoginPage() {
       footer={
         <span>
           아직 계정이 없나요?{' '}
-          <Link className="font-black underline underline-offset-2" to="/signup">
+          <Link
+            className="font-black underline underline-offset-2"
+            to={{ pathname: '/signup', search: location.search }}
+          >
             회원가입
           </Link>
         </span>

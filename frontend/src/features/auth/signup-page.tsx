@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '@/features/auth/auth-provider'
 import { AuthLayout } from '@/features/auth/auth-layout'
 import { authErrorMessage } from '@/features/auth/errors'
+import { safeRedirect } from '@/features/auth/protected-route'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
@@ -23,6 +24,7 @@ type SignupValues = {
 export function SignupPage() {
   const { config, signup } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [serverError, setServerError] = useState<string | null>(null)
   const inviteRequired = config?.inviteRequired ?? true
   const minPassword = config?.passwordMinLength ?? 10
@@ -88,7 +90,9 @@ export function SignupPage() {
         displayName: values.displayName,
         inviteCode: inviteRequired ? values.inviteCode : undefined,
       })
-      navigate('/', { replace: true })
+      navigate(safeRedirect(searchParams.get('redirect') ?? searchParams.get('returnTo')), {
+        replace: true,
+      })
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.code === 'EMAIL_ALREADY_EXISTS') {
@@ -117,7 +121,10 @@ export function SignupPage() {
       footer={
         <span>
           이미 계정이 있나요?{' '}
-          <Link className="font-black underline underline-offset-2" to="/login">
+          <Link
+            className="font-black underline underline-offset-2"
+            to={{ pathname: '/login', search: searchParams.toString() }}
+          >
             로그인
           </Link>
         </span>
