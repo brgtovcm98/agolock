@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.agolock.identity.api
 
 import com.agolock.common.config.AuthProperties

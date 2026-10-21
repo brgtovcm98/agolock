@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions", "ThrowsCount", "MaxLineLength")
+
 package com.agolock.sharing.api
 
 import com.agolock.common.config.AuthProperties

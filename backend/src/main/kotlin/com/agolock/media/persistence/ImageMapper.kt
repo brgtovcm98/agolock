@@ -194,7 +194,8 @@ interface ImageMapper {
         """
         UPDATE image
         SET status = CAST(#{status} AS image_status), mime_type = #{mimeType},
-            size_bytes = #{sizeBytes}, upload_completed_at = #{now}, updated_at = #{now}
+            size_bytes = #{sizeBytes}, sha256 = #{sha256},
+            upload_completed_at = #{now}, updated_at = #{now}
         WHERE id = #{id} AND status = 'UPLOADING'
         """,
     )
@@ -203,6 +204,7 @@ interface ImageMapper {
         @Param("status") status: ImageStatus,
         @Param("mimeType") mimeType: String,
         @Param("sizeBytes") sizeBytes: Long,
+        @Param("sha256") sha256: String,
         @Param("now") now: OffsetDateTime,
     ): Int
 }

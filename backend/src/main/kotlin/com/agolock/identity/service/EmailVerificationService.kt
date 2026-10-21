@@ -1,3 +1,5 @@
+@file:Suppress("MaxLineLength", "MagicNumber")
+
 package com.agolock.identity.service
 
 import com.agolock.common.error.ApiException

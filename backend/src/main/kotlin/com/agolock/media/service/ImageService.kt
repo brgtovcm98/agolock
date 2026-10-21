@@ -1,4 +1,4 @@
-@file:Suppress("LongParameterList", "ThrowsCount", "MaxLineLength", "MagicNumber", "TooManyFunctions")
+@file:Suppress("LongParameterList", "ThrowsCount", "MaxLineLength", "MagicNumber", "TooManyFunctions", "CyclomaticComplexMethod")
 
 package com.agolock.media.service
 
@@ -23,9 +23,11 @@ import com.agolock.messaging.outbox.OutboxService
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.security.MessageDigest
 import java.time.Clock
 import java.time.Duration
 import java.time.OffsetDateTime
+import java.util.HexFormat
 
 @Service
 class ImageService(
@@ -88,8 +90,25 @@ class ImageService(
         val stored =
             storage.head(request.objectKey) ?: throw ApiException("IMAGE_OBJECT_NOT_FOUND", HttpStatus.NOT_FOUND, "업로드 객체를 찾을 수 없습니다.")
         if (stored.sizeBytes > MAX_IMAGE_BYTES) throw validation("이미지 크기는 10MB 이하여야 합니다.")
+        val bytes = storage.getObject(request.objectKey)
+        if (bytes.size.toLong() != stored.sizeBytes) throw validation("업로드 크기가 일치하지 않습니다.")
+        if (bytes.size < 12 ||
+            bytes.copyOfRange(0, 4).toString(Charsets.US_ASCII) != "RIFF" ||
+            bytes.copyOfRange(8, 12).toString(Charsets.US_ASCII) != "WEBP"
+        ) {
+            throw validation("WebP 이미지 형식이 아닙니다.")
+        }
+        val sha256 = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
         val now = OffsetDateTime.now(clock)
-        if (imageMapper.completeUpload(image.id, ImageStatus.PENDING, stored.contentType ?: "image/webp", stored.sizeBytes, now) == 0) {
+        if (imageMapper.completeUpload(
+                image.id,
+                ImageStatus.PENDING,
+                stored.contentType ?: "image/webp",
+                stored.sizeBytes,
+                sha256,
+                now,
+            ) == 0
+        ) {
             throw ApiException("IMAGE_INVALID_STATE", HttpStatus.CONFLICT, "이미지 상태를 변경할 수 없습니다.")
         }
         outboxService.enqueueImageUploaded(
