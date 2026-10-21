@@ -98,6 +98,7 @@ RFC 7807 `application/problem+json`을 사용합니다.
 | `INVITATION_EXPIRED` | 만료된 초대 |
 | `DISPOSAL_CONFIRMATION_REQUIRED` | 폐기 확인 플래그 누락 |
 | `CATEGORY_IN_USE` | 사용 중인 카테고리 삭제 시도 |
+| `ITEM_HAS_INVENTORIES` | 삭제되지 않은 Inventory가 남은 Item 삭제 시도 |
 | `LOCATION_NOT_EMPTY` | 하위 리소스나 재고가 있는 위치 삭제 |
 | `IMAGE_NOT_READY` | 처리되지 않은 이미지 사용 |
 | `IMAGE_LIMIT_EXCEEDED` | 대상별 이미지 수 초과 |
