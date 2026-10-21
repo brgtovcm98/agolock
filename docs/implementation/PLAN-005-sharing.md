@@ -582,5 +582,6 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 
 - 기존 목록 API의 공유 항목 노출(`/shared`는 별도 경로)
 - Outbox 실패 재시도·backoff·deliveryStatus
+- 초대 재발송·필터·cursor
 - 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key
 - 초대 재발송·deliveryStatus·필터·cursor·Idempotency-Key

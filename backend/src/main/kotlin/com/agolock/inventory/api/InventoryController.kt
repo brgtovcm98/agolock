@@ -1,5 +1,7 @@
 package com.agolock.inventory.api
 
+import com.agolock.common.idempotency.IdempotencyService
+import com.agolock.hierarchy.api.toResponseEntity
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.inventory.domain.InventoryStatus
@@ -10,7 +12,6 @@ import com.agolock.inventory.service.UpdateInventoryCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -29,6 +31,7 @@ import java.util.UUID
 @Tag(name = "inventories")
 class InventoryController(
     private val inventoryService: InventoryService,
+    private val idempotencyService: IdempotencyService,
 ) {
     @GetMapping
     @Operation(operationId = "listInventories", summary = "Inventory 목록")
@@ -42,20 +45,32 @@ class InventoryController(
     @Operation(operationId = "createInventory", summary = "Inventory 생성")
     fun create(
         @AuthenticationPrincipal principal: AppUserPrincipal,
+        @RequestHeader(value = "Idempotency-Key", required = false) idempotencyKey: String?,
         @Valid @RequestBody request: CreateInventoryRequest,
-    ): ResponseEntity<InventoryResponse> {
-        val inventory =
-            inventoryService.create(
-                Actor.from(principal),
-                CreateInventoryCommand(
-                    request.itemId,
-                    request.roomId,
-                    request.shelfId,
-                    request.boxId,
-                    request.status,
-                ),
-            )
-        return ResponseEntity.status(HttpStatus.CREATED).body(inventory)
+    ): ResponseEntity<Any> {
+        val actor = Actor.from(principal)
+        val result =
+            idempotencyService.execute(
+                userId = actor.userId,
+                key = idempotencyKey,
+                method = "POST",
+                path = "/api/v1/inventories",
+                request = request,
+                responseType = InventoryResponse::class.java,
+                locationOf = { inventory -> "/api/v1/inventories/${inventory.id}" },
+            ) {
+                inventoryService.create(
+                    actor,
+                    CreateInventoryCommand(
+                        request.itemId,
+                        request.roomId,
+                        request.shelfId,
+                        request.boxId,
+                        request.status,
+                    ),
+                )
+            }
+        return result.toResponseEntity()
     }
 
     @GetMapping("/{inventoryId}")

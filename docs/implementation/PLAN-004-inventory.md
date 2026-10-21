@@ -444,8 +444,8 @@ M5는 `primaryImageId`·Inventory 이미지, M6은 M3 목록 필터를 검색 �
 | 유효 값 | Item 마스터 + Inventory 오버라이드 조합, 변경 없음 시 version 유지 |
 | 상태 | DISPOSED 전환 시 `confirmDisposal` 요구, 기본 목록에서 DISPOSED 제외 |
 | M2 연동 | Room·Shelf·Box `inventoryCount`, `HierarchyDeleteGuard`의 Inventory 삭제 차단 |
-| 확장 API | Category 병합, Item 수정 영향, Inventory move-targets |
+| 확장 API | Category 병합, Item 수정 영향, Inventory move-targets, 생성 Idempotency-Key |
 | 화면 | `/inventory`에서 카테고리·Item·Inventory 생성과 목록 확인 |
 | 검증 | backend 63, frontend 17, E2E 6, docs 41 |
 
-후속 보완은 생성 API Idempotency-Key 적용과 PATCH 필드 생략/null 구분의 완전한 merge-patch입니다. 공유 사용자의 M3 Inventory 작업은 M4에서 확장합니다.
+후속 보완은 PATCH 필드 생략/null 구분의 완전한 merge-patch입니다. 공유 사용자의 M3 Inventory 작업은 M4에서 확장합니다.

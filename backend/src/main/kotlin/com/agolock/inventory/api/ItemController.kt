@@ -2,6 +2,8 @@
 
 package com.agolock.inventory.api
 
+import com.agolock.common.idempotency.IdempotencyService
+import com.agolock.hierarchy.api.toResponseEntity
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.inventory.service.CreateItemCommand
@@ -11,7 +13,6 @@ import com.agolock.inventory.service.UpdateItemCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -31,6 +33,7 @@ import java.util.UUID
 class ItemController(
     private val itemService: ItemService,
     private val inventoryService: InventoryService,
+    private val idempotencyService: IdempotencyService,
 ) {
     @GetMapping
     @Operation(operationId = "listItems", summary = "Item 목록")
@@ -44,14 +47,27 @@ class ItemController(
     @Operation(operationId = "createItem", summary = "Item 생성")
     fun create(
         @AuthenticationPrincipal principal: AppUserPrincipal,
+        @RequestHeader(value = "Idempotency-Key", required = false) idempotencyKey: String?,
         @Valid @RequestBody request: CreateItemRequest,
-    ): ResponseEntity<ItemResponse> {
-        val item =
-            itemService.create(
-                Actor.from(principal),
-                CreateItemCommand(request.name, request.description, request.categoryId, request.priceAmount),
-            )
-        return ResponseEntity.status(HttpStatus.CREATED).body(item.toResponse())
+    ): ResponseEntity<Any> {
+        val actor = Actor.from(principal)
+        val result =
+            idempotencyService.execute(
+                userId = actor.userId,
+                key = idempotencyKey,
+                method = "POST",
+                path = "/api/v1/items",
+                request = request,
+                responseType = ItemResponse::class.java,
+                locationOf = { item -> "/api/v1/items/${item.id}" },
+            ) {
+                itemService
+                    .create(
+                        actor,
+                        CreateItemCommand(request.name, request.description, request.categoryId, request.priceAmount),
+                    ).toResponse()
+            }
+        return result.toResponseEntity()
     }
 
     @GetMapping("/{itemId}")
