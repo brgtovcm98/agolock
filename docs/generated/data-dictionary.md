@@ -46,10 +46,27 @@
 | `created_at` | timestamptz | NOT NULL | 생성 시각 |
 | `updated_at` | timestamptz | NOT NULL | 수정 시각 |
 | `deleted_at` | timestamptz | NULL | soft delete 시각 |
+| `email_verified_at` | timestamptz | NULL | 이메일 인증 완료 시각 |
 
 인덱스:
 
 - `UNIQUE (email)` where `deleted_at IS NULL`
+
+### `email_verification_token`
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|---|---|---|---|
+| `id` | uuid | PK | 토큰 ID |
+| `user_id` | uuid | FK app_user, NOT NULL | 사용자 |
+| `token_hash` | text | UNIQUE, NOT NULL | 원문 토큰 SHA-256 |
+| `expires_at` | timestamptz | NOT NULL | 만료 시각 |
+| `used_at` | timestamptz | NULL | 사용 시각 |
+| `created_at` | timestamptz | NOT NULL | 생성 시각 |
+
+인덱스:
+
+- `(user_id)`
+- `(expires_at)`
 
 ### `user_identity`
 
@@ -310,6 +327,10 @@
 | `is_primary` | boolean | NOT NULL, DEFAULT false | 대표 사진 여부 |
 | `status` | image_status | NOT NULL, DEFAULT `UPLOADING` | 처리 상태 |
 | `upload_expires_at` | timestamptz | NOT NULL | 업로드·DRAFT 만료 시각 |
+| `upload_completed_at` | timestamptz | NULL | 업로드 완료 시각 |
+| `processed_at` | timestamptz | NULL | 후처리 완료 시각 |
+| `processing_attempts` | integer | NOT NULL, DEFAULT 0 | 처리 시도 횟수 |
+| `last_error` | text | NULL | 마지막 처리 오류 |
 | `embedding` | vector(1408) | NULL | 이미지 임베딩 |
 | `embedding_model` | text | NULL | 모델 이름 |
 | `embedding_version` | text | NULL | 모델 버전 |
@@ -324,7 +345,9 @@
 - `CHECK (num_nonnulls(item_id, inventory_id) <= 1)`
 - `CHECK (status IN ('UPLOADING', 'DRAFT') OR num_nonnulls(item_id, inventory_id) = 1)`
 - `CHECK (NOT is_primary OR num_nonnulls(item_id, inventory_id) = 1)`
-- `CHECK (status <> 'READY' OR (mime_type IS NOT NULL AND size_bytes IS NOT NULL AND width IS NOT NULL AND height IS NOT NULL AND sha256 IS NOT NULL))`
+- `CHECK (status <> 'READY' OR (mime_type IS NOT NULL AND size_bytes IS NOT NULL AND width IS NOT NULL AND height IS NOT NULL AND sha256 IS NOT NULL AND thumbnail_key IS NOT NULL AND processed_at IS NOT NULL))`
+- `CHECK (NOT is_primary OR (status = 'READY' AND deleted_at IS NULL))`
+- `CHECK (sha256 IS NULL OR sha256 ~ '^[0-9a-f]{64}$')`
 - `FOREIGN KEY (item_id, space_id) REFERENCES item(id, space_id)`
 - `FOREIGN KEY (inventory_id, space_id) REFERENCES inventory(id, space_id)`
 
@@ -423,12 +446,18 @@
 | `available_at` | timestamptz | NOT NULL | 발행 가능 시각 |
 | `published_at` | timestamptz | NULL | 발행 시각 |
 | `last_error` | text | NULL | 마지막 오류 |
+| `locked_by` | text | NULL | lease 소유자 |
+| `locked_until` | timestamptz | NULL | lease 만료 시각 |
+| `claim_token` | uuid | NULL | claim 멱등 토큰 |
+| `schema_version` | integer | NOT NULL, DEFAULT 1 | 이벤트 스키마 버전 |
 | `created_at` | timestamptz | NOT NULL | 생성 시각 |
 
 인덱스:
 
 - `(status, available_at)`
 - `(space_id, event_type)`
+- `(aggregate_type, aggregate_id, created_at DESC, id DESC)`
+- `(available_at, id) WHERE status = 'PENDING'`
 
 ### `ai_job`
 
