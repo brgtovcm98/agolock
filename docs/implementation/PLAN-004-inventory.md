@@ -449,3 +449,10 @@ M5는 `primaryImageId`·Inventory 이미지, M6은 M3 목록 필터를 검색 �
 | 검증 | backend 63, frontend 17, E2E 6, docs 41 |
 
 후속 보완은 목록의 반복 status·category·위치·scope·cursor 필터와 hasImage 422 처리입니다. 공유 사용자의 M3 Inventory 작업은 M4에서 확장합니다.
+
+## 14. M3 검증 보강
+
+- `InventoryCursorTest`: cursor 왕복·invalid cursor·limit 경계
+- `InventoryIntegrationTest`: Item/Inventory cursor, 반복 status, Item q, DISPOSED Item 삭제 차단, Category merge 200건수
+- `SharingIntegrationTest`: 공유 Item/Inventory 읽기, 공유 MANAGE, Share 철회 감사
+- M3 완료 체크리스트 10번은 남은 항목(전체 화면·관측)을 제외하고 실제 테스트 증빙과 함께 갱신 필요

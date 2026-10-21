@@ -172,6 +172,31 @@ class InventoryIntegrationTest
         }
 
         @Test
+        fun `Item과 Inventory 목록은 cursor로 다음 페이지를 조회한다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "커서방")).body)
+            val firstItem = json(client.post("/api/v1/items", mapOf("name" to "첫번째")).body)
+            json(client.post("/api/v1/items", mapOf("name" to "두번째")).body)
+            json(
+                client
+                    .post(
+                        "/api/v1/inventories",
+                        mapOf("itemId" to firstItem["id"].asText(), "roomId" to room["id"].asText()),
+                    ).body,
+            )
+            val secondPage = client.get("/api/v1/items?limit=1")
+            assertThat(secondPage.statusCode).isEqualTo(HttpStatus.OK)
+            val next = json(secondPage.body)["nextCursor"].asText()
+            assertThat(next).isNotBlank()
+            val thirdPage = client.get("/api/v1/items?limit=1&cursor=$next")
+            assertThat(thirdPage.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(thirdPage.body)["items"][0]["id"].asText())
+                .isNotEqualTo(json(secondPage.body)["items"][0]["id"].asText())
+            assertThat(client.get("/api/v1/items?cursor=bad").statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+            assertThat(client.get("/api/v1/inventories?status=IN_USE&status=STORED").statusCode)
+                .isEqualTo(HttpStatus.OK)
+        }
+
+        @Test
         fun `카테고리를 병합하면 Item과 Inventory override가 대상으로 이동한다`() {
             val sourceResponse = client.post("/api/v1/categories", mapOf("name" to "원본"))
             assertThat(sourceResponse.statusCode).isEqualTo(HttpStatus.CREATED)
