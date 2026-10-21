@@ -374,3 +374,5 @@ docker compose -f infra/docker-compose.yml up -d
 | REQ-IMG | [미디어·AI](media-ai.md) | 업로드 상태, 권한, 재인코딩, 대표 이미지 |
 | REQ-AI | [미디어·AI](media-ai.md) | 멱등성, 재시도, 확인 저장, 모델 버전 |
 | REQ-OPS | [AGENTS.md](../AGENTS.md), 이 문서 | 문서 검사 |
+
+- 로컬 MinIO는 `MINIO_API_CORS_ALLOW_ORIGIN`으로 Vite 개발 서버 origin만 허용합니다. 운영 CORS는 배포 환경에서 별도로 제한합니다.
