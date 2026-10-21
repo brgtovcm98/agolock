@@ -597,6 +597,6 @@ M5는 M4의 `notification.requested` payload와 `share.*` 이벤트 타입을 �
 | 이메일 인증 | 완료 | `AuthWebIntegrationTest` |
 | 재발송·만료 job·deliveryStatus | 완료 | `SharingIntegrationTest` |
 | Outbox lease·retry·DLQ | 완료 | `OutboxRelayService`, `RabbitTopologyConfigTest` |
-| 공유 Item/Inventory 읽기 | 완료 | `SharingIntegrationTest` |
+| 공유 Item/Inventory 읽기·목록 | 완료 | `SharingIntegrationTest` scope=SHARED/ALL |
 | 화면 E2E | 부분 | 등록 UX 변경과 충돌, `sharing.spec.ts` 미추가 |
 | 초대 필터·cursor | 완료 | `SharingIntegrationTest` status·cursor |

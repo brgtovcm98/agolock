@@ -37,15 +37,41 @@ class ItemService(
         q: String?,
         limit: Int?,
         cursorRaw: String?,
+        scope: String = "OWNED",
     ): PageResult<Item> {
-        accessService.requireOwner(actor, actor.spaceId)
+        val normalizedScope = scope.uppercase()
+        if (normalizedScope !in setOf("OWNED", "SHARED", "ALL")) {
+            throw validation("scope는 OWNED, SHARED, ALL 중 하나여야 합니다.")
+        }
         val query = q?.trim()?.take(200)?.takeIf(String::isNotEmpty)
         val cursor = TimeCursorCodec.decode(cursorRaw)
         val effectiveLimit = TimeCursorCodec.limit(limit)
-        val items =
-            itemMapper.list(actor.spaceId, categoryId, query, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
-        val page = items.take(effectiveLimit)
-        val next = if (items.size > effectiveLimit) page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) } else null
+        val owned =
+            if (normalizedScope == "SHARED") {
+                emptyList()
+            } else {
+                accessService.requireOwner(actor, actor.spaceId)
+                itemMapper.list(actor.spaceId, categoryId, query, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
+            }
+        val shared =
+            if (normalizedScope == "OWNED") {
+                emptyList()
+            } else {
+                itemMapper
+                    .listShared(actor.userId, categoryId, query, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
+                    .filter { it.spaceId != actor.spaceId }
+            }
+        val combined =
+            (owned + shared)
+                .distinctBy { it.id }
+                .sortedWith(compareByDescending<Item> { it.updatedAt }.thenByDescending { it.id })
+        val page = combined.take(effectiveLimit)
+        val next =
+            if (combined.size > effectiveLimit) {
+                page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) }
+            } else {
+                null
+            }
         return PageResult(page, next)
     }
 

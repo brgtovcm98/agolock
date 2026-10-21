@@ -45,6 +45,31 @@ interface ItemMapper {
         @Param("limit") limit: Int,
     ): List<Item>
 
+    @Select(
+        """
+        <script>
+        SELECT DISTINCT i.* FROM item i
+        JOIN inventory inv ON inv.item_id = i.id AND inv.space_id = i.space_id AND inv.deleted_at IS NULL
+        JOIN share s ON s.space_id = i.space_id AND s.grantee_user_id = #{userId} AND s.revoked_at IS NULL
+          AND ((s.room_id IS NOT NULL AND inv.room_id = s.room_id)
+            OR (s.shelf_id IS NOT NULL AND inv.shelf_id = s.shelf_id))
+        WHERE i.deleted_at IS NULL
+        <if test="categoryId != null">AND i.category_id = #{categoryId}</if>
+        <if test="q != null and q != ''">AND i.name ILIKE '%' || #{q} || '%'</if>
+        <if test="cursorUpdated != null">AND (i.updated_at, i.id) &lt; (#{cursorUpdated}, #{cursorId})</if>
+        ORDER BY i.updated_at DESC, i.id DESC LIMIT #{limit}
+        </script>
+        """,
+    )
+    fun listShared(
+        @Param("userId") userId: UUID,
+        @Param("categoryId") categoryId: UUID?,
+        @Param("q") q: String?,
+        @Param("cursorUpdated") cursorUpdated: OffsetDateTime?,
+        @Param("cursorId") cursorId: UUID?,
+        @Param("limit") limit: Int,
+    ): List<Item>
+
     @Select("SELECT * FROM item WHERE space_id = #{spaceId} AND category_id = #{categoryId} AND deleted_at IS NULL")
     fun listByCategory(
         @Param("spaceId") spaceId: UUID,

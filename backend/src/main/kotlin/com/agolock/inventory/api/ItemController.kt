@@ -1,4 +1,4 @@
-@file:Suppress("MaxLineLength")
+@file:Suppress("LongParameterList", "MaxLineLength")
 
 package com.agolock.inventory.api
 
@@ -43,8 +43,9 @@ class ItemController(
         @RequestParam(required = false) q: String?,
         @RequestParam(required = false) limit: Int?,
         @RequestParam(required = false) cursor: String?,
+        @RequestParam(defaultValue = "ALL") scope: String,
     ): ItemListResponse {
-        val page = itemService.list(Actor.from(principal), categoryId, q, limit, cursor)
+        val page = itemService.list(Actor.from(principal), categoryId, q, limit, cursor, scope)
         return ItemListResponse(page.items.map { it.toResponse() }, page.nextCursor)
     }
 
