@@ -1853,9 +1853,11 @@ components:
           $ref: '#/components/schemas/Space'
     AuthConfig:
       type: object
-      required: [inviteRequired]
+      required: [inviteRequired, invitationEmailDiscoveryEnabled]
       properties:
         inviteRequired:
+          type: boolean
+        invitationEmailDiscoveryEnabled:
           type: boolean
         passwordMinLength:
           type: integer

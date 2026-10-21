@@ -20,6 +20,7 @@ export type AuthMe = {
 
 export type AuthConfig = {
   inviteRequired: boolean
+  invitationEmailDiscoveryEnabled?: boolean
   passwordMinLength: number
   passwordMaxLength: number
 }

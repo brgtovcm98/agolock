@@ -88,6 +88,8 @@ agolock:
     port: ${MAIL_PORT:1025}
     from: ${MAIL_FROM:no-reply@agolock.local}
 auth:
+  invitation:
+    email-discovery-enabled: ${AUTH_INVITATION_EMAIL_DISCOVERY_ENABLED:false}
   signup:
     invite-required: ${AUTH_SIGNUP_INVITE_REQUIRED:true}
   session:

@@ -1001,6 +1001,7 @@ export interface components {
         };
         AuthConfig: {
             inviteRequired: boolean;
+            invitationEmailDiscoveryEnabled: boolean;
             /** @default 10 */
             passwordMinLength: number;
             /** @default 128 */

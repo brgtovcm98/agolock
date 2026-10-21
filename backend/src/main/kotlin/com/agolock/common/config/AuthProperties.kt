@@ -22,6 +22,9 @@ class AuthProperties {
     @field:Valid
     var login: Login = Login()
 
+    @field:Valid
+    var invitation: Invitation = Invitation()
+
     class Signup {
         var inviteRequired: Boolean = true
     }
@@ -37,6 +40,10 @@ class AuthProperties {
     class PasswordReset {
         @field:NotNull
         var ttl: Duration = Duration.ofMinutes(DEFAULT_RESET_MINUTES)
+    }
+
+    class Invitation {
+        var emailDiscoveryEnabled: Boolean = false
     }
 
     class Login {

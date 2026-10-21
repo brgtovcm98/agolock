@@ -35,6 +35,7 @@ class AuthController(
     fun config(): AuthConfigResponse =
         AuthConfigResponse(
             inviteRequired = authProperties.signup.inviteRequired,
+            invitationEmailDiscoveryEnabled = authProperties.invitation.emailDiscoveryEnabled,
             passwordMinLength = AuthService.PASSWORD_MIN_LENGTH,
             passwordMaxLength = AuthService.PASSWORD_MAX_LENGTH,
         )

@@ -59,6 +59,7 @@ data class PasswordResetConfirmRequest(
 
 data class AuthConfigResponse(
     val inviteRequired: Boolean,
+    val invitationEmailDiscoveryEnabled: Boolean,
     val passwordMinLength: Int,
     val passwordMaxLength: Int,
 )

@@ -3,6 +3,7 @@ import { Check, Plus, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { sharingApi, type SharePermission } from './api'
+import { useAuth } from '@/features/auth/auth-provider'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
@@ -13,6 +14,8 @@ import { TextField } from '@/shared/ui/text-field'
 
 export function SharingPage() {
   const queryClient = useQueryClient()
+  const { config } = useAuth()
+  const emailDiscoveryEnabled = config?.invitationEmailDiscoveryEnabled ?? false
   const [email, setEmail] = useState('')
   const [roomId, setRoomId] = useState('')
   const [permission, setPermission] = useState<SharePermission>('VIEW')
@@ -27,6 +30,7 @@ export function SharingPage() {
   const receivedQuery = useQuery({
     queryKey: ['sharing', 'received'],
     queryFn: sharingApi.received,
+    enabled: emailDiscoveryEnabled,
   })
   const roomsQuery = useQuery({
     queryKey: ['hierarchy', 'rooms', 'sharing-picker'],
@@ -164,7 +168,12 @@ export function SharingPage() {
         <Card>
           <CardBody className="gap-3">
             <SectionTitle>받은 초대</SectionTitle>
-            {received.length === 0 ? <p className="text-xs">대기 중인 초대가 없습니다.</p> : null}
+            {!emailDiscoveryEnabled ? (
+              <p className="text-xs">메일의 초대 링크로 수락해 주세요.</p>
+            ) : null}
+            {emailDiscoveryEnabled && received.length === 0 ? (
+              <p className="text-xs">대기 중인 초대가 없습니다.</p>
+            ) : null}
             {received.map((invitation) => (
               <div key={invitation.id} className="border-border flex flex-col gap-2 border-2 p-3">
                 <div className="flex items-center justify-between gap-2">

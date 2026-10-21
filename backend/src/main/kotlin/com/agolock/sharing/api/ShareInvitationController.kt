@@ -1,5 +1,7 @@
 package com.agolock.sharing.api
 
+import com.agolock.common.config.AuthProperties
+import com.agolock.common.error.ApiException
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.sharing.service.CreateInvitationCommand
@@ -24,6 +26,7 @@ import java.util.UUID
 @Tag(name = "sharing")
 class ShareInvitationController(
     private val invitationService: ShareInvitationService,
+    private val authProperties: AuthProperties,
 ) {
     @GetMapping
     @Operation(operationId = "listShareInvitations", summary = "보낸 초대 목록")
@@ -54,14 +57,20 @@ class ShareInvitationController(
     @Operation(operationId = "listReceivedShareInvitations", summary = "받은 초대 목록")
     fun received(
         @AuthenticationPrincipal principal: AppUserPrincipal,
-    ): ShareInvitationListResponse = ShareInvitationListResponse(invitationService.listReceived(Actor.from(principal)))
+    ): ShareInvitationListResponse {
+        ensureEmailDiscovery()
+        return ShareInvitationListResponse(invitationService.listReceived(Actor.from(principal)))
+    }
 
     @PostMapping("/received/{invitationId}/accept")
     @Operation(operationId = "acceptShareInvitation", summary = "초대 수락")
     fun accept(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable invitationId: UUID,
-    ): ShareResponse = invitationService.accept(Actor.from(principal), invitationId).share
+    ): ShareResponse {
+        ensureEmailDiscovery()
+        return invitationService.accept(Actor.from(principal), invitationId).share
+    }
 
     @PostMapping("/received/{invitationId}/decline")
     @Operation(operationId = "declineShareInvitation", summary = "초대 거절")
@@ -69,6 +78,7 @@ class ShareInvitationController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable invitationId: UUID,
     ): ResponseEntity<Void> {
+        ensureEmailDiscovery()
         invitationService.decline(Actor.from(principal), invitationId)
         return ResponseEntity.noContent().build()
     }
@@ -108,5 +118,15 @@ class ShareInvitationController(
     ): ResponseEntity<Void> {
         invitationService.revoke(Actor.from(principal), invitationId)
         return ResponseEntity.noContent().build()
+    }
+
+    private fun ensureEmailDiscovery() {
+        if (!authProperties.invitation.emailDiscoveryEnabled) {
+            throw ApiException(
+                "EMAIL_DISCOVERY_DISABLED",
+                HttpStatus.FORBIDDEN,
+                "메일의 초대 링크로 수락해 주세요.",
+            )
+        }
     }
 }

@@ -45,7 +45,7 @@ describe('앱 라우팅', () => {
     renderApp(['/sharing'])
 
     expect(screen.getByRole('heading', { name: '공유' })).toBeInTheDocument()
-    expect(screen.getByText('대기 중인 초대가 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('메일의 초대 링크로 수락해 주세요.')).toBeInTheDocument()
   })
 
   it('공간 트리의 빈 상태를 안내한다', () => {

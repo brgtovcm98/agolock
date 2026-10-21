@@ -129,7 +129,7 @@ class ShareInvitationService(
         val user = userMapper.findById(actor.userId) ?: throw unauthenticated()
         val invitation = invitationMapper.findByIdForUpdate(invitationId) ?: throw notFound("초대를 찾을 수 없습니다.")
         if (invitation.invitedEmail.lowercase(Locale.ROOT) != user.email.lowercase(Locale.ROOT)) {
-            throw ApiException("INVITATION_EMAIL_MISMATCH", HttpStatus.UNPROCESSABLE_ENTITY, "로그인한 계정의 이메일과 초대 이메일이 일치하지 않습니다.")
+            throw notFound("초대를 찾을 수 없습니다.")
         }
         val now = OffsetDateTime.now(clock)
         if (invitation.status == InvitationStatus.ACCEPTED) {

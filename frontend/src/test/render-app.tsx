@@ -20,6 +20,7 @@ export const testAuth: AuthMe = {
 
 export const testAuthConfig: AuthConfig = {
   inviteRequired: false,
+  invitationEmailDiscoveryEnabled: false,
   passwordMinLength: 10,
   passwordMaxLength: 128,
 }

@@ -94,7 +94,7 @@ RFC 7807 `application/problem+json`을 사용합니다.
 | `PASSWORD_RESET_TOKEN_INVALID` | 재설정 토큰 무효·만료·사용됨 |
 | `INVITATION_ALREADY_PENDING` | 대기 중인 초대 존재 |
 | `SHARE_ALREADY_EXISTS` | 활성 Grant 존재 |
-| `INVITATION_EMAIL_MISMATCH` | 초대 이메일과 계정 불일치 |
+| ``EMAIL_DISCOVERY_DISABLED`` | 이메일 초대 탐색이 비활성화됨 |
 | `INVITATION_EXPIRED` | 만료된 초대 |
 | `DISPOSAL_CONFIRMATION_REQUIRED` | 폐기 확인 플래그 누락 |
 | `CATEGORY_IN_USE` | 사용 중인 카테고리 삭제 시도 |

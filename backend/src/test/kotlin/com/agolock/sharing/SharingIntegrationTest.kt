@@ -97,11 +97,10 @@ class SharingIntegrationTest
             assertThat(mailPort.invitationMessages.count { it.email == guestEmail }).isGreaterThanOrEqualTo(2)
             val guest = AuthTestClient(restTemplate, objectMapper)
             guest.signup(guestEmail, "password-1234", "게스트")
-            val received = json(guest.get("/api/v1/share-invitations/received").body)
-            assertThat(received["items"].size()).isEqualTo(1)
-            val invitationId = received["items"][0]["id"].asText()
+            assertThat(guest.get("/api/v1/share-invitations/received").statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+            val token = mailPort.invitationMessages.last { it.email == guestEmail }.token
 
-            val accepted = guest.post("/api/v1/share-invitations/received/$invitationId/accept", mapOf("x" to "y"))
+            val accepted = guest.post("/api/v1/share-invitations/accept", mapOf("token" to token))
             assertThat(accepted.statusCode).isEqualTo(HttpStatus.OK)
             assertThat(json(accepted.body)["resourceName"].asText()).isEqualTo("공유 거실")
 
@@ -163,21 +162,21 @@ class SharingIntegrationTest
             val shelf = json(owner.post("/api/v1/rooms/${room["id"].asText()}/shelves", mapOf("name" to "선반")).body)
             val item = json(owner.post("/api/v1/items", mapOf("name" to "공유 Item")).body)
 
-            val invitation =
-                json(
-                    owner
-                        .post(
-                            "/api/v1/share-invitations",
-                            mapOf(
-                                "roomId" to room["id"].asText(),
-                                "invitedEmail" to guestEmail,
-                                "permission" to "MANAGE",
-                            ),
-                        ).body,
+            val invitationResponse =
+                owner.post(
+                    "/api/v1/share-invitations",
+                    mapOf(
+                        "roomId" to room["id"].asText(),
+                        "invitedEmail" to guestEmail,
+                        "permission" to "MANAGE",
+                    ),
                 )
+            assertThat(invitationResponse.statusCode).isEqualTo(HttpStatus.CREATED)
+            outboxRelay.relay()
             val guest = AuthTestClient(restTemplate, objectMapper)
             guest.signup(guestEmail, "password-1234", "게스트")
-            val accepted = guest.post("/api/v1/share-invitations/received/${invitation["id"].asText()}/accept", mapOf("x" to "y"))
+            val token = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            val accepted = guest.post("/api/v1/share-invitations/accept", mapOf("token" to token))
             assertThat(accepted.statusCode).isEqualTo(HttpStatus.OK)
 
             val created =
@@ -214,19 +213,21 @@ class SharingIntegrationTest
                 )
             assertThat(self.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
 
+            val invitingEmail = "other-${UUID.randomUUID()}@example.com"
             val invite =
                 json(
                     owner
                         .post(
                             "/api/v1/share-invitations",
-                            mapOf("roomId" to roomId, "invitedEmail" to "other-${UUID.randomUUID()}@example.com", "permission" to "EDIT"),
+                            mapOf("roomId" to roomId, "invitedEmail" to invitingEmail, "permission" to "EDIT"),
                         ).body,
                 )
+            outboxRelay.relay()
             val guest = AuthTestClient(restTemplate, objectMapper)
             guest.signup("guest-${UUID.randomUUID()}@example.com", "password-1234", "다른 사용자")
-            val accepted = guest.post("/api/v1/share-invitations/received/${invite["id"].asText()}/accept", mapOf("x" to "y"))
-            assertThat(accepted.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
-            assertThat(json(accepted.body)["code"].asText()).isEqualTo("INVITATION_EMAIL_MISMATCH")
+            val token = mailPort.invitationMessages.last { it.email == invitingEmail }.token
+            val accepted = guest.post("/api/v1/share-invitations/accept", mapOf("token" to token))
+            assertThat(accepted.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         }
 
         private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")
