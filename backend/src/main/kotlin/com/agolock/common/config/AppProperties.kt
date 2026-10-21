@@ -33,6 +33,8 @@ class AppProperties {
         @field:NotBlank
         var endpoint: String = ""
 
+        var publicEndpoint: String = ""
+
         @field:NotBlank
         var region: String = "us-east-1"
 

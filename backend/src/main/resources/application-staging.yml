@@ -1,0 +1,37 @@
+spring:
+  config:
+    activate:
+      on-profile: staging
+  flyway:
+    enabled: true
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+  forward-headers-strategy: framework
+
+agolock:
+  environment: staging
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: db,rabbit,s3
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    root: INFO
+    com.agolock: INFO

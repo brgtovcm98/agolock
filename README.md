@@ -110,7 +110,13 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-### 5. 계약 미리보기
+### 5. 배포
+
+- staging 배포 골격은 [deploy/README.md](deploy/README.md)를 따릅니다.
+- backend/frontend 이미지, nginx, Compose, staging·production 프로필이 있습니다.
+- 실제 production 배포는 1차 프리즈와 M8 gate 이후에 수행합니다.
+
+### 6. 계약 미리보기
 
 ```bash
 source scripts/env.sh

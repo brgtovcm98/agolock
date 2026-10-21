@@ -4,6 +4,7 @@ import com.agolock.common.security.RestAccessDeniedHandler
 import com.agolock.common.security.RestAuthenticationEntryPoint
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -19,6 +20,7 @@ import org.springframework.session.jdbc.JdbcIndexedSessionRepository
 import org.springframework.session.security.SpringSessionBackedSessionRegistry
 
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 class SecurityConfig(
     private val authProperties: AuthProperties,
     private val authenticationEntryPoint: RestAuthenticationEntryPoint,

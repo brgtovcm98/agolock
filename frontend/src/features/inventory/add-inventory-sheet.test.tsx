@@ -35,7 +35,10 @@ describe('등록 시트', () => {
     await user.click(openSheet())
     const dialog = screen.getByRole('dialog')
     await user.type(within(dialog).getByLabelText('물건 이름'), '새 드릴')
-    await user.selectOptions(await within(dialog).findByLabelText('방', {}, { timeout: 3000 }), 'r1')
+    await user.selectOptions(
+      await within(dialog).findByLabelText('방', {}, { timeout: 3000 }),
+      'r1',
+    )
     await user.click(within(dialog).getByRole('button', { name: '등록' }))
 
     await waitFor(() => expect(createInventorySpy).toHaveBeenCalledTimes(1))
@@ -82,7 +85,10 @@ describe('등록 시트', () => {
     await user.click(openSheet())
     const dialog = screen.getByRole('dialog')
     await user.type(within(dialog).getByLabelText('물건 이름'), '새 드릴')
-    await user.selectOptions(await within(dialog).findByLabelText('방', {}, { timeout: 3000 }), 'r1')
+    await user.selectOptions(
+      await within(dialog).findByLabelText('방', {}, { timeout: 3000 }),
+      'r1',
+    )
     await user.click(within(dialog).getByRole('button', { name: '등록' }))
 
     expect(await within(dialog).findByText('등록하지 못했습니다.')).toBeInTheDocument()

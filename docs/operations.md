@@ -112,6 +112,17 @@ docker compose -f infra/docker-compose.yml up -d
 - API와 프론트엔드는 같은 도메인 또는 신뢰된 서브도메인으로 제공합니다.
 - 쿠키는 same-origin 또는 명시적 CORS 설정을 사용합니다.
 
+### 4.1 staging 배포 골격
+
+- `deploy/backend.Dockerfile`은 bootJar를 빌드하고 JDK 21 JRE에서 non-root로 실행합니다.
+- `deploy/frontend.Dockerfile`은 pnpm 빌드 후 nginx로 정적 파일을 서빙합니다.
+- `deploy/compose.staging.yml`은 app·worker·web·PostgreSQL·RabbitMQ·MinIO·Mailpit을 묶습니다.
+- API와 worker는 같은 이미지를 쓰고 `staging`·`staging,worker` 프로필로 분리합니다.
+- nginx는 SPA fallback과 same-origin `/api` 프록시를 제공합니다.
+- staging은 HTTPS 종단 뒤에서 `SESSION_COOKIE_SECURE=true`로 동작합니다.
+- 브라우저가 presigned URL로 직접 업로드하므로 `S3_PUBLIC_ENDPOINT`는 브라우저에서 접근 가능한 주소여야 합니다.
+- 이 골격은 M6 검색과 1차 프리즈 전까지 배포 완료로 간주하지 않습니다.
+
 ## 5. 보안
 
 ### 5.1 인증·세션

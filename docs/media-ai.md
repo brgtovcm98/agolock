@@ -104,6 +104,8 @@ spaces/{spaceId}/draft/{imageId}/thumb-512.webp
 
 - 버킷은 비공개입니다.
 - 공개 ACL을 사용하지 않습니다.
+- 서버의 S3 SDK는 내부 `S3_ENDPOINT`를, 브라우저용 presigned URL은 `S3_PUBLIC_ENDPOINT`를 사용합니다.
+- `S3_PUBLIC_ENDPOINT`는 브라우저에서 접근 가능한 HTTPS 주소여야 합니다.
 - presigned URL은 로그에 남기지 않습니다.
 - 업로드 최대 크기는 10MB입니다.
 - `UPLOADING`과 `DRAFT` 이미지는 `upload_expires_at` 이후 정리 job이 삭제합니다.

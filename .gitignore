@@ -39,3 +39,10 @@ infra/data/
 
 # Kotlin compiler local logs
 .kotlin/
+
+# Local deployment secrets
+deploy/.env.staging
+
+# Local Docker build state
+.docker-config/
+.docker-buildx/

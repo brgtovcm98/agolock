@@ -29,7 +29,7 @@ class StorageConfig {
     fun s3Presigner(properties: AppProperties): S3Presigner =
         S3Presigner
             .builder()
-            .endpointOverride(URI.create(properties.storage.endpoint))
+            .endpointOverride(URI.create(properties.storage.publicEndpoint.ifBlank { properties.storage.endpoint }))
             .region(Region.of(properties.storage.region))
             .credentialsProvider(credentials(properties))
             .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
