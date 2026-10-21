@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PackagePlus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { inventoryApi, type InventoryStatus } from './api'
+import { InventoryImages } from '@/features/media/inventory-images'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
@@ -24,6 +25,7 @@ export function InventoryPage() {
   const [itemCategory, setItemCategory] = useState('')
   const [selectedItem, setSelectedItem] = useState('')
   const [selectedRoom, setSelectedRoom] = useState('')
+  const [imageInventory, setImageInventory] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const categoriesQuery = useQuery({
@@ -252,6 +254,19 @@ export function InventoryPage() {
                 <span className="text-xs">
                   {inventory.location.type} · {inventory.location.name}
                 </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    setImageInventory(imageInventory === inventory.id ? '' : inventory.id)
+                  }
+                >
+                  이미지
+                </Button>
+                {imageInventory === inventory.id ? (
+                  <InventoryImages inventoryId={inventory.id} />
+                ) : null}
               </div>
             ))}
             {inventories.length === 0 ? (
