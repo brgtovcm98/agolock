@@ -44,7 +44,15 @@ class ShelfController(
         val actor = Actor.from(principal)
         val page = shelfService.list(actor, roomId, cursor, limit)
         return ShelfListResponse(
-            items = page.items.map { it.toResponse(accessService.effectivePermission(actor, actor.spaceId), false) },
+            items =
+                page.items.map {
+                    val permission =
+                        accessService.effectivePermission(
+                            actor,
+                            accessService.target(it.spaceId, roomId, it.id),
+                        )
+                    it.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+                },
             nextCursor = page.nextCursor,
         )
     }

@@ -32,17 +32,21 @@ class ShelfService(
         cursorRaw: String?,
         limitRaw: Int?,
     ): PageResult<Shelf> {
-        accessService.requireView(actor, actor.spaceId)
-        requireRoom(actor, roomId)
+        val room = roomMapper.findByIdAny(roomId) ?: throw notFound("Room을 찾을 수 없습니다.")
+        accessService.require(
+            actor,
+            accessService.target(room.spaceId, roomId = room.id),
+            com.agolock.hierarchy.domain.Permission.VIEW,
+        )
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
         val shelves =
             shelfMapper
-                .listByRoom(actor.spaceId, roomId, cursor?.name, cursor?.id, limit + 1)
+                .listByRoom(room.spaceId, roomId, cursor?.name, cursor?.id, limit + 1)
                 .map {
                     it.copy(
-                        boxCount = shelfMapper.countBoxes(actor.spaceId, it.id),
-                        inventoryCount = inventoryMapper.countByShelf(actor.spaceId, it.id),
+                        boxCount = shelfMapper.countBoxes(room.spaceId, it.id),
+                        inventoryCount = inventoryMapper.countByShelf(room.spaceId, it.id),
                     )
                 }
         val page = shelves.take(limit)
@@ -158,18 +162,6 @@ class ShelfService(
         requireShelfForUpdate(actor, shelfId)
         deleteGuard.assertShelfEmpty(actor.spaceId, shelfId)
         shelfMapper.softDelete(actor.spaceId, shelfId, OffsetDateTime.now(clock))
-    }
-
-    private fun requireRoom(
-        actor: Actor,
-        roomId: UUID,
-    ) {
-        roomMapper.findById(actor.spaceId, roomId)
-            ?: throw ApiException(
-                code = "RESOURCE_NOT_FOUND",
-                status = HttpStatus.NOT_FOUND,
-                message = "Room을 찾을 수 없습니다.",
-            )
     }
 
     private fun requireRoomForUpdate(

@@ -32,6 +32,7 @@ class BoxController(
     private val boxService: BoxService,
     private val accessService: AccessService,
     private val idempotencyService: IdempotencyService,
+    private val shelfMapper: com.agolock.hierarchy.persistence.ShelfMapper,
 ) {
     @GetMapping("/shelves/{shelfId}/boxes")
     @Operation(operationId = "listBoxes", summary = "Shelf의 Box 목록")
@@ -43,8 +44,17 @@ class BoxController(
     ): BoxListResponse {
         val actor = Actor.from(principal)
         val page = boxService.list(actor, shelfId, cursor, limit)
+        val roomId = shelfMapper.findByIdAny(shelfId)?.roomId
         return BoxListResponse(
-            items = page.items.map { it.toResponse(accessService.effectivePermission(actor, actor.spaceId), false) },
+            items =
+                page.items.map {
+                    val permission =
+                        accessService.effectivePermission(
+                            actor,
+                            accessService.target(it.spaceId, roomId, it.shelfId, it.id),
+                        )
+                    it.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+                },
             nextCursor = page.nextCursor,
         )
     }

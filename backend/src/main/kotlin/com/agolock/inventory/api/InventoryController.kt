@@ -39,7 +39,8 @@ class InventoryController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @RequestParam(required = false) status: InventoryStatus?,
         @RequestParam(required = false) limit: Int?,
-    ): InventoryListResponse = InventoryListResponse(inventoryService.list(Actor.from(principal), status, limit))
+        @RequestParam(required = false, defaultValue = "OWNED") scope: String,
+    ): InventoryListResponse = InventoryListResponse(inventoryService.list(Actor.from(principal), status, limit, scope))
 
     @PostMapping
     @Operation(operationId = "createInventory", summary = "Inventory 생성")

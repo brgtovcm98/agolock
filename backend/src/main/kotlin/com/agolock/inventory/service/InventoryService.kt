@@ -30,6 +30,7 @@ import com.agolock.inventory.persistence.CategoryMapper
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.InventoryMovementMapper
 import com.agolock.inventory.persistence.ItemMapper
+import com.agolock.sharing.persistence.ShareMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -47,17 +48,52 @@ class InventoryService(
     private val shelfMapper: ShelfMapper,
     private val boxMapper: BoxMapper,
     private val accessService: AccessService,
+    private val shareMapper: ShareMapper,
     private val clock: Clock,
 ) {
     fun list(
         actor: Actor,
         status: com.agolock.inventory.domain.InventoryStatus?,
         limit: Int?,
+        scope: String = "OWNED",
     ): List<InventoryResponse> {
-        accessService.requireOwner(actor, actor.spaceId)
-        return inventoryMapper
-            .list(actor.spaceId, status, null, null, null, (limit ?: 100).coerceIn(1, 100))
-            .map { toResponse(actor, it, "OWNER") }
+        val normalizedScope = scope.uppercase()
+        if (normalizedScope !in setOf("OWNED", "SHARED", "ALL")) {
+            throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "scope는 OWNED, SHARED, ALL 중 하나여야 합니다.")
+        }
+        val effectiveLimit = (limit ?: 100).coerceIn(1, 100)
+        val owned =
+            if (normalizedScope == "SHARED") {
+                emptyList()
+            } else {
+                accessService.requireOwner(actor, actor.spaceId)
+                inventoryMapper
+                    .list(actor.spaceId, status, null, null, null, effectiveLimit)
+                    .map { toResponse(actor, it, "OWNER") }
+            }
+        if (normalizedScope == "OWNED") return owned
+        val shared =
+            shareMapper.listActiveByGrantee(actor.userId).flatMap { share ->
+                inventoryMapper
+                    .list(share.spaceId, status, null, null, null, effectiveLimit)
+                    .filter { inventory ->
+                        val target = inventoryTarget(inventory)
+                        (share.roomId != null && target.roomId == share.roomId) ||
+                            (share.shelfId != null && target.shelfId == share.shelfId)
+                    }.mapNotNull { inventory ->
+                        val target = inventoryTarget(inventory)
+                        val permission = accessService.effectivePermission(actor, target)
+                        if (permission == com.agolock.hierarchy.domain.Permission.NONE) {
+                            null
+                        } else {
+                            toResponse(actor, inventory, permission.name)
+                        }
+                    }
+            }
+        return (owned + shared)
+            .distinctBy { it.id }
+            .sortedByDescending { it.updatedAt }
+            .take(effectiveLimit)
     }
 
     fun listByItem(

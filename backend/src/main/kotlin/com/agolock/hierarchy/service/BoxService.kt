@@ -32,14 +32,18 @@ class BoxService(
         cursorRaw: String?,
         limitRaw: Int?,
     ): PageResult<Box> {
-        accessService.requireView(actor, actor.spaceId)
-        requireShelf(actor, shelfId)
+        val shelf = shelfMapper.findByIdAny(shelfId) ?: throw notFound("Shelf를 찾을 수 없습니다.")
+        accessService.require(
+            actor,
+            accessService.target(shelf.spaceId, shelf.roomId, shelf.id),
+            com.agolock.hierarchy.domain.Permission.VIEW,
+        )
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
         val boxes =
             boxMapper
-                .listByShelf(actor.spaceId, shelfId, cursor?.name, cursor?.id, limit + 1)
-                .map { it.copy(inventoryCount = inventoryMapper.countByBox(actor.spaceId, it.id)) }
+                .listByShelf(shelf.spaceId, shelfId, cursor?.name, cursor?.id, limit + 1)
+                .map { it.copy(inventoryCount = inventoryMapper.countByBox(shelf.spaceId, it.id)) }
         val page = boxes.take(limit)
         val next =
             if (boxes.size > limit) {
@@ -154,18 +158,6 @@ class BoxService(
         requireBoxForUpdate(actor, boxId)
         deleteGuard.assertBoxEmpty(actor.spaceId, boxId)
         boxMapper.softDelete(actor.spaceId, boxId, OffsetDateTime.now(clock))
-    }
-
-    private fun requireShelf(
-        actor: Actor,
-        shelfId: UUID,
-    ) {
-        shelfMapper.findById(actor.spaceId, shelfId)
-            ?: throw ApiException(
-                code = "RESOURCE_NOT_FOUND",
-                status = HttpStatus.NOT_FOUND,
-                message = "Shelf를 찾을 수 없습니다.",
-            )
     }
 
     private fun requireShelfForUpdate(

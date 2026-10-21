@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Plus, X } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { sharingApi, type SharePermission } from './api'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
@@ -200,13 +201,18 @@ export function SharingPage() {
           {shared.length === 0 ? <p className="text-xs">아직 공유받은 공간이 없습니다.</p> : null}
           <div className="grid gap-2 md:grid-cols-2">
             {shared.map((share) => (
-              <div
+              <Link
                 key={share.id}
-                className="border-border bg-blue-soft flex items-center justify-between gap-2 border-2 p-3"
+                to={
+                  share.resourceType === 'ROOM'
+                    ? `/space/rooms/${share.roomId}`
+                    : `/space/shelves/${share.shelfId}`
+                }
+                className="border-border bg-blue-soft flex items-center justify-between gap-2 border-2 p-3 hover:underline"
               >
                 <span className="text-sm font-black">{share.resourceName}</span>
                 <Badge variant="info">{share.permission}</Badge>
-              </div>
+              </Link>
             ))}
           </div>
         </CardBody>
