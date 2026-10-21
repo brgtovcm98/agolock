@@ -34,6 +34,9 @@ class AppProperties {
         var endpoint: String = ""
 
         @field:NotBlank
+        var region: String = "us-east-1"
+
+        @field:NotBlank
         var bucket: String = ""
 
         @field:NotBlank

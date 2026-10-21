@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.spring.boot.starter.mail)
     implementation(libs.spring.session.jdbc)
     implementation(libs.bouncycastle)
+    implementation(libs.aws.s3)
+    implementation(libs.aws.url.connection.client)
     implementation(libs.springdoc.openapi)
     implementation(libs.mybatis.spring.boot.starter)
     implementation(libs.logstash.logback.encoder)
