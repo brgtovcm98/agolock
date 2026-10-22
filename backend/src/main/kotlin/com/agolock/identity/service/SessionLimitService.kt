@@ -32,11 +32,12 @@ class SessionLimitService(
                         """
                         SELECT SESSION_ID
                         FROM SPRING_SESSION
-                        WHERE PRINCIPAL_NAME = ?
+                        WHERE PRINCIPAL_NAME = ? AND EXPIRY_TIME > ?
                         ORDER BY LAST_ACCESS_TIME ASC
                         """.trimIndent(),
                         String::class.java,
                         userId.toString(),
+                        System.currentTimeMillis(),
                     )
                 } else {
                     repository.findByPrincipalName(userId.toString()).keys.toList()
