@@ -17,7 +17,7 @@ cp deploy/.env.staging.example deploy/.env.staging
 # 값을 채운 뒤
 docker compose -f deploy/compose.staging.yml --env-file deploy/.env.staging up -d --build
 docker compose -f deploy/compose.staging.yml --env-file deploy/.env.staging ps
-curl -fsS http://localhost:8088/actuator/health/readiness
+docker compose -f deploy/compose.staging.yml exec app curl -fsS http://127.0.0.1:9090/actuator/health/readiness
 ```
 
 `PUBLIC_BASE_URL`은 실제 HTTPS 주소여야 합니다. staging은 `SESSION_COOKIE_SECURE=true`이므로 TLS 종단(로드밸런서 또는 리버스 프록시) 뒤에서 접속합니다. 로컬에서 HTTP로만 확인하려면 `APP_ENVIRONMENT=local`로 별도 실행하고 staging 프로필을 사용하지 않습니다.

@@ -1,18 +1,17 @@
 spring:
-  config:
-    activate:
-      on-profile: staging
   flyway:
     enabled: true
 server:
   servlet:
     session:
       cookie:
-        secure: true
-  forward-headers-strategy: framework
+        secure: ${SESSION_COOKIE_SECURE:true}
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
 
 agolock:
   environment: staging
+  notification:
+    secret-key: ${NOTIFICATION_SECRET_KEY:?required}
 
 springdoc:
   api-docs:
@@ -21,15 +20,8 @@ springdoc:
     enabled: false
 
 management:
-  endpoint:
-    health:
-      group:
-        readiness:
-          include: db,rabbit,s3
-  endpoints:
-    web:
-      exposure:
-        include: health,info
+  server:
+    port: 9090
 
 logging:
   level:

@@ -2,12 +2,10 @@ package com.agolock.common.config
 
 import com.agolock.common.security.RestAccessDeniedHandler
 import com.agolock.common.security.RestAuthenticationEntryPoint
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -16,17 +14,14 @@ import org.springframework.security.web.context.SecurityContextRepository
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.security.web.session.HttpSessionEventPublisher
-import org.springframework.session.jdbc.JdbcIndexedSessionRepository
-import org.springframework.session.security.SpringSessionBackedSessionRegistry
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 class SecurityConfig(
-    private val authProperties: AuthProperties,
     private val authenticationEntryPoint: RestAuthenticationEntryPoint,
     private val accessDeniedHandler: RestAccessDeniedHandler,
-    private val sessionRepositoryProvider: ObjectProvider<JdbcIndexedSessionRepository>,
     @Value("\${server.servlet.session.cookie.secure:false}") private val secureCookies: Boolean,
+    @Value("\${springdoc.api-docs.enabled:false}") private val apiDocsEnabled: Boolean,
 ) {
     @Bean
     fun securityContextRepository(): SecurityContextRepository = HttpSessionSecurityContextRepository()
@@ -58,37 +53,17 @@ class SecurityConfig(
                     .csrfTokenRepository(csrfTokenRepository)
                     .csrfTokenRequestHandler(csrfRequestHandler)
             }.authorizeHttpRequests { authorize ->
-                authorize
-                    .requestMatchers(
-                        "/api/v1/auth/config",
-                        "/api/v1/auth/csrf",
-                        "/api/v1/auth/signup",
-                        "/api/v1/auth/login",
-                        "/api/v1/auth/password-reset/request",
-                        "/api/v1/auth/password-reset/confirm",
-                        "/api/v1/auth/email-verification/confirm",
-                        "/api/v1/info",
-                        "/actuator/health/**",
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/error",
-                    ).permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/**")
-                    .authenticated()
-                    .anyRequest()
-                    .permitAll()
+                PUBLIC_ENDPOINTS.forEach { authorize.requestMatchers(it).permitAll() }
+                if (apiDocsEnabled) {
+                    authorize
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                        .permitAll()
+                }
+                authorize.requestMatchers("/actuator/**").denyAll()
+                authorize.anyRequest().authenticated()
             }.sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 session.sessionFixation { fixation -> fixation.migrateSession() }
-                sessionRepositoryProvider.ifAvailable { repository ->
-                    session
-                        .maximumSessions(authProperties.session.max)
-                        .sessionRegistry(SpringSessionBackedSessionRegistry(repository))
-                        .maxSessionsPreventsLogin(false)
-                }
             }.securityContext { context ->
                 context.requireExplicitSave(true)
             }.exceptionHandling { exception ->
@@ -102,5 +77,21 @@ class SecurityConfig(
             }
 
         return http.build()
+    }
+
+    private companion object {
+        val PUBLIC_ENDPOINTS =
+            arrayOf(
+                "/api/v1/auth/config",
+                "/api/v1/auth/csrf",
+                "/api/v1/auth/signup",
+                "/api/v1/auth/login",
+                "/api/v1/auth/password-reset/request",
+                "/api/v1/auth/password-reset/confirm",
+                "/api/v1/auth/email-verification/confirm",
+                "/error",
+                "/actuator/health/liveness",
+                "/actuator/health/readiness",
+            )
     }
 }

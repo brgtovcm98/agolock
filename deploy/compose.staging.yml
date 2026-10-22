@@ -3,25 +3,26 @@ name: agolock-staging
 x-app-env: &app-env
   APP_ENVIRONMENT: staging
   SPRING_PROFILES_ACTIVE: staging
-  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://staging.example.com}
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?required}
   SESSION_COOKIE_SECURE: "true"
   FORWARD_HEADERS_STRATEGY: framework
   DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-agolock}
   DATABASE_USERNAME: ${POSTGRES_USER:-agolock}
-  DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+  DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
   RABBITMQ_HOST: rabbitmq
   RABBITMQ_PORT: "5672"
   RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-agolock}
-  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-change-me}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
   S3_ENDPOINT: http://minio:9000
-  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:?required}
   S3_BUCKET: agolock-staging
   S3_ACCESS_KEY: ${S3_ACCESS_KEY:-agolock}
-  S3_SECRET_KEY: ${S3_SECRET_KEY:-change-me}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?required}
   MAIL_HOST: mailpit
   MAIL_PORT: "1025"
   MAIL_FROM: ${MAIL_FROM:-no-reply@example.com}
   AUTH_SIGNUP_INVITE_REQUIRED: ${AUTH_SIGNUP_INVITE_REQUIRED:-true}
+  NOTIFICATION_SECRET_KEY: ${NOTIFICATION_SECRET_KEY:?required}
 
 services:
   postgres:
@@ -29,7 +30,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-agolock}
       POSTGRES_USER: ${POSTGRES_USER:-agolock}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
     volumes:
       - agolock-staging-postgres:/var/lib/postgresql/data
     healthcheck:
@@ -43,7 +44,7 @@ services:
     image: rabbitmq:3.13.7-management
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-agolock}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-change-me}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?required}
     volumes:
       - agolock-staging-rabbitmq:/var/lib/rabbitmq
     healthcheck:
@@ -57,9 +58,10 @@ services:
     image: bitnamilegacy/minio:2025.7.23-debian-12-r5
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-agolock}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-change-me}
-      MINIO_API_CORS_ALLOW_ORIGIN: ${PUBLIC_BASE_URL:-https://staging.example.com}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?required}
+      MINIO_API_CORS_ALLOW_ORIGIN: ${PUBLIC_BASE_URL:?required}
     ports:
+      # TODO(follow-up): 공개 S3 호스트 설계가 확정되면 9000 포트를 내부 네트워크 전용으로 전환한다.
       - "${MINIO_PORT:-9000}:9000"
     volumes:
       - agolock-staging-minio:/bitnami/minio/data
@@ -81,7 +83,7 @@ services:
         condition: service_healthy
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-agolock}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-change-me}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?required}
       S3_BUCKET: agolock-staging
     volumes:
       - ../infra/minio/init.sh:/opt/agolock/init.sh:ro
@@ -116,11 +118,12 @@ services:
       mailpit:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/actuator/health/readiness"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9090/actuator/health/readiness"]
       interval: 10s
       timeout: 5s
       start_period: 45s
       retries: 12
+    stop_grace_period: 40s
     restart: unless-stopped
 
   worker:
@@ -134,6 +137,8 @@ services:
     depends_on:
       app:
         condition: service_healthy
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   web:

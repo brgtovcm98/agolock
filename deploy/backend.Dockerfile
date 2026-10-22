@@ -20,7 +20,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY --from=build /workspace/app.jar /app/app.jar
 USER app
-EXPOSE 8080
+EXPOSE 8080 9090
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:8080/actuator/health/readiness || exit 1
+  CMD curl -fsS http://127.0.0.1:9090/actuator/health/readiness || exit 1
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]

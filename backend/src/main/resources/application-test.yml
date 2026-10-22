@@ -1,5 +1,7 @@
 agolock:
   environment: test
+  notification:
+    secret-key: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
   storage:
     endpoint: http://localhost:9000
     bucket: agolock-test
@@ -20,8 +22,10 @@ spring:
         auto-startup: false
 
 management:
+  server:
+    port: 0
   endpoint:
     health:
       group:
         readiness:
-          include: db,rabbit
+          include: db

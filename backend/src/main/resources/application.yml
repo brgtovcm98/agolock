@@ -18,6 +18,10 @@ spring:
     username: ${RABBITMQ_USERNAME:}
     password: ${RABBITMQ_PASSWORD:}
     connection-timeout: 3s
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
   session:
     store-type: jdbc
     timeout: ${AUTH_SESSION_TIMEOUT:30m}
@@ -25,6 +29,8 @@ spring:
       initialize-schema: never
       table-name: SPRING_SESSION
       cleanup-cron: "0 * * * * *"
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   mail:
     host: ${MAIL_HOST:}
     port: ${MAIL_PORT:1025}
@@ -58,10 +64,12 @@ server:
     include-message: never
     include-stacktrace: never
 management:
+  server:
+    port: 9090
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health
   endpoint:
     health:
       probes:
@@ -71,12 +79,16 @@ management:
         liveness:
           include: livenessState
         readiness:
-          include: db,rabbit,s3
+          include: readinessState,db
+        dependencies:
+          include: rabbit,s3
   health:
     rabbit:
       enabled: true
 agolock:
   environment: ${APP_ENVIRONMENT:local}
+  notification:
+    secret-key: ${NOTIFICATION_SECRET_KEY:}
   public-base-url: ${PUBLIC_BASE_URL:http://localhost:5173}
   storage:
     endpoint: ${S3_ENDPOINT:}
@@ -104,8 +116,10 @@ auth:
     lock-duration: 15m
 springdoc:
   api-docs:
+    enabled: false
     path: /v3/api-docs
   swagger-ui:
+    enabled: false
     path: /swagger-ui.html
     operations-sorter: alpha
 logging:

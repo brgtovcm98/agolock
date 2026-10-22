@@ -12,8 +12,18 @@ spring:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
     from: ${MAIL_FROM:no-reply@agolock.local}
+management:
+  server:
+    port: 9090
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 agolock:
   environment: local
+  notification:
+    secret-key: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
   storage:
     endpoint: ${S3_ENDPOINT:http://localhost:9000}
     bucket: ${S3_BUCKET:agolock-local}
