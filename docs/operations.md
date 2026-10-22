@@ -26,6 +26,7 @@ mailpit   이메일 확인
 docker compose -f infra/docker-compose.yml up -d
 ```
 
+- 로컬 실행 절차와 문제 해결은 [로컬 실행 Runbook](local-runbook.md)을 따릅니다.
 - 로컬 데이터는 볼륨으로 유지합니다.
 - MinIO 버킷은 시작 시 자동 생성합니다.
 - 공식 `minio/minio` 이미지가 Docker Hub에서 제공되지 않아 로컬은 `bitnamilegacy/minio:2025.7.23-debian-12-r5` 고정 태그를 사용합니다. 운영 이미지가 아닙니다.

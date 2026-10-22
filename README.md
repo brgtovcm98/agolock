@@ -61,6 +61,8 @@ mise exec -- java -version
 
 ### 2. 로컬 인프라
 
+상세한 실행·확인·초기화 절차는 [로컬 실행 Runbook](docs/local-runbook.md)을 따릅니다.
+
 ```bash
 docker compose -f infra/docker-compose.yml up -d
 docker compose -f infra/docker-compose.yml ps
@@ -85,8 +87,8 @@ source scripts/env.sh
 ./gradlew :backend:bootRun --args='--spring.profiles.active=local'
 ```
 
-- `http://localhost:8080/actuator/health`에서 liveness와 readiness를 확인합니다.
-- `http://localhost:8080/api/v1/info`는 상태 정보 API입니다.
+- `http://localhost:9090/actuator/health/readiness`에서 readiness를 확인합니다.
+- `http://localhost:8080/api/v1/auth/config`에서 인증 설정을 확인합니다.
 - 로컬 가입은 초대코드가 필요합니다. 아래 CLI로 코드를 만들 수 있습니다.
 
 ```bash

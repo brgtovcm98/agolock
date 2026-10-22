@@ -695,3 +695,18 @@ docs:
       - ADR-010
       - ADR-015
     last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+
+  - id: LOCAL_RUNBOOK
+    path: docs/local-runbook.md
+    title: 로컬 실행 Runbook
+    summary: 로컬 인프라, API·worker, 프론트엔드 실행과 동작 확인, 초기화, 문제 해결
+    read_when:
+      - 로컬 개발 환경을 처음 띄울 때
+      - 로컬 API·UI·이미지 저장소 동작을 확인할 때
+    code_paths:
+      - infra/**
+      - backend/src/main/resources/application-local.yml
+      - frontend/vite.config.ts
+    generated: false
+    related_adrs: []
+    last_verified_commit: "246291c52d0d7c06c756dae2567f17c5d365199d"
