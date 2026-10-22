@@ -6,9 +6,9 @@ import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.domain.Shelf
+import com.agolock.hierarchy.persistence.HierarchyCountMapper
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
-import com.agolock.inventory.persistence.InventoryMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +23,7 @@ class ShelfService(
     private val roomMapper: RoomMapper,
     private val accessService: AccessService,
     private val deleteGuard: HierarchyDeleteGuard,
-    private val inventoryMapper: InventoryMapper,
+    private val countMapper: HierarchyCountMapper,
     private val clock: Clock,
 ) {
     @Transactional(readOnly = true)
@@ -41,18 +41,30 @@ class ShelfService(
         )
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
-        val shelves =
-            shelfMapper
-                .listByRoom(room.spaceId, roomId, cursor?.name, cursor?.id, limit + 1)
-                .map {
-                    it.copy(
-                        boxCount = shelfMapper.countBoxes(room.spaceId, it.id),
-                        inventoryCount = inventoryMapper.countByShelf(room.spaceId, it.id),
-                    )
-                }
-        val page = shelves.take(limit)
+        val shelves = shelfMapper.listByRoom(room.spaceId, roomId, cursor?.name, cursor?.id, limit + 1)
+        val shelfIds = shelves.map { it.id }
+        val boxCounts =
+            if (shelfIds.isEmpty()) {
+                emptyMap()
+            } else {
+                countMapper.countBoxesByShelfIds(room.spaceId, shelfIds).associate { it.id to it.cnt }
+            }
+        val inventoryCounts =
+            if (shelfIds.isEmpty()) {
+                emptyMap()
+            } else {
+                countMapper.countInventoryByShelfIds(room.spaceId, shelfIds).associate { it.id to it.cnt }
+            }
+        val shelvesWithCounts =
+            shelves.map {
+                it.copy(
+                    boxCount = boxCounts[it.id] ?: 0,
+                    inventoryCount = inventoryCounts[it.id] ?: 0,
+                )
+            }
+        val page = shelvesWithCounts.take(limit)
         val next =
-            if (shelves.size > limit) {
+            if (shelvesWithCounts.size > limit) {
                 page.lastOrNull()?.let { CursorCodec.encode(it.name, it.id) }
             } else {
                 null
@@ -73,7 +85,7 @@ class ShelfService(
         )
         return shelf.copy(
             boxCount = shelfMapper.countBoxes(shelf.spaceId, shelf.id),
-            inventoryCount = inventoryMapper.countByShelf(shelf.spaceId, shelf.id),
+            inventoryCount = countMapper.countInventoryByShelf(shelf.spaceId, shelf.id),
         )
     }
 

@@ -1,5 +1,6 @@
 package com.agolock.hierarchy.persistence
 
+import com.agolock.common.persistence.CountRow
 import com.agolock.hierarchy.domain.Room
 import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
@@ -78,6 +79,25 @@ interface RoomMapper {
         @Param("spaceId") spaceId: UUID,
         @Param("roomId") roomId: UUID,
     ): Int
+
+    @Select(
+        """
+        <script>
+        SELECT room_id AS id, COUNT(*) AS cnt
+        FROM shelf
+        WHERE space_id = #{spaceId} AND deleted_at IS NULL
+          AND room_id IN
+          <foreach collection="roomIds" item="roomId" open="(" separator="," close=")">
+            #{roomId}
+          </foreach>
+        GROUP BY room_id
+        </script>
+        """,
+    )
+    fun countShelvesByRoomIds(
+        @Param("spaceId") spaceId: UUID,
+        @Param("roomIds") roomIds: List<UUID>,
+    ): List<CountRow>
 
     @Insert(
         """

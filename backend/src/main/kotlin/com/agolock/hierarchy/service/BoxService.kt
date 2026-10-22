@@ -42,13 +42,18 @@ class BoxService(
         )
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
-        val boxes =
-            boxMapper
-                .listByShelf(shelf.spaceId, shelfId, cursor?.name, cursor?.id, limit + 1)
-                .map { it.copy(inventoryCount = inventoryMapper.countByBox(shelf.spaceId, it.id)) }
-        val page = boxes.take(limit)
+        val boxes = boxMapper.listByShelf(shelf.spaceId, shelfId, cursor?.name, cursor?.id, limit + 1)
+        val boxIds = boxes.map { it.id }
+        val inventoryCounts =
+            if (boxIds.isEmpty()) {
+                emptyMap()
+            } else {
+                inventoryMapper.countByBoxIds(shelf.spaceId, boxIds).associate { it.id to it.cnt }
+            }
+        val boxesWithCounts = boxes.map { it.copy(inventoryCount = inventoryCounts[it.id] ?: 0) }
+        val page = boxesWithCounts.take(limit)
         val next =
-            if (boxes.size > limit) {
+            if (boxesWithCounts.size > limit) {
                 page.lastOrNull()?.let { CursorCodec.encode(it.name, it.id) }
             } else {
                 null

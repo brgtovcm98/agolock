@@ -34,18 +34,22 @@ class RoomService(
         accessService.requireView(actor, actor.spaceId)
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
-        val rooms =
-            roomMapper
-                .list(actor.spaceId, cursor?.name, cursor?.id, limit + 1)
-                .map {
-                    it.copy(
-                        shelfCount = roomMapper.countShelves(actor.spaceId, it.id),
-                        inventoryCount = inventoryMapper.countByRoom(actor.spaceId, it.id),
-                    )
-                }
-        val page = rooms.take(limit)
+        val rooms = roomMapper.list(actor.spaceId, cursor?.name, cursor?.id, limit + 1)
+        val roomIds = rooms.map { it.id }
+        val shelfCounts =
+            if (roomIds.isEmpty()) emptyMap() else roomMapper.countShelvesByRoomIds(actor.spaceId, roomIds).associate { it.id to it.cnt }
+        val inventoryCounts =
+            if (roomIds.isEmpty()) emptyMap() else inventoryMapper.countByRoomIds(actor.spaceId, roomIds).associate { it.id to it.cnt }
+        val roomsWithCounts =
+            rooms.map {
+                it.copy(
+                    shelfCount = shelfCounts[it.id] ?: 0,
+                    inventoryCount = inventoryCounts[it.id] ?: 0,
+                )
+            }
+        val page = roomsWithCounts.take(limit)
         val next =
-            if (rooms.size > limit) {
+            if (roomsWithCounts.size > limit) {
                 page.lastOrNull()?.let { CursorCodec.encode(it.name, it.id) }
             } else {
                 null

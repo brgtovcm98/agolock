@@ -2,6 +2,7 @@
 
 package com.agolock.inventory.persistence
 
+import com.agolock.common.persistence.CountRow
 import com.agolock.inventory.domain.Inventory
 import com.agolock.inventory.domain.InventoryStatus
 import org.apache.ibatis.annotations.Insert
@@ -179,6 +180,44 @@ interface InventoryMapper {
         @Param("spaceId") spaceId: UUID,
         @Param("locationId") locationId: UUID,
     ): Int
+
+    @Select(
+        """
+        <script>
+        SELECT room_id AS id, COUNT(*) AS cnt
+        FROM inventory
+        WHERE space_id = #{spaceId} AND deleted_at IS NULL
+          AND room_id IN
+          <foreach collection="roomIds" item="roomId" open="(" separator="," close=")">
+            #{roomId}
+          </foreach>
+        GROUP BY room_id
+        </script>
+        """,
+    )
+    fun countByRoomIds(
+        @Param("spaceId") spaceId: UUID,
+        @Param("roomIds") roomIds: List<UUID>,
+    ): List<CountRow>
+
+    @Select(
+        """
+        <script>
+        SELECT box_id AS id, COUNT(*) AS cnt
+        FROM inventory
+        WHERE space_id = #{spaceId} AND deleted_at IS NULL
+          AND box_id IN
+          <foreach collection="boxIds" item="boxId" open="(" separator="," close=")">
+            #{boxId}
+          </foreach>
+        GROUP BY box_id
+        </script>
+        """,
+    )
+    fun countByBoxIds(
+        @Param("spaceId") spaceId: UUID,
+        @Param("boxIds") boxIds: List<UUID>,
+    ): List<CountRow>
 
     @Select(
         "SELECT COUNT(*) FROM inventory WHERE space_id = #{spaceId} AND category_id_override = #{categoryId} AND deleted_at IS NULL",
