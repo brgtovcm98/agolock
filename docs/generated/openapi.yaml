@@ -26,7 +26,29 @@ tags:
   - name: images
   - name: ai
   - name: sharing
+  - name: system
 paths:
+  /info:
+    get:
+      tags: [system]
+      operationId: info
+      responses:
+        '200':
+          description: 애플리케이션 정보
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, version, environment]
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+                  environment:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /auth/config:
     get:
       tags: [auth]
@@ -296,6 +318,74 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '403':
           $ref: '#/components/responses/Forbidden'
+  /shared/rooms/{roomId}:
+    parameters:
+      - $ref: '#/components/parameters/RoomId'
+    get:
+      tags: [sharing]
+      operationId: getSharedRoom
+      responses:
+        '200':
+          description: 공유받은 Room 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /shared/shelves/{shelfId}:
+    parameters:
+      - $ref: '#/components/parameters/ShelfId'
+    get:
+      tags: [sharing]
+      operationId: getSharedShelf
+      responses:
+        '200':
+          description: 공유받은 Shelf 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /shared/boxes/{boxId}:
+    parameters:
+      - $ref: '#/components/parameters/BoxId'
+    get:
+      tags: [sharing]
+      operationId: getSharedBox
+      responses:
+        '200':
+          description: 공유받은 Box 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Box'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /shared/inventories/{inventoryId}:
+    parameters:
+      - $ref: '#/components/parameters/InventoryId'
+    get:
+      tags: [sharing]
+      operationId: getSharedInventory
+      responses:
+        '200':
+          description: 공유받은 Inventory 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /shared:
     get:
       tags: [hierarchy]
@@ -1604,6 +1694,28 @@ paths:
           description: 초대 거절
         '404':
           $ref: '#/components/responses/NotFound'
+  /share-invitations/{invitationId}/resend:
+    parameters:
+      - $ref: '#/components/parameters/InvitationId'
+    post:
+      tags: [sharing]
+      operationId: resendShareInvitation
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      responses:
+        '202':
+          description: 초대 재발송
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareInvitation'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
   /share-invitations/received:
     get:
       tags: [sharing]

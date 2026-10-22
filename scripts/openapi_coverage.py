@@ -17,14 +17,7 @@ CANONICAL = ROOT / "docs" / "generated" / "openapi.yaml"
 
 # 아직 계약 문서에 옮기지 않은 구현 path입니다. 새 구현 path를 추가할 때는
 # 여기에 넣지 말고 docs/generated/openapi.yaml에 계약을 먼저 추가합니다.
-ALLOWLIST = {
-    "/api/v1/info",
-    "/api/v1/share-invitations/{invitationId}/resend",
-    "/api/v1/shared/boxes/{boxId}",
-    "/api/v1/shared/inventories/{inventoryId}",
-    "/api/v1/shared/rooms/{roomId}",
-    "/api/v1/shared/shelves/{shelfId}",
-}
+ALLOWLIST: set[str] = set()
 
 
 def _normalize(path: str) -> str:

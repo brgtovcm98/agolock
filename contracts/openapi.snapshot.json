@@ -693,6 +693,13 @@
               "null"
             ]
           },
+          "primaryImageId": {
+            "format": "uuid",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "status": {
             "enum": [
               "IN_USE",
