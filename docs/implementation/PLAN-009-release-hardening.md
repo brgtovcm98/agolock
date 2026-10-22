@@ -206,7 +206,7 @@ D는 desktop-chromium 1280×800, M은 mobile-chromium Pixel 7 412×915, W는 mob
 | 1 | CI green, 릴리스 태그, 변경 목록 확인 | 중단 |
 | 2 | `docker build -t ghcr.io/agolock/agolock:$TAG .` 후 push | 중단 |
 | 3 | `bash scripts/ops/deploy.sh staging $TAG` (Flyway → api → worker) | 마이그레이션 실패 시 중단 |
-| 4 | `bash scripts/ops/healthcheck.sh https://staging.example.com` | 롤백 |
+| 4 | `bash scripts/ops/healthcheck.sh` (compose 내부 9090) | 롤백 |
 | 5 | `bash scripts/ops/smoke.sh https://staging.example.com` | 롤백 |
 | 6 | 15분 관측(5xx, p95, DLQ, Outbox) 후 production 승인·반복 | 기준 초과 시 롤백 |
 

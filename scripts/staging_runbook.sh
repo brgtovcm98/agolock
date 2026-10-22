@@ -40,6 +40,12 @@ preflight() {
   : "${S3_SECRET_KEY:?required}"
   : "${S3_PUBLIC_ENDPOINT:?required}"
   : "${NOTIFICATION_SECRET_KEY:?required}"
+  local key_bytes
+  key_bytes="$(printf '%s' "$NOTIFICATION_SECRET_KEY" | base64 -d 2>/dev/null | wc -c | tr -d ' ')"
+  if [[ "$key_bytes" != "32" ]]; then
+    echo "NOTIFICATION_SECRET_KEY must be base64 32 bytes (got ${key_bytes:-invalid})" >&2
+    exit 1
+  fi
   echo "required env: ok"
   docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" config --quiet
   echo "compose config: ok"
