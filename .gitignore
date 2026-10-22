@@ -33,6 +33,7 @@ Thumbs.db
 
 # Local infra data
 infra/data/
+backups/
 
 # Gradle local user home
 .gradle-user/

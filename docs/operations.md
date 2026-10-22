@@ -134,7 +134,28 @@ docker compose -f infra/docker-compose.yml up -d
 - `NOTIFICATION_SECRET_KEY`는 staging/prod에서 필수이며, 시크릿 관리자에서 주입합니다. 회전 시 기존 `notification_secret`은 복호화할 수 없으므로 만료·정리 후 새 초대부터 새 키를 사용합니다.
 - 이 골격은 M6 검색과 1차 프리즈 전까지 배포 완료로 간주하지 않습니다.
 
-### 4.2 Production readiness checklist
+### 4.2 staging runbook
+
+```bash
+# 1) 필수 env와 compose 문법 확인
+scripts/staging_runbook.sh preflight
+
+# 2) 백업
+scripts/staging_runbook.sh backup
+
+# 3) Flyway V19~V23 적용(app 재배포)
+scripts/staging_runbook.sh migrate
+
+# 4) 데이터 감사와 smoke
+scripts/staging_runbook.sh audit
+scripts/staging_runbook.sh smoke
+```
+
+- 스크립트는 `deploy/.env.staging`을 읽습니다. 값은 저장소에 커밋하지 않습니다.
+- `migrate`는 app을 재배포하므로 maintenance window와 함께 실행합니다.
+- k6/EXPLAIN은 `scripts/staging_runbook.sh load`의 안내를 따릅니다.
+
+### 4.3 Production readiness checklist
 
 - [ ] staging DB 백업 후 Flyway V19~V23 적용, `scripts/audit_data.sql` 결과 확인
 - [ ] `PUBLIC_BASE_URL`, `POSTGRES_PASSWORD`, `RABBITMQ_PASSWORD`, `S3_SECRET_KEY`, `S3_PUBLIC_ENDPOINT`, `NOTIFICATION_SECRET_KEY`를 시크릿 관리자에서 주입
