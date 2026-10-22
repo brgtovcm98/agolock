@@ -451,5 +451,46 @@ class InventoryIntegrationTest
             assertThat(both.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         }
 
+        @Test
+        fun `Item 재고 목록은 소유자와 공유 사용자의 ACL을 반영한다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "공유 Item 방")).body)
+            val item = json(client.post("/api/v1/items", mapOf("name" to "공유 Item")).body)
+            val itemId = item["id"].asText()
+            val inventory =
+                json(
+                    client
+                        .post(
+                            "/api/v1/inventories",
+                            mapOf("itemId" to itemId, "roomId" to room["id"].asText()),
+                        ).body,
+                )
+
+            val ownerList = json(client.get("/api/v1/items/$itemId/inventories").body)["items"]
+            assertThat(ownerList.size()).isEqualTo(1)
+            assertThat(ownerList[0]["id"].asText()).isEqualTo(inventory["id"].asText())
+            assertThat(ownerList[0]["effectivePermission"].asText()).isEqualTo("OWNER")
+            assertThat(ownerList[0]["isShared"].asBoolean()).isFalse()
+
+            val guestEmail = "inventory-item-guest-${UUID.randomUUID()}@example.com"
+            val invitation =
+                client.post(
+                    "/api/v1/share-invitations",
+                    mapOf("roomId" to room["id"].asText(), "invitedEmail" to guestEmail, "permission" to "VIEW"),
+                )
+            assertThat(invitation.statusCode).isEqualTo(HttpStatus.CREATED)
+            outboxRelay.relay()
+            val guest = AuthTestClient(restTemplate, objectMapper)
+            guest.signup(guestEmail, "password-1234", "게스트")
+            val token = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            assertThat(guest.post("/api/v1/share-invitations/accept", mapOf("token" to token)).statusCode)
+                .isEqualTo(HttpStatus.OK)
+
+            val guestList = json(guest.get("/api/v1/items/$itemId/inventories").body)["items"]
+            assertThat(guestList.size()).isEqualTo(1)
+            assertThat(guestList[0]["id"].asText()).isEqualTo(inventory["id"].asText())
+            assertThat(guestList[0]["effectivePermission"].asText()).isEqualTo("VIEW")
+            assertThat(guestList[0]["isShared"].asBoolean()).isTrue()
+        }
+
         private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")
     }
