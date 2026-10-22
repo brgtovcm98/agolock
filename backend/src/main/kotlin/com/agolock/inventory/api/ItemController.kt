@@ -10,7 +10,7 @@ import com.agolock.hierarchy.domain.EffectivePermission
 import com.agolock.hierarchy.domain.toPermission
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.inventory.service.CreateItemCommand
-import com.agolock.inventory.service.InventoryService
+import com.agolock.inventory.service.InventoryQueryService
 import com.agolock.inventory.service.ItemService
 import com.agolock.inventory.service.UpdateItemCommand
 import io.swagger.v3.oas.annotations.Operation
@@ -36,7 +36,7 @@ import java.util.UUID
 @Tag(name = "items")
 class ItemController(
     private val itemService: ItemService,
-    private val inventoryService: InventoryService,
+    private val inventoryQueryService: InventoryQueryService,
     private val idempotencyService: IdempotencyService,
 ) {
     @GetMapping
@@ -157,5 +157,5 @@ class ItemController(
     fun inventories(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable itemId: UUID,
-    ): InventoryListResponse = InventoryListResponse(inventoryService.listByItem(Actor.from(principal), itemId))
+    ): InventoryListResponse = InventoryListResponse(inventoryQueryService.listByItem(Actor.from(principal), itemId))
 }

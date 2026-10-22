@@ -15,7 +15,7 @@ import com.agolock.hierarchy.persistence.ShelfMapper
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.inventory.api.InventoryResponse
 import com.agolock.inventory.persistence.InventoryMapper
-import com.agolock.inventory.service.InventoryService
+import com.agolock.inventory.service.InventoryQueryService
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -26,7 +26,7 @@ class SharedResourceService(
     private val shelfMapper: ShelfMapper,
     private val boxMapper: BoxMapper,
     private val inventoryMapper: InventoryMapper,
-    private val inventoryService: InventoryService,
+    private val inventoryQueryService: InventoryQueryService,
     private val accessService: AccessService,
 ) {
     fun room(
@@ -73,7 +73,7 @@ class SharedResourceService(
     fun inventory(
         actor: Actor,
         inventoryId: UUID,
-    ): InventoryResponse = inventoryService.getShared(actor, inventoryId)
+    ): InventoryResponse = inventoryQueryService.getShared(actor, inventoryId)
 
     private fun notFound(message: String) = ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, message)
 }

@@ -7,7 +7,9 @@ import com.agolock.hierarchy.domain.Actor
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.service.CreateInventoryCommand
-import com.agolock.inventory.service.InventoryService
+import com.agolock.inventory.service.InventoryCommandService
+import com.agolock.inventory.service.InventoryMoveTargetService
+import com.agolock.inventory.service.InventoryQueryService
 import com.agolock.inventory.service.MoveInventoryCommand
 import com.agolock.inventory.service.NewItemCommand
 import com.agolock.inventory.service.UpdateInventoryCommand
@@ -33,7 +35,9 @@ import java.util.UUID
 @RequestMapping("/api/v1/inventories")
 @Tag(name = "inventories")
 class InventoryController(
-    private val inventoryService: InventoryService,
+    private val query: InventoryQueryService,
+    private val command: InventoryCommandService,
+    private val moveTargetService: InventoryMoveTargetService,
     private val idempotencyService: IdempotencyService,
 ) {
     @GetMapping
@@ -50,7 +54,7 @@ class InventoryController(
         @RequestParam(required = false) boxId: UUID?,
     ): InventoryListResponse {
         val page =
-            inventoryService.list(
+            query.list(
                 Actor.from(principal),
                 status,
                 limit,
@@ -81,7 +85,7 @@ class InventoryController(
                 responseType = InventoryResponse::class.java,
                 locationOf = { inventory -> "/api/v1/inventories/${inventory.id}" },
             ) {
-                inventoryService.create(
+                command.create(
                     actor,
                     CreateInventoryCommand(
                         request.itemId,
@@ -108,7 +112,7 @@ class InventoryController(
     fun get(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
-    ): InventoryResponse = inventoryService.get(Actor.from(principal), inventoryId)
+    ): InventoryResponse = query.get(Actor.from(principal), inventoryId)
 
     @PatchMapping("/{inventoryId}")
     @Operation(operationId = "updateInventory", summary = "Inventory 수정")
@@ -120,7 +124,7 @@ class InventoryController(
         val version =
             request.version
                 ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다.")
-        return inventoryService.update(
+        return command.update(
             Actor.from(principal),
             inventoryId,
             UpdateInventoryCommand(
@@ -150,7 +154,7 @@ class InventoryController(
         val version =
             request.version
                 ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다.")
-        return inventoryService.move(
+        return command.move(
             Actor.from(principal),
             inventoryId,
             MoveInventoryCommand(request.roomId, request.shelfId, request.boxId, version),
@@ -163,7 +167,7 @@ class InventoryController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
     ): ResponseEntity<Void> {
-        inventoryService.delete(Actor.from(principal), inventoryId)
+        command.delete(Actor.from(principal), inventoryId)
         return ResponseEntity.noContent().build()
     }
 
@@ -172,12 +176,12 @@ class InventoryController(
     fun moveTargets(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
-    ): LocationListResponse = LocationListResponse(inventoryService.moveTargets(Actor.from(principal), inventoryId))
+    ): LocationListResponse = LocationListResponse(moveTargetService.moveTargets(Actor.from(principal), inventoryId))
 
     @GetMapping("/{inventoryId}/movements")
     @Operation(operationId = "listInventoryMovements", summary = "Inventory 이동 이력")
     fun movements(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
-    ): List<MovementResponse> = inventoryService.movements(Actor.from(principal), inventoryId)
+    ): List<MovementResponse> = query.movements(Actor.from(principal), inventoryId)
 }
