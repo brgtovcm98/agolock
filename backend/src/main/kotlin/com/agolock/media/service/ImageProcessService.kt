@@ -29,9 +29,7 @@ class ImageProcessService(
         val image = transaction.claim(imageId, now) ?: return
         if (image.status == ImageStatus.DELETED) return
         try {
-            val source =
-                ImageIO.read(ByteArrayInputStream(storage.getObject(image.objectKey)))
-                    ?: throw IllegalArgumentException("이미지를 디코딩할 수 없습니다.")
+            val source = decode(storage.getObject(image.objectKey))
             val normalized = resize(source, MAX_EDGE)
             val encoded = encodeWebp(normalized)
             val thumb = encodeWebp(resize(normalized, THUMB_EDGE))
@@ -52,6 +50,27 @@ class ImageProcessService(
         } catch (exception: Exception) {
             transaction.markFailed(image.id, exception.javaClass.simpleName, OffsetDateTime.now(clock))
             log.warn("이미지 처리 실패 id={} reason={}", image.id, exception.javaClass.simpleName)
+        }
+    }
+
+    private fun decode(bytes: ByteArray): BufferedImage {
+        ImageIO.createImageInputStream(ByteArrayInputStream(bytes)).use { input ->
+            requireNotNull(input) { "이미지를 디코딩할 수 없습니다." }
+            val readers = ImageIO.getImageReaders(input)
+            require(readers.hasNext()) { "이미지를 디코딩할 수 없습니다." }
+            val reader = readers.next()
+            try {
+                reader.input = input
+                val width = reader.getWidth(0)
+                val height = reader.getHeight(0)
+                require(width > 0 && height > 0) { "이미지 크기가 올바르지 않습니다." }
+                require(width.toLong() * height.toLong() <= MAX_PIXELS) {
+                    "이미지 픽셀 수가 너무 큽니다: ${width}x$height"
+                }
+                return reader.read(0) ?: throw IllegalArgumentException("이미지를 디코딩할 수 없습니다.")
+            } finally {
+                reader.dispose()
+            }
         }
     }
 
@@ -79,5 +98,6 @@ class ImageProcessService(
     private companion object {
         const val MAX_EDGE = 2048
         const val THUMB_EDGE = 512
+        const val MAX_PIXELS = 25_000_000L
     }
 }
