@@ -30,6 +30,13 @@ class InventoryAccessSupport(
         inventoryMapper.findById(actor.spaceId, inventoryId)
             ?: throw notFound("Inventory를 찾을 수 없습니다.")
 
+    fun findInventory(
+        spaceId: UUID,
+        inventoryId: UUID,
+    ): Inventory =
+        inventoryMapper.findById(spaceId, inventoryId)
+            ?: throw notFound("Inventory를 찾을 수 없습니다.")
+
     fun inventoryTarget(inventory: Inventory): AccessTarget {
         val location =
             locationResolver.resolve(inventory.id)
