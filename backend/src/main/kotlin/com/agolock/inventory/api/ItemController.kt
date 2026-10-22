@@ -97,8 +97,7 @@ class ItemController(
         @PathVariable itemId: UUID,
     ): ItemResponse {
         val actor = Actor.from(principal)
-        val item = itemService.getReadable(actor, itemId)
-        val permission = itemService.permission(actor, item)
+        val (item, permission) = itemService.getReadableWithPermission(actor, itemId)
         return item.toResponse(
             permission.toPermission().name,
             permission is EffectivePermission.Granted,

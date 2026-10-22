@@ -82,16 +82,22 @@ class ItemService(
         return requireItem(actor, itemId)
     }
 
+    fun getReadableWithPermission(
+        actor: Actor,
+        itemId: UUID,
+    ): Pair<Item, EffectivePermission> {
+        val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
+        val permission = permission(actor, item)
+        if (!permission.atLeast(GrantLevel.VIEW)) {
+            throw notFound("Item을 찾을 수 없습니다.")
+        }
+        return item to permission
+    }
+
     fun getReadable(
         actor: Actor,
         itemId: UUID,
-    ): Item {
-        val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        if (!permission(actor, item).atLeast(GrantLevel.VIEW)) {
-            throw notFound("Item을 찾을 수 없습니다.")
-        }
-        return item
-    }
+    ): Item = getReadableWithPermission(actor, itemId).first
 
     fun permission(
         actor: Actor,
