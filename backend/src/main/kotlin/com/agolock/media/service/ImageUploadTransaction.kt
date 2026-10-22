@@ -38,6 +38,9 @@ class ImageUploadTransaction(
         if (image.objectKey != objectKey) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "객체 키가 일치하지 않습니다.")
         }
+        if (image.status in COMPLETED_STATUSES) {
+            return image
+        }
         if (image.status != ImageStatus.UPLOADING) {
             throw ApiException("IMAGE_INVALID_STATE", HttpStatus.CONFLICT, "업로드 대기 상태가 아닙니다.")
         }
@@ -67,5 +70,9 @@ class ImageUploadTransaction(
             ),
         )
         return image
+    }
+
+    private companion object {
+        val COMPLETED_STATUSES = setOf(ImageStatus.PENDING, ImageStatus.PROCESSING, ImageStatus.READY)
     }
 }

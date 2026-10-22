@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import java.time.OffsetDateTime
@@ -31,6 +32,32 @@ class ImageUploadTransactionTest {
 
         verify(mapper).completeUpload(image.id, ImageStatus.PENDING, "image/webp", 100, "hash", now)
         verify(outbox).enqueueImageUploaded(
+            image.spaceId,
+            image.id,
+            mapOf(
+                "imageId" to image.id,
+                "targetType" to "ITEM",
+                "targetId" to image.itemId,
+                "objectKey" to image.objectKey,
+                "declaredSizeBytes" to 100L,
+            ),
+        )
+    }
+
+    @Test
+    fun `이미 완료된 업로드는 409 대신 기존 행을 반환하고 outbox를 다시 쓰지 않는다`() {
+        val now = OffsetDateTime.of(2026, 10, 22, 12, 0, 0, 0, ZoneOffset.UTC)
+        val image = uploadingImage(now).copy(status = ImageStatus.PENDING, mimeType = "image/webp", sizeBytes = 100)
+        val mapper = mock(ImageMapper::class.java)
+        val outbox = mock(OutboxService::class.java)
+        `when`(mapper.findByIdForUpdate(image.id)).thenReturn(image)
+        val service = ImageUploadTransaction(mapper, outbox)
+
+        val completed = service.complete(image.id, image.objectKey, "image/webp", 100, "hash", now)
+
+        assertThat(completed).isEqualTo(image)
+        verify(mapper, never()).completeUpload(image.id, ImageStatus.PENDING, "image/webp", 100, "hash", now)
+        verify(outbox, never()).enqueueImageUploaded(
             image.spaceId,
             image.id,
             mapOf(

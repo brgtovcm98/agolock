@@ -85,6 +85,9 @@ class ImageService(
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
         resolveMutationTarget(actor, targetType, targetId)
         if (image.objectKey != request.objectKey) throw validation("객체 키가 일치하지 않습니다.")
+        if (image.status in COMPLETED_STATUSES) {
+            return image.toResponse()
+        }
         if (image.status != ImageStatus.UPLOADING) throw ApiException("IMAGE_INVALID_STATE", HttpStatus.CONFLICT, "업로드 대기 상태가 아닙니다.")
         if (!image.uploadExpiresAt.isAfter(OffsetDateTime.now(clock))) {
             throw ApiException("IMAGE_UPLOAD_EXPIRED", HttpStatus.CONFLICT, "업로드 시간이 만료되었습니다.")
@@ -272,5 +275,6 @@ class ImageService(
     private companion object {
         const val MAX_IMAGE_BYTES = 10 * 1024 * 1024
         const val MAX_IMAGES_PER_TARGET = 10
+        val COMPLETED_STATUSES = setOf(ImageStatus.PENDING, ImageStatus.PROCESSING, ImageStatus.READY)
     }
 }
