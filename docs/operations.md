@@ -94,7 +94,7 @@ docker compose -f infra/docker-compose.yml up -d
 - 만료된 공유 초대는 `EXPIRED`로 표시합니다.
 - 만료된 최근 검색은 30일 후 삭제합니다.
 - 만료된 `idempotency_record`는 24시간 후 삭제합니다.
-- worker는 `PUBLISHED` outbox를 기본 30일, `FAILED` outbox를 기본 90일 보관 후 삭제하고(`agolock.outbox.retention.published-days`, `failed-days`), 만료된 `notification_secret`을 1시간마다 정리합니다.
+- worker는 `attempts >= 5`로 고립된 PENDING outbox를 FAILED로 회수하고, `PUBLISHED` outbox를 기본 30일, `FAILED` outbox를 기본 90일 보관 후 삭제하며(`agolock.outbox.retention.published-days`, `failed-days`), 만료된 `notification_secret`을 1시간마다 정리합니다.
 
 ### 3.3 데이터 감사·백필
 

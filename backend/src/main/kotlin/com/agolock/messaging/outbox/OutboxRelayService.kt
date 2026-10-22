@@ -63,7 +63,9 @@ class OutboxRelayService(
                 handlers.firstOrNull { it.supports(event.eventType) }
                     ?: throw UnsupportedEventTypeException(event.eventType)
             handler.handle(event)
-            mapper.markPublished(event.id, event.claimToken, now)
+            if (mapper.markPublished(event.id, event.claimToken, now) == 0) {
+                log.warn("Outbox claim 상실 id={} type={}", event.id, event.eventType)
+            }
         } catch (exception: UnsupportedEventTypeException) {
             mapper.markTerminalFailure(event.id, event.claimToken, "UNSUPPORTED_EVENT_TYPE")
             log.warn("Outbox 미지원 이벤트 id={} type={}", event.id, event.eventType)
@@ -87,12 +89,12 @@ class OutboxRelayService(
         eventType: String,
     ) : RuntimeException(eventType)
 
-    private companion object {
+    companion object {
         const val MAX_ATTEMPTS = 5
-        const val LEASE_MINUTES = 2L
-        const val BASE_BACKOFF_SECONDS = 30
-        const val MAX_BACKOFF_SECONDS = 1800
-        const val MAX_BATCHES_PER_RUN = 10
-        const val BATCH_SIZE = 20
+        private const val LEASE_MINUTES = 2L
+        private const val BASE_BACKOFF_SECONDS = 30
+        private const val MAX_BACKOFF_SECONDS = 1800
+        private const val MAX_BATCHES_PER_RUN = 10
+        private const val BATCH_SIZE = 20
     }
 }

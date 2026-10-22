@@ -20,6 +20,7 @@ class OutboxRetentionJobTest {
 
         job.cleanup()
 
+        verify(mapper).reapExhausted(now, 5)
         verify(mapper).deletePublishedBefore(now.minusDays(30))
         verify(mapper).deleteFailedBefore(now.minusDays(90))
     }

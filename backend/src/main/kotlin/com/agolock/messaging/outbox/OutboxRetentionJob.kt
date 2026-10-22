@@ -18,6 +18,7 @@ class OutboxRetentionJob(
     @Scheduled(fixedDelayString = "\${agolock.outbox.retention-interval-ms:3600000}")
     fun cleanup() {
         val now = OffsetDateTime.now(clock)
+        mapper.reapExhausted(now, OutboxRelayService.MAX_ATTEMPTS)
         mapper.deletePublishedBefore(now.minusDays(publishedDays))
         mapper.deleteFailedBefore(now.minusDays(failedDays))
     }

@@ -122,6 +122,25 @@ interface OutboxEventMapper {
         @Param("error") error: String,
     ): Int
 
+    @Update(
+        """
+        UPDATE outbox_event
+        SET status = 'FAILED',
+            last_error = 'MAX_ATTEMPTS_EXHAUSTED',
+            payload = '{"redacted":true}'::jsonb,
+            locked_by = NULL,
+            locked_until = NULL,
+            claim_token = NULL
+        WHERE status = 'PENDING'
+          AND attempts >= #{maxAttempts}
+          AND (locked_until IS NULL OR locked_until <= #{now})
+        """,
+    )
+    fun reapExhausted(
+        @Param("now") now: OffsetDateTime,
+        @Param("maxAttempts") maxAttempts: Int,
+    ): Int
+
     @Delete("DELETE FROM outbox_event WHERE status = 'PUBLISHED' AND created_at < #{before}")
     fun deletePublishedBefore(
         @Param("before") before: OffsetDateTime,
