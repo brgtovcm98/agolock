@@ -15,6 +15,7 @@ import { RoomDetailPage } from '@/features/hierarchy/room-detail-page'
 import { ShelfDetailPage } from '@/features/hierarchy/shelf-detail-page'
 import { SpaceTreePage } from '@/features/hierarchy/space-tree-page'
 import { HomePage } from '@/features/home/home-page'
+import { SearchPage } from '@/features/search/search-page'
 import { InventoryDetailPage } from '@/features/inventory/inventory-detail-page'
 import { InventoryEditPage } from '@/features/inventory/inventory-edit-page'
 import { InventoryPage } from '@/features/inventory/inventory-page'
@@ -77,6 +78,7 @@ export const appRoutes: RouteObject[] = [
     errorElement: <RouteError />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: 'search', element: <SearchPage /> },
       { path: 'space', element: <SpaceTreePage /> },
       { path: 'space/rooms/:roomId', element: <RoomDetailPage /> },
       { path: 'space/shelves/:shelfId', element: <ShelfDetailPage /> },

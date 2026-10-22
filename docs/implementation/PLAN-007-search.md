@@ -1,6 +1,6 @@
 # PLAN-007: M6 검색과 추천 상세 구현 계획
 
-> 상태: 계획 강화 (M6.0 de-risk spike 승인, 구현 전)
+> 상태: M6 MVP 구현 (검색 API·ACL·최근 검색·자주 본 물건·검색 UI). keyset cursor·성능 gate·계약 정합성 보완 필요
 > 역할: 구현 로드맵 M6의 키워드 검색, 그룹 페이지네이션, 추천, 성능 gate, 검색 UI 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md) · 선행 계획: [PLAN-001](PLAN-001-foundation.md), [PLAN-005 공유](PLAN-005-sharing.md)
 > 후속 계획: [PLAN-008 M7 AI·이미지 검색](PLAN-008-ai-image-search.md)

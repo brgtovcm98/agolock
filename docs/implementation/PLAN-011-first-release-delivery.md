@@ -308,3 +308,4 @@
 |---|---|---|
 | 2026-10-22 | M5-1 Item 이미지 OWNER 권한, M5-2 S3 health, M5-3 worker 프로필, M5-4 Item 갤러리, M5-5 업로드 상태·취소·재시도 | backend 이미지 권한·S3 health 테스트, frontend lint·34 tests, E2E 10개 |
 | 2026-10-22 | 배포 골격: backend/frontend Dockerfile, nginx, staging Compose, staging/prod 프로필, GHCR release workflow, healthcheck·smoke | compose config, 두 이미지 빌드, staging 스택 기동·readiness·worker 분리 확인 |
+| 2026-10-22 | M6 MVP: V17/V18, 검색 API·ACL·최근 검색·자주 본 물건·조회 기록, `/search` UI, 홈 검색 연결 | 검색 통합 테스트, 프론트 35 tests, E2E 12개 |

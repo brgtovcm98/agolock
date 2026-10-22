@@ -68,6 +68,21 @@ interface BoxMapper {
         @Param("limit") limit: Int,
     ): List<Box>
 
+    @Select(
+        """
+        <script>
+        SELECT id FROM box
+        WHERE deleted_at IS NULL AND shelf_id IN
+        <foreach collection="shelfIds" item="shelfId" open="(" separator="," close=")">
+          #{shelfId}
+        </foreach>
+        </script>
+        """,
+    )
+    fun listIdsByShelfIds(
+        @Param("shelfIds") shelfIds: List<UUID>,
+    ): List<UUID>
+
     @Insert(
         """
         INSERT INTO box (id, space_id, shelf_id, name, description, version, created_at, updated_at, deleted_at)

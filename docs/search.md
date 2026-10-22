@@ -261,3 +261,14 @@ score =
 - ACL 필터와 벡터 검색을 함께 사용할 때 `limit * 5`, 최대 200개 후보를 가져온 뒤 필터링합니다.
 - 후보가 부족하면 후보 수를 늘리거나 pgvector iterative scan을 사용합니다.
 - 이미지 검색 결과도 Item 그룹 단위로 페이지네이션합니다.
+
+
+## 12. 현재 구현 메모
+
+- `GET /search`는 Item 그룹 결과를 반환하고, Inventory는 그룹당 최대 5개를 포함합니다.
+- `scope`, 상태·위치·카테고리·소유자·사진 필터와 정렬 5종을 지원합니다.
+- `GET /search/recent`, `DELETE /search/recent`, `GET /search/frequent`, `GET /search/suggestions`를 제공합니다.
+- `POST /items/{itemId}/view`는 30분 디바운스로 조회 횟수를 기록합니다.
+- 현재 cursor는 그룹 offset을 opaque Base64로 감싼 **MVP 구현**입니다. 정렬 키 기반 keyset cursor와 대규모 후보의 정확한 `inventoryCount`는 M6 후속 보완입니다.
+- 검색 후보는 최대 500개 Inventory로 제한합니다. 후보 초과 시 그룹 수와 `inventoryCount`가 실제보다 작을 수 있습니다.
+- p95 300ms gate는 아직 측정하지 않았습니다. M6.0 성능 시드와 `EXPLAIN` 결과로 검증해야 합니다.

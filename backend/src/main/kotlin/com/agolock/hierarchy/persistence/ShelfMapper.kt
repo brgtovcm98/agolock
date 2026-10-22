@@ -70,6 +70,21 @@ interface ShelfMapper {
 
     @Select(
         """
+        <script>
+        SELECT id FROM shelf
+        WHERE deleted_at IS NULL AND room_id IN
+        <foreach collection="roomIds" item="roomId" open="(" separator="," close=")">
+          #{roomId}
+        </foreach>
+        </script>
+        """,
+    )
+    fun listIdsByRoomIds(
+        @Param("roomIds") roomIds: List<UUID>,
+    ): List<UUID>
+
+    @Select(
+        """
         SELECT COUNT(*)
         FROM box
         WHERE shelf_id = #{shelfId} AND space_id = #{spaceId} AND deleted_at IS NULL

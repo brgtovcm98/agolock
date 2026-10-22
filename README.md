@@ -19,7 +19,8 @@
 - 공유 사용자는 기존 Room·Inventory 상세, shared MANAGE Inventory 생성·이동·삭제를 사용할 수 있습니다.
 - 초대 메일은 Outbox 릴레이로 발송되며 `/invitations#token=...` 링크에서 수락·거절합니다.
 - staging 배포 골격(Dockerfile·nginx·Compose·프로필·GHCR workflow)을 추가했습니다.
-- 다음 1차 작업은 M6 검색과 1차 프리즈입니다. M7 AI는 2차입니다.
+- M6 검색 MVP(검색 API·ACL·최근 검색·자주 본 물건·`/search` UI)를 구현했습니다. keyset cursor·p95 gate·계약 정합성은 후속 보완입니다.
+- 다음 1차 작업은 M6 보완, Box 이동, 1차 프리즈입니다. M7 AI는 2차입니다.
 - 제품 기준 문서는 [docs/product-spec.md](docs/product-spec.md)입니다.
 - AI 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다.
 

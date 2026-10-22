@@ -49,3 +49,6 @@ deploy/.env.staging
 
 # Temporary design review artifacts
 .tmp-ux/
+
+# Local review probes
+.review-tmp/
