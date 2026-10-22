@@ -793,6 +793,22 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
+  /items/{itemId}/view:
+    parameters:
+      - $ref: '#/components/parameters/ItemId'
+    post:
+      tags: [search]
+      operationId: recordItemView
+      security:
+        - cookieAuth: []
+          CsrfToken: []
+      responses:
+        '204':
+          description: 조회 기록
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /items/{itemId}/inventories:
     parameters:
       - $ref: '#/components/parameters/ItemId'

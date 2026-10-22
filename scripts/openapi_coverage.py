@@ -7,12 +7,14 @@ server prefix를 쓰므로 path를 정규화해 비교합니다.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 PREVIEW = ROOT / "build" / "contracts" / "openapi.yaml"
+PREVIEW_JSON = ROOT / "build" / "contracts" / "openapi.json"
 CANONICAL = ROOT / "docs" / "generated" / "openapi.yaml"
 
 # 아직 계약 문서에 옮기지 않은 구현 path입니다. 새 구현 path를 추가할 때는
@@ -31,6 +33,14 @@ def check_openapi_coverage() -> int:
     preview = yaml.safe_load(PREVIEW.read_text(encoding="utf-8")) or {}
     canonical = yaml.safe_load(CANONICAL.read_text(encoding="utf-8")) or {}
     preview_paths = preview.get("paths", {})
+
+    # normalize_openapi.py를 건너뛰고 오래된 preview.yaml로 통과하는 것을 막는다.
+    if PREVIEW_JSON.exists():
+        fresh = json.loads(PREVIEW_JSON.read_text(encoding="utf-8"))
+        fresh_paths = set(fresh.get("paths", {}))
+        if fresh_paths != set(preview_paths):
+            print("FAIL: build/contracts/openapi.yaml이 openapi.json과 다릅니다. normalize_openapi.py를 다시 실행하세요.")
+            return 1
     canonical_paths = {_normalize(path): ops for path, ops in canonical.get("paths", {}).items()}
 
     missing = sorted(set(preview_paths) - set(canonical_paths) - ALLOWLIST)
