@@ -50,6 +50,7 @@ class ImageProcessService(
         } catch (exception: Exception) {
             transaction.markFailed(image.id, exception.javaClass.simpleName, OffsetDateTime.now(clock))
             log.warn("이미지 처리 실패 id={} reason={}", image.id, exception.javaClass.simpleName)
+            throw exception
         }
     }
 

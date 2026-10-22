@@ -84,7 +84,9 @@ class ImageProcessServiceTest {
                 Clock.fixed(Instant.parse("2026-10-21T12:00:00Z"), ZoneOffset.UTC),
             )
 
-        service.process(imageId)
+        org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            service.process(imageId)
+        }
 
         assertThat(
             org.mockito.Mockito

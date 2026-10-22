@@ -3,6 +3,7 @@ package com.agolock.media.messaging
 import com.agolock.media.service.ImageProcessService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.amqp.core.Message
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.context.annotation.Profile
@@ -25,7 +26,7 @@ class ImageProcessConsumer(
             }.getOrNull()
         if (imageId == null) {
             log.warn("image.process 메시지 형식 오류")
-            return
+            throw AmqpRejectAndDontRequeueException("image.process 메시지 형식 오류")
         }
         imageProcessService.process(imageId)
     }
