@@ -31,6 +31,7 @@ import com.agolock.inventory.api.MovementResponse
 import com.agolock.inventory.api.toResponse
 import com.agolock.inventory.domain.Inventory
 import com.agolock.inventory.domain.InventoryMovement
+import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.persistence.CategoryMapper
 import com.agolock.inventory.persistence.InventoryListRow
 import com.agolock.inventory.persistence.InventoryMapper
@@ -94,6 +95,7 @@ class InventoryService(
                 actor.userId,
                 normalizedScope,
                 effectiveStatuses,
+                null,
                 roomId,
                 shelfId,
                 boxId,
@@ -111,20 +113,36 @@ class InventoryService(
         return PageResult(page, next)
     }
 
+    @Transactional(readOnly = true)
     fun listByItem(
         actor: Actor,
         itemId: UUID,
     ): List<InventoryResponse> {
         val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        if (item.spaceId == actor.spaceId) {
-            val permission = accessService.requireOwner(actor, actor.spaceId)
-            return inventoryMapper.listByItem(actor.spaceId, itemId).map { toResponse(actor, it, permission) }
+        val owner = item.spaceId == actor.spaceId
+        if (owner) {
+            accessService.requireOwner(actor, actor.spaceId)
         }
-        return inventoryMapper.listAllByItem(item.spaceId, itemId).mapNotNull { inventory ->
-            val target = inventoryTarget(inventory)
-            val permission = accessService.effectivePermission(actor, target)
-            if (permission is EffectivePermission.None) null else toResponse(actor, inventory, permission)
-        }
+        val statuses =
+            if (owner) {
+                InventoryStatus.entries.filter { it != InventoryStatus.DISPOSED }
+            } else {
+                InventoryStatus.entries
+            }
+        return inventoryMapper
+            .listAccessible(
+                actor.spaceId,
+                actor.userId,
+                if (owner) "OWNED" else "SHARED",
+                statuses,
+                itemId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Int.MAX_VALUE,
+            ).map { it.toListResponse() }
     }
 
     fun get(

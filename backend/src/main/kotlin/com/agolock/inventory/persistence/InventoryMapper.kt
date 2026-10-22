@@ -97,6 +97,7 @@ interface InventoryMapper {
           <when test="scope == 'SHARED'">AND a.space_id &lt;&gt; #{spaceId} AND g.rank IS NOT NULL</when>
           <otherwise>AND (a.space_id = #{spaceId} OR g.rank IS NOT NULL)</otherwise>
         </choose>
+        <if test="itemId != null">AND a.item_id = #{itemId}</if>
         <if test="cursorUpdated != null">AND (a.updated_at, a.inventory_id) &lt; (#{cursorUpdated}, #{cursorId})</if>
         <if test="roomId != null">AND a.room_id = #{roomId} AND a.shelf_id IS NULL AND a.box_id IS NULL</if>
         <if test="shelfId != null">AND a.shelf_id = #{shelfId} AND a.box_id IS NULL</if>
@@ -111,6 +112,7 @@ interface InventoryMapper {
         @Param("actorUserId") actorUserId: UUID,
         @Param("scope") scope: String,
         @Param("statuses") statuses: List<InventoryStatus>,
+        @Param("itemId") itemId: UUID?,
         @Param("roomId") roomId: UUID?,
         @Param("shelfId") shelfId: UUID?,
         @Param("boxId") boxId: UUID?,
