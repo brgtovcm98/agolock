@@ -35,52 +35,6 @@ interface OutboxEventMapper {
 
     @Select(
         """
-        SELECT id, space_id, aggregate_type, aggregate_id, event_type, payload::text AS payload, attempts
-        FROM outbox_event
-        WHERE status = 'PENDING' AND available_at <= #{now}
-        ORDER BY available_at ASC
-        LIMIT #{limit}
-        """,
-    )
-    fun findPending(
-        @Param("now") now: OffsetDateTime,
-        @Param("limit") limit: Int,
-    ): List<OutboxEvent>
-
-    @Select(
-        """
-        WITH candidate AS (
-            SELECT id
-            FROM outbox_event
-            WHERE status = 'PENDING'
-              AND available_at <= #{now}
-              AND (locked_until IS NULL OR locked_until <= #{now})
-              AND attempts < #{maxAttempts}
-            ORDER BY available_at ASC, id ASC
-            LIMIT 1
-            FOR UPDATE SKIP LOCKED
-        )
-        UPDATE outbox_event o
-        SET locked_by = #{instanceId},
-            locked_until = #{lockedUntil},
-            claim_token = #{claimToken},
-            attempts = o.attempts + 1
-        FROM candidate c
-        WHERE o.id = c.id
-        RETURNING o.id, o.space_id, o.aggregate_type, o.aggregate_id,
-                  o.event_type, o.payload::text AS payload, o.attempts, o.claim_token
-        """,
-    )
-    fun claim(
-        @Param("now") now: OffsetDateTime,
-        @Param("lockedUntil") lockedUntil: OffsetDateTime,
-        @Param("instanceId") instanceId: String,
-        @Param("claimToken") claimToken: UUID,
-        @Param("maxAttempts") maxAttempts: Int,
-    ): ClaimedOutboxEvent?
-
-    @Select(
-        """
         WITH candidate AS (
             SELECT id
             FROM outbox_event

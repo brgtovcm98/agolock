@@ -14,10 +14,6 @@ enum class Permission {
     OWNER,
     ;
 
-    /**
-     * ordinal 순서에 의존하지 않는 명시적 누적 권한 비교입니다.
-     * NONE은 어떤 권한도 충족하지 않으며, OWNER는 모든 권한을 충족합니다.
-     */
     fun atLeast(required: Permission): Boolean =
         when (this) {
             OWNER -> true

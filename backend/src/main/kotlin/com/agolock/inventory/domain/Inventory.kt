@@ -19,12 +19,4 @@ data class Inventory(
     var createdAt: OffsetDateTime = OffsetDateTime.MIN,
     var updatedAt: OffsetDateTime = OffsetDateTime.MIN,
     var deletedAt: OffsetDateTime? = null,
-) {
-    val locationType: String
-        get() =
-            when {
-                boxId != null -> "BOX"
-                shelfId != null -> "SHELF"
-                else -> "ROOM"
-            }
-}
+)

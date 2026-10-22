@@ -14,13 +14,6 @@ class RabbitImagePublisher(
         publish("image.uploaded", payload)
     }
 
-    fun publishDomainEvent(
-        eventType: String,
-        payload: String,
-    ) {
-        publish(eventType, payload)
-    }
-
     private fun publish(
         eventType: String,
         payload: String,

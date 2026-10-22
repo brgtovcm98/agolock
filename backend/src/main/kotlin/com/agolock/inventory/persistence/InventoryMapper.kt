@@ -28,38 +28,6 @@ interface InventoryMapper {
     @Select(
         """
         <script>
-        SELECT * FROM inventory
-        WHERE space_id = #{spaceId} AND deleted_at IS NULL
-        <if test="statuses != null and statuses.size() &gt; 0">
-          AND status IN
-          <foreach collection="statuses" item="status" open="(" separator="," close=")">
-            CAST(#{status} AS inventory_status)
-          </foreach>
-        </if>
-        <if test="itemId != null">AND item_id = #{itemId}</if>
-        <if test="roomId != null">AND room_id = #{roomId} AND shelf_id IS NULL AND box_id IS NULL</if>
-        <if test="shelfId != null">AND shelf_id = #{shelfId} AND box_id IS NULL</if>
-        <if test="boxId != null">AND box_id = #{boxId}</if>
-        <if test="cursorUpdated != null">AND (updated_at, id) &lt; (#{cursorUpdated}, #{cursorId})</if>
-        ORDER BY updated_at DESC, id DESC LIMIT #{limit}
-        </script>
-        """,
-    )
-    fun list(
-        @Param("spaceId") spaceId: UUID,
-        @Param("statuses") statuses: List<InventoryStatus>,
-        @Param("itemId") itemId: UUID?,
-        @Param("roomId") roomId: UUID?,
-        @Param("shelfId") shelfId: UUID?,
-        @Param("boxId") boxId: UUID?,
-        @Param("cursorUpdated") cursorUpdated: OffsetDateTime?,
-        @Param("cursorId") cursorId: UUID?,
-        @Param("limit") limit: Int,
-    ): List<Inventory>
-
-    @Select(
-        """
-        <script>
         SELECT a.inventory_id AS id,
                a.item_id,
                a.status,
