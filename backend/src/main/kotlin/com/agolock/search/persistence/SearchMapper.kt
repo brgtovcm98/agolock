@@ -4,6 +4,7 @@ package com.agolock.search.persistence
 
 import com.agolock.inventory.domain.InventoryStatus
 import org.apache.ibatis.annotations.Mapper
+import org.apache.ibatis.annotations.Param
 import org.apache.ibatis.annotations.Select
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -27,6 +28,8 @@ data class SearchQuery(
     val hasImage: Boolean?,
     val sort: String,
     val limit: Int,
+    // keyset 페이지에서 그룹 Inventory를 재조회할 때만 채웁니다.
+    val itemIds: List<UUID>? = null,
 )
 
 data class SearchRow(
@@ -174,6 +177,12 @@ interface SearchMapper {
               AND 1 = 0
             </otherwise>
           </choose>
+          <if test="itemIds != null and itemIds.size() > 0">
+            AND i.item_id IN
+            <foreach collection="itemIds" item="itemId" open="(" separator="," close=")">
+              #{itemId}
+            </foreach>
+          </if>
           <if test="q != null and q != ''">
             AND (
               lower(COALESCE(i.name_override, it.name)) LIKE '%' || lower(#{q}) || '%'
@@ -221,4 +230,155 @@ interface SearchMapper {
         """,
     )
     fun search(query: SearchQuery): List<SearchRow>
+
+    @Select(
+        """
+        <script>
+        WITH hit AS (
+            SELECT a.item_id, a.updated_at
+            FROM inventory_access a
+            JOIN item it ON it.id = a.item_id AND it.space_id = a.space_id
+            LEFT JOIN room rm ON rm.id = a.effective_room_id
+            LEFT JOIN shelf sh ON sh.id = a.effective_shelf_id
+            LEFT JOIN box bx ON bx.id = a.box_id
+            JOIN space sp ON sp.id = a.space_id
+            JOIN app_user u ON u.id = sp.owner_user_id
+            LEFT JOIN category cat ON cat.id = COALESCE(a.category_id_override, it.category_id) AND cat.space_id = a.space_id
+            WHERE it.deleted_at IS NULL
+              AND a.status IN
+              <foreach collection="query.statuses" item="status" open="(" separator="," close=")">
+                CAST(#{status} AS inventory_status)
+              </foreach>
+              <choose>
+                <when test="query.includeOwned and query.includeShared and query.sharedSpaceIds.size() > 0 and (query.roomIds.size() > 0 or query.shelfIds.size() > 0 or query.boxIds.size() > 0)">
+                  AND (
+                    a.space_id = #{query.ownSpaceId}
+                    OR (
+                      a.space_id IN
+                      <foreach collection="query.sharedSpaceIds" item="spaceId" open="(" separator="," close=")">
+                        #{spaceId}
+                      </foreach>
+                      AND (
+                        <trim suffixOverrides="OR">
+                          <if test="query.roomIds.size() > 0">
+                            a.room_id IN
+                            <foreach collection="query.roomIds" item="roomId" open="(" separator="," close=")">
+                              #{roomId}
+                            </foreach>
+                            OR
+                          </if>
+                          <if test="query.shelfIds.size() > 0">
+                            a.shelf_id IN
+                            <foreach collection="query.shelfIds" item="shelfId" open="(" separator="," close=")">
+                              #{shelfId}
+                            </foreach>
+                            OR
+                          </if>
+                          <if test="query.boxIds.size() > 0">
+                            a.box_id IN
+                            <foreach collection="query.boxIds" item="boxId" open="(" separator="," close=")">
+                              #{boxId}
+                            </foreach>
+                          </if>
+                        </trim>
+                      )
+                    )
+                  )
+                </when>
+                <when test="query.includeOwned and query.includeShared">
+                  AND a.space_id = #{query.ownSpaceId}
+                </when>
+                <when test="query.includeOwned">
+                  AND a.space_id = #{query.ownSpaceId}
+                </when>
+                <when test="query.includeShared and query.sharedSpaceIds.size() > 0 and (query.roomIds.size() > 0 or query.shelfIds.size() > 0 or query.boxIds.size() > 0)">
+                  AND (
+                    a.space_id IN
+                    <foreach collection="query.sharedSpaceIds" item="spaceId" open="(" separator="," close=")">
+                      #{spaceId}
+                    </foreach>
+                    AND (
+                      <trim suffixOverrides="OR">
+                        <if test="query.roomIds.size() > 0">
+                          a.room_id IN
+                          <foreach collection="query.roomIds" item="roomId" open="(" separator="," close=")">
+                            #{roomId}
+                          </foreach>
+                          OR
+                        </if>
+                        <if test="query.shelfIds.size() > 0">
+                          a.shelf_id IN
+                          <foreach collection="query.shelfIds" item="shelfId" open="(" separator="," close=")">
+                            #{shelfId}
+                          </foreach>
+                          OR
+                        </if>
+                        <if test="query.boxIds.size() > 0">
+                          a.box_id IN
+                          <foreach collection="query.boxIds" item="boxId" open="(" separator="," close=")">
+                            #{boxId}
+                          </foreach>
+                        </if>
+                      </trim>
+                    )
+                  )
+                </when>
+                <otherwise>
+                  AND 1 = 0
+                </otherwise>
+              </choose>
+              <if test="query.q != null and query.q != ''">
+                AND (
+                  lower(COALESCE(a.name_override, it.name)) LIKE '%' || lower(#{query.q}) || '%'
+                  OR lower(COALESCE(a.description_override, it.description)) LIKE '%' || lower(#{query.q}) || '%'
+                  OR lower(rm.name) LIKE '%' || lower(#{query.q}) || '%'
+                  OR lower(sh.name) LIKE '%' || lower(#{query.q}) || '%'
+                  OR lower(bx.name) LIKE '%' || lower(#{query.q}) || '%'
+                  OR lower(cat.name) LIKE '%' || lower(#{query.q}) || '%'
+                )
+              </if>
+              <if test="query.roomFilterId != null">AND a.effective_room_id = #{query.roomFilterId}</if>
+              <if test="query.shelfFilterId != null">AND a.effective_shelf_id = #{query.shelfFilterId}</if>
+              <if test="query.boxFilterId != null">AND a.box_id = #{query.boxFilterId}</if>
+              <if test="query.categoryId != null">
+                AND COALESCE(a.category_id_override, it.category_id) = #{query.categoryId}
+              </if>
+              <if test="query.ownerId != null">AND sp.owner_user_id = #{query.ownerId}</if>
+              <if test="query.hasImage == true">
+                AND EXISTS (
+                  SELECT 1
+                  FROM image img
+                  WHERE img.status = 'READY' AND img.deleted_at IS NULL
+                    AND (img.item_id = a.item_id OR img.inventory_id = a.inventory_id)
+                )
+              </if>
+              <if test="query.hasImage == false">
+                AND NOT EXISTS (
+                  SELECT 1
+                  FROM image img
+                  WHERE img.status = 'READY' AND img.deleted_at IS NULL
+                    AND (img.item_id = a.item_id OR img.inventory_id = a.inventory_id)
+                )
+              </if>
+        ),
+        grp AS (
+            SELECT item_id, max(updated_at) AS updated_at, count(*) AS inventory_count
+            FROM hit
+            GROUP BY item_id
+        )
+        SELECT item_id, updated_at, inventory_count
+        FROM grp
+        <if test="cursorUpdated != null">
+          WHERE (updated_at, item_id) &lt; (#{cursorUpdated}, #{cursorId})
+        </if>
+        ORDER BY updated_at DESC, item_id DESC
+        LIMIT #{query.limit}
+        </script>
+        """,
+    )
+    fun searchPageUpdated(
+        @Param("query") q: SearchQuery,
+        @Param("cursorUpdated") cursorUpdated: OffsetDateTime?,
+        @Param("cursorId") cursorId: UUID?,
+    ): List<SearchPageRow>
 }

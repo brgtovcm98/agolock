@@ -2,7 +2,7 @@ package com.agolock.hierarchy.service
 
 import com.agolock.hierarchy.domain.AccessTarget
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.GrantLevel
 
 /**
  * M4 공유 Grant를 연결할 포트입니다.
@@ -12,12 +12,12 @@ interface GrantLookup {
     fun permissionFor(
         actor: Actor,
         target: AccessTarget,
-    ): Permission?
+    ): GrantLevel?
 }
 
 class NoGrantLookup : GrantLookup {
     override fun permissionFor(
         actor: Actor,
         target: AccessTarget,
-    ): Permission? = null
+    ): GrantLevel? = null
 }

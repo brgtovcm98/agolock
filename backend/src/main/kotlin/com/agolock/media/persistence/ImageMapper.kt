@@ -41,14 +41,23 @@ interface ImageMapper {
         @Param("createdAt") createdAt: OffsetDateTime,
     )
 
-    @Select("SELECT * FROM image WHERE id = #{id} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, item_id, inventory_id, object_key, thumbnail_key,
+               status, upload_expires_at, created_at, mime_type, size_bytes, is_primary
+        FROM image
+        WHERE id = #{id} AND deleted_at IS NULL
+        """,
+    )
     fun findById(
         @Param("id") id: UUID,
     ): Image?
 
     @Select(
         """
-        SELECT * FROM image
+        SELECT id, space_id, item_id, inventory_id, object_key, thumbnail_key,
+               status, upload_expires_at, created_at, mime_type, size_bytes, is_primary
+        FROM image
         WHERE item_id = #{itemId} AND deleted_at IS NULL AND status <> 'DELETED'
         ORDER BY created_at DESC, id DESC
         """,
@@ -59,7 +68,9 @@ interface ImageMapper {
 
     @Select(
         """
-        SELECT * FROM image
+        SELECT id, space_id, item_id, inventory_id, object_key, thumbnail_key,
+               status, upload_expires_at, created_at, mime_type, size_bytes, is_primary
+        FROM image
         WHERE inventory_id = #{inventoryId} AND deleted_at IS NULL AND status <> 'DELETED'
         ORDER BY created_at DESC, id DESC
         """,
@@ -94,26 +105,50 @@ interface ImageMapper {
         @Param("now") now: OffsetDateTime,
     ): Int
 
-    @Select("SELECT * FROM image WHERE id = #{id} AND deleted_at IS NULL FOR UPDATE")
+    @Select(
+        """
+        SELECT id, space_id, item_id, inventory_id, object_key, thumbnail_key,
+               status, upload_expires_at, created_at, mime_type, size_bytes, is_primary
+        FROM image
+        WHERE id = #{id} AND deleted_at IS NULL
+        FOR UPDATE
+        """,
+    )
     fun findByIdForUpdate(
         @Param("id") id: UUID,
     ): Image?
 
-    @Select("SELECT * FROM image WHERE object_key = #{objectKey} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, item_id, inventory_id, object_key, thumbnail_key,
+               status, upload_expires_at, created_at, mime_type, size_bytes, is_primary
+        FROM image
+        WHERE object_key = #{objectKey} AND deleted_at IS NULL
+        """,
+    )
     fun findByObjectKey(
         @Param("objectKey") objectKey: String,
     ): Image?
 
     @Select(
         """
+        <script>
         SELECT COUNT(*) FROM image
-        WHERE deleted_at IS NULL AND status <> 'DELETED'
-          AND ((item_id = #{itemId} AND #{itemId} IS NOT NULL) OR (inventory_id = #{inventoryId} AND #{inventoryId} IS NOT NULL))
+        WHERE deleted_at IS NULL
+        <choose>
+          <when test="itemId != null">AND item_id = #{itemId}</when>
+          <when test="inventoryId != null">AND inventory_id = #{inventoryId}</when>
+          <otherwise>AND 1 = 0</otherwise>
+        </choose>
+          AND (status IN ('PENDING', 'PROCESSING', 'READY')
+               OR (status = 'UPLOADING' AND upload_expires_at &gt; #{now}))
+        </script>
         """,
     )
     fun countActiveByTarget(
         @Param("itemId") itemId: UUID?,
         @Param("inventoryId") inventoryId: UUID?,
+        @Param("now") now: OffsetDateTime,
     ): Int
 
     @Update(
@@ -150,18 +185,34 @@ interface ImageMapper {
 
     @Select(
         """
-        SELECT * FROM image
+        SELECT id, space_id, item_id, inventory_id, object_key, thumbnail_key,
+               status, upload_expires_at, created_at, mime_type, size_bytes, is_primary
+        FROM image
         WHERE deleted_at IS NULL
-          AND (
-            (status IN ('UPLOADING', 'DRAFT', 'FAILED') AND upload_expires_at <= #{now})
-            OR (status = 'DELETED' AND deleted_at <= #{deletedBefore})
-          )
+          AND status IN ('UPLOADING', 'DRAFT', 'FAILED')
+          AND upload_expires_at <= #{now}
         ORDER BY upload_expires_at ASC
         LIMIT #{limit}
         """,
     )
-    fun findExpired(
+    fun findExpiredUploads(
         @Param("now") now: OffsetDateTime,
+        @Param("limit") limit: Int,
+    ): List<Image>
+
+    @Select(
+        """
+        SELECT id, space_id, item_id, inventory_id, object_key, thumbnail_key,
+               status, upload_expires_at, created_at, mime_type, size_bytes, is_primary
+        FROM image
+        WHERE deleted_at IS NOT NULL
+          AND status = 'DELETED'
+          AND deleted_at <= #{deletedBefore}
+        ORDER BY deleted_at ASC
+        LIMIT #{limit}
+        """,
+    )
+    fun findExpiredDeleted(
         @Param("deletedBefore") deletedBefore: OffsetDateTime,
         @Param("limit") limit: Int,
     ): List<Image>

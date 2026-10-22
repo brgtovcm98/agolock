@@ -16,7 +16,10 @@ package com.agolock.inventory.service
 import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
+import com.agolock.hierarchy.domain.AccessTarget
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.RoomMapper
@@ -29,10 +32,10 @@ import com.agolock.inventory.api.toResponse
 import com.agolock.inventory.domain.Inventory
 import com.agolock.inventory.domain.InventoryMovement
 import com.agolock.inventory.persistence.CategoryMapper
+import com.agolock.inventory.persistence.InventoryListRow
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.InventoryMovementMapper
 import com.agolock.inventory.persistence.ItemMapper
-import com.agolock.sharing.persistence.ShareMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -50,15 +53,15 @@ class InventoryService(
     private val roomMapper: RoomMapper,
     private val shelfMapper: ShelfMapper,
     private val boxMapper: BoxMapper,
+    private val locationResolver: InventoryLocationResolver,
     private val accessService: AccessService,
-    private val shareMapper: ShareMapper,
     private val clock: Clock,
 ) {
     fun list(
         actor: Actor,
         statuses: List<com.agolock.inventory.domain.InventoryStatus>?,
         limit: Int?,
-        scope: String = "OWNED",
+        scope: String = "ALL",
         cursorRaw: String? = null,
         roomId: UUID? = null,
         shelfId: UUID? = null,
@@ -85,56 +88,22 @@ class InventoryService(
                         com.agolock.inventory.domain.InventoryStatus.STORED,
                     )
                 }
-        val owned =
-            if (normalizedScope == "SHARED") {
-                emptyList()
-            } else {
-                accessService.requireOwner(actor, actor.spaceId)
-                inventoryMapper
-                    .list(
-                        actor.spaceId,
-                        effectiveStatuses,
-                        null,
-                        roomId,
-                        shelfId,
-                        boxId,
-                        cursor?.updatedAt,
-                        cursor?.id,
-                        effectiveLimit + 1,
-                    ).map { toResponse(actor, it, "OWNER") }
-            }
-        if (normalizedScope == "OWNED") {
-            val page = owned.take(effectiveLimit)
-            val next = if (owned.size > effectiveLimit) page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) } else null
-            return PageResult(page, next)
-        }
-        val shared =
-            shareMapper.listActiveByGrantee(actor.userId).flatMap { share ->
-                inventoryMapper
-                    .list(share.spaceId, effectiveStatuses, null, null, null, null, null, null, effectiveLimit + 1)
-                    .filter { inventory ->
-                        val target = inventoryTarget(inventory)
-                        val matchesShare =
-                            (share.roomId != null && target.roomId == share.roomId) ||
-                                (share.shelfId != null && target.shelfId == share.shelfId)
-                        matchesShare && matchesLocation(inventory, roomId, shelfId, boxId)
-                    }.mapNotNull { inventory ->
-                        val target = inventoryTarget(inventory)
-                        val permission = accessService.effectivePermission(actor, target)
-                        if (permission == com.agolock.hierarchy.domain.Permission.NONE) {
-                            null
-                        } else {
-                            toResponse(actor, inventory, permission.name)
-                        }
-                    }
-            }
-        val page =
-            (owned + shared)
-                .distinctBy { it.id }
-                .sortedWith(compareByDescending<InventoryResponse> { it.updatedAt }.thenByDescending { it.id })
-                .take(effectiveLimit)
+        val rows =
+            inventoryMapper.listAccessible(
+                actor.spaceId,
+                actor.userId,
+                normalizedScope,
+                effectiveStatuses,
+                roomId,
+                shelfId,
+                boxId,
+                cursor?.updatedAt,
+                cursor?.id,
+                effectiveLimit + 1,
+            )
+        val page = rows.take(effectiveLimit).map { it.toListResponse() }
         val next =
-            if (owned.size + shared.size > effectiveLimit) {
+            if (rows.size > effectiveLimit) {
                 page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) }
             } else {
                 null
@@ -148,13 +117,13 @@ class InventoryService(
     ): List<InventoryResponse> {
         val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
         if (item.spaceId == actor.spaceId) {
-            accessService.requireOwner(actor, actor.spaceId)
-            return inventoryMapper.listByItem(actor.spaceId, itemId).map { toResponse(actor, it, "OWNER") }
+            val permission = accessService.requireOwner(actor, actor.spaceId)
+            return inventoryMapper.listByItem(actor.spaceId, itemId).map { toResponse(actor, it, permission) }
         }
         return inventoryMapper.listAllByItem(item.spaceId, itemId).mapNotNull { inventory ->
             val target = inventoryTarget(inventory)
             val permission = accessService.effectivePermission(actor, target)
-            if (permission == com.agolock.hierarchy.domain.Permission.NONE) null else toResponse(actor, inventory, permission.name)
+            if (permission is EffectivePermission.None) null else toResponse(actor, inventory, permission)
         }
     }
 
@@ -164,8 +133,8 @@ class InventoryService(
     ): InventoryResponse {
         val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
         val target = inventoryTarget(inventory)
-        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.VIEW)
-        return toResponse(actor, inventory, permission.name)
+        val permission = accessService.require(actor, target, GrantLevel.VIEW)
+        return toResponse(actor, inventory, permission)
     }
 
     fun getShared(
@@ -174,8 +143,8 @@ class InventoryService(
     ): InventoryResponse {
         val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
         val target = inventoryTarget(inventory)
-        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.VIEW)
-        return toResponse(actor, inventory, permission.name)
+        val permission = accessService.require(actor, target, GrantLevel.VIEW)
+        return toResponse(actor, inventory, permission)
     }
 
     @Transactional
@@ -194,7 +163,7 @@ class InventoryService(
                 location.response.shelfId,
                 location.response.boxId,
             )
-        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.MANAGE)
+        val permission = accessService.require(actor, target, GrantLevel.MANAGE)
         if ((command.itemId == null) == (command.newItem == null)) {
             throw ApiException(
                 "VALIDATION_FAILED",
@@ -222,8 +191,7 @@ class InventoryService(
                     ),
                 )
             } else {
-                itemMapper.findByIdAny(command.itemId!!)
-                    ?: throw notFound("Item을 찾을 수 없습니다.")
+                itemService.getReadable(actor, command.itemId!!)
             }
         if (item.spaceId != location.spaceId) throw notFound("Item을 찾을 수 없습니다.")
         val now = OffsetDateTime.now(clock)
@@ -241,7 +209,7 @@ class InventoryService(
                 updatedAt = now,
             )
         inventoryMapper.insert(inventory)
-        return toResponse(actor, inventory, permission.name)
+        return toResponse(actor, inventory, permission)
     }
 
     @Transactional
@@ -252,7 +220,7 @@ class InventoryService(
     ): InventoryResponse {
         val current = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
         val target = inventoryTarget(current)
-        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.EDIT)
+        val permission = accessService.require(actor, target, GrantLevel.EDIT)
         if (current.version != command.version) throw versionConflict()
         val targetStatus =
             if (command.statusPresent) {
@@ -299,7 +267,7 @@ class InventoryService(
             priceAmountOverride == current.priceAmountOverride &&
             targetStatus == current.status
         ) {
-            return toResponse(actor, current, permission.name)
+            return toResponse(actor, current, permission)
         }
         val updated =
             inventoryMapper.update(
@@ -317,7 +285,7 @@ class InventoryService(
         return toResponse(
             actor,
             inventoryMapper.findById(current.spaceId, inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다."),
-            permission.name,
+            permission,
         )
     }
 
@@ -329,7 +297,7 @@ class InventoryService(
     ): InventoryResponse {
         val current = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
         val sourceTarget = inventoryTarget(current)
-        accessService.require(actor, sourceTarget, com.agolock.hierarchy.domain.Permission.MANAGE)
+        accessService.require(actor, sourceTarget, GrantLevel.MANAGE)
         if (current.version != command.version) throw versionConflict()
         val location = resolveLocation(command.roomId, command.shelfId, command.boxId)
         if (location.spaceId != current.spaceId) throw notFound("이동할 위치를 찾을 수 없습니다.")
@@ -340,9 +308,9 @@ class InventoryService(
                 location.response.shelfId,
                 location.response.boxId,
             )
-        val permission = accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.MANAGE)
+        val permission = accessService.require(actor, target, GrantLevel.MANAGE)
         if (current.roomId == location.roomId && current.shelfId == location.shelfId && current.boxId == location.boxId) {
-            return toResponse(actor, current, permission.name)
+            return toResponse(actor, current, permission)
         }
         val now = OffsetDateTime.now(clock)
         val updated =
@@ -374,7 +342,7 @@ class InventoryService(
         return toResponse(
             actor,
             inventoryMapper.findById(current.spaceId, inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다."),
-            permission.name,
+            permission,
         )
     }
 
@@ -385,7 +353,7 @@ class InventoryService(
     ) {
         val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
         val target = inventoryTarget(inventory)
-        accessService.require(actor, target, com.agolock.hierarchy.domain.Permission.MANAGE)
+        accessService.require(actor, target, GrantLevel.MANAGE)
         inventoryMapper.softDelete(inventory.spaceId, inventoryId, OffsetDateTime.now(clock))
     }
 
@@ -394,25 +362,25 @@ class InventoryService(
         inventoryId: UUID,
     ): List<com.agolock.inventory.api.LocationItemResponse> {
         val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
-        accessService.require(actor, inventoryTarget(inventory), com.agolock.hierarchy.domain.Permission.MANAGE)
+        accessService.require(actor, inventoryTarget(inventory), GrantLevel.MANAGE)
         val result = mutableListOf<com.agolock.inventory.api.LocationItemResponse>()
         roomMapper.list(inventory.spaceId, null, null, 100).forEach { room ->
             val roomTarget = accessService.target(inventory.spaceId, roomId = room.id)
-            if (accessService.effectivePermission(actor, roomTarget).atLeast(com.agolock.hierarchy.domain.Permission.MANAGE)) {
+            if (accessService.effectivePermission(actor, roomTarget).atLeast(GrantLevel.MANAGE)) {
                 result +=
                     com.agolock.inventory.api
                         .LocationItemResponse("ROOM", room.id, room.name)
             }
             shelfMapper.listByRoom(inventory.spaceId, room.id, null, null, 100).forEach { shelf ->
                 val shelfTarget = accessService.target(inventory.spaceId, room.id, shelf.id)
-                if (accessService.effectivePermission(actor, shelfTarget).atLeast(com.agolock.hierarchy.domain.Permission.MANAGE)) {
+                if (accessService.effectivePermission(actor, shelfTarget).atLeast(GrantLevel.MANAGE)) {
                     result +=
                         com.agolock.inventory.api
                             .LocationItemResponse("SHELF", shelf.id, "${room.name} > ${shelf.name}")
                 }
                 boxMapper.listByShelf(inventory.spaceId, shelf.id, null, null, 100).forEach { box ->
                     val boxTarget = accessService.target(inventory.spaceId, room.id, shelf.id, box.id)
-                    if (accessService.effectivePermission(actor, boxTarget).atLeast(com.agolock.hierarchy.domain.Permission.MANAGE)) {
+                    if (accessService.effectivePermission(actor, boxTarget).atLeast(GrantLevel.MANAGE)) {
                         result +=
                             com.agolock.inventory.api
                                 .LocationItemResponse("BOX", box.id, "${room.name} > ${shelf.name} > ${box.name}")
@@ -434,19 +402,6 @@ class InventoryService(
         }
     }
 
-    private fun matchesLocation(
-        inventory: Inventory,
-        roomId: UUID?,
-        shelfId: UUID?,
-        boxId: UUID?,
-    ): Boolean =
-        when {
-            roomId != null -> inventory.roomId == roomId && inventory.shelfId == null && inventory.boxId == null
-            shelfId != null -> inventory.shelfId == shelfId && inventory.boxId == null
-            boxId != null -> inventory.boxId == boxId
-            else -> true
-        }
-
     private fun requireInventory(
         actor: Actor,
         inventoryId: UUID,
@@ -454,14 +409,16 @@ class InventoryService(
         inventoryMapper.findById(actor.spaceId, inventoryId)
             ?: throw notFound("Inventory를 찾을 수 없습니다.")
 
-    private fun inventoryTarget(inventory: Inventory): com.agolock.hierarchy.domain.AccessTarget {
-        val shelf = inventory.shelfId?.let { shelfMapper.findByIdAny(it) }
-        val boxShelf =
-            inventory.boxId?.let { boxId ->
-                boxMapper.findByIdAny(boxId)?.let { shelfMapper.findByIdAny(it.shelfId) }
-            }
-        val roomId = inventory.roomId ?: shelf?.roomId ?: boxShelf?.roomId
-        return accessService.target(inventory.spaceId, roomId, inventory.shelfId, inventory.boxId)
+    private fun inventoryTarget(inventory: Inventory): AccessTarget {
+        val location =
+            locationResolver.resolve(inventory.id)
+                ?: throw notFound("Inventory를 찾을 수 없습니다.")
+        return accessService.target(
+            location.spaceId,
+            location.effectiveRoomId,
+            location.effectiveShelfId,
+            location.boxId,
+        )
     }
 
     private data class LocationRef(
@@ -508,10 +465,52 @@ class InventoryService(
         }
     }
 
+    private fun InventoryListRow.toListResponse(): InventoryResponse {
+        val type =
+            when {
+                displayBoxId != null -> "BOX"
+                displayShelfId != null -> "SHELF"
+                else -> "ROOM"
+            }
+        val locationName =
+            when (type) {
+                "BOX" -> boxName ?: "삭제된 Box"
+                "SHELF" -> shelfName ?: "삭제된 Shelf"
+                else -> roomName ?: "삭제된 Room"
+            }
+        return InventoryResponse(
+            id = id,
+            itemId = itemId,
+            itemName = itemName,
+            displayName = nameOverride ?: itemName,
+            description = descriptionOverride ?: itemDescription,
+            categoryId = categoryIdOverride ?: itemCategoryId,
+            priceAmount = priceAmountOverride ?: itemPriceAmount,
+            status = status,
+            location =
+                InventoryLocationResponse(
+                    type = type,
+                    roomId = displayRoomId,
+                    shelfId = displayShelfId,
+                    boxId = displayBoxId,
+                    name = locationName,
+                ),
+            nameOverride = nameOverride,
+            descriptionOverride = descriptionOverride,
+            categoryIdOverride = categoryIdOverride,
+            priceAmountOverride = priceAmountOverride,
+            version = version,
+            effectivePermission = effectivePermission,
+            isShared = effectivePermission != "OWNER",
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+        )
+    }
+
     private fun toResponse(
         actor: Actor,
         inventory: Inventory,
-        permission: String,
+        permission: EffectivePermission,
     ): InventoryResponse {
         val item = itemMapper.findById(inventory.spaceId, inventory.itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
         val name = inventory.nameOverride ?: item.name
@@ -533,8 +532,8 @@ class InventoryService(
             categoryIdOverride = inventory.categoryIdOverride,
             priceAmountOverride = inventory.priceAmountOverride,
             version = inventory.version,
-            effectivePermission = permission,
-            isShared = permission != "OWNER",
+            effectivePermission = permission.wire(),
+            isShared = permission is EffectivePermission.Granted,
             createdAt = inventory.createdAt,
             updatedAt = inventory.updatedAt,
         )

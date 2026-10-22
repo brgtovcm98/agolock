@@ -1,6 +1,6 @@
 package com.agolock.sharing.domain
 
-import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.GrantLevel
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -11,7 +11,7 @@ data class ShareInvitation(
     var shelfId: UUID? = null,
     var invitedEmail: String = "",
     var invitedUserId: UUID? = null,
-    var permission: Permission = Permission.VIEW,
+    var permission: GrantLevel = GrantLevel.VIEW,
     var tokenHash: String = "",
     var status: InvitationStatus = InvitationStatus.PENDING,
     var expiresAt: OffsetDateTime = OffsetDateTime.MIN,

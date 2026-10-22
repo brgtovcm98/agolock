@@ -4,13 +4,13 @@ package com.agolock.media.service
 
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
+import com.agolock.hierarchy.domain.AccessTarget
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.domain.Permission
-import com.agolock.hierarchy.persistence.BoxMapper
-import com.agolock.hierarchy.persistence.ShelfMapper
+import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.ItemMapper
+import com.agolock.inventory.service.InventoryLocationResolver
 import com.agolock.media.api.CompleteImageRequest
 import com.agolock.media.api.ImageResponse
 import com.agolock.media.api.PresignImageRequest
@@ -19,7 +19,6 @@ import com.agolock.media.domain.Image
 import com.agolock.media.domain.ImageStatus
 import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.storage.ImageStoragePort
-import com.agolock.messaging.outbox.OutboxService
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,11 +33,10 @@ class ImageService(
     private val imageMapper: ImageMapper,
     private val itemMapper: ItemMapper,
     private val inventoryMapper: InventoryMapper,
-    private val shelfMapper: ShelfMapper,
-    private val boxMapper: BoxMapper,
+    private val locationResolver: InventoryLocationResolver,
     private val accessService: AccessService,
     private val storage: ImageStoragePort,
-    private val outboxService: OutboxService,
+    private val uploadTransaction: ImageUploadTransaction,
     private val clock: Clock,
 ) {
     @Transactional
@@ -47,18 +45,17 @@ class ImageService(
         request: PresignImageRequest,
     ): PresignImageResponse {
         val target =
-            resolveTarget(
+            resolveMutationTarget(
                 actor,
                 request.targetType,
                 request.targetId,
-                mutationPermission(request.targetType),
             )
         if (request.contentType != "image/webp") throw validation("이미지는 image/webp만 업로드할 수 있습니다.")
         if (request.sizeBytes !in 1..MAX_IMAGE_BYTES) throw validation("이미지 크기는 1~10MB여야 합니다.")
-        if (imageMapper.countActiveByTarget(target.itemId, target.inventoryId) >= MAX_IMAGES_PER_TARGET) {
+        val now = OffsetDateTime.now(clock)
+        if (imageMapper.countActiveByTarget(target.itemId, target.inventoryId, now) >= MAX_IMAGES_PER_TARGET) {
             throw ApiException("IMAGE_LIMIT_EXCEEDED", HttpStatus.CONFLICT, "이미지는 대상별 10장까지 저장할 수 있습니다.")
         }
-        val now = OffsetDateTime.now(clock)
         val imageId = UuidV7.generate(clock)
         val objectKey = "spaces/${target.spaceId}/${target.type}/${target.id}/$imageId/original.webp"
         val uploadExpiresAt = now.plusHours(24)
@@ -78,16 +75,15 @@ class ImageService(
         return PresignImageResponse(imageId, url.toString(), objectKey, now.plusMinutes(5), uploadExpiresAt)
     }
 
-    @Transactional
     fun complete(
         actor: Actor,
         imageId: java.util.UUID,
         request: CompleteImageRequest,
     ): ImageResponse {
-        val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
+        val image = imageMapper.findById(imageId) ?: throw notFound()
         val targetType = if (image.itemId != null) "ITEM" else "INVENTORY"
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
-        resolveTarget(actor, targetType, targetId, mutationPermission(targetType))
+        resolveMutationTarget(actor, targetType, targetId)
         if (image.objectKey != request.objectKey) throw validation("객체 키가 일치하지 않습니다.")
         if (image.status != ImageStatus.UPLOADING) throw ApiException("IMAGE_INVALID_STATE", HttpStatus.CONFLICT, "업로드 대기 상태가 아닙니다.")
         if (!image.uploadExpiresAt.isAfter(OffsetDateTime.now(clock))) {
@@ -105,38 +101,24 @@ class ImageService(
             throw validation("WebP 이미지 형식이 아닙니다.")
         }
         val sha256 = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
-        val now = OffsetDateTime.now(clock)
-        if (imageMapper.completeUpload(
+        val completed =
+            uploadTransaction.complete(
                 image.id,
-                ImageStatus.PENDING,
+                request.objectKey,
                 stored.contentType ?: "image/webp",
                 stored.sizeBytes,
                 sha256,
-                now,
-            ) == 0
-        ) {
-            throw ApiException("IMAGE_INVALID_STATE", HttpStatus.CONFLICT, "이미지 상태를 변경할 수 없습니다.")
-        }
-        outboxService.enqueueImageUploaded(
-            image.spaceId,
-            image.id,
-            mapOf(
-                "imageId" to image.id,
-                "targetType" to if (image.itemId != null) "ITEM" else "INVENTORY",
-                "targetId" to (image.itemId ?: image.inventoryId),
-                "objectKey" to image.objectKey,
-                "declaredSizeBytes" to stored.sizeBytes,
-            ),
-        )
+                OffsetDateTime.now(clock),
+            )
         return ImageResponse(
-            image.id,
+            completed.id,
             ImageStatus.PENDING,
-            image.itemId,
-            image.inventoryId,
+            completed.itemId,
+            completed.inventoryId,
             stored.contentType,
             stored.sizeBytes,
             false,
-            image.createdAt,
+            completed.createdAt,
         )
     }
 
@@ -144,7 +126,7 @@ class ImageService(
         actor: Actor,
         itemId: java.util.UUID,
     ): List<ImageResponse> {
-        resolveTarget(actor, "ITEM", itemId, Permission.VIEW)
+        resolveTarget(actor, "ITEM", itemId, GrantLevel.VIEW)
         return imageMapper.listByItem(itemId).map { it.toResponse() }
     }
 
@@ -152,7 +134,7 @@ class ImageService(
         actor: Actor,
         inventoryId: java.util.UUID,
     ): List<ImageResponse> {
-        resolveTarget(actor, "INVENTORY", inventoryId, Permission.VIEW)
+        resolveTarget(actor, "INVENTORY", inventoryId, GrantLevel.VIEW)
         return imageMapper.listByInventory(inventoryId).map { it.toResponse() }
     }
 
@@ -162,7 +144,7 @@ class ImageService(
     ): String {
         val image = imageMapper.findById(imageId) ?: throw notFound()
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
-        resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, Permission.VIEW)
+        resolveTarget(actor, if (image.itemId != null) "ITEM" else "INVENTORY", targetId, GrantLevel.VIEW)
         if (image.status != ImageStatus.READY) throw ApiException("IMAGE_NOT_READY", HttpStatus.CONFLICT, "처리된 이미지가 아닙니다.")
         return storage.presignGet(image.objectKey, Duration.ofMinutes(5)).toString()
     }
@@ -174,11 +156,10 @@ class ImageService(
     ): ImageResponse {
         val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
-        resolveTarget(
+        resolveMutationTarget(
             actor,
             if (image.itemId != null) "ITEM" else "INVENTORY",
             targetId,
-            mutationPermission(if (image.itemId != null) "ITEM" else "INVENTORY"),
         )
         if (image.status != ImageStatus.READY) throw ApiException("IMAGE_NOT_READY", HttpStatus.CONFLICT, "처리된 이미지가 아닙니다.")
         val now = OffsetDateTime.now(clock)
@@ -200,22 +181,12 @@ class ImageService(
     ) {
         val image = imageMapper.findByIdForUpdate(imageId) ?: throw notFound()
         val targetId = image.itemId ?: image.inventoryId ?: throw notFound()
-        resolveTarget(
+        resolveMutationTarget(
             actor,
             if (image.itemId != null) "ITEM" else "INVENTORY",
             targetId,
-            mutationPermission(if (image.itemId != null) "ITEM" else "INVENTORY"),
         )
         imageMapper.softDelete(imageId, OffsetDateTime.now(clock))
-        outboxService.enqueueImageEvent(
-            image.spaceId,
-            image.id,
-            "image.deleted",
-            mapOf(
-                "imageId" to image.id,
-                "wasPrimary" to image.isPrimary,
-            ),
-        )
     }
 
     private fun Image.toResponse() = ImageResponse(id, status, itemId, inventoryId, mimeType, sizeBytes, isPrimary, createdAt)
@@ -226,36 +197,73 @@ class ImageService(
         val spaceId: java.util.UUID,
         val itemId: java.util.UUID?,
         val inventoryId: java.util.UUID?,
+        val accessTarget: AccessTarget,
     )
 
     private fun resolveTarget(
         actor: Actor,
         targetType: String,
         targetId: java.util.UUID,
-        minimum: Permission,
+        minimum: GrantLevel,
+    ): Target {
+        val target = loadTarget(targetType, targetId)
+        accessService.require(actor, target.accessTarget, minimum)
+        return target
+    }
+
+    /**
+     * 변경 작업의 권한을 적용합니다.
+     * ITEM은 소유자만, INVENTORY는 EDIT 이상의 Grant를 요구합니다.
+     */
+    private fun resolveMutationTarget(
+        actor: Actor,
+        targetType: String,
+        targetId: java.util.UUID,
+    ): Target {
+        val target = loadTarget(targetType, targetId)
+        if (targetType == "ITEM") {
+            accessService.requireOwner(actor, target.spaceId)
+        } else {
+            accessService.require(actor, target.accessTarget, GrantLevel.EDIT)
+        }
+        return target
+    }
+
+    private fun loadTarget(
+        targetType: String,
+        targetId: java.util.UUID,
     ): Target =
         when (targetType) {
             "ITEM" -> {
                 val item = itemMapper.findByIdAny(targetId) ?: throw notFound()
-                accessService.require(actor, accessService.target(item.spaceId), minimum)
-                Target("item", item.id, item.spaceId, item.id, null)
+                Target(
+                    "item",
+                    item.id,
+                    item.spaceId,
+                    item.id,
+                    null,
+                    accessService.target(item.spaceId),
+                )
             }
             "INVENTORY" -> {
                 val inventory = inventoryMapper.findByIdAny(targetId) ?: throw notFound()
-                val shelf = inventory.shelfId?.let { shelfMapper.findByIdAny(it) }
-                val boxShelf = inventory.boxId?.let { boxId -> boxMapper.findByIdAny(boxId)?.let { shelfMapper.findByIdAny(it.shelfId) } }
-                val roomId = inventory.roomId ?: shelf?.roomId ?: boxShelf?.roomId
-                accessService.require(
-                    actor,
-                    accessService.target(inventory.spaceId, roomId, inventory.shelfId, inventory.boxId),
-                    minimum,
+                val location = locationResolver.resolve(inventory.id) ?: throw notFound()
+                Target(
+                    "inventory",
+                    inventory.id,
+                    location.spaceId,
+                    null,
+                    inventory.id,
+                    accessService.target(
+                        location.spaceId,
+                        location.effectiveRoomId,
+                        location.effectiveShelfId,
+                        location.boxId,
+                    ),
                 )
-                Target("inventory", inventory.id, inventory.spaceId, null, inventory.id)
             }
             else -> throw validation("targetType은 ITEM 또는 INVENTORY여야 합니다.")
         }
-
-    private fun mutationPermission(targetType: String): Permission = if (targetType == "ITEM") Permission.OWNER else Permission.EDIT
 
     private fun validation(message: String) = ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, message)
 

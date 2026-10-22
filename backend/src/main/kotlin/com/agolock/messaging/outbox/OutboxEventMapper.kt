@@ -2,6 +2,7 @@
 
 package com.agolock.messaging.outbox
 
+import org.apache.ibatis.annotations.Delete
 import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
 import org.apache.ibatis.annotations.Param
@@ -78,6 +79,39 @@ interface OutboxEventMapper {
         @Param("maxAttempts") maxAttempts: Int,
     ): ClaimedOutboxEvent?
 
+    @Select(
+        """
+        WITH candidate AS (
+            SELECT id
+            FROM outbox_event
+            WHERE status = 'PENDING'
+              AND available_at <= #{now}
+              AND (locked_until IS NULL OR locked_until <= #{now})
+              AND attempts < #{maxAttempts}
+            ORDER BY available_at ASC, id ASC
+            LIMIT #{limit}
+            FOR UPDATE SKIP LOCKED
+        )
+        UPDATE outbox_event o
+        SET locked_by = #{instanceId},
+            locked_until = #{lockedUntil},
+            claim_token = #{claimToken},
+            attempts = o.attempts + 1
+        FROM candidate c
+        WHERE o.id = c.id
+        RETURNING o.id, o.space_id, o.aggregate_type, o.aggregate_id,
+                  o.event_type, o.payload::text AS payload, o.attempts, o.claim_token
+        """,
+    )
+    fun claimBatch(
+        @Param("now") now: OffsetDateTime,
+        @Param("lockedUntil") lockedUntil: OffsetDateTime,
+        @Param("instanceId") instanceId: String,
+        @Param("claimToken") claimToken: UUID,
+        @Param("maxAttempts") maxAttempts: Int,
+        @Param("limit") limit: Int,
+    ): List<ClaimedOutboxEvent>
+
     @Update(
         """
         UPDATE outbox_event
@@ -132,5 +166,10 @@ interface OutboxEventMapper {
         @Param("id") id: UUID,
         @Param("claimToken") claimToken: UUID,
         @Param("error") error: String,
+    ): Int
+
+    @Delete("DELETE FROM outbox_event WHERE status IN ('PUBLISHED', 'FAILED') AND created_at < #{before}")
+    fun deleteTerminalBefore(
+        @Param("before") before: OffsetDateTime,
     ): Int
 }

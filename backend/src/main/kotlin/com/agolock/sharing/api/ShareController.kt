@@ -1,11 +1,16 @@
 package com.agolock.sharing.api
 
+import com.agolock.common.error.ApiException
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.GrantLevel
+import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.toGrantLevelOrNull
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.sharing.service.ShareService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -45,7 +50,7 @@ class ShareController(
         shareService.updatePermission(
             Actor.from(principal),
             shareId,
-            request.permission,
+            request.permission.toGrantLevelOrBadRequest(),
         )
 
     @DeleteMapping("/shares/{shareId}")
@@ -57,4 +62,12 @@ class ShareController(
         shareService.revoke(Actor.from(principal), shareId)
         return ResponseEntity.noContent().build()
     }
+
+    private fun Permission.toGrantLevelOrBadRequest(): GrantLevel =
+        toGrantLevelOrNull()
+            ?: throw ApiException(
+                "VALIDATION_FAILED",
+                HttpStatus.BAD_REQUEST,
+                "공유 권한은 VIEW, EDIT, MANAGE 중 하나여야 합니다.",
+            )
 }

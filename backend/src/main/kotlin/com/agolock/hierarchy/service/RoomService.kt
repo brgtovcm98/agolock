@@ -5,6 +5,7 @@ package com.agolock.hierarchy.service
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.domain.Room
 import com.agolock.hierarchy.persistence.RoomMapper
@@ -58,7 +59,7 @@ class RoomService(
         roomId: UUID,
     ): Room {
         val room = roomMapper.findByIdAny(roomId) ?: throw notFound("Room을 찾을 수 없습니다.")
-        accessService.require(actor, accessService.target(room.spaceId, roomId = room.id), com.agolock.hierarchy.domain.Permission.VIEW)
+        accessService.require(actor, accessService.target(room.spaceId, roomId = room.id), GrantLevel.VIEW)
         return room.copy(
             shelfCount = roomMapper.countShelves(room.spaceId, room.id),
             inventoryCount = inventoryMapper.countByRoom(room.spaceId, room.id),

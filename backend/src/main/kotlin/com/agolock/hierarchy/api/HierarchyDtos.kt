@@ -7,6 +7,7 @@ import com.agolock.hierarchy.domain.Shelf
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
@@ -48,6 +49,17 @@ class UpdateNodeRequest {
     }
 }
 
+private fun parseVersion(
+    parser: JsonParser,
+    node: JsonNode,
+): Long? {
+    val value = node.get("version")?.takeUnless(JsonNode::isNull) ?: return null
+    if (!value.isIntegralNumber || !value.canConvertToLong()) {
+        throw JsonMappingException.from(parser, "version은 정수여야 합니다.")
+    }
+    return value.longValue()
+}
+
 class UpdateNodeRequestDeserializer : StdDeserializer<UpdateNodeRequest>(UpdateNodeRequest::class.java) {
     override fun deserialize(
         parser: JsonParser,
@@ -63,7 +75,7 @@ class UpdateNodeRequestDeserializer : StdDeserializer<UpdateNodeRequest>(UpdateN
         if (node.has("description")) {
             request.applyDescription(node.get("description").takeUnless(JsonNode::isNull)?.asText())
         }
-        request.version = node.get("version")?.takeUnless(JsonNode::isNull)?.asLong()
+        request.version = parseVersion(parser, node)
         return request
     }
 }

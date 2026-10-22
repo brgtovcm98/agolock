@@ -6,7 +6,8 @@ import com.agolock.common.audit.AuditService
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.GrantLevel
+import com.agolock.hierarchy.domain.toPermission
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
 import com.agolock.hierarchy.service.AccessService
@@ -43,13 +44,13 @@ class ShareService(
     fun updatePermission(
         actor: Actor,
         shareId: UUID,
-        permission: Permission,
+        permission: GrantLevel,
     ): ShareResponse {
-        if (permission !in setOf(Permission.VIEW, Permission.EDIT, Permission.MANAGE)) {
+        if (permission !in setOf(GrantLevel.VIEW, GrantLevel.EDIT, GrantLevel.MANAGE)) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "공유 권한은 VIEW, EDIT, MANAGE 중 하나여야 합니다.")
         }
         val share = requireOwnedShare(actor, shareId)
-        if (shareMapper.updatePermission(shareId, permission, OffsetDateTime.now(clock)) == 0) {
+        if (shareMapper.updatePermission(shareId, permission.toPermission(), OffsetDateTime.now(clock)) == 0) {
             throw notFound("Share를 찾을 수 없습니다.")
         }
         auditService.record(
@@ -58,7 +59,11 @@ class ShareService(
             "SHARE_PERMISSION_CHANGED",
             "SHARE",
             share.id,
-            mapOf("previousPermission" to share.permission, "permission" to permission, "granteeUserId" to share.granteeUserId),
+            mapOf(
+                "previousPermission" to share.permission.toPermission(),
+                "permission" to permission.toPermission(),
+                "granteeUserId" to share.granteeUserId,
+            ),
         )
         return toResponse(share.copy(permission = permission))
     }
@@ -147,7 +152,7 @@ class ShareService(
             resourceName = resource.second,
             roomId = share.roomId,
             shelfId = share.shelfId,
-            permission = share.permission,
+            permission = share.permission.toPermission(),
             granteeUserId = share.granteeUserId,
             granteeDisplayName = userMapper.findById(share.granteeUserId)?.displayName,
             createdAt = share.createdAt,

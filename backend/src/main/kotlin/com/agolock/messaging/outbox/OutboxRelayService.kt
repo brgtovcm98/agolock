@@ -3,9 +3,6 @@
 package com.agolock.messaging.outbox
 
 import com.agolock.common.id.UuidV7
-import com.agolock.identity.mail.MailPort
-import com.agolock.media.messaging.RabbitImagePublisher
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -16,9 +13,7 @@ import java.util.UUID
 @Service
 class OutboxRelayService(
     private val mapper: OutboxEventMapper,
-    private val objectMapper: ObjectMapper,
-    private val mailPort: MailPort,
-    private val rabbitImagePublisher: RabbitImagePublisher,
+    private val handlers: List<OutboxEventHandler>,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -27,22 +22,47 @@ class OutboxRelayService(
     @Scheduled(fixedDelayString = "\${agolock.outbox.poll-interval-ms:5000}")
     fun relay() {
         repeat(MAX_BATCHES_PER_RUN) {
-            if (!relayOnce()) return
+            val now = OffsetDateTime.now(clock)
+            val events =
+                mapper.claimBatch(
+                    now = now,
+                    lockedUntil = now.plusMinutes(LEASE_MINUTES),
+                    instanceId = instanceId,
+                    claimToken = UuidV7.generate(clock),
+                    maxAttempts = MAX_ATTEMPTS,
+                    limit = BATCH_SIZE,
+                )
+            if (events.isEmpty()) return
+            events.forEach { process(it, now) }
         }
     }
 
     fun relayOnce(): Boolean {
         val now = OffsetDateTime.now(clock)
         val event =
-            mapper.claim(
-                now = now,
-                lockedUntil = now.plusMinutes(LEASE_MINUTES),
-                instanceId = instanceId,
-                claimToken = UuidV7.generate(clock),
-                maxAttempts = MAX_ATTEMPTS,
-            ) ?: return false
+            mapper
+                .claimBatch(
+                    now = now,
+                    lockedUntil = now.plusMinutes(LEASE_MINUTES),
+                    instanceId = instanceId,
+                    claimToken = UuidV7.generate(clock),
+                    maxAttempts = MAX_ATTEMPTS,
+                    limit = 1,
+                ).firstOrNull()
+                ?: return false
+        process(event, now)
+        return true
+    }
+
+    private fun process(
+        event: ClaimedOutboxEvent,
+        now: OffsetDateTime,
+    ) {
         try {
-            deliver(event)
+            val handler =
+                handlers.firstOrNull { it.supports(event.eventType) }
+                    ?: throw UnsupportedEventTypeException(event.eventType)
+            handler.handle(event)
             mapper.markPublished(event.id, event.claimToken, now)
         } catch (exception: UnsupportedEventTypeException) {
             mapper.markTerminalFailure(event.id, event.claimToken, "UNSUPPORTED_EVENT_TYPE")
@@ -61,25 +81,6 @@ class OutboxRelayService(
             }
             log.warn("Outbox 발송 실패 id={} type={} reason={}", event.id, event.eventType, exception.javaClass.simpleName)
         }
-        return true
-    }
-
-    private fun deliver(event: ClaimedOutboxEvent) {
-        if (event.eventType == "image.uploaded") {
-            rabbitImagePublisher.publishImageUploaded(event.payload)
-            return
-        }
-        if (event.eventType == "image.processed" || event.eventType == "image.deleted") {
-            rabbitImagePublisher.publishDomainEvent(event.eventType, event.payload)
-            return
-        }
-        if (event.eventType != "notification.requested") throw UnsupportedEventTypeException(event.eventType)
-        val payload = objectMapper.readTree(event.payload)
-        val email = payload["recipientEmail"]?.asText() ?: throw IllegalArgumentException("recipientEmail 누락")
-        val token = payload["token"]?.asText() ?: throw IllegalArgumentException("token 누락")
-        val resourceType = payload["resourceType"]?.asText() ?: "RESOURCE"
-        val expiresAt = payload["expiresAt"]?.asText()?.let(OffsetDateTime::parse) ?: OffsetDateTime.now(clock).plusDays(7)
-        mailPort.sendShareInvitation(email, resourceType, token, expiresAt)
     }
 
     private class UnsupportedEventTypeException(
@@ -92,5 +93,6 @@ class OutboxRelayService(
         const val BASE_BACKOFF_SECONDS = 30
         const val MAX_BACKOFF_SECONDS = 1800
         const val MAX_BATCHES_PER_RUN = 10
+        const val BATCH_SIZE = 20
     }
 }

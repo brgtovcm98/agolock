@@ -1,7 +1,10 @@
 package com.agolock.hierarchy.api
 
+import com.agolock.common.error.ApiException
 import com.agolock.common.idempotency.IdempotencyService
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.toPermission
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.hierarchy.service.CreateNodeCommand
 import com.agolock.hierarchy.service.MoveShelfCommand
@@ -11,6 +14,7 @@ import com.agolock.identity.security.AppUserPrincipal
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -51,7 +55,7 @@ class ShelfController(
                             actor,
                             accessService.target(it.spaceId, roomId, it.id),
                         )
-                    it.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+                    it.toResponse(permission.toPermission(), permission is EffectivePermission.Granted)
                 },
             nextCursor = page.nextCursor,
         )
@@ -79,7 +83,7 @@ class ShelfController(
             ) {
                 shelfService
                     .create(actor, roomId, CreateNodeCommand(request.name, request.description))
-                    .toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+                    .toResponse(accessService.effectivePermission(actor, actor.spaceId).toPermission(), false)
             }
         return result.toResponseEntity()
     }
@@ -97,7 +101,7 @@ class ShelfController(
                 actor,
                 accessService.target(shelf.spaceId, shelf.roomId, shelf.id),
             )
-        return shelf.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+        return shelf.toResponse(permission.toPermission(), permission is EffectivePermission.Granted)
     }
 
     @PatchMapping("/shelves/{shelfId}")
@@ -108,13 +112,16 @@ class ShelfController(
         @Valid @RequestBody request: UpdateNodeRequest,
     ): ShelfResponse {
         val actor = Actor.from(principal)
+        val version =
+            request.version
+                ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다.")
         val updated =
             shelfService.update(
                 actor,
                 shelfId,
-                UpdateNodeCommand(request.name, request.description, request.version ?: 0, request.descriptionPresent),
+                UpdateNodeCommand(request.name, request.description, version, request.descriptionPresent),
             )
-        return updated.toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+        return updated.toResponse(accessService.effectivePermission(actor, actor.spaceId).toPermission(), false)
     }
 
     @PatchMapping("/shelves/{shelfId}/parent")
@@ -127,7 +134,7 @@ class ShelfController(
         val actor = Actor.from(principal)
         return shelfService
             .move(actor, shelfId, MoveShelfCommand(request.roomId, request.version))
-            .toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+            .toResponse(accessService.effectivePermission(actor, actor.spaceId).toPermission(), false)
     }
 
     @DeleteMapping("/shelves/{shelfId}")

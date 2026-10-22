@@ -9,6 +9,7 @@ import com.agolock.inventory.domain.Item
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
@@ -102,6 +103,49 @@ class UpdateItemRequest {
     }
 }
 
+private fun parseUuid(
+    parser: JsonParser,
+    value: String,
+    field: String,
+): UUID =
+    try {
+        UUID.fromString(value)
+    } catch (exception: IllegalArgumentException) {
+        throw JsonMappingException.from(parser, "$field 형식이 올바르지 않습니다.", exception)
+    }
+
+private fun parseStatus(
+    parser: JsonParser,
+    value: String,
+): InventoryStatus =
+    try {
+        InventoryStatus.valueOf(value)
+    } catch (exception: IllegalArgumentException) {
+        throw JsonMappingException.from(parser, "status 값이 올바르지 않습니다.", exception)
+    }
+
+private fun parseIntField(
+    parser: JsonParser,
+    value: JsonNode,
+    field: String,
+): Int {
+    if (!value.isIntegralNumber || !value.canConvertToInt()) {
+        throw JsonMappingException.from(parser, "$field 값은 정수여야 합니다.")
+    }
+    return value.intValue()
+}
+
+private fun parseVersion(
+    parser: JsonParser,
+    node: JsonNode,
+): Long? {
+    val value = node.get("version")?.takeUnless(JsonNode::isNull) ?: return null
+    if (!value.isIntegralNumber || !value.canConvertToLong()) {
+        throw JsonMappingException.from(parser, "version은 정수여야 합니다.")
+    }
+    return value.longValue()
+}
+
 class UpdateItemRequestDeserializer : StdDeserializer<UpdateItemRequest>(UpdateItemRequest::class.java) {
     override fun deserialize(
         parser: JsonParser,
@@ -117,11 +161,18 @@ class UpdateItemRequestDeserializer : StdDeserializer<UpdateItemRequest>(UpdateI
                     .get("categoryId")
                     .takeUnless(JsonNode::isNull)
                     ?.asText()
-                    ?.let(UUID::fromString),
+                    ?.let { parseUuid(parser, it, "categoryId") },
             )
         }
-        if (node.has("priceAmount")) request.applyPriceAmount(node.get("priceAmount").takeUnless(JsonNode::isNull)?.asInt())
-        request.version = node.get("version")?.takeUnless(JsonNode::isNull)?.asLong()
+        if (node.has("priceAmount")) {
+            request.applyPriceAmount(
+                node
+                    .get("priceAmount")
+                    .takeUnless(JsonNode::isNull)
+                    ?.let { parseIntField(parser, it, "priceAmount") },
+            )
+        }
+        request.version = parseVersion(parser, node)
         return request
     }
 }
@@ -167,7 +218,6 @@ data class InventoryResponse(
     val isShared: Boolean,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
-    val primaryImageId: UUID? = null,
 )
 
 data class NewItemInput(
@@ -280,11 +330,16 @@ class UpdateInventoryRequestDeserializer : StdDeserializer<UpdateInventoryReques
                     .get("categoryIdOverride")
                     .takeUnless(JsonNode::isNull)
                     ?.asText()
-                    ?.let(UUID::fromString),
+                    ?.let { parseUuid(parser, it, "categoryIdOverride") },
             )
         }
         if (node.has("priceAmountOverride")) {
-            request.applyPriceAmountOverride(node.get("priceAmountOverride").takeUnless(JsonNode::isNull)?.asInt())
+            request.applyPriceAmountOverride(
+                node
+                    .get("priceAmountOverride")
+                    .takeUnless(JsonNode::isNull)
+                    ?.let { parseIntField(parser, it, "priceAmountOverride") },
+            )
         }
         if (node.has("status")) {
             request.applyStatus(
@@ -292,11 +347,11 @@ class UpdateInventoryRequestDeserializer : StdDeserializer<UpdateInventoryReques
                     .get("status")
                     .takeUnless(JsonNode::isNull)
                     ?.asText()
-                    ?.let(InventoryStatus::valueOf),
+                    ?.let { parseStatus(parser, it) },
             )
         }
         request.confirmDisposal = node.get("confirmDisposal")?.asBoolean() ?: false
-        request.version = node.get("version")?.takeUnless(JsonNode::isNull)?.asLong()
+        request.version = parseVersion(parser, node)
         return request
     }
 }

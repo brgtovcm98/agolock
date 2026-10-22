@@ -7,13 +7,16 @@ import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
-import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.toGrantLevelOrNull
+import com.agolock.hierarchy.domain.toPermission
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.identity.persistence.UserMapper
 import com.agolock.identity.service.TokenService
+import com.agolock.messaging.outbox.NotificationSecretService
 import com.agolock.messaging.outbox.OutboxService
 import com.agolock.sharing.api.InvitationDeliveryStatus
 import com.agolock.sharing.api.ShareInvitationResponse
@@ -39,6 +42,7 @@ class ShareInvitationService(
     private val accessService: AccessService,
     private val auditService: AuditService,
     private val outboxService: OutboxService,
+    private val notificationSecretService: NotificationSecretService,
     private val clock: Clock,
 ) {
     @Transactional
@@ -49,7 +53,10 @@ class ShareInvitationService(
         accessService.requireOwner(actor, actor.spaceId)
         val targetCount = listOfNotNull(command.roomId, command.shelfId).size
         if (targetCount != 1) throw validation("초대 대상은 Room 또는 Shelf 중 하나여야 합니다.")
-        validatePermission(command.permission)
+        val permission =
+            command.permission.toGrantLevelOrNull()
+                ?: throw validation("공유 권한은 VIEW, EDIT, MANAGE 중 하나여야 합니다.")
+        validatePermission(permission)
         val room = command.roomId?.let { roomMapper.findById(actor.spaceId, it) ?: throw notFound("Room을 찾을 수 없습니다.") }
         val shelf = command.shelfId?.let { shelfMapper.findById(actor.spaceId, it) ?: throw notFound("Shelf를 찾을 수 없습니다.") }
         val email = normalizeEmail(command.invitedEmail)
@@ -71,7 +78,7 @@ class ShareInvitationService(
                 shelfId = shelf?.id,
                 invitedEmail = email,
                 invitedUserId = user?.id,
-                permission = command.permission,
+                permission = permission,
                 tokenHash = tokenService.hashToken(rawToken),
                 status = InvitationStatus.PENDING,
                 expiresAt = now.plusDays(7),
@@ -80,6 +87,13 @@ class ShareInvitationService(
             )
         try {
             invitationMapper.insert(invitation)
+            val secretId =
+                notificationSecretService.create(
+                    actor.spaceId,
+                    "SHARE_INVITATION",
+                    rawToken,
+                    invitation.expiresAt,
+                )
             outboxService.enqueueInvitation(
                 actor.spaceId,
                 invitation.id,
@@ -87,7 +101,7 @@ class ShareInvitationService(
                     "recipientEmail" to email,
                     "templateKey" to "SHARE_INVITATION",
                     "invitationId" to invitation.id,
-                    "token" to rawToken,
+                    "secretId" to secretId,
                     "expiresAt" to invitation.expiresAt,
                     "resourceType" to if (invitation.roomId != null) "ROOM" else "SHELF",
                 ),
@@ -263,6 +277,13 @@ class ShareInvitationService(
         }
         val rawToken = tokenService.createToken()
         if (invitationMapper.updateTokenHash(invitation.id, tokenService.hashToken(rawToken)) == 0) throw notPending()
+        val secretId =
+            notificationSecretService.create(
+                invitation.spaceId,
+                "SHARE_INVITATION",
+                rawToken,
+                invitation.expiresAt,
+            )
         outboxService.enqueueInvitation(
             invitation.spaceId,
             invitation.id,
@@ -270,7 +291,7 @@ class ShareInvitationService(
                 "recipientEmail" to invitation.invitedEmail,
                 "templateKey" to "SHARE_INVITATION",
                 "invitationId" to invitation.id,
-                "token" to rawToken,
+                "secretId" to secretId,
                 "expiresAt" to invitation.expiresAt,
                 "resourceType" to if (invitation.roomId != null) "ROOM" else "SHELF",
             ),
@@ -323,7 +344,7 @@ class ShareInvitationService(
         roomId = roomId,
         shelfId = shelfId,
         invitedEmail = invitedEmail,
-        permission = permission,
+        permission = permission.toPermission(),
         status = status,
         deliveryStatus =
             when (invitationMapper.latestDeliveryStatus(id)) {
@@ -337,8 +358,8 @@ class ShareInvitationService(
 
     private fun normalizeEmail(value: String) = value.trim().lowercase(Locale.ROOT)
 
-    private fun validatePermission(permission: Permission) {
-        if (permission !in setOf(Permission.VIEW, Permission.EDIT, Permission.MANAGE)) {
+    private fun validatePermission(permission: GrantLevel) {
+        if (permission !in setOf(GrantLevel.VIEW, GrantLevel.EDIT, GrantLevel.MANAGE)) {
             throw validation("공유 권한은 VIEW, EDIT, MANAGE 중 하나여야 합니다.")
         }
     }

@@ -57,6 +57,79 @@ interface InventoryMapper {
         @Param("limit") limit: Int,
     ): List<Inventory>
 
+    @Select(
+        """
+        <script>
+        SELECT a.inventory_id AS id,
+               a.item_id,
+               a.status,
+               a.version,
+               a.updated_at,
+               a.created_at,
+               a.name_override,
+               a.description_override,
+               a.category_id_override,
+               a.price_amount_override,
+               it.name AS item_name,
+               it.description AS item_description,
+               it.category_id AS item_category_id,
+               it.price_amount AS item_price_amount,
+               COALESCE(a.room_id, sh.room_id, bs.room_id) AS display_room_id,
+               COALESCE(a.shelf_id, bx.shelf_id) AS display_shelf_id,
+               a.box_id AS display_box_id,
+               rm.name AS room_name,
+               COALESCE(sh.name, bs.name) AS shelf_name,
+               bx.name AS box_name,
+               CASE WHEN a.space_id = #{spaceId} THEN 'OWNER'
+                    WHEN g.rank = 3 THEN 'MANAGE'
+                    WHEN g.rank = 2 THEN 'EDIT'
+                    WHEN g.rank = 1 THEN 'VIEW'
+                    ELSE 'NONE' END AS effective_permission
+        FROM inventory_access a
+        JOIN item it ON it.id = a.item_id AND it.space_id = a.space_id AND it.deleted_at IS NULL
+        LEFT JOIN shelf sh ON sh.id = a.shelf_id
+        LEFT JOIN box bx ON bx.id = a.box_id
+        LEFT JOIN shelf bs ON bs.id = bx.shelf_id
+        LEFT JOIN room rm ON rm.id = COALESCE(a.room_id, sh.room_id, bs.room_id)
+        LEFT JOIN LATERAL (
+          SELECT max(CASE s.permission WHEN 'MANAGE' THEN 3 WHEN 'EDIT' THEN 2 ELSE 1 END) AS rank
+          FROM share s
+          WHERE s.grantee_user_id = #{actorUserId}
+            AND s.space_id = a.space_id
+            AND s.revoked_at IS NULL
+            AND (s.room_id = a.effective_room_id OR s.shelf_id = a.effective_shelf_id)
+        ) g ON a.space_id &lt;&gt; #{spaceId}
+        WHERE a.status IN
+        <foreach collection="statuses" item="status" open="(" separator="," close=")">
+          CAST(#{status} AS inventory_status)
+        </foreach>
+        <choose>
+          <when test="scope == 'OWNED'">AND a.space_id = #{spaceId}</when>
+          <when test="scope == 'SHARED'">AND a.space_id &lt;&gt; #{spaceId} AND g.rank IS NOT NULL</when>
+          <otherwise>AND (a.space_id = #{spaceId} OR g.rank IS NOT NULL)</otherwise>
+        </choose>
+        <if test="cursorUpdated != null">AND (a.updated_at, a.inventory_id) &lt; (#{cursorUpdated}, #{cursorId})</if>
+        <if test="roomId != null">AND a.room_id = #{roomId} AND a.shelf_id IS NULL AND a.box_id IS NULL</if>
+        <if test="shelfId != null">AND a.shelf_id = #{shelfId} AND a.box_id IS NULL</if>
+        <if test="boxId != null">AND a.box_id = #{boxId}</if>
+        ORDER BY a.updated_at DESC, a.inventory_id DESC
+        LIMIT #{limit}
+        </script>
+        """,
+    )
+    fun listAccessible(
+        @Param("spaceId") spaceId: UUID,
+        @Param("actorUserId") actorUserId: UUID,
+        @Param("scope") scope: String,
+        @Param("statuses") statuses: List<InventoryStatus>,
+        @Param("roomId") roomId: UUID?,
+        @Param("shelfId") shelfId: UUID?,
+        @Param("boxId") boxId: UUID?,
+        @Param("cursorUpdated") cursorUpdated: OffsetDateTime?,
+        @Param("cursorId") cursorId: UUID?,
+        @Param("limit") limit: Int,
+    ): List<InventoryListRow>
+
     @Select("SELECT * FROM inventory WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL AND status <> 'DISPOSED'")
     fun listByItem(
         @Param("spaceId") spaceId: UUID,

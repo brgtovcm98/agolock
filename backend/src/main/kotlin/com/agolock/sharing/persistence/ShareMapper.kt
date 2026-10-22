@@ -23,11 +23,13 @@ interface ShareMapper {
         """
         SELECT * FROM share
         WHERE grantee_user_id = #{granteeUserId} AND revoked_at IS NULL
+          AND space_id = #{spaceId}
           AND (room_id = #{roomId} OR shelf_id = #{shelfId})
         """,
     )
     fun findActiveForTarget(
         @Param("granteeUserId") granteeUserId: UUID,
+        @Param("spaceId") spaceId: UUID,
         @Param("roomId") roomId: UUID?,
         @Param("shelfId") shelfId: UUID?,
     ): List<Share>

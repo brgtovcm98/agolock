@@ -4,6 +4,8 @@ import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.Box
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
@@ -36,7 +38,7 @@ class BoxService(
         accessService.require(
             actor,
             accessService.target(shelf.spaceId, shelf.roomId, shelf.id),
-            com.agolock.hierarchy.domain.Permission.VIEW,
+            GrantLevel.VIEW,
         )
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
@@ -55,6 +57,9 @@ class BoxService(
     }
 
     @Transactional(readOnly = true)
+    fun roomIdOfShelf(shelfId: UUID): UUID? = shelfMapper.findByIdAny(shelfId)?.roomId
+
+    @Transactional(readOnly = true)
     fun get(
         actor: Actor,
         boxId: UUID,
@@ -71,7 +76,7 @@ class BoxService(
             accessService.require(
                 actor,
                 accessService.target(box.spaceId, shelf?.roomId, box.shelfId, box.id),
-                com.agolock.hierarchy.domain.Permission.VIEW,
+                GrantLevel.VIEW,
             )
         return BoxDetail(
             box.copy(inventoryCount = inventoryMapper.countByBox(box.spaceId, box.id)),
@@ -224,5 +229,5 @@ class BoxService(
 
 data class BoxDetail(
     val box: Box,
-    val permission: com.agolock.hierarchy.domain.Permission,
+    val permission: EffectivePermission,
 )

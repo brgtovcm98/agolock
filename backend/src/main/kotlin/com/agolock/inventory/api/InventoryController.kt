@@ -1,5 +1,6 @@
 package com.agolock.inventory.api
 
+import com.agolock.common.error.ApiException
 import com.agolock.common.idempotency.IdempotencyService
 import com.agolock.hierarchy.api.toResponseEntity
 import com.agolock.hierarchy.domain.Actor
@@ -13,6 +14,7 @@ import com.agolock.inventory.service.UpdateInventoryCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -41,7 +43,7 @@ class InventoryController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @RequestParam(required = false) status: List<InventoryStatus>?,
         @RequestParam(required = false) limit: Int?,
-        @RequestParam(required = false, defaultValue = "OWNED") scope: String,
+        @RequestParam(required = false, defaultValue = "ALL") scope: String,
         @RequestParam(required = false) cursor: String?,
         @RequestParam(required = false) roomId: UUID?,
         @RequestParam(required = false) shelfId: UUID?,
@@ -114,8 +116,11 @@ class InventoryController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
         @Valid @RequestBody request: UpdateInventoryRequest,
-    ): InventoryResponse =
-        inventoryService.update(
+    ): InventoryResponse {
+        val version =
+            request.version
+                ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다.")
+        return inventoryService.update(
             Actor.from(principal),
             inventoryId,
             UpdateInventoryCommand(
@@ -130,9 +135,10 @@ class InventoryController(
                 request.statusPresent,
                 request.status,
                 request.confirmDisposal,
-                request.version ?: 0,
+                version,
             ),
         )
+    }
 
     @PatchMapping("/{inventoryId}/location")
     @Operation(operationId = "moveInventory", summary = "Inventory 위치 이동")
@@ -140,12 +146,16 @@ class InventoryController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
         @Valid @RequestBody request: MoveInventoryRequest,
-    ): InventoryResponse =
-        inventoryService.move(
+    ): InventoryResponse {
+        val version =
+            request.version
+                ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다.")
+        return inventoryService.move(
             Actor.from(principal),
             inventoryId,
-            MoveInventoryCommand(request.roomId, request.shelfId, request.boxId, request.version ?: 0),
+            MoveInventoryCommand(request.roomId, request.shelfId, request.boxId, version),
         )
+    }
 
     @DeleteMapping("/{inventoryId}")
     @Operation(operationId = "deleteInventory", summary = "Inventory 삭제")

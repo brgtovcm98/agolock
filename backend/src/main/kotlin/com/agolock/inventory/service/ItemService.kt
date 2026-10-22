@@ -6,9 +6,9 @@ import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
-import com.agolock.hierarchy.persistence.BoxMapper
-import com.agolock.hierarchy.persistence.ShelfMapper
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.inventory.domain.Item
 import com.agolock.inventory.persistence.CategoryMapper
@@ -26,8 +26,7 @@ class ItemService(
     private val itemMapper: ItemMapper,
     private val categoryMapper: CategoryMapper,
     private val inventoryMapper: InventoryMapper,
-    private val shelfMapper: ShelfMapper,
-    private val boxMapper: BoxMapper,
+    private val locationResolver: InventoryLocationResolver,
     private val accessService: AccessService,
     private val clock: Clock,
 ) {
@@ -37,7 +36,7 @@ class ItemService(
         q: String?,
         limit: Int?,
         cursorRaw: String?,
-        scope: String = "OWNED",
+        scope: String = "ALL",
     ): PageResult<Item> {
         val normalizedScope = scope.uppercase()
         if (normalizedScope !in setOf("OWNED", "SHARED", "ALL")) {
@@ -88,7 +87,7 @@ class ItemService(
         itemId: UUID,
     ): Item {
         val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        if (permission(actor, item) == com.agolock.hierarchy.domain.Permission.NONE) {
+        if (!permission(actor, item).atLeast(GrantLevel.VIEW)) {
             throw notFound("Item을 찾을 수 없습니다.")
         }
         return item
@@ -97,25 +96,25 @@ class ItemService(
     fun permission(
         actor: Actor,
         item: Item,
-    ): com.agolock.hierarchy.domain.Permission {
+    ): EffectivePermission {
         if (item.spaceId == actor.spaceId) {
             return accessService.effectivePermission(actor, accessService.target(item.spaceId))
         }
         return inventoryMapper
             .listAllByItem(item.spaceId, item.id)
-            .map { inventory ->
-                val shelf = inventory.shelfId?.let { shelfMapper.findByIdAny(it) }
-                val boxShelf = inventory.boxId?.let { boxMapper.findByIdAny(it)?.let { box -> shelfMapper.findByIdAny(box.shelfId) } }
+            .mapNotNull { inventory ->
+                val location = locationResolver.resolve(inventory.id) ?: return@mapNotNull null
                 accessService.effectivePermission(
                     actor,
                     accessService.target(
-                        item.spaceId,
-                        inventory.roomId ?: shelf?.roomId ?: boxShelf?.roomId,
-                        inventory.shelfId,
-                        inventory.boxId,
+                        location.spaceId,
+                        location.effectiveRoomId,
+                        location.effectiveShelfId,
+                        location.boxId,
                     ),
                 )
-            }.fold(com.agolock.hierarchy.domain.Permission.NONE) { max, next -> if (next > max) next else max }
+            }.reduceOrNull { max, next -> max.max(next) }
+            ?: EffectivePermission.None
     }
 
     fun updateImpact(

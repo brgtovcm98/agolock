@@ -50,9 +50,12 @@ interface ItemMapper {
         <script>
         SELECT DISTINCT i.* FROM item i
         JOIN inventory inv ON inv.item_id = i.id AND inv.space_id = i.space_id AND inv.deleted_at IS NULL
+        LEFT JOIN shelf ds ON ds.id = inv.shelf_id
+        LEFT JOIN box b ON b.id = inv.box_id
+        LEFT JOIN shelf bs ON bs.id = b.shelf_id
         JOIN share s ON s.space_id = i.space_id AND s.grantee_user_id = #{userId} AND s.revoked_at IS NULL
-          AND ((s.room_id IS NOT NULL AND inv.room_id = s.room_id)
-            OR (s.shelf_id IS NOT NULL AND inv.shelf_id = s.shelf_id))
+          AND ((s.room_id IS NOT NULL AND COALESCE(inv.room_id, ds.room_id, bs.room_id) = s.room_id)
+            OR (s.shelf_id IS NOT NULL AND COALESCE(inv.shelf_id, b.shelf_id) = s.shelf_id))
         WHERE i.deleted_at IS NULL
         <if test="categoryId != null">AND i.category_id = #{categoryId}</if>
         <if test="q != null and q != ''">AND i.name ILIKE '%' || #{q} || '%'</if>

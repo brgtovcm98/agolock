@@ -2,9 +2,12 @@
 
 package com.agolock.inventory.api
 
+import com.agolock.common.error.ApiException
 import com.agolock.common.idempotency.IdempotencyService
 import com.agolock.hierarchy.api.toResponseEntity
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.toPermission
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.inventory.service.CreateItemCommand
 import com.agolock.inventory.service.InventoryService
@@ -13,6 +16,7 @@ import com.agolock.inventory.service.UpdateItemCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -50,7 +54,10 @@ class ItemController(
         return ItemListResponse(
             page.items.map { item ->
                 val permission = itemService.permission(actor, item)
-                item.toResponse(permission.name, item.spaceId != actor.spaceId)
+                item.toResponse(
+                    permission.toPermission().name,
+                    permission is EffectivePermission.Granted,
+                )
             },
             page.nextCursor,
         )
@@ -92,7 +99,10 @@ class ItemController(
         val actor = Actor.from(principal)
         val item = itemService.getReadable(actor, itemId)
         val permission = itemService.permission(actor, item)
-        return item.toResponse(permission.name, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+        return item.toResponse(
+            permission.toPermission().name,
+            permission is EffectivePermission.Granted,
+        )
     }
 
     @PatchMapping("/{itemId}")
@@ -102,6 +112,9 @@ class ItemController(
         @PathVariable itemId: UUID,
         @Valid @RequestBody request: UpdateItemRequest,
     ): ItemResponse {
+        val version =
+            request.version
+                ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다.")
         val item =
             itemService.update(
                 Actor.from(principal),
@@ -114,7 +127,7 @@ class ItemController(
                     request.descriptionPresent,
                     request.categoryIdPresent,
                     request.priceAmountPresent,
-                    request.version ?: 0,
+                    version,
                 ),
             )
         return item.toResponse()

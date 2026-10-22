@@ -3,7 +3,8 @@ package com.agolock.hierarchy.service
 import com.agolock.common.error.ApiException
 import com.agolock.hierarchy.domain.AccessTarget
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.GrantLevel
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -11,8 +12,8 @@ import java.util.UUID
 /**
  * 계층 리소스와 M3 Inventory 위치의 ACL 단일 판정 지점입니다.
  *
- * M2는 소유자만 유효 권한을 가지며, M4의 GrantLookup 구현이 추가되면
- * 같은 target 문맥으로 Room/Shelf 상속과 isShared를 계산합니다.
+ * 소유권은 [EffectivePermission.Owner], 공유 Grant는 [EffectivePermission.Granted]로
+ * 계산해 `VIEW < EDIT < MANAGE` 비교와 응답 문자열 변환을 분리합니다.
  */
 @Service
 class AccessService(
@@ -26,15 +27,29 @@ class AccessService(
         boxId: UUID? = null,
     ): AccessTarget {
         val owner = spaceOwnership.ownerOf(spaceId) ?: throw notFound()
-        return AccessTarget(spaceId, owner, roomId, shelfId, boxId)
+        return when {
+            boxId != null -> {
+                require(roomId != null && shelfId != null) { "Box target에는 roomId와 shelfId가 필요합니다." }
+                AccessTarget.Box(spaceId, owner, roomId, shelfId, boxId)
+            }
+            shelfId != null -> {
+                require(roomId != null) { "Shelf target에는 roomId가 필요합니다." }
+                AccessTarget.Shelf(spaceId, owner, roomId, shelfId)
+            }
+            roomId != null -> AccessTarget.Room(spaceId, owner, roomId)
+            else -> AccessTarget.Space(spaceId, owner)
+        }
     }
 
     fun effectivePermission(
         actor: Actor,
         target: AccessTarget,
-    ): Permission {
-        if (target.ownerUserId == actor.userId) return Permission.OWNER
-        return grantLookup.permissionFor(actor, target) ?: Permission.NONE
+    ): EffectivePermission {
+        if (target.ownerUserId == actor.userId) return EffectivePermission.Owner
+        return grantLookup
+            .permissionFor(actor, target)
+            ?.let(EffectivePermission::Granted)
+            ?: EffectivePermission.None
     }
 
     /**
@@ -44,19 +59,19 @@ class AccessService(
     fun effectivePermission(
         actor: Actor,
         spaceId: UUID,
-    ): Permission {
-        if (spaceId != actor.spaceId) return Permission.NONE
-        val owner = spaceOwnership.ownerOf(spaceId) ?: return Permission.NONE
-        return effectivePermission(actor, AccessTarget(spaceId, owner))
+    ): EffectivePermission {
+        if (spaceId != actor.spaceId) return EffectivePermission.None
+        val owner = spaceOwnership.ownerOf(spaceId) ?: return EffectivePermission.None
+        return effectivePermission(actor, AccessTarget.Space(spaceId, owner))
     }
 
     fun require(
         actor: Actor,
         target: AccessTarget,
-        minimum: Permission,
-    ): Permission {
+        minimum: GrantLevel,
+    ): EffectivePermission {
         val permission = effectivePermission(actor, target)
-        if (permission == Permission.NONE) throw notFound()
+        if (permission is EffectivePermission.None) throw notFound()
         if (!permission.atLeast(minimum)) throw forbidden()
         return permission
     }
@@ -64,25 +79,21 @@ class AccessService(
     fun requireView(
         actor: Actor,
         spaceId: UUID,
-    ): Permission = require(actor, target(spaceId), Permission.VIEW)
+    ): EffectivePermission = require(actor, target(spaceId), GrantLevel.VIEW)
 
     fun requireOwner(
         actor: Actor,
         spaceId: UUID,
-    ): Permission = require(actor, target(spaceId), Permission.OWNER)
+    ): EffectivePermission {
+        val permission = effectivePermission(actor, target(spaceId))
+        if (permission !is EffectivePermission.Owner) throw forbidden()
+        return permission
+    }
 
     fun isShared(
         actor: Actor,
         target: AccessTarget,
-    ): Boolean {
-        val permission = effectivePermission(actor, target)
-        return permission != Permission.NONE && permission != Permission.OWNER
-    }
-
-    fun resolveAll(
-        actor: Actor,
-        targets: Collection<AccessTarget>,
-    ): Map<String, Permission> = targets.associate { it.key to effectivePermission(actor, it) }
+    ): Boolean = effectivePermission(actor, target) is EffectivePermission.Granted
 
     private fun notFound(): ApiException =
         ApiException(

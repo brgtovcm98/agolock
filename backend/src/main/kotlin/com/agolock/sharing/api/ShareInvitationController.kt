@@ -2,13 +2,11 @@
 
 package com.agolock.sharing.api
 
-import com.agolock.common.config.AuthProperties
-import com.agolock.common.error.ApiException
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.identity.persistence.UserMapper
 import com.agolock.identity.security.AppUserPrincipal
 import com.agolock.sharing.domain.InvitationStatus
 import com.agolock.sharing.service.CreateInvitationCommand
+import com.agolock.sharing.service.EmailDiscoveryGuard
 import com.agolock.sharing.service.ShareInvitationService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -31,8 +29,7 @@ import java.util.UUID
 @Tag(name = "sharing")
 class ShareInvitationController(
     private val invitationService: ShareInvitationService,
-    private val authProperties: AuthProperties,
-    private val userMapper: UserMapper,
+    private val emailDiscoveryGuard: EmailDiscoveryGuard,
 ) {
     @GetMapping
     @Operation(operationId = "listShareInvitations", summary = "보낸 초대 목록")
@@ -72,7 +69,7 @@ class ShareInvitationController(
         @RequestParam(required = false) cursor: String?,
         @RequestParam(required = false) limit: Int?,
     ): ShareInvitationListResponse {
-        ensureEmailDiscovery()
+        emailDiscoveryGuard.requireVerified(Actor.from(principal))
         val page = invitationService.listReceived(Actor.from(principal), cursor, limit)
         return ShareInvitationListResponse(page.items, page.nextCursor)
     }
@@ -83,7 +80,7 @@ class ShareInvitationController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable invitationId: UUID,
     ): ShareResponse {
-        ensureEmailDiscovery()
+        emailDiscoveryGuard.requireVerified(Actor.from(principal))
         return invitationService.accept(Actor.from(principal), invitationId).share
     }
 
@@ -93,7 +90,7 @@ class ShareInvitationController(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable invitationId: UUID,
     ): ResponseEntity<Void> {
-        ensureEmailDiscovery()
+        emailDiscoveryGuard.requireVerified(Actor.from(principal))
         invitationService.decline(Actor.from(principal), invitationId)
         return ResponseEntity.noContent().build()
     }
@@ -134,26 +131,4 @@ class ShareInvitationController(
         invitationService.revoke(Actor.from(principal), invitationId)
         return ResponseEntity.noContent().build()
     }
-
-    private fun ensureEmailDiscovery() {
-        if (!authProperties.invitation.emailDiscoveryEnabled) {
-            throw ApiException(
-                "EMAIL_DISCOVERY_DISABLED",
-                HttpStatus.FORBIDDEN,
-                "메일의 초대 링크로 수락해 주세요.",
-            )
-        }
-        val user = userMapper.findById(principalUserId()) ?: throw ApiException("UNAUTHENTICATED", HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.")
-        if (user.emailVerifiedAt == null) {
-            throw ApiException("EMAIL_VERIFICATION_REQUIRED", HttpStatus.FORBIDDEN, "이메일 인증 후 받은 초대를 사용할 수 있습니다.")
-        }
-    }
-
-    private fun principalUserId(): java.util.UUID =
-        org.springframework.security.core.context.SecurityContextHolder
-            .getContext()
-            .authentication
-            .principal
-            .let { it as com.agolock.identity.security.AppUserPrincipal }
-            .userId
 }

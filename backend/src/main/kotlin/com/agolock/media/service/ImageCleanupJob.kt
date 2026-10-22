@@ -24,14 +24,17 @@ class ImageCleanupJob(
     fun cleanup() {
         val now = OffsetDateTime.now(clock)
         imageMapper.failStuckProcessing(now.minusMinutes(STUCK_MINUTES), now)
-        imageMapper.findExpired(now, now.minusDays(DELETED_RETENTION_DAYS), 100).forEach { image ->
-            try {
-                storage.delete(image.objectKey)
-                if (image.thumbnailKey != null) storage.delete(image.thumbnailKey!!)
-                imageMapper.deleteRow(image.id)
-            } catch (exception: Exception) {
-                log.warn("이미지 정리 실패 id={} reason={}", image.id, exception.javaClass.simpleName)
-            }
+        imageMapper.findExpiredUploads(now, 100).forEach { cleanup(it) }
+        imageMapper.findExpiredDeleted(now.minusDays(DELETED_RETENTION_DAYS), 100).forEach { cleanup(it) }
+    }
+
+    private fun cleanup(image: com.agolock.media.domain.Image) {
+        try {
+            storage.delete(image.objectKey)
+            if (image.thumbnailKey != null) storage.delete(image.thumbnailKey!!)
+            imageMapper.deleteRow(image.id)
+        } catch (exception: Exception) {
+            log.warn("이미지 정리 실패 id={} reason={}", image.id, exception.javaClass.simpleName)
         }
     }
 

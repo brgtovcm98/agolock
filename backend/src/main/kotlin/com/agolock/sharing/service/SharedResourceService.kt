@@ -6,7 +6,9 @@ import com.agolock.hierarchy.api.RoomResponse
 import com.agolock.hierarchy.api.ShelfResponse
 import com.agolock.hierarchy.api.toResponse
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.GrantLevel
+import com.agolock.hierarchy.domain.toPermission
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
@@ -33,12 +35,12 @@ class SharedResourceService(
     ): RoomResponse {
         val room = roomMapper.findByIdAny(roomId) ?: throw notFound("Room을 찾을 수 없습니다.")
         val target = accessService.target(room.spaceId, roomId = room.id)
-        val permission = accessService.require(actor, target, Permission.VIEW)
+        val permission = accessService.require(actor, target, GrantLevel.VIEW)
         return room
             .copy(
                 shelfCount = roomMapper.countShelves(room.spaceId, room.id),
                 inventoryCount = inventoryMapper.countByRoom(room.spaceId, room.id),
-            ).toResponse(permission, permission != Permission.OWNER)
+            ).toResponse(permission.toPermission(), permission is EffectivePermission.Granted)
     }
 
     fun shelf(
@@ -47,12 +49,12 @@ class SharedResourceService(
     ): ShelfResponse {
         val shelf = shelfMapper.findByIdAny(shelfId) ?: throw notFound("Shelf를 찾을 수 없습니다.")
         val target = accessService.target(shelf.spaceId, shelf.roomId, shelf.id)
-        val permission = accessService.require(actor, target, Permission.VIEW)
+        val permission = accessService.require(actor, target, GrantLevel.VIEW)
         return shelf
             .copy(
                 boxCount = shelfMapper.countBoxes(shelf.spaceId, shelf.id),
                 inventoryCount = inventoryMapper.countByShelf(shelf.spaceId, shelf.id),
-            ).toResponse(permission, permission != Permission.OWNER)
+            ).toResponse(permission.toPermission(), permission is EffectivePermission.Granted)
     }
 
     fun box(
@@ -62,10 +64,10 @@ class SharedResourceService(
         val box = boxMapper.findByIdAny(boxId) ?: throw notFound("Box를 찾을 수 없습니다.")
         val shelf = shelfMapper.findById(box.spaceId, box.shelfId)
         val target = accessService.target(box.spaceId, shelf?.roomId, box.shelfId, box.id)
-        val permission = accessService.require(actor, target, Permission.VIEW)
+        val permission = accessService.require(actor, target, GrantLevel.VIEW)
         return box
             .copy(inventoryCount = inventoryMapper.countByBox(box.spaceId, box.id))
-            .toResponse(permission, permission != Permission.OWNER)
+            .toResponse(permission.toPermission(), permission is EffectivePermission.Granted)
     }
 
     fun inventory(

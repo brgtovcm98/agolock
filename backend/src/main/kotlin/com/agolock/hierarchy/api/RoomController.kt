@@ -1,8 +1,11 @@
 package com.agolock.hierarchy.api
 
+import com.agolock.common.error.ApiException
 import com.agolock.common.idempotency.IdempotencyService
 import com.agolock.common.idempotency.IdempotentResult
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.EffectivePermission
+import com.agolock.hierarchy.domain.toPermission
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.hierarchy.service.CreateNodeCommand
 import com.agolock.hierarchy.service.RoomService
@@ -11,6 +14,7 @@ import com.agolock.identity.security.AppUserPrincipal
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -47,7 +51,7 @@ class RoomController(
         return RoomListResponse(
             items =
                 page.items.map {
-                    it.toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+                    it.toResponse(accessService.effectivePermission(actor, actor.spaceId).toPermission(), false)
                 },
             nextCursor = page.nextCursor,
         )
@@ -73,7 +77,7 @@ class RoomController(
             ) {
                 roomService
                     .create(actor, CreateNodeCommand(request.name, request.description))
-                    .toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+                    .toResponse(accessService.effectivePermission(actor, actor.spaceId).toPermission(), false)
             }
         return result.toResponseEntity()
     }
@@ -88,7 +92,10 @@ class RoomController(
         val room = roomService.get(actor, roomId)
         val permission =
             accessService.effectivePermission(actor, accessService.target(room.spaceId, roomId = room.id))
-        return room.toResponse(permission, permission != com.agolock.hierarchy.domain.Permission.OWNER)
+        return room.toResponse(
+            permission.toPermission(),
+            permission is EffectivePermission.Granted,
+        )
     }
 
     @PatchMapping("/{roomId}")
@@ -99,13 +106,16 @@ class RoomController(
         @Valid @RequestBody request: UpdateNodeRequest,
     ): RoomResponse {
         val actor = Actor.from(principal)
+        val version =
+            request.version
+                ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다.")
         val room =
             roomService.update(
                 actor,
                 roomId,
-                UpdateNodeCommand(request.name, request.description, request.version ?: 0, request.descriptionPresent),
+                UpdateNodeCommand(request.name, request.description, version, request.descriptionPresent),
             )
-        return room.toResponse(accessService.effectivePermission(actor, actor.spaceId), false)
+        return room.toResponse(accessService.effectivePermission(actor, actor.spaceId).toPermission(), false)
     }
 
     @DeleteMapping("/{roomId}")

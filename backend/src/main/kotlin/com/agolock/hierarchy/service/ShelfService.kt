@@ -3,6 +3,7 @@ package com.agolock.hierarchy.service
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.Actor
+import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.domain.Shelf
 import com.agolock.hierarchy.persistence.RoomMapper
@@ -36,7 +37,7 @@ class ShelfService(
         accessService.require(
             actor,
             accessService.target(room.spaceId, roomId = room.id),
-            com.agolock.hierarchy.domain.Permission.VIEW,
+            GrantLevel.VIEW,
         )
         val cursor = CursorCodec.decode(cursorRaw)
         val limit = CursorCodec.limit(limitRaw)
@@ -68,7 +69,7 @@ class ShelfService(
         accessService.require(
             actor,
             accessService.target(shelf.spaceId, shelf.roomId, shelf.id),
-            com.agolock.hierarchy.domain.Permission.VIEW,
+            GrantLevel.VIEW,
         )
         return shelf.copy(
             boxCount = shelfMapper.countBoxes(shelf.spaceId, shelf.id),
