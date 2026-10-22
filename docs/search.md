@@ -278,5 +278,5 @@ score =
 - `GET /search/recent`, `DELETE /search/recent`, `GET /search/frequent`, `GET /search/suggestions`를 제공합니다.
 - `POST /items/{itemId}/view`는 30분 디바운스로 조회 횟수를 기록합니다.
 - 현재 cursor는 그룹 offset을 opaque Base64로 감싼 **MVP 구현**입니다. 정렬 키 기반 keyset cursor와 대규모 후보의 정확한 `inventoryCount`는 M6 후속 보완입니다.
-- 검색 후보는 최대 500개 Inventory로 제한합니다. 후보 초과 시 그룹 수와 `inventoryCount`가 실제보다 작을 수 있습니다.
+- 검색 후보는 최대 500개 Inventory로 제한합니다. 상한에 밀려 빠진 그룹은 해당 Item만 최대 5개 Inventory로 보충 조회하므로 그룹이 페이지에서 사라지지 않습니다. `inventoryCount`는 그룹 쿼리 값을 유지합니다.
 - p95 300ms gate는 아직 측정하지 않았습니다. M6.0 성능 시드와 `EXPLAIN` 결과로 검증해야 합니다.

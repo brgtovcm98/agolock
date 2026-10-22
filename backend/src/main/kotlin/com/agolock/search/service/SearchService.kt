@@ -143,21 +143,37 @@ class SearchService(
         val pageRows = rows.take(limit)
         if (pageRows.isEmpty()) return SearchResponse(emptyList(), null)
 
+        val hydrateQuery =
+            query.copy(
+                q = null,
+                roomFilterId = null,
+                shelfFilterId = null,
+                boxFilterId = null,
+                categoryId = null,
+                ownerId = null,
+                hasImage = null,
+            )
         val hydrateRows =
             searchMapper.search(
-                query.copy(
-                    q = null,
-                    roomFilterId = null,
-                    shelfFilterId = null,
-                    boxFilterId = null,
-                    categoryId = null,
-                    ownerId = null,
-                    hasImage = null,
+                hydrateQuery.copy(
                     itemIds = pageRows.map { it.itemId },
                     limit = HYDRATE_LIMIT,
                 ),
             )
-        val groups = groupRows(hydrateRows, ownSpaceId)
+        val groups = groupRows(hydrateRows, ownSpaceId).toMutableList()
+        // 500행 상한에 밀려 빠진 그룹은 해당 Item만 5행으로 보충해 페이지에서 조용히 사라지지 않게 한다.
+        pageRows
+            .filter { row -> groups.none { it.itemId == row.itemId } }
+            .forEach { row ->
+                searchMapper
+                    .search(
+                        hydrateQuery.copy(
+                            itemIds = listOf(row.itemId),
+                            limit = MAX_INVENTORIES_PER_GROUP,
+                        ),
+                    ).let { groupRows(it, ownSpaceId).firstOrNull() }
+                    ?.let(groups::add)
+            }
         val page =
             pageRows.mapNotNull { row ->
                 groups.firstOrNull { it.itemId == row.itemId }?.copy(
