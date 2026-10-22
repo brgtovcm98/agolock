@@ -153,6 +153,30 @@ interface InventoryMapper {
         @Param("itemId") itemId: UUID,
     ): List<Inventory>
 
+    @Select(
+        """
+        <script>
+        SELECT a.item_id, MAX(CASE s.permission WHEN 'MANAGE' THEN 3 WHEN 'EDIT' THEN 2 ELSE 1 END) AS grant_rank
+        FROM inventory_access a
+        JOIN share s ON s.space_id = a.space_id
+          AND s.grantee_user_id = #{actorUserId}
+          AND s.revoked_at IS NULL
+          AND (s.room_id = a.effective_room_id OR s.shelf_id = a.effective_shelf_id)
+        WHERE a.space_id &lt;&gt; #{spaceId}
+          AND a.item_id IN
+          <foreach collection="itemIds" item="itemId" open="(" separator="," close=")">
+            #{itemId}
+          </foreach>
+        GROUP BY a.item_id
+        </script>
+        """,
+    )
+    fun maxGrantRankByItemIds(
+        @Param("spaceId") spaceId: UUID,
+        @Param("actorUserId") actorUserId: UUID,
+        @Param("itemIds") itemIds: List<UUID>,
+    ): List<ItemGrantRow>
+
     @Select("SELECT COUNT(*) FROM inventory WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL")
     fun countByItem(
         @Param("spaceId") spaceId: UUID,

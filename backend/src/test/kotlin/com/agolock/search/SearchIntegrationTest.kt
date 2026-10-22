@@ -249,6 +249,11 @@ class SearchIntegrationTest
             assertThat(searchIds).containsExactly(inventory["id"].asText())
             assertThat(listIds).isEqualTo(searchIds)
             assertThat(itemIds).isEqualTo(searchIds)
+
+            val sharedItems = json(guest.get("/api/v1/items?scope=SHARED").body)["items"]
+            val sharedItem = sharedItems.first { it["id"].asText() == item["id"].asText() }
+            assertThat(sharedItem["effectivePermission"].asText()).isEqualTo("VIEW")
+            assertThat(sharedItem["isShared"].asBoolean()).isTrue()
         }
 
         @Test

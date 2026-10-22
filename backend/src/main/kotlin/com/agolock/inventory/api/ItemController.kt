@@ -51,9 +51,10 @@ class ItemController(
     ): ItemListResponse {
         val actor = Actor.from(principal)
         val page = itemService.list(actor, categoryId, q, limit, cursor, scope)
+        val permissions = itemService.permissions(actor, page.items)
         return ItemListResponse(
             page.items.map { item ->
-                val permission = itemService.permission(actor, item)
+                val permission = permissions[item.id] ?: EffectivePermission.None
                 item.toResponse(
                     permission.toPermission(),
                     permission is EffectivePermission.Granted,

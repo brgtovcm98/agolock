@@ -99,6 +99,29 @@ class ItemService(
         itemId: UUID,
     ): Item = getReadableWithPermission(actor, itemId).first
 
+    fun permissions(
+        actor: Actor,
+        items: List<Item>,
+    ): Map<UUID, EffectivePermission> {
+        val own = items.filter { it.spaceId == actor.spaceId }.associate { it.id to EffectivePermission.Owner }
+        val shared = items.filter { it.spaceId != actor.spaceId }
+        if (shared.isEmpty()) return own
+        val ranks =
+            inventoryMapper
+                .maxGrantRankByItemIds(actor.spaceId, actor.userId, shared.map { it.id })
+                .associate { it.itemId to it.grantRank }
+        return own +
+            shared.associate {
+                it.id to
+                    when (ranks[it.id]) {
+                        3 -> EffectivePermission.Granted(GrantLevel.MANAGE)
+                        2 -> EffectivePermission.Granted(GrantLevel.EDIT)
+                        1 -> EffectivePermission.Granted(GrantLevel.VIEW)
+                        else -> EffectivePermission.None
+                    }
+            }
+    }
+
     fun permission(
         actor: Actor,
         item: Item,
