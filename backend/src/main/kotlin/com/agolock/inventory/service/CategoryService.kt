@@ -84,7 +84,9 @@ class CategoryService(
                 command.sortOrder ?: current.sortOrder,
                 OffsetDateTime.now(clock),
             )
-        if (updated == 0) throw conflict("VERSION_CONFLICT", "카테고리를 수정하지 못했습니다.")
+        if (updated == 0) {
+            throw ApiException("CATEGORY_NOT_FOUND", HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다.")
+        }
         return requireCategory(actor, categoryId)
     }
 
