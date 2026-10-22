@@ -48,10 +48,11 @@ class RoomController(
     ): RoomListResponse {
         val actor = Actor.from(principal)
         val page = roomService.list(actor, cursor, limit)
+        val permission = accessService.effectivePermission(actor, actor.spaceId)
         return RoomListResponse(
             items =
                 page.items.map {
-                    it.toResponse(accessService.effectivePermission(actor, actor.spaceId).toPermission(), false)
+                    it.toResponse(permission.toPermission(), permission is EffectivePermission.Granted)
                 },
             nextCursor = page.nextCursor,
         )
