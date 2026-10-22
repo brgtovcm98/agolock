@@ -189,6 +189,13 @@ class SharingIntegrationTest
             val room = json(owner.post("/api/v1/rooms", mapOf("name" to "공유방")).body)
             val shelf = json(owner.post("/api/v1/rooms/${room["id"].asText()}/shelves", mapOf("name" to "선반")).body)
             val item = json(owner.post("/api/v1/items", mapOf("name" to "공유 Item")).body)
+            assertThat(
+                owner
+                    .post(
+                        "/api/v1/inventories",
+                        mapOf("itemId" to item["id"].asText(), "shelfId" to shelf["id"].asText()),
+                    ).statusCode,
+            ).isEqualTo(HttpStatus.CREATED)
 
             val invitationResponse =
                 owner.post(
@@ -265,7 +272,15 @@ class SharingIntegrationTest
             owner.signup("manage-owner-${UUID.randomUUID()}@example.com", "password-1234", "소유자")
             val room = json(owner.post("/api/v1/rooms", mapOf("name" to "공유 거실")).body)
             val roomId = room["id"].asText()
+            val shelf = json(owner.post("/api/v1/rooms/$roomId/shelves", mapOf("name" to "선반")).body)
             val item = json(owner.post("/api/v1/items", mapOf("name" to "공유 물건")).body)
+            assertThat(
+                owner
+                    .post(
+                        "/api/v1/inventories",
+                        mapOf("itemId" to item["id"].asText(), "shelfId" to shelf["id"].asText()),
+                    ).statusCode,
+            ).isEqualTo(HttpStatus.CREATED)
 
             val invitation =
                 json(
@@ -306,6 +321,91 @@ class SharingIntegrationTest
                     mapOf("newItem" to mapOf("name" to "새 물건"), "roomId" to roomId),
                 )
             assertThat(newItemAttempt.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        }
+
+        @Test
+        @Suppress("LongMethod")
+        fun `Shelf 공유는 Box Inventory에 상속되고 접근 불가 Item은 붙일 수 없다`() {
+            val owner = AuthTestClient(restTemplate, objectMapper)
+            val guestEmail = "shelf-guest-${UUID.randomUUID()}@example.com"
+            owner.signup("shelf-owner-${UUID.randomUUID()}@example.com", "password-1234", "소유자")
+            val room = json(owner.post("/api/v1/rooms", mapOf("name" to "공유 거실")).body)
+            val roomId = room["id"].asText()
+            val shelf = json(owner.post("/api/v1/rooms/$roomId/shelves", mapOf("name" to "공유 선반")).body)
+            val shelfId = shelf["id"].asText()
+            val box = json(owner.post("/api/v1/shelves/$shelfId/boxes", mapOf("name" to "공유 상자")).body)
+            val boxItem = json(owner.post("/api/v1/items", mapOf("name" to "상자 속 물건")).body)
+            val boxInventory =
+                json(
+                    owner
+                        .post(
+                            "/api/v1/inventories",
+                            mapOf("itemId" to boxItem["id"].asText(), "boxId" to box["id"].asText()),
+                        ).body,
+                )
+            val boxInventoryId = boxInventory["id"].asText()
+
+            val shelfInvitation =
+                owner.post(
+                    "/api/v1/share-invitations",
+                    mapOf("shelfId" to shelfId, "invitedEmail" to guestEmail, "permission" to "VIEW"),
+                )
+            assertThat(shelfInvitation.statusCode).isEqualTo(HttpStatus.CREATED)
+            outboxRelay.relay()
+            val guest = AuthTestClient(restTemplate, objectMapper)
+            guest.signup(guestEmail, "password-1234", "게스트")
+            val shelfToken = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            assertThat(guest.post("/api/v1/share-invitations/accept", mapOf("token" to shelfToken)).statusCode)
+                .isEqualTo(HttpStatus.OK)
+
+            val sharedInventory = guest.get("/api/v1/shared/inventories/$boxInventoryId")
+            assertThat(sharedInventory.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(sharedInventory.body)["effectivePermission"].asText()).isEqualTo("VIEW")
+            assertThat(guest.get("/api/v1/inventories/$boxInventoryId").statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(guest.get("/api/v1/inventories/$boxInventoryId/images").statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(guest.get("/api/v1/items?scope=SHARED").body)["items"].size()).isEqualTo(1)
+            val forbiddenUpdate =
+                guest.patch(
+                    "/api/v1/inventories/$boxInventoryId",
+                    mapOf("status" to "IN_USE", "version" to 0),
+                )
+            assertThat(forbiddenUpdate.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+
+            val manageRoom = json(owner.post("/api/v1/rooms", mapOf("name" to "관리 거실")).body)
+            val manageRoomId = manageRoom["id"].asText()
+            val unsharedRoom = json(owner.post("/api/v1/rooms", mapOf("name" to "비공유 방")).body)
+            val unsharedItem = json(owner.post("/api/v1/items", mapOf("name" to "비공유 물건")).body)
+            assertThat(
+                owner
+                    .post(
+                        "/api/v1/inventories",
+                        mapOf("itemId" to unsharedItem["id"].asText(), "roomId" to unsharedRoom["id"].asText()),
+                    ).statusCode,
+            ).isEqualTo(HttpStatus.CREATED)
+            val manageInvitation =
+                owner.post(
+                    "/api/v1/share-invitations",
+                    mapOf("roomId" to manageRoomId, "invitedEmail" to guestEmail, "permission" to "MANAGE"),
+                )
+            assertThat(manageInvitation.statusCode).isEqualTo(HttpStatus.CREATED)
+            outboxRelay.relay()
+            val manageToken = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            assertThat(guest.post("/api/v1/share-invitations/accept", mapOf("token" to manageToken)).statusCode)
+                .isEqualTo(HttpStatus.OK)
+
+            val attachAttempt =
+                guest.post(
+                    "/api/v1/inventories",
+                    mapOf("itemId" to unsharedItem["id"].asText(), "roomId" to manageRoomId),
+                )
+            assertThat(attachAttempt.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+            val unsharedInventoryCount =
+                jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM inventory WHERE item_id = ? AND deleted_at IS NULL",
+                    Int::class.java,
+                    UUID.fromString(unsharedItem["id"].asText()),
+                )
+            assertThat(unsharedInventoryCount).isEqualTo(1)
         }
 
         private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")

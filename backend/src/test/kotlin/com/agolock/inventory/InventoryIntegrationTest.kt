@@ -2,7 +2,10 @@ package com.agolock.inventory
 
 import com.agolock.identity.service.InMemoryRateLimiter
 import com.agolock.identity.service.LoginAttemptService
+import com.agolock.messaging.outbox.OutboxRelayService
 import com.agolock.support.AuthTestClient
+import com.agolock.support.FakeMailConfiguration
+import com.agolock.support.FakeMailPort
 import com.agolock.support.TestcontainersConfiguration
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -22,7 +25,7 @@ import java.util.UUID
     properties = ["auth.signup.invite-required=false"],
 )
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration::class)
+@Import(TestcontainersConfiguration::class, FakeMailConfiguration::class)
 class InventoryIntegrationTest
     @Autowired
     constructor(
@@ -30,6 +33,8 @@ class InventoryIntegrationTest
         private val objectMapper: ObjectMapper,
         private val rateLimiter: InMemoryRateLimiter,
         private val loginAttempts: LoginAttemptService,
+        private val mailPort: FakeMailPort,
+        private val outboxRelay: OutboxRelayService,
     ) {
         private lateinit var client: AuthTestClient
 
@@ -172,6 +177,49 @@ class InventoryIntegrationTest
         }
 
         @Test
+        fun `Inventory PATCH는 version 누락과 잘못된 status를 400으로 거부한다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "검증방")).body)
+            val item = json(client.post("/api/v1/items", mapOf("name" to "검증 Item")).body)
+            val inventory =
+                json(
+                    client
+                        .post(
+                            "/api/v1/inventories",
+                            mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
+                        ).body,
+                )
+            val inventoryId = inventory["id"].asText()
+
+            val missingVersion =
+                client.patch(
+                    "/api/v1/inventories/$inventoryId",
+                    mapOf("nameOverride" to "새 이름"),
+                )
+            assertThat(missingVersion.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+            assertThat(json(missingVersion.body)["code"].asText()).isEqualTo("VALIDATION_FAILED")
+
+            val invalidStatus =
+                client.patchRaw(
+                    "/api/v1/inventories/$inventoryId",
+                    """{"status":"NOT_A_STATUS","version":0}""",
+                )
+            assertThat(invalidStatus.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+            assertThat(json(invalidStatus.body)["code"].asText()).isEqualTo("VALIDATION_FAILED")
+
+            val nullStatus =
+                client.patchRaw(
+                    "/api/v1/inventories/$inventoryId",
+                    """{"status":null,"version":0}""",
+                )
+            assertThat(nullStatus.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+            assertThat(json(nullStatus.body)["code"].asText()).isEqualTo("VALIDATION_FAILED")
+
+            val unchanged = json(client.get("/api/v1/inventories/$inventoryId").body)
+            assertThat(unchanged["displayName"].asText()).isEqualTo("검증 Item")
+            assertThat(unchanged["version"].asLong()).isEqualTo(0)
+        }
+
+        @Test
         fun `Item과 Inventory 목록은 cursor로 다음 페이지를 조회한다`() {
             val room = json(client.post("/api/v1/rooms", mapOf("name" to "커서방")).body)
             val firstItem = json(client.post("/api/v1/items", mapOf("name" to "첫번째")).body)
@@ -194,6 +242,54 @@ class InventoryIntegrationTest
             assertThat(client.get("/api/v1/items?cursor=bad").statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
             assertThat(client.get("/api/v1/inventories?status=IN_USE&status=STORED").statusCode)
                 .isEqualTo(HttpStatus.OK)
+        }
+
+        @Test
+        fun `scope=SHARED 목록은 cursor로 두 페이지를 순회해 중복과 누락이 없다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "공유 창고")).body)
+            val roomId = room["id"].asText()
+            val inventoryIds =
+                (1..3)
+                    .map { index ->
+                        val item = json(client.post("/api/v1/items", mapOf("name" to "공유 물건 $index")).body)
+                        json(
+                            client
+                                .post(
+                                    "/api/v1/inventories",
+                                    mapOf("itemId" to item["id"].asText(), "roomId" to roomId),
+                                ).body,
+                        )["id"].asText()
+                    }.toSet()
+
+            val guestEmail = "inventory-guest-${UUID.randomUUID()}@example.com"
+            val invitation =
+                client.post(
+                    "/api/v1/share-invitations",
+                    mapOf("roomId" to roomId, "invitedEmail" to guestEmail, "permission" to "VIEW"),
+                )
+            assertThat(invitation.statusCode).isEqualTo(HttpStatus.CREATED)
+            outboxRelay.relay()
+            val guest = AuthTestClient(restTemplate, objectMapper)
+            guest.signup(guestEmail, "password-1234", "게스트")
+            val token = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            assertThat(guest.post("/api/v1/share-invitations/accept", mapOf("token" to token)).statusCode)
+                .isEqualTo(HttpStatus.OK)
+
+            val firstPage = json(guest.get("/api/v1/inventories?scope=SHARED&limit=2").body)
+            assertThat(firstPage["items"].size()).isEqualTo(2)
+            assertThat(firstPage["items"].all { it["effectivePermission"].asText() == "VIEW" }).isTrue()
+            assertThat(firstPage["items"].all { it["isShared"].asBoolean() }).isTrue()
+            val firstIds = firstPage["items"].map { it["id"].asText() }
+            val next = firstPage["nextCursor"].asText()
+            assertThat(next).isNotBlank()
+
+            val secondPage = json(guest.get("/api/v1/inventories?scope=SHARED&limit=2&cursor=$next").body)
+            assertThat(secondPage["items"].size()).isEqualTo(1)
+            val secondIds = secondPage["items"].map { it["id"].asText() }
+            assertThat(secondPage.hasNonNull("nextCursor")).isFalse()
+
+            assertThat(firstIds).doesNotContainAnyElementsOf(secondIds)
+            assertThat((firstIds + secondIds).toSet()).isEqualTo(inventoryIds)
         }
 
         @Test

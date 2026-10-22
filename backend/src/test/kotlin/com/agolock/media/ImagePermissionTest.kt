@@ -2,20 +2,18 @@ package com.agolock.media
 
 import com.agolock.common.error.ApiException
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.persistence.BoxMapper
-import com.agolock.hierarchy.persistence.ShelfMapper
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.hierarchy.service.NoGrantLookup
 import com.agolock.hierarchy.service.SpaceOwnership
 import com.agolock.inventory.domain.Item
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.ItemMapper
+import com.agolock.inventory.service.InventoryLocationResolver
 import com.agolock.media.api.PresignImageRequest
 import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.service.ImageService
 import com.agolock.media.storage.ImageStoragePort
 import com.agolock.media.storage.StoredObject
-import com.agolock.messaging.outbox.OutboxService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -80,11 +78,10 @@ class ImagePermissionTest {
             mock(ImageMapper::class.java),
             itemMapper,
             mock(InventoryMapper::class.java),
-            mock(ShelfMapper::class.java),
-            mock(BoxMapper::class.java),
+            mock(InventoryLocationResolver::class.java),
             access,
             storage(),
-            mock(OutboxService::class.java),
+            mock(com.agolock.media.service.ImageUploadTransaction::class.java),
             Clock.fixed(Instant.parse("2026-10-22T00:00:00Z"), ZoneOffset.UTC),
         )
     }

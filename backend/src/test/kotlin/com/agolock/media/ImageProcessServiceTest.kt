@@ -2,10 +2,9 @@ package com.agolock.media
 
 import com.agolock.media.domain.Image
 import com.agolock.media.domain.ImageStatus
-import com.agolock.media.persistence.ImageMapper
 import com.agolock.media.service.ImageProcessService
+import com.agolock.media.service.ImageProcessTransaction
 import com.agolock.media.storage.ImageStoragePort
-import com.agolock.messaging.outbox.OutboxService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -36,18 +35,15 @@ class ImageProcessServiceTest {
                 OffsetDateTime.now().plusHours(1),
                 OffsetDateTime.now(),
             )
-        val mapper = mock(ImageMapper::class.java)
+        val transaction = mock(ImageProcessTransaction::class.java)
         val storage = mock(ImageStoragePort::class.java)
         val now = OffsetDateTime.of(2026, 10, 21, 12, 0, 0, 0, ZoneOffset.UTC)
-        `when`(mapper.claimForProcessing(imageId, now)).thenReturn(1)
-        `when`(mapper.findById(imageId)).thenReturn(image)
+        `when`(transaction.claim(imageId, now)).thenReturn(image)
         `when`(storage.getObject(objectKey)).thenReturn(pngBytes())
-        val outbox = mock(OutboxService::class.java)
         val service =
             ImageProcessService(
-                mapper,
+                transaction,
                 storage,
-                outbox,
                 Clock.fixed(Instant.parse("2026-10-21T12:00:00Z"), ZoneOffset.UTC),
             )
 
@@ -55,15 +51,9 @@ class ImageProcessServiceTest {
 
         assertThat(
             org.mockito.Mockito
-                .mockingDetails(mapper)
+                .mockingDetails(transaction)
                 .invocations
                 .any { it.method.name == "markReady" },
-        ).isTrue()
-        assertThat(
-            org.mockito.Mockito
-                .mockingDetails(outbox)
-                .invocations
-                .any { it.method.name == "enqueueImageEvent" && it.arguments[2] == "image.processed" },
         ).isTrue()
     }
 
@@ -82,18 +72,15 @@ class ImageProcessServiceTest {
                 OffsetDateTime.now().plusHours(1),
                 OffsetDateTime.now(),
             )
-        val mapper = mock(ImageMapper::class.java)
+        val transaction = mock(ImageProcessTransaction::class.java)
         val storage = mock(ImageStoragePort::class.java)
-        val outbox = mock(OutboxService::class.java)
         val now = OffsetDateTime.of(2026, 10, 21, 12, 0, 0, 0, ZoneOffset.UTC)
-        `when`(mapper.claimForProcessing(imageId, now)).thenReturn(1)
-        `when`(mapper.findById(imageId)).thenReturn(image)
+        `when`(transaction.claim(imageId, now)).thenReturn(image)
         `when`(storage.getObject(image.objectKey)).thenThrow(IllegalStateException("storage down"))
         val service =
             ImageProcessService(
-                mapper,
+                transaction,
                 storage,
-                outbox,
                 Clock.fixed(Instant.parse("2026-10-21T12:00:00Z"), ZoneOffset.UTC),
             )
 
@@ -101,9 +88,9 @@ class ImageProcessServiceTest {
 
         assertThat(
             org.mockito.Mockito
-                .mockingDetails(mapper)
+                .mockingDetails(transaction)
                 .invocations
-                .any { it.method.name == "markProcessingFailed" },
+                .any { it.method.name == "markFailed" },
         ).isTrue()
     }
 

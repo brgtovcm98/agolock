@@ -64,6 +64,7 @@ class DatabaseMigrationTest
                 "outbox_event",
                 "image",
                 "email_verification_token",
+                "notification_secret",
                 "spring_session",
                 "spring_session_attributes",
             )
@@ -79,6 +80,35 @@ class DatabaseMigrationTest
                     String::class.java,
                 )
             assertThat(statuses).containsExactly("ACTIVE", "LOCKED", "DELETED")
+        }
+
+        @Test
+        fun `V21이 기존 활성 사용자의 email_verified_at을 백필한다`() {
+            val applied =
+                jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '21' AND success = true",
+                    Int::class.java,
+                )
+            assertThat(applied).isEqualTo(1)
+
+            // V21은 테스트 컨텍스트 기동 시 이미 적용된다. V16 적용 시점 이전에 생성된
+            // 활성 사용자만 백필 대상이므로, 그 구간에 미인증 사용자가 남아 있지 않은지 검증한다.
+            val unverifiedBeforeV16 =
+                jdbcTemplate.queryForObject(
+                    """
+                    SELECT COUNT(*)
+                    FROM app_user
+                    WHERE email_verified_at IS NULL
+                      AND deleted_at IS NULL
+                      AND created_at < (
+                          SELECT installed_on
+                          FROM flyway_schema_history
+                          WHERE version = '16' AND success = true
+                      )
+                    """.trimIndent(),
+                    Long::class.java,
+                )
+            assertThat(unverifiedBeforeV16).isZero()
         }
 
         @Test

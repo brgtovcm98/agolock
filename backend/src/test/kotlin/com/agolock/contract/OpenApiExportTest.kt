@@ -20,7 +20,10 @@ import java.nio.file.Path
  * 결과는 docs/generated를 덮어쓰지 않고 루트 build/contracts에 기록합니다.
  */
 @Tag("contract")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = ["springdoc.api-docs.enabled=true"],
+)
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration::class)
 class OpenApiExportTest

@@ -2,6 +2,7 @@
 
 package com.agolock.search
 
+import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.identity.service.InMemoryRateLimiter
 import com.agolock.identity.service.LoginAttemptService
 import com.agolock.messaging.outbox.OutboxRelayService
@@ -20,6 +21,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @SpringBootTest(
@@ -168,6 +170,88 @@ class SearchIntegrationTest
 
             assertThat(json(guest.get("/api/v1/search?q=랜턴&scope=OWNED").body)["items"].size()).isZero()
             assertThat(json(guest.get("/api/v1/search?q=랜턴&scope=ALL").body)["items"].size()).isEqualTo(1)
+        }
+
+        @Test
+        fun `검색어 없이도 기본 정렬과 상태 필터로 검색한다`() {
+            val empty = client.get("/api/v1/search?scope=ALL")
+            assertThat(empty.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(empty.body)["items"].size()).isZero()
+
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "서재")).body)
+            val item = json(client.post("/api/v1/items", mapOf("name" to "독서등")).body)
+            client.post(
+                "/api/v1/inventories",
+                mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
+            )
+
+            val all = client.get("/api/v1/search?scope=ALL")
+            assertThat(all.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(all.body)["items"].size()).isEqualTo(1)
+            assertThat(json(all.body)["items"][0]["itemName"].asText()).isEqualTo("독서등")
+
+            val stored = client.get("/api/v1/search?status=STORED")
+            assertThat(stored.statusCode).isEqualTo(HttpStatus.OK)
+            assertThat(json(stored.body)["items"].size()).isEqualTo(1)
+        }
+
+        @Test
+        fun `UPDATED_DESC는 keyset 커서로 모든 Item을 중복과 누락 없이 순회한다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "키셋 보관실")).body)
+            val expected =
+                (1..5).map { index ->
+                    val item = json(client.post("/api/v1/items", mapOf("name" to "키셋 물건 $index")).body)
+                    client.post(
+                        "/api/v1/inventories",
+                        mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
+                    )
+                    item["id"].asText()
+                }
+
+            val filtered = json(client.get("/api/v1/search?q=키셋&sort=UPDATED_DESC&limit=2").body)
+            assertThat(filtered["items"].size()).isEqualTo(2)
+            assertThat(filtered["nextCursor"].isNull).isFalse()
+
+            val collected = mutableListOf<String>()
+            var cursor: String? = null
+            var pageCount = 0
+            do {
+                val path = "/api/v1/search?sort=UPDATED_DESC&limit=2" + cursor?.let { "&cursor=$it" }.orEmpty()
+                val body = json(client.get(path).body)
+                assertThat(body["items"].size()).isBetween(1, 2)
+                body["items"].forEach { collected.add(it["itemId"].asText()) }
+                cursor = body["nextCursor"]?.takeUnless { it.isNull }?.asText()
+                pageCount += 1
+            } while (cursor != null && pageCount < 10)
+
+            assertThat(pageCount).isEqualTo(3)
+            assertThat(collected).hasSize(5)
+            assertThat(collected).doesNotHaveDuplicates()
+            assertThat(collected).containsExactlyInAnyOrderElementsOf(expected)
+        }
+
+        @Test
+        fun `RELEVANCE는 첫 페이지만 지원하고 커서를 거부한다`() {
+            val room = json(client.post("/api/v1/rooms", mapOf("name" to "관련도 보관실")).body)
+            (1..3).forEach { index ->
+                val item = json(client.post("/api/v1/items", mapOf("name" to "관련도 물건 $index")).body)
+                client.post(
+                    "/api/v1/inventories",
+                    mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
+                )
+            }
+
+            val first = client.get("/api/v1/search?q=관련도&sort=RELEVANCE&limit=1")
+            assertThat(first.statusCode).isEqualTo(HttpStatus.OK)
+            val firstBody = json(first.body)
+            assertThat(firstBody["items"].size()).isEqualTo(1)
+            val nextCursor = firstBody["nextCursor"]
+            assertThat(nextCursor == null || nextCursor.isNull).isTrue()
+
+            val cursor = TimeCursorCodec.encode(OffsetDateTime.parse("2026-01-01T00:00:00Z"), UUID.randomUUID())
+            val rejected = client.get("/api/v1/search?q=관련도&sort=RELEVANCE&limit=1&cursor=$cursor")
+            assertThat(rejected.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+            assertThat(json(rejected.body)["code"].asText()).isEqualTo("CURSOR_NOT_SUPPORTED_FOR_SORT")
         }
 
         private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")
