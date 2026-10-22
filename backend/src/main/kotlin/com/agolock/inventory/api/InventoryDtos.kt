@@ -2,6 +2,7 @@
 
 package com.agolock.inventory.api
 
+import com.agolock.common.json.JsonPatchReaders
 import com.agolock.inventory.domain.Category
 import com.agolock.inventory.domain.InventoryMovement
 import com.agolock.inventory.domain.InventoryStatus
@@ -153,8 +154,12 @@ class UpdateItemRequestDeserializer : StdDeserializer<UpdateItemRequest>(UpdateI
     ): UpdateItemRequest {
         val node = parser.readValueAsTree<JsonNode>()
         val request = UpdateItemRequest()
-        request.applyName(node.get("name")?.takeUnless(JsonNode::isNull)?.asText())
-        if (node.has("description")) request.applyDescription(node.get("description").takeUnless(JsonNode::isNull)?.asText())
+        if (node.has("name")) {
+            request.applyName(JsonPatchReaders.optionalText(parser, node.get("name"), "name"))
+        }
+        if (node.has("description")) {
+            request.applyDescription(JsonPatchReaders.optionalText(parser, node.get("description"), "description"))
+        }
         if (node.has("categoryId")) {
             request.applyCategoryId(
                 node
@@ -320,10 +325,12 @@ class UpdateInventoryRequestDeserializer : StdDeserializer<UpdateInventoryReques
         val node = parser.readValueAsTree<JsonNode>()
         val request = UpdateInventoryRequest()
         if (node.has("nameOverride")) {
-            request.applyNameOverride(node.get("nameOverride").takeUnless(JsonNode::isNull)?.asText())
+            request.applyNameOverride(JsonPatchReaders.optionalText(parser, node.get("nameOverride"), "nameOverride"))
         }
         if (node.has("descriptionOverride")) {
-            request.applyDescriptionOverride(node.get("descriptionOverride").takeUnless(JsonNode::isNull)?.asText())
+            request.applyDescriptionOverride(
+                JsonPatchReaders.optionalText(parser, node.get("descriptionOverride"), "descriptionOverride"),
+            )
         }
         if (node.has("categoryIdOverride")) {
             request.applyCategoryIdOverride(
@@ -351,7 +358,9 @@ class UpdateInventoryRequestDeserializer : StdDeserializer<UpdateInventoryReques
                     ?.let { parseStatus(parser, it) },
             )
         }
-        request.confirmDisposal = node.get("confirmDisposal")?.asBoolean() ?: false
+        if (node.has("confirmDisposal")) {
+            request.confirmDisposal = JsonPatchReaders.boolean(parser, node.get("confirmDisposal"), "confirmDisposal")
+        }
         request.version = parseVersion(parser, node)
         return request
     }

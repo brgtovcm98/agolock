@@ -1,5 +1,6 @@
 package com.agolock.hierarchy.api
 
+import com.agolock.common.json.JsonPatchReaders
 import com.agolock.hierarchy.domain.Box
 import com.agolock.hierarchy.domain.Permission
 import com.agolock.hierarchy.domain.Room
@@ -67,13 +68,12 @@ class UpdateNodeRequestDeserializer : StdDeserializer<UpdateNodeRequest>(UpdateN
     ): UpdateNodeRequest {
         val node = parser.readValueAsTree<JsonNode>()
         val request = UpdateNodeRequest()
-        node
-            .get("name")
-            ?.takeUnless(JsonNode::isNull)
-            ?.asText()
-            ?.let { request.name = it }
+        if (node.has("name")) {
+            val name = node.get("name")
+            if (!name.isNull) request.name = JsonPatchReaders.text(parser, name, "name")
+        }
         if (node.has("description")) {
-            request.applyDescription(node.get("description").takeUnless(JsonNode::isNull)?.asText())
+            request.applyDescription(JsonPatchReaders.optionalText(parser, node.get("description"), "description"))
         }
         request.version = parseVersion(parser, node)
         return request
