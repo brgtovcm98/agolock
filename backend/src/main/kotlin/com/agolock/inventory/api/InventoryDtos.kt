@@ -3,6 +3,7 @@
 package com.agolock.inventory.api
 
 import com.agolock.common.json.JsonPatchReaders
+import com.agolock.hierarchy.domain.Permission
 import com.agolock.inventory.domain.Category
 import com.agolock.inventory.domain.InventoryMovement
 import com.agolock.inventory.domain.InventoryStatus
@@ -192,7 +193,7 @@ data class ItemResponse(
     val version: Long,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
-    val effectivePermission: String = "OWNER",
+    val effectivePermission: Permission = Permission.OWNER,
     val isShared: Boolean = false,
 )
 
@@ -219,7 +220,7 @@ data class InventoryResponse(
     val categoryIdOverride: UUID?,
     val priceAmountOverride: Int?,
     val version: Long,
-    val effectivePermission: String,
+    val effectivePermission: Permission,
     val isShared: Boolean,
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime,
@@ -398,7 +399,7 @@ data class CategoryListResponse(
 fun Category.toResponse(): CategoryResponse = CategoryResponse(id, name, color, sortOrder)
 
 fun Item.toResponse(
-    permission: String = "OWNER",
+    permission: Permission = Permission.OWNER,
     isShared: Boolean = false,
 ): ItemResponse =
     ItemResponse(id, name, description, categoryId, priceAmount, currency, version, createdAt, updatedAt, permission, isShared)

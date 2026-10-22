@@ -55,7 +55,7 @@ class ItemController(
             page.items.map { item ->
                 val permission = itemService.permission(actor, item)
                 item.toResponse(
-                    permission.toPermission().name,
+                    permission.toPermission(),
                     permission is EffectivePermission.Granted,
                 )
             },
@@ -99,7 +99,7 @@ class ItemController(
         val actor = Actor.from(principal)
         val (item, permission) = itemService.getReadableWithPermission(actor, itemId)
         return item.toResponse(
-            permission.toPermission().name,
+            permission.toPermission(),
             permission is EffectivePermission.Granted,
         )
     }

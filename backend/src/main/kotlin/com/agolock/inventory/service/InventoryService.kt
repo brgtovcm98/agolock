@@ -21,6 +21,8 @@ import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.EffectivePermission
 import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
+import com.agolock.hierarchy.domain.Permission
+import com.agolock.hierarchy.domain.toPermission
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
@@ -518,7 +520,7 @@ class InventoryService(
             categoryIdOverride = categoryIdOverride,
             priceAmountOverride = priceAmountOverride,
             version = version,
-            effectivePermission = effectivePermission,
+            effectivePermission = Permission.valueOf(effectivePermission),
             isShared = effectivePermission != "OWNER",
             createdAt = createdAt,
             updatedAt = updatedAt,
@@ -550,7 +552,7 @@ class InventoryService(
             categoryIdOverride = inventory.categoryIdOverride,
             priceAmountOverride = inventory.priceAmountOverride,
             version = inventory.version,
-            effectivePermission = permission.wire(),
+            effectivePermission = permission.toPermission(),
             isShared = permission is EffectivePermission.Granted,
             createdAt = inventory.createdAt,
             updatedAt = inventory.updatedAt,

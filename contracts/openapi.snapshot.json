@@ -654,6 +654,13 @@
             "type": "string"
           },
           "effectivePermission": {
+            "enum": [
+              "NONE",
+              "VIEW",
+              "EDIT",
+              "MANAGE",
+              "OWNER"
+            ],
             "type": "string"
           },
           "id": {
@@ -787,6 +794,13 @@
             ]
           },
           "effectivePermission": {
+            "enum": [
+              "NONE",
+              "VIEW",
+              "EDIT",
+              "MANAGE",
+              "OWNER"
+            ],
             "type": "string"
           },
           "id": {
