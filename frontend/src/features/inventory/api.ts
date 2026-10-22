@@ -57,7 +57,6 @@ export type Inventory = {
   isShared: boolean
   createdAt: string
   updatedAt: string
-  primaryImageId?: string | null
 }
 
 export type Movement = {

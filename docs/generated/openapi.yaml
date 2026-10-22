@@ -2565,10 +2565,6 @@ components:
           $ref: '#/components/schemas/Category'
         effectivePrice:
           $ref: '#/components/schemas/Price'
-        primaryImageId:
-          type: string
-          format: uuid
-          nullable: true
         status:
           $ref: '#/components/schemas/InventoryStatus'
         location:
