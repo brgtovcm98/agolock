@@ -18,11 +18,8 @@ import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
 import com.agolock.hierarchy.domain.AccessTarget
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.domain.EffectivePermission
 import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.domain.PageResult
-import com.agolock.hierarchy.domain.Permission
-import com.agolock.hierarchy.domain.toPermission
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.RoomMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
@@ -35,7 +32,6 @@ import com.agolock.inventory.domain.Inventory
 import com.agolock.inventory.domain.InventoryMovement
 import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.persistence.CategoryMapper
-import com.agolock.inventory.persistence.InventoryListRow
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.InventoryMovementMapper
 import com.agolock.inventory.persistence.ItemMapper
@@ -58,6 +54,7 @@ class InventoryService(
     private val boxMapper: BoxMapper,
     private val locationResolver: InventoryLocationResolver,
     private val accessService: AccessService,
+    private val assembler: InventoryResponseAssembler,
     private val clock: Clock,
 ) {
     fun list(
@@ -105,7 +102,7 @@ class InventoryService(
                 cursor?.id,
                 effectiveLimit + 1,
             )
-        val page = rows.take(effectiveLimit).map { it.toListResponse() }
+        val page = rows.take(effectiveLimit).map { assembler.toResponse(it) }
         val next =
             if (rows.size > effectiveLimit) {
                 page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) }
@@ -144,7 +141,7 @@ class InventoryService(
                 null,
                 null,
                 Int.MAX_VALUE,
-            ).map { it.toListResponse() }
+            ).map { assembler.toResponse(it) }
     }
 
     fun get(
@@ -154,7 +151,7 @@ class InventoryService(
         val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
         val target = inventoryTarget(inventory)
         val permission = accessService.require(actor, target, GrantLevel.VIEW)
-        return toResponse(actor, inventory, permission)
+        return assembler.toResponse(inventory, permission)
     }
 
     fun getShared(
@@ -164,7 +161,7 @@ class InventoryService(
         val inventory = inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")
         val target = inventoryTarget(inventory)
         val permission = accessService.require(actor, target, GrantLevel.VIEW)
-        return toResponse(actor, inventory, permission)
+        return assembler.toResponse(inventory, permission)
     }
 
     @Transactional
@@ -229,7 +226,7 @@ class InventoryService(
                 updatedAt = now,
             )
         inventoryMapper.insert(inventory)
-        return toResponse(actor, inventory, permission)
+        return assembler.toResponse(inventory, permission)
     }
 
     @Transactional
@@ -287,7 +284,7 @@ class InventoryService(
             priceAmountOverride == current.priceAmountOverride &&
             targetStatus == current.status
         ) {
-            return toResponse(actor, current, permission)
+            return assembler.toResponse(current, permission)
         }
         val updated =
             inventoryMapper.update(
@@ -302,8 +299,7 @@ class InventoryService(
                 OffsetDateTime.now(clock),
             )
         if (updated == 0) throw versionConflict()
-        return toResponse(
-            actor,
+        return assembler.toResponse(
             inventoryMapper.findById(current.spaceId, inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다."),
             permission,
         )
@@ -330,7 +326,7 @@ class InventoryService(
             )
         val permission = accessService.require(actor, target, GrantLevel.MANAGE)
         if (current.roomId == location.roomId && current.shelfId == location.shelfId && current.boxId == location.boxId) {
-            return toResponse(actor, current, permission)
+            return assembler.toResponse(current, permission)
         }
         val now = OffsetDateTime.now(clock)
         val updated =
@@ -359,8 +355,7 @@ class InventoryService(
                 movedAt = now,
             ),
         )
-        return toResponse(
-            actor,
+        return assembler.toResponse(
             inventoryMapper.findById(current.spaceId, inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다."),
             permission,
         )
@@ -418,7 +413,7 @@ class InventoryService(
         accessService.requireOwner(actor, actor.spaceId)
         requireInventory(actor, inventoryId)
         return movementMapper.listByInventory(actor.spaceId, inventoryId, 100).map { movement ->
-            movement.toResponse { roomId, shelfId, boxId -> location(actor.spaceId, roomId, shelfId, boxId) }
+            movement.toResponse { roomId, shelfId, boxId -> assembler.location(actor.spaceId, roomId, shelfId, boxId) }
         }
     }
 
@@ -484,103 +479,6 @@ class InventoryService(
             }
         }
     }
-
-    private fun InventoryListRow.toListResponse(): InventoryResponse {
-        val type =
-            when {
-                displayBoxId != null -> "BOX"
-                displayShelfId != null -> "SHELF"
-                else -> "ROOM"
-            }
-        val locationName =
-            when (type) {
-                "BOX" -> boxName ?: "삭제된 Box"
-                "SHELF" -> shelfName ?: "삭제된 Shelf"
-                else -> roomName ?: "삭제된 Room"
-            }
-        return InventoryResponse(
-            id = id,
-            itemId = itemId,
-            itemName = itemName,
-            displayName = nameOverride ?: itemName,
-            description = descriptionOverride ?: itemDescription,
-            categoryId = categoryIdOverride ?: itemCategoryId,
-            priceAmount = priceAmountOverride ?: itemPriceAmount,
-            status = status,
-            location =
-                InventoryLocationResponse(
-                    type = type,
-                    roomId = displayRoomId,
-                    shelfId = displayShelfId,
-                    boxId = displayBoxId,
-                    name = locationName,
-                ),
-            nameOverride = nameOverride,
-            descriptionOverride = descriptionOverride,
-            categoryIdOverride = categoryIdOverride,
-            priceAmountOverride = priceAmountOverride,
-            version = version,
-            effectivePermission = Permission.valueOf(effectivePermission),
-            isShared = effectivePermission != "OWNER",
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-        )
-    }
-
-    private fun toResponse(
-        actor: Actor,
-        inventory: Inventory,
-        permission: EffectivePermission,
-    ): InventoryResponse {
-        val item = itemMapper.findById(inventory.spaceId, inventory.itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        val name = inventory.nameOverride ?: item.name
-        val description = inventory.descriptionOverride ?: item.description
-        val categoryId = inventory.categoryIdOverride ?: item.categoryId
-        val price = inventory.priceAmountOverride ?: item.priceAmount
-        return InventoryResponse(
-            id = inventory.id,
-            itemId = inventory.itemId,
-            itemName = item.name,
-            displayName = name,
-            description = description,
-            categoryId = categoryId,
-            priceAmount = price,
-            status = inventory.status,
-            location = location(inventory.spaceId, inventory.roomId, inventory.shelfId, inventory.boxId),
-            nameOverride = inventory.nameOverride,
-            descriptionOverride = inventory.descriptionOverride,
-            categoryIdOverride = inventory.categoryIdOverride,
-            priceAmountOverride = inventory.priceAmountOverride,
-            version = inventory.version,
-            effectivePermission = permission.toPermission(),
-            isShared = permission is EffectivePermission.Granted,
-            createdAt = inventory.createdAt,
-            updatedAt = inventory.updatedAt,
-        )
-    }
-
-    private fun location(
-        spaceId: UUID,
-        roomId: UUID?,
-        shelfId: UUID?,
-        boxId: UUID?,
-    ): InventoryLocationResponse =
-        when {
-            boxId != null -> {
-                val box = boxMapper.findById(spaceId, boxId)
-                val shelf = box?.let { shelfMapper.findById(spaceId, it.shelfId) }
-                InventoryLocationResponse("BOX", shelf?.roomId, box?.shelfId, boxId, box?.name ?: "삭제된 Box")
-            }
-            shelfId != null -> {
-                val shelf = shelfMapper.findById(spaceId, shelfId)
-                InventoryLocationResponse("SHELF", shelf?.roomId, shelfId, null, shelf?.name ?: "삭제된 Shelf")
-            }
-            roomId != null -> {
-                val room = roomMapper.findById(spaceId, roomId)
-                InventoryLocationResponse("ROOM", roomId, null, null, room?.name ?: "삭제된 Room")
-            }
-            else -> InventoryLocationResponse("UNKNOWN", null, null, null, "위치 없음")
-        }
 
     private fun notFound(message: String) = ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, message)
 
