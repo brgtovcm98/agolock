@@ -26,7 +26,6 @@ export type Item = {
   version: number
   createdAt: string
   updatedAt: string
-  primaryImageId?: string | null
   effectivePermission?: Permission
   isShared?: boolean
 }
@@ -58,7 +57,6 @@ export type Inventory = {
   isShared: boolean
   createdAt: string
   updatedAt: string
-  primaryImageId?: string | null
 }
 
 export type Movement = {

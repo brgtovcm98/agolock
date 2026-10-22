@@ -83,7 +83,7 @@ CREATE INDEX idx_box_name_trgm
 
 ## 4. 랭킹
 
-기본 정렬은 관련도 점수입니다.
+기본 정렬은 관련도 점수입니다. 단, `q`가 없으면 관련도 점수를 계산하지 않고 최근 수정순으로 정렬합니다.
 
 ```text
 score =
@@ -111,6 +111,14 @@ score =
 - 이름순
 - 최근 조회순
 - 상태순
+
+### 4.1 페이지네이션
+
+- `UPDATED_DESC`는 `(updated_at, item_id)` keyset 커서를 사용합니다. `q`가 없으면 이 정렬이 기본입니다.
+- `RELEVANCE`는 첫 페이지만 제공합니다. `nextCursor`는 null이며, 커서를 보내면 `400 CURSOR_NOT_SUPPORTED_FOR_SORT`입니다.
+- `NAME_ASC`, `VIEWED_DESC`, `STATUS_ASC`는 1차에서 기존 offset 커서를 유지합니다.
+- keyset 페이지는 20개 Item 그룹을 먼저 고른 뒤, 각 그룹의 Inventory를 최대 5개까지 재조회합니다.
+- 기존 offset 커서로 `UPDATED_DESC`를 호출하면 `400 INVALID_CURSOR`입니다. 배포 시 검색 커서가 한 번 무효화됩니다.
 
 ## 5. 결과 단위
 

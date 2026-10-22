@@ -94,12 +94,21 @@ docker compose -f infra/docker-compose.yml up -d
 - 만료된 공유 초대는 `EXPIRED`로 표시합니다.
 - 만료된 최근 검색은 30일 후 삭제합니다.
 - 만료된 `idempotency_record`는 24시간 후 삭제합니다.
-- 오래된 `outbox_event`는 보관 기간 후 삭제합니다.
+- worker는 `PUBLISHED`/`FAILED` outbox를 기본 30일 보관 후 삭제하고(`agolock.outbox.retention-days`), 만료된 `notification_secret`을 1시간마다 정리합니다.
+
+### 3.3 데이터 감사·백필
+
+- `scripts/audit_data.sql`은 orphan inventory, Outbox `PENDING`, 미인증 사용자, Share permission 분포를 읽기 전용으로 점검합니다.
+- V21은 V16 이전 가입자를 grandfathering해 기존 활성 사용자의 `email_verified_at`을 `created_at`으로 백필하며(NULL 행만 갱신해 멱등), 대용량은 별도 one-off CLI 배치 UPDATE를 검토합니다.
+- V22 `notification_secret`은 메일 링크 토큰을 AES-GCM으로 암호화해 outbox payload와 분리 저장합니다. outbox에는 `secretId`만 남습니다.
 
 ## 4. 배포
 
 - 단일 모놀리식 애플리케이션으로 시작합니다.
 - API와 Worker는 같은 이미지를 사용하고 실행 프로필만 분리합니다.
+- Actuator 관리 포트는 9090이며 nginx에 게시하지 않습니다. 컨테이너 healthcheck만 9090을 사용합니다.
+- `NOTIFICATION_SECRET_KEY`는 base64 32바이트 AES-256 키이며 staging/prod에서 필수입니다. 키를 회전하면 기존 `notification_secret`을 복호화할 수 없으므로, 회전 전에 만료된 secret을 정리하고 새 초대부터 새 키를 사용합니다.
+- springdoc/Swagger는 local 프로필에서만 활성화합니다.
 - CI는 GitHub Actions를 사용합니다.
 - 배포 순서:
   1. 테스트와 빌드
@@ -121,6 +130,8 @@ docker compose -f infra/docker-compose.yml up -d
 - nginx는 SPA fallback과 same-origin `/api` 프록시를 제공합니다.
 - staging은 HTTPS 종단 뒤에서 `SESSION_COOKIE_SECURE=true`로 동작합니다.
 - 브라우저가 presigned URL로 직접 업로드하므로 `S3_PUBLIC_ENDPOINT`는 브라우저에서 접근 가능한 주소여야 합니다.
+- staging의 MinIO 9000 공개는 임시값입니다. production은 관리형 S3 + 비공개 버킷 + TLS 공개 호스트를 사용하고, MinIO 포트를 외부에 게시하지 않습니다.
+- `NOTIFICATION_SECRET_KEY`는 staging/prod에서 필수이며, 시크릿 관리자에서 주입합니다. 회전 시 기존 `notification_secret`은 복호화할 수 없으므로 만료·정리 후 새 초대부터 새 키를 사용합니다.
 - 이 골격은 M6 검색과 1차 프리즈 전까지 배포 완료로 간주하지 않습니다.
 
 ## 5. 보안
@@ -205,6 +216,14 @@ docker compose -f infra/docker-compose.yml up -d
 - M0의 readiness는 DB와 RabbitMQ만 확인하고, S3 health indicator는 M5 이미지 파이프라인에서 추가합니다.
 - AI provider 장애는 readiness 실패로 처리하지 않습니다.
 - 헬스 응답에는 비밀 값과 내부 오류 상세를 포함하지 않습니다.
+
+## 5.7 부하/실행 계획
+
+- k6 시나리오는 [`load/k6`](../load/k6/README.md)에 있습니다. staging/로컬 전용이며 운영 계정을 사용하지 않습니다.
+- GitHub Actions의 `load` workflow(`workflow_dispatch`)에서 수동 실행하며, `LOAD_TEST_EMAIL`/`LOAD_TEST_PASSWORD` 시크릿을 사용합니다.
+- 목록 p95 500ms, 검색 p95 800ms, 실패율 1% 미만을 기준으로 합니다.
+- 부하 테스트 전 `psql -d agolock -f scripts/explain_queries.sql`로 `inventory_access`, keyset, share ACL 실행 계획을 확인합니다.
+- 결과 요약은 `build/load-*.json`에 남깁니다.
 
 ## 6. 테스트 전략
 

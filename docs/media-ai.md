@@ -309,13 +309,14 @@ CREATE INDEX idx_inventory_effective_embedding
 | `ai.recognition` | `ai.recognition.requested` | 이미지 인식 | `ai.recognition.dlq` |
 | `ai.embedding` | `ai.embedding.requested` | 이미지 임베딩 | `ai.embedding.dlq` |
 | `notification` | `notification.requested` | 이메일, 3차 인앱 알림 | `notification.dlq` |
-| `domain.events` | `inventory.*`, `share.*`, `image.processed`, `ai.*.completed` | 검색·감사·알림 보조 | `domain.events.dlq` |
+| `domain.events` | `inventory.*`, `share.*`, `ai.*.completed` | 검색·감사·알림 보조 | `domain.events.dlq` |
 
 - 재시도는 지수 백오프를 사용합니다.
 - 최대 재시도 횟수는 큐별로 설정합니다.
 - DLQ 메시지는 운영 CLI 또는 관리자 전용 재처리 API로 다시 넣을 수 있습니다.
 - 메시지에는 `eventId`, `eventType`, `spaceId`, `occurredAt`을 포함합니다.
 - job 관련 메시지는 `jobId`를 추가로 포함합니다.
+- `image.processed`/`image.deleted`는 소비자가 생길 때까지 발행하지 않습니다.
 - 소비자는 `eventId` 또는 `jobId`로 멱등성을 보장합니다.
 
 ### 7.3 AI job 상태

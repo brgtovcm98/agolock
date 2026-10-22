@@ -15,6 +15,8 @@ from contract_validation import (
     validate_openapi,
     walk_refs,
 )
+from openapi_coverage import check_openapi_coverage
+from openapi_snapshot import check as check_openapi_snapshot
 
 ROOT = Path(__file__).resolve().parent.parent
 INDEX = ROOT / "docs" / "index.yaml"
@@ -171,6 +173,8 @@ def check_contracts() -> int:
     errors += check_openapi(PREVIEW_DIR / "openapi.yaml", preview=True)
     errors += check_asyncapi(PREVIEW_DIR / "events.yaml", preview=True)
     errors += check_data_dictionary(PREVIEW_DIR / "data-dictionary.md", preview=True)
+    errors += check_openapi_coverage()
+    errors += check_openapi_snapshot()
     return errors
 
 

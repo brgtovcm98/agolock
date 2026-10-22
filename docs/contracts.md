@@ -82,6 +82,7 @@ RFC 7807 `application/problem+json`을 사용합니다.
 | `VERSION_CONFLICT` | 낙관적 잠금 충돌 |
 | `IDEMPOTENCY_KEY_REUSED` | 같은 키로 다른 요청 |
 | `INVALID_CURSOR` | 잘못된 커서 |
+| `CURSOR_NOT_SUPPORTED_FOR_SORT` | 해당 정렬은 커서 페이지네이션을 지원하지 않음 |
 | `UNSUPPORTED_MEDIA_TYPE` | 지원하지 않는 Content-Type |
 | `METHOD_NOT_ALLOWED` | 지원하지 않는 HTTP 메서드 |
 | `AUTHENTICATION_REQUIRED` | 세션 없음·만료 |
@@ -114,6 +115,9 @@ RFC 7807 `application/problem+json`을 사용합니다.
 - 응답: `items`, `nextCursor`
 - 기본 `limit`은 20, 최대 100입니다.
 - 검색은 Item 그룹 단위로 페이지네이션합니다.
+- `UPDATED_DESC` 검색은 `(updated_at, itemId)` keyset 커서를 사용합니다.
+- `RELEVANCE` 검색은 첫 페이지만 제공하며 `nextCursor`를 반환하지 않습니다. 커서를 보내면 `400 CURSOR_NOT_SUPPORTED_FOR_SORT`입니다.
+- `NAME_ASC`/`VIEWED_DESC`/`STATUS_ASC`는 1차에서 기존 offset 커서를 유지합니다.
 - 커서는 정렬 키와 `itemId`를 포함합니다.
 - 잘못된 커서는 `400 INVALID_CURSOR`를 반환합니다.
 - 전체 개수는 별도 count API가 필요한 경우에만 제공합니다.
@@ -245,8 +249,8 @@ RFC 7807 `application/problem+json`을 사용합니다.
 ### 5.9 목록 필터 기본값
 
 - `status`를 생략하면 `IN_USE`, `STORED`를 적용하고 `DISPOSED`는 명시할 때만 포함합니다.
-- `roomId`는 하위 Shelf와 Box를 포함합니다.
-- `shelfId`는 하위 Box를 포함합니다.
+- `roomId`는 목록 API에서 직접 위치한 Inventory만 대상으로 합니다. 검색 API의 `roomId`는 하위 Shelf와 Box를 포함합니다.
+- `shelfId`는 목록 API에서 직접 위치한 Inventory만 대상으로 합니다. 검색 API의 `shelfId`는 하위 Box를 포함합니다.
 - `boxId`는 해당 Box만 대상으로 합니다.
 - `categoryId`는 effective category를 기준으로 합니다.
 - `scope`는 `ALL`, `OWNED`, `SHARED`이며 기본값은 `ALL`입니다.
@@ -268,7 +272,6 @@ Outbox 기준 주요 이벤트 타입:
 - `inventory.moved`
 - `inventory.deleted`
 - `image.uploaded`
-- `image.processed`
 - `ai.recognition.requested`
 - `ai.recognition.completed`
 - `ai.embedding.requested`
@@ -278,6 +281,8 @@ Outbox 기준 주요 이벤트 타입:
 - `share.invitation.declined`
 - `share.created`
 - `share.revoked`
+
+`image.processed`와 `image.deleted`는 현재 소비자·바인딩이 없어 발행하지 않습니다. 소비자를 도입할 때 큐/바인딩/재처리 정책과 함께 추가합니다.
 
 이벤트 공통 필드:
 
@@ -309,3 +314,14 @@ Outbox 기준 주요 이벤트 타입:
 - M0의 미리보기 파일은 `build/contracts/openapi.yaml`, `events.yaml`, `data-dictionary.md`이며 커밋하지 않습니다.
 - M1·M2에서도 `build/contracts/` 미리보기 모드를 유지합니다. `docs/generated/` 기록 모드 전환은 [ADR-015](decisions/ADR-015-contract-preview-mode.md)에 따라 M4 또는 M8에서 판단합니다.
 - 계약 변경 시 코드와 생성 스크립트를 함께 갱신합니다.
+
+## 9. 계약 커버리지 검사
+
+- `python3 scripts/openapi_coverage.py`는 `build/contracts/openapi.yaml`의 구현 path/method가 이 문서에 있는지 검사합니다.
+- `/info`, `/share-invitations/{invitationId}/resend`, `/shared/*` 5개는 아직 계약 문서에 옮기지 않아 allowlist에 있습니다. 계약을 추가하면 allowlist에서 제거합니다.
+
+## 10. Schema snapshot 검사
+
+- `python3 scripts/openapi_snapshot.py`는 `build/contracts/openapi.json`과 `contracts/openapi.snapshot.json`의 request/response schema, required, enum을 비교합니다.
+- 의도한 계약 변경이면 `python3 scripts/openapi_snapshot.py --update`로 snapshot을 갱신하고 review에 포함합니다.
+- `docs_check.py`는 preview와 snapshot이 모두 있을 때 이 검사를 실행합니다.

@@ -81,11 +81,10 @@ CHECK (num_nonnulls(room_id, shelf_id, box_id) = 1)
 
 - 위치 FK는 같은 Space의 리소스만 참조합니다.
 - 복합 FK 예: `(shelf_id, space_id) -> shelf(id, space_id)`
-- 방 전체 재고 조회는 직접 위치한 재고와 하위 Shelf, Box의 재고를 합쳐 계산합니다.
+- 방 전체 재고 조회(검색)는 직접 위치한 재고와 하위 Shelf, Box의 재고를 합쳐 계산합니다.
 - 위치 이름 검색은 계층 조인으로 처리합니다.
 - 위치가 바뀌어도 Item, 상태, 임베딩은 바뀌지 않습니다.
-- `roomId` 필터는 하위 Shelf와 Box를 포함합니다.
-- `shelfId` 필터는 하위 Box를 포함합니다.
+- 목록 API의 `roomId`/`shelfId` 필터는 직접 위치한 Inventory만 대상으로 합니다. 검색 API의 `roomId`는 하위 Shelf/Box, `shelfId`는 하위 Box를 포함합니다.
 - `boxId` 필터는 해당 Box만 대상으로 합니다.
 
 ### 3.3 위치 삭제

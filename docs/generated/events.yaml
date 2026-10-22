@@ -55,7 +55,7 @@ channels:
         $ref: '#/components/messages/NotificationRequested'
   domain.events:
     description: |
-      routing key inventory.*, share.*, image.processed, ai.*.completed.
+      routing key inventory.*, share.*, ai.*.completed.
       검색·알림·감사가 소비할 수 있는 도메인 이벤트입니다.
       실패는 domain.events.dlq로 보냅니다.
     publish:
@@ -221,7 +221,6 @@ components:
                 - inventory.updated
                 - inventory.moved
                 - inventory.deleted
-                - image.processed
                 - ai.recognition.completed
                 - ai.embedding.completed
                 - share.invitation.created

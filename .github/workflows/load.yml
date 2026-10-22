@@ -1,0 +1,43 @@
+name: load
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "staging base URL (예: https://staging.example.com)"
+        required: true
+        type: string
+      scenario:
+        description: "k6 scenario"
+        required: true
+        default: inventory-list
+        type: choice
+        options:
+          - inventory-list
+          - search
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: Run k6
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+          TEST_EMAIL: ${{ secrets.LOAD_TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.LOAD_TEST_PASSWORD }}
+        run: |
+          k6 run \
+            --summary-export=build/load-${{ inputs.scenario }}.json \
+            -e BASE_URL="$BASE_URL" \
+            -e TEST_EMAIL="$TEST_EMAIL" \
+            -e TEST_PASSWORD="$TEST_PASSWORD" \
+            load/k6/${{ inputs.scenario }}.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-summary
+          path: build/load-*.json
+          if-no-files-found: ignore

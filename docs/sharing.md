@@ -241,3 +241,9 @@ sequenceDiagram
 - 1차 알림은 공유 초대 이메일만 제공합니다.
 - 공유 사용자가 재고를 추가·삭제·이동할 때의 인앱 알림은 3차 범위입니다.
 - 알림 문구와 템플릿 키는 [운영](operations.md)을 따릅니다.
+
+## 메일 토큰 저장
+
+- 초대 메일의 원문 토큰은 `notification_secret`에 AES-GCM으로 암호화해 저장하고, outbox에는 `secretId`만 기록합니다.
+- 키는 `NOTIFICATION_SECRET_KEY`로 주입하며 저장소에 커밋하지 않습니다.
+- 초대 만료 후 secret은 worker cleanup job이 삭제합니다.

@@ -25,6 +25,13 @@ Room과 Shelf 공유는 보기, 수정, 재고 추가·삭제의 3단계를 요�
 - 공유 사용자가 마스터를 수정하지 못해 다른 재고에 미치는 영향을 제한합니다.
 - 선반별 비공개 예외는 3차까지 지원하지 않습니다.
 
+## 구현 메모
+
+- 2026-10-22: 내부 판정은 `GrantLevel(VIEW/EDIT/MANAGE)`과 sealed `EffectivePermission(None/Owner/Granted)`로 분리했습니다.
+- Space 소유자는 Grant가 아니라 `EffectivePermission.Owner`로 계산합니다.
+- `AccessTarget`은 `Space/Room/Shelf/Box` sealed 타입으로 전환했습니다.
+- API 응답의 `effectivePermission` 문자열(`OWNER/VIEW/EDIT/MANAGE`)과 `Permission` enum은 호환을 위해 유지합니다.
+
 ## 대안
 
 - 독립 비트 권한: 유연하지만 UI와 검증이 복잡해집니다.
