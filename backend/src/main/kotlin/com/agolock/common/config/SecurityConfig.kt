@@ -61,6 +61,8 @@ class SecurityConfig(
                 }
                 authorize.requestMatchers("/actuator/**").denyAll()
                 authorize.anyRequest().authenticated()
+            }.requestCache { cache ->
+                cache.disable()
             }.sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 session.sessionFixation { fixation -> fixation.migrateSession() }

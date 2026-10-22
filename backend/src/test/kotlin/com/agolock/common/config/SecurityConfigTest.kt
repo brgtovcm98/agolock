@@ -12,6 +12,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -22,12 +23,24 @@ class SecurityConfigTest
     constructor(
         private val restTemplate: TestRestTemplate,
         @LocalManagementPort private val managementPort: Int,
+        private val jdbcTemplate: JdbcTemplate,
     ) {
         @Test
         fun `인증 없이 info API를 호출하면 401이다`() {
             val response = restTemplate.getForEntity("/api/v1/info", String::class.java)
 
             assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+        }
+
+        @Test
+        fun `인증 없는 401은 SPRING_SESSION을 만들지 않는다`() {
+            val before = sessionCount()
+            val response = restTemplate.getForEntity("/api/v1/rooms", String::class.java)
+
+            assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+            assertThat(response.headers[HttpHeaders.SET_COOKIE].orEmpty())
+                .noneMatch { it.startsWith("SESSION=") }
+            assertThat(sessionCount()).isEqualTo(before)
         }
 
         @Test
@@ -87,6 +100,8 @@ class SecurityConfigTest
             assertThat(response.statusCode).isIn(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
         }
 
+        private fun sessionCount(): Int = jdbcTemplate.queryForObject(SESSION_COUNT_SQL, Int::class.java) ?: 0
+
         private fun csrfTokenAndCookie(): Csrf {
             val response = restTemplate.getForEntity("/api/v1/auth/csrf", Map::class.java)
             assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
@@ -112,6 +127,7 @@ class SecurityConfigTest
         )
 
         private companion object {
+            const val SESSION_COUNT_SQL = "SELECT COUNT(*) FROM spring_session"
             const val LOGIN_BODY = """{"email":"security-config-test@example.com","password":"wrong-password-123"}"""
         }
     }
