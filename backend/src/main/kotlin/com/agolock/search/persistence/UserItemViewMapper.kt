@@ -59,12 +59,25 @@ interface UserItemViewMapper {
         WHERE v.user_id = #{userId}
           AND it.deleted_at IS NULL
           AND v.last_viewed_at >= #{since}
+          AND (
+            v.space_id = #{ownSpaceId}
+            OR EXISTS (
+              SELECT 1
+              FROM inventory_access a
+              JOIN share s ON s.space_id = a.space_id
+                AND s.grantee_user_id = #{userId}
+                AND s.revoked_at IS NULL
+                AND (s.room_id = a.effective_room_id OR s.shelf_id = a.effective_shelf_id)
+              WHERE a.item_id = v.item_id
+            )
+          )
         ORDER BY v.view_count DESC, v.last_viewed_at DESC
         LIMIT 10
         """,
     )
     fun list(
         @Param("userId") userId: UUID,
+        @Param("ownSpaceId") ownSpaceId: UUID,
         @Param("since") since: OffsetDateTime,
     ): List<FrequentItemRow>
 }

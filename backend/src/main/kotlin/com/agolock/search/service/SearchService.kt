@@ -205,7 +205,7 @@ class SearchService(
     fun frequent(actor: Actor): FrequentItemList {
         val since = OffsetDateTime.now(clock).minusDays(90)
         return FrequentItemList(
-            userItemViewMapper.list(actor.userId, since).map {
+            userItemViewMapper.list(actor.userId, actor.spaceId, since).map {
                 FrequentItemResponse(it.itemId, it.itemName, it.primaryImageId, it.viewCount, it.lastViewedAt)
             },
         )

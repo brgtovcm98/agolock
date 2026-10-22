@@ -173,6 +173,42 @@ class SearchIntegrationTest
         }
 
         @Test
+        fun `공유 철회 후 frequent는 item을 노출하지 않는다`() {
+            val owner = AuthTestClient(restTemplate, objectMapper)
+            owner.signup("frequent-owner-${UUID.randomUUID()}@example.com", "password-1234", "소유자")
+            val room = json(owner.post("/api/v1/rooms", mapOf("name" to "빈번 창고")).body)
+            val item = json(owner.post("/api/v1/items", mapOf("name" to "빈번 랜턴")).body)
+            val itemId = item["id"].asText()
+            owner.post(
+                "/api/v1/inventories",
+                mapOf("itemId" to itemId, "roomId" to room["id"].asText()),
+            )
+            val guestEmail = "frequent-guest-${UUID.randomUUID()}@example.com"
+            owner.post(
+                "/api/v1/share-invitations",
+                mapOf("roomId" to room["id"].asText(), "invitedEmail" to guestEmail, "permission" to "VIEW"),
+            )
+            outboxRelay.relay()
+            val guest = AuthTestClient(restTemplate, objectMapper)
+            guest.signup(guestEmail, "password-1234", "게스트")
+            val token = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            guest.post("/api/v1/share-invitations/accept", mapOf("token" to token))
+            assertThat(guest.post("/api/v1/items/$itemId/view", emptyMap<String, Any>()).statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+
+            val before = json(guest.get("/api/v1/search/frequent").body)["items"]
+            assertThat(before.any { it["itemId"].asText() == itemId }).isTrue()
+
+            val share =
+                json(owner.get("/api/v1/shares").body)["items"]
+                    .first { it["roomId"].asText() == room["id"].asText() }
+            assertThat(owner.delete("/api/v1/shares/${share["id"].asText()}").statusCode)
+                .isEqualTo(HttpStatus.NO_CONTENT)
+
+            val after = json(guest.get("/api/v1/search/frequent").body)["items"]
+            assertThat(after.any { it["itemId"].asText() == itemId }).isFalse()
+        }
+
+        @Test
         fun `검색어 없이도 기본 정렬과 상태 필터로 검색한다`() {
             val empty = client.get("/api/v1/search?scope=ALL")
             assertThat(empty.statusCode).isEqualTo(HttpStatus.OK)
