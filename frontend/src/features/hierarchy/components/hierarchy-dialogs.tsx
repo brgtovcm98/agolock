@@ -6,7 +6,7 @@ import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { TextField } from '@/shared/ui/text-field'
 
-function DialogFrame({
+export function DialogFrame({
   open,
   onOpenChange,
   title,

@@ -24,7 +24,7 @@
 | M0~M4 | 완료 | 유지 |
 | M5 | presign·complete·목록·URL·대표·삭제·Outbox·worker 착수 | M5.5 P0: Item 권한, S3 health, worker 프로필, Item 갤러리, 업로드 상태 UI |
 | M6 | 없음. `/items?q=` 임시 이름 검색만 존재 | `/search`·추천·그룹 커서·필터·정렬·검색 UI |
-| P0/P1 UX | 등록 시트·상세·편집·공유·공유 위치 완료 | 1차 프리즈 전 Box 이동 UI, 문서·잔여물 정리 |
+| P0/P1 UX | 등록 시트·상세·편집·공유·공유 위치·Box 이동 완료 | 1차 프리즈 전 문서·잔여물 정리 |
 | 품질 | backend full test, frontend 34개, E2E 10개 green | 검색·이미지 E2E, staging 스모크 |
 | 배포 | Dockerfile·prod 프로필·nginx·릴리스 workflow 없음 | staging/production 동일 스크립트 |
 | 운영 | 백업·관측·롤백 리허설 없음 | M8 최소 gate |
@@ -309,3 +309,4 @@
 | 2026-10-22 | M5-1 Item 이미지 OWNER 권한, M5-2 S3 health, M5-3 worker 프로필, M5-4 Item 갤러리, M5-5 업로드 상태·취소·재시도 | backend 이미지 권한·S3 health 테스트, frontend lint·34 tests, E2E 10개 |
 | 2026-10-22 | 배포 골격: backend/frontend Dockerfile, nginx, staging Compose, staging/prod 프로필, GHCR release workflow, healthcheck·smoke | compose config, 두 이미지 빌드, staging 스택 기동·readiness·worker 분리 확인 |
 | 2026-10-22 | M6 MVP: V17/V18, 검색 API·ACL·최근 검색·자주 본 물건·조회 기록, `/search` UI, 홈 검색 연결 | 검색 통합 테스트, 프론트 35 tests, E2E 12개 |
+| 2026-10-22 | Box 이동 UI와 이동 테스트 | 프론트 단위 테스트 |

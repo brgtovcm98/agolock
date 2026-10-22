@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { hierarchyApi, type Box, type Room, type Shelf } from './api'
 import { DeleteDialog, MoveDialog, NodeFormDialog } from './components/hierarchy-dialogs'
+import { MoveBoxDialog } from './components/move-box-dialog'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
@@ -66,6 +67,11 @@ export function SpaceTreePage() {
   )
   const [editTarget, setEditTarget] = useState<{ kind: NodeKind; node: AnyNode } | null>(null)
   const [moveTarget, setMoveTarget] = useState<Shelf | null>(null)
+  const [moveBoxTarget, setMoveBoxTarget] = useState<{
+    box: Box
+    roomId: string
+    shelfId: string
+  } | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ kind: NodeKind; node: AnyNode } | null>(null)
   const [mutationError, setMutationError] = useState<string | null>(null)
 
@@ -152,6 +158,18 @@ export function SpaceTreePage() {
       setMutationError(error instanceof ApiError ? error.message : '이동하지 못했습니다.'),
   })
 
+  const moveBoxMutation = useMutation({
+    mutationFn: async ({ box, shelfId }: { box: Box; shelfId: string }) =>
+      hierarchyApi.moveBox(box.id, shelfId, box.version),
+    onSuccess: async () => {
+      setMoveBoxTarget(null)
+      setMutationError(null)
+      await invalidate()
+    },
+    onError: (error) =>
+      setMutationError(error instanceof ApiError ? error.message : '이동하지 못했습니다.'),
+  })
+
   const rooms = roomsQuery.data?.pages.flatMap((page) => page.items) ?? []
   const roomsForMove = rooms.map((room) => ({ id: room.id, name: room.name }))
 
@@ -230,6 +248,7 @@ export function SpaceTreePage() {
               onMoveShelf={(shelf) => setMoveTarget(shelf)}
               onEditBox={(box) => setEditTarget({ kind: 'box', node: box })}
               onDeleteBox={(box) => setDeleteTarget({ kind: 'box', node: box })}
+              onMoveBox={(box) => setMoveBoxTarget({ box, roomId: room.id, shelfId: box.shelfId })}
             />
           ))}
           {roomsQuery.hasNextPage ? (
@@ -303,6 +322,19 @@ export function SpaceTreePage() {
         error={mutationError}
         onSubmit={(roomId) => moveTarget && moveMutation.mutate({ shelf: moveTarget, roomId })}
       />
+      {moveBoxTarget ? (
+        <MoveBoxDialog
+          open
+          onOpenChange={(open) => !open && setMoveBoxTarget(null)}
+          box={moveBoxTarget.box}
+          currentRoomId={moveBoxTarget.roomId}
+          currentShelfId={moveBoxTarget.shelfId}
+          rooms={roomsForMove}
+          pending={moveBoxMutation.isPending}
+          error={mutationError}
+          onSubmit={(shelfId) => moveBoxMutation.mutate({ box: moveBoxTarget.box, shelfId })}
+        />
+      ) : null}
       <DeleteDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
@@ -328,6 +360,7 @@ function RoomBranch({
   onMoveShelf,
   onEditBox,
   onDeleteBox,
+  onMoveBox,
 }: {
   room: Room
   expanded: boolean
@@ -341,6 +374,7 @@ function RoomBranch({
   onMoveShelf: (shelf: Shelf) => void
   onEditBox: (box: Box) => void
   onDeleteBox: (box: Box) => void
+  onMoveBox: (box: Box) => void
 }) {
   const shelvesQuery = useInfiniteQuery({
     queryKey: ['hierarchy', 'shelves', room.id, 'tree'],
@@ -407,6 +441,7 @@ function RoomBranch({
               onMove={() => onMoveShelf(shelf)}
               onEditBox={onEditBox}
               onDeleteBox={onDeleteBox}
+              onMoveBox={onMoveBox}
             />
           ))}
           {shelvesQuery.hasNextPage ? (
@@ -434,6 +469,7 @@ function ShelfBranch({
   onMove,
   onEditBox,
   onDeleteBox,
+  onMoveBox,
 }: {
   shelf: Shelf
   onAddBox: () => void
@@ -442,6 +478,7 @@ function ShelfBranch({
   onMove: () => void
   onEditBox: (box: Box) => void
   onDeleteBox: (box: Box) => void
+  onMoveBox: (box: Box) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const boxesQuery = useInfiniteQuery({
@@ -515,7 +552,11 @@ function ShelfBranch({
               </Link>
               {box.effectivePermission === 'OWNER' ? (
                 <div className="ml-auto">
-                  <NodeActions onEdit={() => onEditBox(box)} onDelete={() => onDeleteBox(box)} />
+                  <NodeActions
+                    onEdit={() => onEditBox(box)}
+                    onDelete={() => onDeleteBox(box)}
+                    onMove={() => onMoveBox(box)}
+                  />
                 </div>
               ) : null}
             </div>
