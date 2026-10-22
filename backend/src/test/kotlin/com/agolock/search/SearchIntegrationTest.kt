@@ -209,6 +209,49 @@ class SearchIntegrationTest
         }
 
         @Test
+        fun `검색 목록 Item 재고 목록이 같은 공유 ACL 결과를 낸다`() {
+            val owner = AuthTestClient(restTemplate, objectMapper)
+            owner.signup("parity-owner-${UUID.randomUUID()}@example.com", "password-1234", "소유자")
+            val room = json(owner.post("/api/v1/rooms", mapOf("name" to "패리티 창고")).body)
+            val item = json(owner.post("/api/v1/items", mapOf("name" to "패리티 랜턴")).body)
+            val inventory =
+                json(
+                    owner
+                        .post(
+                            "/api/v1/inventories",
+                            mapOf("itemId" to item["id"].asText(), "roomId" to room["id"].asText()),
+                        ).body,
+                )
+            val guestEmail = "parity-guest-${UUID.randomUUID()}@example.com"
+            owner.post(
+                "/api/v1/share-invitations",
+                mapOf("roomId" to room["id"].asText(), "invitedEmail" to guestEmail, "permission" to "VIEW"),
+            )
+            outboxRelay.relay()
+            val guest = AuthTestClient(restTemplate, objectMapper)
+            guest.signup(guestEmail, "password-1234", "게스트")
+            val token = mailPort.invitationMessages.last { it.email == guestEmail }.token
+            guest.post("/api/v1/share-invitations/accept", mapOf("token" to token))
+
+            val searchIds =
+                json(guest.get("/api/v1/search?q=패리티&scope=SHARED").body)["items"]
+                    .flatMap { group -> group["inventories"].map { it["inventoryId"].asText() } }
+                    .toSet()
+            val listIds =
+                json(guest.get("/api/v1/inventories?scope=SHARED").body)["items"]
+                    .map { it["id"].asText() }
+                    .toSet()
+            val itemIds =
+                json(guest.get("/api/v1/items/${item["id"].asText()}/inventories").body)["items"]
+                    .map { it["id"].asText() }
+                    .toSet()
+
+            assertThat(searchIds).containsExactly(inventory["id"].asText())
+            assertThat(listIds).isEqualTo(searchIds)
+            assertThat(itemIds).isEqualTo(searchIds)
+        }
+
+        @Test
         fun `검색어 없이도 기본 정렬과 상태 필터로 검색한다`() {
             val empty = client.get("/api/v1/search?scope=ALL")
             assertThat(empty.statusCode).isEqualTo(HttpStatus.OK)
