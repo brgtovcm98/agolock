@@ -13,12 +13,30 @@ import java.util.UUID
 
 @Mapper
 interface ItemMapper {
-    @Select("SELECT * FROM item WHERE id = #{id} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, name,
+                description, category_id, price_amount,
+                currency, version, created_at,
+                updated_at, deleted_at
+        FROM item
+        WHERE id = #{id} AND deleted_at IS NULL
+        """,
+    )
     fun findByIdAny(
         @Param("id") id: UUID,
     ): Item?
 
-    @Select("SELECT * FROM item WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, name,
+                description, category_id, price_amount,
+                currency, version, created_at,
+                updated_at, deleted_at
+        FROM item
+        WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL
+        """,
+    )
     fun findById(
         @Param("spaceId") spaceId: UUID,
         @Param("id") id: UUID,
@@ -27,7 +45,7 @@ interface ItemMapper {
     @Select(
         """
         <script>
-        SELECT * FROM item
+        SELECT id, space_id, name, description, category_id, price_amount, currency, version, created_at, updated_at, deleted_at FROM item
         WHERE space_id = #{spaceId} AND deleted_at IS NULL
         <if test="categoryId != null">AND category_id = #{categoryId}</if>
         <if test="q != null and q != ''">AND name ILIKE '%' || #{q} || '%'</if>
@@ -48,7 +66,7 @@ interface ItemMapper {
     @Select(
         """
         <script>
-        SELECT DISTINCT i.* FROM item i
+        SELECT DISTINCT i.id, i.space_id, i.name, i.description, i.category_id, i.price_amount, i.currency, i.version, i.created_at, i.updated_at, i.deleted_at FROM item i
         JOIN inventory inv ON inv.item_id = i.id AND inv.space_id = i.space_id AND inv.deleted_at IS NULL
         LEFT JOIN shelf ds ON ds.id = inv.shelf_id
         LEFT JOIN box b ON b.id = inv.box_id
@@ -73,7 +91,16 @@ interface ItemMapper {
         @Param("limit") limit: Int,
     ): List<Item>
 
-    @Select("SELECT * FROM item WHERE space_id = #{spaceId} AND category_id = #{categoryId} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, name,
+                description, category_id, price_amount,
+                currency, version, created_at,
+                updated_at, deleted_at
+        FROM item
+        WHERE space_id = #{spaceId} AND category_id = #{categoryId} AND deleted_at IS NULL
+        """,
+    )
     fun listByCategory(
         @Param("spaceId") spaceId: UUID,
         @Param("categoryId") categoryId: UUID,

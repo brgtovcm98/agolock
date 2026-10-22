@@ -13,14 +13,22 @@ import java.util.UUID
 
 @Mapper
 interface CategoryMapper {
-    @Select("SELECT * FROM category WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, name,
+                normalized_name, color, sort_order,
+                created_at, updated_at, deleted_at
+        FROM category
+        WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL
+        """,
+    )
     fun findById(
         @Param("spaceId") spaceId: UUID,
         @Param("id") id: UUID,
     ): Category?
 
     @Select(
-        "SELECT * FROM category WHERE space_id = #{spaceId} AND deleted_at IS NULL ORDER BY sort_order ASC, name ASC, id ASC LIMIT #{limit}",
+        "SELECT id, space_id, name, normalized_name, color, sort_order, created_at, updated_at, deleted_at FROM category WHERE space_id = #{spaceId} AND deleted_at IS NULL ORDER BY sort_order ASC, name ASC, id ASC LIMIT #{limit}",
     )
     fun list(
         @Param("spaceId") spaceId: UUID,
@@ -28,7 +36,7 @@ interface CategoryMapper {
     ): List<Category>
 
     @Select(
-        "SELECT * FROM category WHERE space_id = #{spaceId} AND normalized_name = #{normalizedName} AND deleted_at IS NULL",
+        "SELECT id, space_id, name, normalized_name, color, sort_order, created_at, updated_at, deleted_at FROM category WHERE space_id = #{spaceId} AND normalized_name = #{normalizedName} AND deleted_at IS NULL",
     )
     fun findActiveByNormalizedName(
         @Param("spaceId") spaceId: UUID,

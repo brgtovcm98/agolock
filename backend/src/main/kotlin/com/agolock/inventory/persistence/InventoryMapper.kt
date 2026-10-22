@@ -14,12 +14,32 @@ import java.util.UUID
 
 @Mapper
 interface InventoryMapper {
-    @Select("SELECT * FROM inventory WHERE id = #{id} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, item_id,
+                room_id, shelf_id, box_id,
+                name_override, description_override, category_id_override,
+                price_amount_override, status, version,
+                created_at, updated_at, deleted_at
+        FROM inventory
+        WHERE id = #{id} AND deleted_at IS NULL
+        """,
+    )
     fun findByIdAny(
         @Param("id") id: UUID,
     ): Inventory?
 
-    @Select("SELECT * FROM inventory WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, item_id,
+                room_id, shelf_id, box_id,
+                name_override, description_override, category_id_override,
+                price_amount_override, status, version,
+                created_at, updated_at, deleted_at
+        FROM inventory
+        WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL
+        """,
+    )
     fun findById(
         @Param("spaceId") spaceId: UUID,
         @Param("id") id: UUID,
@@ -98,13 +118,33 @@ interface InventoryMapper {
         @Param("limit") limit: Int,
     ): List<InventoryListRow>
 
-    @Select("SELECT * FROM inventory WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL AND status <> 'DISPOSED'")
+    @Select(
+        """
+        SELECT id, space_id, item_id,
+                room_id, shelf_id, box_id,
+                name_override, description_override, category_id_override,
+                price_amount_override, status, version,
+                created_at, updated_at, deleted_at
+        FROM inventory
+        WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL AND status <> 'DISPOSED'
+        """,
+    )
     fun listByItem(
         @Param("spaceId") spaceId: UUID,
         @Param("itemId") itemId: UUID,
     ): List<Inventory>
 
-    @Select("SELECT * FROM inventory WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL")
+    @Select(
+        """
+        SELECT id, space_id, item_id,
+                room_id, shelf_id, box_id,
+                name_override, description_override, category_id_override,
+                price_amount_override, status, version,
+                created_at, updated_at, deleted_at
+        FROM inventory
+        WHERE space_id = #{spaceId} AND item_id = #{itemId} AND deleted_at IS NULL
+        """,
+    )
     fun listAllByItem(
         @Param("spaceId") spaceId: UUID,
         @Param("itemId") itemId: UUID,
