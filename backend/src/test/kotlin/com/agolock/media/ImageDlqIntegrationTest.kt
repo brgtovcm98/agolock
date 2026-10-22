@@ -2,6 +2,8 @@ package com.agolock.media
 
 import com.agolock.media.messaging.RabbitTopologyConfig
 import com.agolock.support.TestcontainersConfiguration
+import com.rabbitmq.client.Channel
+import com.rabbitmq.client.GetResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.amqp.core.AmqpAdmin
@@ -47,13 +49,21 @@ class ImageDlqIntegrationTest
                     channel.basicNack(received.envelope.deliveryTag, false, false)
                 }
             }
-            Thread.sleep(500)
             connectionFactory.createConnection().use { connection ->
                 connection.createChannel(false).use { channel ->
-                    val dead = channel.basicGet("image.process.dlq", true)
+                    val dead = awaitDeadLetter(channel)
                     assertThat(dead).isNotNull
-                    assertThat(String(dead.body, StandardCharsets.UTF_8)).isEqualTo("payload")
+                    assertThat(String(dead!!.body, StandardCharsets.UTF_8)).isEqualTo("payload")
                 }
             }
+        }
+
+        private fun awaitDeadLetter(channel: Channel): GetResponse? {
+            val deadline = System.nanoTime() + 5_000_000_000L
+            while (System.nanoTime() < deadline) {
+                channel.basicGet("image.process.dlq", true)?.let { return it }
+                Thread.sleep(50)
+            }
+            return null
         }
     }
