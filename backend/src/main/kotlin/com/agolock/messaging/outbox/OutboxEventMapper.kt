@@ -168,8 +168,13 @@ interface OutboxEventMapper {
         @Param("error") error: String,
     ): Int
 
-    @Delete("DELETE FROM outbox_event WHERE status IN ('PUBLISHED', 'FAILED') AND created_at < #{before}")
-    fun deleteTerminalBefore(
+    @Delete("DELETE FROM outbox_event WHERE status = 'PUBLISHED' AND created_at < #{before}")
+    fun deletePublishedBefore(
+        @Param("before") before: OffsetDateTime,
+    ): Int
+
+    @Delete("DELETE FROM outbox_event WHERE status = 'FAILED' AND created_at < #{before}")
+    fun deleteFailedBefore(
         @Param("before") before: OffsetDateTime,
     ): Int
 }

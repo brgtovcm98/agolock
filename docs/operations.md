@@ -94,7 +94,7 @@ docker compose -f infra/docker-compose.yml up -d
 - 만료된 공유 초대는 `EXPIRED`로 표시합니다.
 - 만료된 최근 검색은 30일 후 삭제합니다.
 - 만료된 `idempotency_record`는 24시간 후 삭제합니다.
-- worker는 `PUBLISHED`/`FAILED` outbox를 기본 30일 보관 후 삭제하고(`agolock.outbox.retention-days`), 만료된 `notification_secret`을 1시간마다 정리합니다.
+- worker는 `PUBLISHED` outbox를 기본 30일, `FAILED` outbox를 기본 90일 보관 후 삭제하고(`agolock.outbox.retention.published-days`, `failed-days`), 만료된 `notification_secret`을 1시간마다 정리합니다.
 
 ### 3.3 데이터 감사·백필
 
@@ -133,6 +133,19 @@ docker compose -f infra/docker-compose.yml up -d
 - staging의 MinIO 9000 공개는 임시값입니다. production은 관리형 S3 + 비공개 버킷 + TLS 공개 호스트를 사용하고, MinIO 포트를 외부에 게시하지 않습니다.
 - `NOTIFICATION_SECRET_KEY`는 staging/prod에서 필수이며, 시크릿 관리자에서 주입합니다. 회전 시 기존 `notification_secret`은 복호화할 수 없으므로 만료·정리 후 새 초대부터 새 키를 사용합니다.
 - 이 골격은 M6 검색과 1차 프리즈 전까지 배포 완료로 간주하지 않습니다.
+
+### 4.2 Production readiness checklist
+
+- [ ] staging DB 백업 후 Flyway V19~V23 적용, `scripts/audit_data.sql` 결과 확인
+- [ ] `PUBLIC_BASE_URL`, `POSTGRES_PASSWORD`, `RABBITMQ_PASSWORD`, `S3_SECRET_KEY`, `S3_PUBLIC_ENDPOINT`, `NOTIFICATION_SECRET_KEY`를 시크릿 관리자에서 주입
+- [ ] S3는 비공개 버킷 + TLS 공개 호스트, MinIO 관리 포트는 외부 비공개
+- [ ] 세션 쿠키 `Secure`, `SameSite=Lax`, CSRF, `forward-headers-strategy`를 실제 TLS 종단에 맞게 확인
+- [ ] `management.server.port=9090`을 외부에 게시하지 않고 healthcheck만 사용
+- [ ] `load/k6` 목록 p95 500ms, 검색 p95 800ms, 실패율 1% 미만 확인
+- [ ] `scripts/explain_queries.sql`로 inventory_access/keyset/share ACL 실행 계획 확인
+- [ ] Outbox `PUBLISHED` 30일 / `FAILED` 90일 retention과 DLQ 재처리 절차 확인
+- [ ] 이전 이미지로 롤백 가능한지, Flyway forward-only 정책과 백업 복구 절차를 리허설
+- [ ] 에러율/지연/DB 풀/Outbox PENDING/Rabbit DLQ 알림 구성
 
 ## 5. 보안
 

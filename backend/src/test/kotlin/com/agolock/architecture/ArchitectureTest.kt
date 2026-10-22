@@ -30,6 +30,24 @@ class ArchitectureTest {
             .resideInAPackage("..persistence..")
 
     @ArchTest
+    val commonMustNotDependOnBusinessModules: ArchRule =
+        noClasses()
+            .that()
+            .resideInAPackage("com.agolock.common..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                "com.agolock.identity..",
+                "com.agolock.hierarchy..",
+                "com.agolock.inventory..",
+                "com.agolock.sharing..",
+                "com.agolock.search..",
+                "com.agolock.media..",
+                "com.agolock.messaging..",
+                "com.agolock.system..",
+            )
+
+    @ArchTest
     val domainMustNotDependOnOuterLayers: ArchRule =
         noClasses()
             .that()
