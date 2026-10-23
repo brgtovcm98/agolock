@@ -1,0 +1,128 @@
+/* 2026-10-23 UI 점검 높음·중간 항목 개선 시안. 토큰과 기본 컴포넌트는 ../e/assets/e.css를 그대로 사용 */
+body{margin:0;background:#c9c5b5;color:#111;font-family:'Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums}
+.page{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:48px}
+.page>header{display:flex;flex-direction:column;gap:8px}
+.page h1{font-size:30px}
+.page header p{font-size:13px;max-width:760px}
+.tg{align-self:flex-start;border:2.5px solid #111;background:#fff;font:900 13px 'Noto Sans KR';height:44px;padding:0 16px;box-shadow:4px 4px 0 #111;cursor:pointer}
+.fix{display:flex;flex-direction:column;gap:16px}
+.fh{display:flex;flex-wrap:wrap;gap:12px;align-items:center;border-bottom:2.5px solid #111;padding-bottom:8px}
+.fh h2{font-size:18px;font-weight:900}
+.fh p{flex-basis:100%;font-size:13px}
+.sev{height:28px;padding:0 10px;display:inline-flex;align-items:center;border:2px solid #111;font:700 12px/1 'Noto Sans KR'}
+.sev.hi{background:#ff5a1f}.sev.md{background:#ffd93b}
+.ba{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.ba>div{display:flex;flex-direction:column;gap:8px}
+.lb{font:900 11px 'Noto Sans KR';letter-spacing:.08em}
+.lb.bad{color:#b42318}.lb.good{color:#0b6b3a}
+.phone.mini{height:auto;overflow:visible}
+.phone.mini .scroll{overflow:visible}
+.desk.mini{min-height:0;display:flex;flex-direction:column;gap:16px;padding:16px;width:420px;border:4px solid var(--border-color)}
+.desk.mini.wide{width:560px}
+.note{font-size:12px;line-height:1.6;max-width:380px}
+.note b{font-weight:900}
+.note code,.fix code{font:700 11px/1 'Noto Sans KR';background:rgba(0,0,0,.08);padding:2px 4px}
+.vp{position:relative;width:390px;border:4px solid var(--border-color)}
+
+/* 1 오버플로 */
+.over{width:520px}
+.cut{position:absolute;top:0;bottom:0;left:386px;right:-4px;background:repeating-linear-gradient(45deg,rgba(180,35,24,.25) 0 6px,transparent 6px 12px);border-left:3px dashed #b42318}
+.card.ov-card .row{min-width:0}
+.card .row>div:nth-child(2).mw{min-width:0;flex:1}
+.card h3.tr{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rowtags{display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-1);flex:none}
+.card .row>.rowtags{align-items:flex-end}
+
+/* 2 사각 라디오 */
+.opt{display:flex;align-items:center;gap:var(--sp-3);min-height:56px;padding:var(--sp-3);border:var(--bw) solid var(--border-color);background:var(--card)}
+.opt.sel{background:var(--sunken)}
+.opt small{display:block;font-size:12px;opacity:.75}
+.opt strong{font-size:14px;font-weight:900}
+.rd{width:22px;height:22px;border:var(--bw) solid var(--border-color);background:var(--card);flex:none;display:grid;place-items:center}
+.rd.r{border-radius:50%}
+.rd.s::after{content:'';width:10px;height:10px;background:var(--primary);border:2px solid var(--border-color)}
+.rd.r.s::after{border-radius:50%;border:0;background:var(--primary);outline:0;width:10px;height:10px}
+.list2{display:flex;flex-direction:column;gap:var(--sp-2)}
+
+/* 3 배지 */
+.cmp{display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap}
+.ov.small{height:20px;padding:0 6px;font-size:10px;margin:0}
+.ov.n{margin:0}
+.sp{display:flex;flex-direction:column;gap:var(--sp-1);align-items:flex-end}
+.dim{position:relative;font:500 10px 'Noto Sans KR';opacity:.7}
+
+/* 4 터치 영역 */
+.hit{position:relative;display:inline-flex;align-items:center;justify-content:center;border:var(--bw) solid var(--border-color);background:var(--card);color:var(--foreground)}
+.hit.t40{width:40px;height:40px}
+.hit.t44{width:44px;height:44px}
+.sel31{height:31px;width:96px;border:var(--bw) solid var(--border-color);background:var(--card);padding:0 8px;font:700 12px 'Noto Sans KR';color:var(--foreground);display:flex;align-items:center;justify-content:space-between}
+.sel44{height:44px;width:112px}
+.lnk{font-weight:900;font-size:12px;text-decoration:underline;display:inline-flex;align-items:center;position:relative}
+.lnk.big{min-height:44px}
+.lnk.ghostarea::after{content:'';position:absolute;inset:-14px -4px;border:1.5px dashed #b42318}
+.lnk.ok::after{content:'';position:absolute;inset:0;border:1.5px dashed #0b6b3a}
+.lnk.hit44{min-height:44px;padding:0 4px}
+.tr4{display:flex;flex-direction:column;gap:var(--sp-4);align-items:flex-start}
+.legend{font-size:11px;display:flex;gap:12px}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px dashed;vertical-align:-2px;margin-right:4px}
+
+/* 5 용어 */
+.term{border-collapse:collapse;font-size:12px;background:var(--card);border:var(--bw) solid var(--border-color)}
+.term td,.term th{padding:8px 12px;border-bottom:1.5px solid var(--border-color);text-align:left;font-weight:500;background:var(--card);color:var(--foreground);width:auto}
+.term th{background:var(--accent);color:var(--on-accent);font:900 11px 'Noto Sans KR'}
+.term td:first-child{background:var(--card);color:var(--foreground);width:auto;font-size:12px;font-weight:700;border-right:1.5px solid var(--border-color)}
+.x{text-decoration:line-through;opacity:.6}
+.treerow{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
+.btnw{height:44px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;background:var(--card);color:var(--foreground);border:var(--bw) solid var(--border-color);box-shadow:4px 4px 0 var(--shadow-color);font:900 14px 'Noto Sans KR'}
+
+/* 6 이중선 */
+.cbody{display:flex;flex-direction:column;gap:var(--sp-3);padding:var(--sp-4)}
+.sec.nm{margin:0}
+.dbl{border-top:var(--bw) solid var(--border-color)}
+.cardsec{display:flex;flex-direction:column;gap:var(--sp-3)}
+
+/* 7 간격 */
+.ruler{display:flex;flex-direction:column;gap:var(--sp-2)}
+.ruler div{display:flex;align-items:center;gap:var(--sp-3);font-size:12px}
+.ruler i{display:block;height:16px;background:var(--primary);border:2px solid var(--border-color)}
+.ruler i.off{background:repeating-linear-gradient(45deg,#b42318 0 4px,#fff 4px 8px)}
+.ruler span{width:210px;font-weight:700}
+.ruler .n{font-weight:500;width:auto;opacity:.8}
+.dlg{border:var(--bw) solid var(--border-color);background:var(--card);box-shadow:var(--sh);padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3);font-size:12px;position:relative}
+.dlg h3{font-size:16px;font-weight:900}
+.dlg .acts{display:flex;justify-content:flex-end;gap:var(--sp-2)}
+.m{outline:2px dashed #b42318;position:relative}
+.m::before{content:attr(data-m);position:absolute;left:-2px;top:-14px;font:700 9px 'Noto Sans KR';color:#b42318}
+
+/* 8 글자 크기 */
+.ts{display:flex;flex-direction:column;gap:0;border:var(--bw) solid var(--border-color);background:var(--card)}
+.ts div{display:grid;grid-template-columns:120px 1fr 90px;gap:12px;align-items:center;padding:8px 12px;border-bottom:1.5px solid var(--border-color);min-height:44px}
+.ts div:last-child{border:0}
+.ts b{font:900 11px 'Noto Sans KR'}
+.ts small{font-size:11px;opacity:.8;text-align:right}
+.ts .hd{background:var(--accent);color:var(--on-accent);min-height:0;font:900 11px 'Noto Sans KR'}
+
+/* 9 사이드바 / 트리 / 셀렉트 */
+.sbw{width:248px;border:var(--bw) solid var(--border-color);background:var(--card);padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-4)}
+.sbw .nav a{height:44px}
+.spc{display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;border:var(--bw) solid var(--border-color);background:var(--card);font-weight:900;font-size:14px;color:var(--foreground)}
+.spc.bad{background:var(--primary);color:var(--on-accent);box-shadow:var(--sh)}
+.spc .sq{width:12px;height:12px;border:2px solid currentColor}
+.spc svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.spc em{margin-left:auto;font-style:normal;font:700 11px 'Noto Sans KR';opacity:.7}
+.tn{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;border:var(--bw) solid var(--border-color);background:var(--card);padding:var(--sp-3)}
+.tn .nm{font-weight:900;font-size:14px;display:flex;align-items:center;gap:8px}
+.tn .nm .sqi{width:14px;height:14px;border:2px solid currentColor}
+.tn .nm svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.chev{width:44px;height:44px;border:var(--bw) solid var(--border-color);display:grid;place-items:center;background:var(--card)}
+.chev svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fsel{height:48px;width:100%;border:var(--bw) solid var(--border-color);background:var(--card);color:var(--foreground);display:flex;align-items:center;justify-content:space-between;padding:0 12px;font:500 14px 'Noto Sans KR'}
+.fsel .ar{width:30px;height:100%;border-left:var(--bw) solid var(--border-color);margin-right:-12px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent)}
+.fsel .ar svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.fsel.native{border-radius:0;font-size:13px}
+.fsel.native .nv{width:10px;height:10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) scale(.7);opacity:.7}
+.fsel.dis{opacity:1;background:var(--sunken);border-style:dashed;color:color-mix(in srgb,var(--foreground) 55%,var(--sunken))}
+.fsel.dis .ar{background:transparent;border-left-style:dashed}
+.flab{font:900 12px 'Noto Sans KR';display:flex;flex-direction:column;gap:var(--sp-1)}
+.flab+.flab{margin-top:0}
+.pal{display:flex;gap:12px}

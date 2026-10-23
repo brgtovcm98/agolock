@@ -164,3 +164,37 @@ test('다크 홈 접근성', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /무엇을 찾으세요/ })).toBeVisible()
   await expectNoA11yViolations(page)
 })
+
+test.describe('다크 모드', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('agolock.theme', 'dark')
+    })
+    await mockApi(page)
+  })
+
+  test('다크 재고 상세 접근성', async ({ page }) => {
+    await page.goto('/inventory/v1')
+    await expect(page.getByRole('heading', { name: '전동 드릴 18V' })).toBeVisible()
+    await expectNoA11yViolations(page)
+  })
+
+  test('다크 검색 결과 접근성', async ({ page }) => {
+    await page.goto('/search?q=드릴')
+    await expect(page.getByRole('list', { name: '검색 결과' })).toBeVisible()
+    await expectNoA11yViolations(page)
+  })
+
+  test('다크 설정 접근성', async ({ page }) => {
+    await page.goto('/settings')
+    await expect(page.getByRole('heading', { name: '설정' })).toBeVisible()
+    await expectNoA11yViolations(page)
+  })
+
+  test('다크 등록 시트 접근성', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: /등록/ }).first().click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await expectNoA11yViolations(page)
+  })
+})

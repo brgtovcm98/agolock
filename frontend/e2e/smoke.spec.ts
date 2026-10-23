@@ -67,7 +67,7 @@ test('로그인 후 M1 홈과 설정으로 이동한다', async ({ page }) => {
   await page.locator('a[href="/settings"]:visible').first().click()
   await expect(page.getByRole('heading', { name: '설정' })).toBeVisible()
   await expect(page.getByLabel('표시 이름')).toHaveValue('지민')
-  await expect(page.getByLabel('Space 이름')).toHaveValue('지민의 Space')
+  await expect(page.getByLabel('공간 이름')).toHaveValue('지민의 Space')
 })
 
 test('디자인 미리보기는 공개 라우트에서 열린다', async ({ page }) => {
@@ -102,7 +102,7 @@ test('디자인 미리보기는 공개 라우트에서 열린다', async ({ page
   await expect(page.getByText('같은 물건 재고 3개 중 1번')).toBeVisible()
 })
 
-test('공간 트리에서 Room을 표시한다', async ({ page }) => {
+test('공간 트리에서 방을 표시한다', async ({ page }) => {
   await page.route('**/api/v1/auth/me', (route) =>
     route.fulfill({
       status: 200,
@@ -148,5 +148,5 @@ test('공간 트리에서 Room을 표시한다', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: '공간 지도' })).toBeVisible()
   await expect(page.getByRole('link', { name: '거실' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Room 추가' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '방 추가' })).toBeVisible()
 })
