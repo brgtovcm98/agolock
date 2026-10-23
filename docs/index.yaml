@@ -142,7 +142,7 @@ docs:
       - ADR-013
       - ADR-016
       - ADR-020
-    last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+    last_verified_commit: "8b5239ed077f4589308a232ef5c6de1b94af7036"
 
   - id: DESIGN
     path: docs/design-system.md
@@ -161,7 +161,7 @@ docs:
       - ADR-013
       - ADR-016
       - ADR-020
-    last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+    last_verified_commit: "8b5239ed077f4589308a232ef5c6de1b94af7036"
 
   - id: OPERATIONS
     path: docs/operations.md

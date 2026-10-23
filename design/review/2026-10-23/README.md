@@ -47,3 +47,7 @@ Playwright로 현재 프론트엔드를 390×844(모바일), 1280×900(데스크
 - `tsc --noEmit`, ESLint, Prettier, `vite build` 통과
 - 버튼 hover/active, focus ring, 시트·토스트 등장/퇴장, `prefers-reduced-motion` 정지 확인
 - 실제 백엔드 연동·스크린리더 수동 검증은 별도 단계입니다.
+
+## 개선 시안
+
+점검에서 나온 높음 1건과 중간 8건의 개선 시안은 [fixes/index.html](fixes/index.html)입니다. 왼쪽이 BEFORE, 오른쪽이 AFTER이며 전체 캡처는 `fixes/fixes-light.png`, `fixes/fixes-dark.png`입니다. 모든 항목은 프론트엔드에 반영됐고 규칙은 [디자인 시스템](../../../docs/design-system.md)의 R-14~R-18에 기록했습니다.
