@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus, Trash2, X } from 'lucide-react'
+import { GitMerge, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { inventoryApi, type Category, type CategoryMergeResult } from '@/features/inventory/api'
@@ -12,6 +12,7 @@ import { Card, CardBody } from '@/shared/ui/card'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
+import { useToast } from '@/shared/ui/toast-context'
 
 function DialogFrame({
   open,
@@ -27,15 +28,15 @@ function DialogFrame({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="bg-foreground/40 fixed inset-0 z-50" />
-        <Dialog.Content className="border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
+        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
           <div className="flex items-start justify-between gap-3">
             <Dialog.Title className="text-xl font-black">{title}</Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
                 aria-label="닫기"
-                className="border-border bg-card grid size-9 shrink-0 place-items-center border-[2.5px]"
+                className="border-border bg-card grid size-11 shrink-0 place-items-center border-[2.5px]"
               >
                 <X aria-hidden="true" className="size-4" />
               </button>
@@ -59,9 +60,16 @@ function CategoryEditDialog({
 }) {
   const [name, setName] = useState(category.name)
   const [error, setError] = useState<string | null>(null)
+  const { show } = useToast()
   const mutation = useMutation({
     mutationFn: () => inventoryApi.updateCategory(category.id, { name: name.trim() }),
-    onSuccess: async () => {
+    onSuccess: async (updated) => {
+      show({
+        id: `category:${category.id}:rename`,
+        title: '카테고리 이름을 바꿨어요.',
+        description: updated.name,
+        variant: 'success',
+      })
       await onSaved()
       onClose()
     },
@@ -167,6 +175,7 @@ function CategoryMergeDialog({
 
 export function CategorySettingsPage() {
   const queryClient = useQueryClient()
+  const { show } = useToast()
   const { user, space } = useAuth()
   const owner = Boolean(user && space && user.id === space.ownerUserId)
   const [name, setName] = useState('')
@@ -193,7 +202,13 @@ export function CategorySettingsPage() {
 
   const createMutation = useMutation({
     mutationFn: () => inventoryApi.createCategory(name.trim()),
-    onSuccess: async () => {
+    onSuccess: async (created) => {
+      show({
+        id: `category:${created.id}:create`,
+        title: '카테고리를 만들었어요.',
+        description: created.name,
+        variant: 'success',
+      })
       setName('')
       setError(null)
       await invalidate()
@@ -204,7 +219,13 @@ export function CategorySettingsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (categoryId: string) => inventoryApi.deleteCategory(categoryId),
-    onSuccess: async () => {
+    onSuccess: async (_data, categoryId) => {
+      show({
+        id: `category:${categoryId}:delete`,
+        title: '카테고리를 삭제했어요.',
+        description: categories.find((category) => category.id === categoryId)?.name,
+        variant: 'success',
+      })
       setDeleteTarget(null)
       setError(null)
       await invalidate()
@@ -222,7 +243,7 @@ export function CategorySettingsPage() {
   })
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex max-w-2xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <Link to="/settings" className="text-xs font-bold underline underline-offset-2">
           ← 설정
@@ -266,6 +287,7 @@ export function CategorySettingsPage() {
                         type="button"
                         size="sm"
                         variant="secondary"
+                        className="w-11 px-0 sm:w-auto sm:px-3"
                         aria-label={`${category.name} 이름 변경`}
                         onClick={() => {
                           setMergeResult(null)
@@ -273,12 +295,13 @@ export function CategorySettingsPage() {
                         }}
                       >
                         <Pencil aria-hidden="true" className="size-4" />
-                        이름 변경
+                        <span className="hidden sm:inline">이름 변경</span>
                       </Button>
                       <Button
                         type="button"
                         size="sm"
                         variant="secondary"
+                        className="w-11 px-0 sm:w-auto sm:px-3"
                         aria-label={`${category.name} 병합`}
                         disabled={categories.length < 2}
                         onClick={() => {
@@ -286,18 +309,19 @@ export function CategorySettingsPage() {
                           setMergeTarget(category)
                         }}
                       >
-                        병합
+                        <GitMerge aria-hidden="true" className="size-4" />
+                        <span className="hidden sm:inline">병합</span>
                       </Button>
                       <Button
                         type="button"
                         size="sm"
                         variant="secondary"
-                        className="border-danger text-danger"
+                        className="border-danger text-danger w-11 px-0 sm:w-auto sm:px-3"
                         aria-label={`${category.name} 삭제`}
                         onClick={() => setDeleteTarget(category)}
                       >
                         <Trash2 aria-hidden="true" className="size-4" />
-                        삭제
+                        <span className="hidden sm:inline">삭제</span>
                       </Button>
                     </div>
                   ) : null}
@@ -314,12 +338,14 @@ export function CategorySettingsPage() {
                 if (name.trim()) createMutation.mutate()
               }}
             >
-              <TextField
-                label="새 카테고리"
-                value={name}
-                maxLength={80}
-                onChange={(event) => setName(event.target.value)}
-              />
+              <div className="min-w-0 flex-1">
+                <TextField
+                  label="새 카테고리"
+                  value={name}
+                  maxLength={80}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </div>
               <Button
                 type="submit"
                 disabled={!name.trim() || createMutation.isPending}

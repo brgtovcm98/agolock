@@ -10,6 +10,7 @@ import {
   type SignupInput,
 } from '@/shared/api/auth'
 import { ApiError, setUnauthorizedHandler } from '@/shared/api/client'
+import { useToast } from '@/shared/ui/toast-context'
 
 type AuthContextValue = {
   user: AuthUser | null
@@ -37,6 +38,7 @@ function clearUserData(queryClient: ReturnType<typeof useQueryClient>) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
+  const { show } = useToast()
   const meQuery = useQuery<AuthMe | null>({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
@@ -59,12 +61,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setUnauthorizedHandler((path) => {
-      if (path === '/auth/me') return
+      if (path.startsWith('/auth/')) return
+      show({
+        id: 'auth:expired',
+        title: '세션이 만료됐어요.',
+        description: '다시 로그인해 주세요.',
+        variant: 'error',
+      })
       queryClient.clear()
       queryClient.setQueryData<AuthMe | null>(['auth', 'me'], null)
     })
     return () => setUnauthorizedHandler(null)
-  }, [queryClient])
+  }, [queryClient, show])
 
   const login = useCallback(
     async (input: LoginInput) => {

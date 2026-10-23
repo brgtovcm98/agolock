@@ -9,10 +9,12 @@ import { Card, CardBody } from '@/shared/ui/card'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
+import { useToast } from '@/shared/ui/toast-context'
 
 function ItemEditForm({ item, categories }: { item: Item; categories: Category[] }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { show } = useToast()
   const [name, setName] = useState(item.name)
   const [description, setDescription] = useState(item.description ?? '')
   const [categoryId, setCategoryId] = useState(item.categoryId ?? '')
@@ -36,6 +38,12 @@ function ItemEditForm({ item, categories }: { item: Item; categories: Category[]
       })
     },
     onSuccess: async () => {
+      show({
+        id: `item:${item.id}:save`,
+        title: '물건 정보를 저장했어요.',
+        description: item.name,
+        variant: 'success',
+      })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['item'] }),
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
@@ -73,7 +81,7 @@ function ItemEditForm({ item, categories }: { item: Item; categories: Category[]
   })
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex max-w-2xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <Link to={`/items/${item.id}`} className="text-xs font-bold underline underline-offset-2">
           ← 물건 상세
@@ -109,7 +117,7 @@ function ItemEditForm({ item, categories }: { item: Item; categories: Category[]
                 maxLength={2000}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={3}
-                className="border-border bg-card min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none"
+                className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               />
             </label>
             <label className="flex flex-col gap-1.5">

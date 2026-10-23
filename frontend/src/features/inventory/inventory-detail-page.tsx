@@ -15,6 +15,7 @@ import { Card, CardBody } from '@/shared/ui/card'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import { StatusTag } from '@/shared/ui/status-tag'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { useToast } from '@/shared/ui/toast-context'
 import { formatPrice } from '@/shared/lib/format'
 import { canEdit, canManage, permissionLabel } from '@/shared/lib/permission'
 
@@ -54,6 +55,7 @@ export function InventoryDetailPage() {
   const { inventoryId = '' } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { show } = useToast()
   const [statusDraftOverride, setStatusDraftOverride] = useState<InventoryStatus | null>(null)
   const [confirmDisposeOpen, setConfirmDisposeOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -81,9 +83,15 @@ export function InventoryDetailPage() {
         status,
         confirmDisposal: status === 'DISPOSED',
       }),
-    onSuccess: async () => {
+    onSuccess: async (_data, status) => {
       setError(null)
       setStatusDraftOverride(null)
+      show({
+        id: `inventory:${inventoryId}:status`,
+        title: '상태를 바꿨어요.',
+        description: `${inventory?.displayName ?? '재고'} · ${statusOptions.find((option) => option.value === status)?.label ?? ''}`,
+        variant: 'success',
+      })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
         queryClient.invalidateQueries({ queryKey: ['hierarchy'] }),
@@ -103,6 +111,11 @@ export function InventoryDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => inventoryApi.deleteInventory(inventoryId),
     onSuccess: async () => {
+      show({
+        id: `inventory:${inventoryId}:delete`,
+        title: '재고를 삭제했어요.',
+        variant: 'success',
+      })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
         queryClient.invalidateQueries({ queryKey: ['hierarchy'] }),
@@ -140,7 +153,7 @@ export function InventoryDetailPage() {
   const statusChanged = statusDraft !== inventory.status
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <Link to="/inventory" className="text-xs font-bold underline underline-offset-2">
           ← 재고 목록
@@ -206,8 +219,6 @@ export function InventoryDetailPage() {
               </div>
             </CardBody>
           </Card>
-
-          {!inventory.isShared ? <MovementTimeline inventory={inventory} /> : null}
         </div>
 
         <div className="flex flex-col gap-4">
@@ -285,6 +296,12 @@ export function InventoryDetailPage() {
         </div>
       </div>
 
+      {!inventory.isShared ? (
+        <div className="max-w-3xl">
+          <MovementTimeline inventory={inventory} />
+        </div>
+      ) : null}
+
       <ConfirmDialog
         open={confirmDisposeOpen}
         onOpenChange={(next) => {
@@ -317,7 +334,15 @@ export function InventoryDetailPage() {
         <MoveInventoryDialog
           inventory={inventory}
           onClose={() => setMoveOpen(false)}
-          onMoved={() => setError(null)}
+          onMoved={() => {
+            setError(null)
+            show({
+              id: `inventory:${inventoryId}:move`,
+              title: '위치를 옮겼어요.',
+              description: inventory?.displayName,
+              variant: 'success',
+            })
+          }}
         />
       ) : null}
     </div>

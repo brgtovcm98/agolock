@@ -12,6 +12,7 @@ import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
 import { permissionDescription, permissionLabel } from '@/shared/lib/permission'
+import { useToast } from '@/shared/ui/toast-context'
 
 const invitationStatusLabels: Record<InvitationStatus, string> = {
   PENDING: '대기',
@@ -23,6 +24,7 @@ const invitationStatusLabels: Record<InvitationStatus, string> = {
 
 export function SharingPage() {
   const queryClient = useQueryClient()
+  const { show } = useToast()
   const { config } = useAuth()
   const emailDiscoveryEnabled = config?.invitationEmailDiscoveryEnabled ?? false
   const [email, setEmail] = useState('')
@@ -59,6 +61,7 @@ export function SharingPage() {
   const inviteMutation = useMutation({
     mutationFn: () => sharingApi.createInvitation({ roomId, invitedEmail: email, permission }),
     onSuccess: async () => {
+      show({ id: 'sharing:invite', title: '초대를 보냈어요.', variant: 'success' })
       setEmail('')
       setError(null)
       await invalidate()
@@ -68,6 +71,7 @@ export function SharingPage() {
   const acceptMutation = useMutation({
     mutationFn: (id: string) => sharingApi.accept(id),
     onSuccess: async () => {
+      show({ id: 'sharing:accept', title: '초대를 수락했어요.', variant: 'success' })
       setError(null)
       await invalidate()
     },
@@ -76,6 +80,7 @@ export function SharingPage() {
   const declineMutation = useMutation({
     mutationFn: (id: string) => sharingApi.decline(id),
     onSuccess: async () => {
+      show({ id: 'sharing:decline', title: '초대를 거절했어요.', variant: 'success' })
       setError(null)
       await invalidate()
     },
@@ -85,6 +90,7 @@ export function SharingPage() {
     mutationFn: ({ id, permission }: { id: string; permission: SharePermission }) =>
       sharingApi.updateShare(id, permission),
     onSuccess: async () => {
+      show({ id: 'sharing:permission', title: '권한을 바꿨어요.', variant: 'success' })
       setError(null)
       await invalidate()
     },
@@ -93,6 +99,7 @@ export function SharingPage() {
   const revokeShareMutation = useMutation({
     mutationFn: (id: string) => sharingApi.revokeShare(id),
     onSuccess: async () => {
+      show({ id: 'sharing:revoke', title: '공유를 철회했어요.', variant: 'success' })
       setError(null)
       await invalidate()
     },
@@ -101,6 +108,7 @@ export function SharingPage() {
   const revokeInvitationMutation = useMutation({
     mutationFn: (id: string) => sharingApi.revokeInvitation(id),
     onSuccess: async () => {
+      show({ id: 'sharing:revoke-invitation', title: '초대를 철회했어요.', variant: 'success' })
       setError(null)
       await invalidate()
     },
@@ -114,7 +122,7 @@ export function SharingPage() {
   const rooms = roomsQuery.data?.items ?? []
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <p className="label-caps text-foreground/60">공유</p>
         <PageTitle>공유</PageTitle>

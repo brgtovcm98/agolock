@@ -9,6 +9,7 @@ import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
+import { useToast } from '@/shared/ui/toast-context'
 import { formatPrice } from '@/shared/lib/format'
 import { canEdit } from '@/shared/lib/permission'
 
@@ -55,6 +56,7 @@ function InventoryEditForm({
 }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { show } = useToast()
   const [error, setError] = useState<string | null>(null)
   const [nameOn, setNameOn] = useState(inventory.nameOverride !== null)
   const [name, setName] = useState(inventory.nameOverride ?? inventory.displayName)
@@ -95,6 +97,12 @@ function InventoryEditForm({
       })
     },
     onSuccess: async () => {
+      show({
+        id: `inventory:${inventory.id}:save`,
+        title: '재고 정보를 저장했어요.',
+        description: inventory.displayName,
+        variant: 'success',
+      })
       await queryClient.invalidateQueries({ queryKey: ['inventory'] })
       navigate(`/inventory/${inventory.id}`, { replace: true })
     },
@@ -115,7 +123,7 @@ function InventoryEditForm({
   })
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex max-w-2xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <Link
           to={`/inventory/${inventory.id}`}
@@ -170,7 +178,7 @@ function InventoryEditForm({
                   disabled={!descriptionOn}
                   onChange={(event) => setDescription(event.target.value)}
                   rows={3}
-                  className="border-border bg-card min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none disabled:opacity-50"
+                  className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
                 />
               </label>
             </OverrideField>

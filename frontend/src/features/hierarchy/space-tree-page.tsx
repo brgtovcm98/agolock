@@ -22,6 +22,7 @@ import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
 import { permissionLabel } from '@/shared/lib/permission'
+import { useToast } from '@/shared/ui/toast-context'
 
 type NodeKind = 'room' | 'shelf' | 'box'
 type AnyNode = Room | Shelf | Box
@@ -61,6 +62,7 @@ function NodeActions({
 
 export function SpaceTreePage() {
   const queryClient = useQueryClient()
+  const { show } = useToast()
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set())
   const [createTarget, setCreateTarget] = useState<{ kind: NodeKind; parentId?: string } | null>(
     null,
@@ -121,10 +123,17 @@ export function SpaceTreePage() {
       if (input.kind === 'shelf') return hierarchyApi.updateShelf(input.node.id, update)
       return hierarchyApi.updateBox(input.node.id, update)
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, input) => {
       setCreateTarget(null)
       setEditTarget(null)
       setMutationError(null)
+      const label = input.kind === 'room' ? 'Room' : input.kind === 'shelf' ? 'Shelf' : 'Box'
+      show({
+        id: `hierarchy:${input.kind}:${input.mode}:${input.node?.id ?? input.parentId ?? 'root'}`,
+        title: input.mode === 'create' ? `${label}을 추가했어요.` : `${label} 정보를 저장했어요.`,
+        description: input.name,
+        variant: 'success',
+      })
       await invalidate()
     },
     onError: (error) =>
@@ -137,9 +146,16 @@ export function SpaceTreePage() {
       if (target.kind === 'shelf') return hierarchyApi.deleteShelf(target.node.id)
       return hierarchyApi.deleteBox(target.node.id)
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, target) => {
       setDeleteTarget(null)
       setMutationError(null)
+      const label = target.kind === 'room' ? 'Room' : target.kind === 'shelf' ? 'Shelf' : 'Box'
+      show({
+        id: `hierarchy:${target.kind}:delete:${target.node.id}`,
+        title: `${label}을 삭제했어요.`,
+        description: target.node.name,
+        variant: 'success',
+      })
       await invalidate()
     },
     onError: (error) =>
@@ -149,9 +165,15 @@ export function SpaceTreePage() {
   const moveMutation = useMutation({
     mutationFn: async ({ shelf, roomId }: { shelf: Shelf; roomId: string }) =>
       hierarchyApi.moveShelf(shelf.id, roomId, shelf.version),
-    onSuccess: async () => {
+    onSuccess: async (_data, input) => {
       setMoveTarget(null)
       setMutationError(null)
+      show({
+        id: `hierarchy:shelf:move:${input.shelf.id}`,
+        title: 'Shelf를 옮겼어요.',
+        description: input.shelf.name,
+        variant: 'success',
+      })
       await invalidate()
     },
     onError: (error) =>
@@ -161,9 +183,15 @@ export function SpaceTreePage() {
   const moveBoxMutation = useMutation({
     mutationFn: async ({ box, shelfId }: { box: Box; shelfId: string }) =>
       hierarchyApi.moveBox(box.id, shelfId, box.version),
-    onSuccess: async () => {
+    onSuccess: async (_data, input) => {
       setMoveBoxTarget(null)
       setMutationError(null)
+      show({
+        id: `hierarchy:box:move:${input.box.id}`,
+        title: 'Box를 옮겼어요.',
+        description: input.box.name,
+        variant: 'success',
+      })
       await invalidate()
     },
     onError: (error) =>
@@ -183,8 +211,8 @@ export function SpaceTreePage() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <p className="label-caps text-foreground/60">공간</p>
           <PageTitle>공간 지도</PageTitle>
@@ -192,7 +220,7 @@ export function SpaceTreePage() {
             Room &gt; Shelf &gt; Box 순서로 물건을 정리합니다. 소유자만 계층을 변경할 수 있어요.
           </MetaText>
         </div>
-        <Button type="button" onClick={() => setCreateTarget({ kind: 'room' })}>
+        <Button type="button" variant="secondary" onClick={() => setCreateTarget({ kind: 'room' })}>
           <Plus aria-hidden="true" className="size-4" />
           Room 추가
         </Button>
@@ -392,7 +420,7 @@ function RoomBranch({
           type="button"
           onClick={onToggle}
           aria-label={expanded ? 'Room 접기' : 'Room 펼치기'}
-          className="border-border grid size-8 place-items-center border-2"
+          className="border-border grid size-11 place-items-center border-2"
         >
           {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </button>
@@ -497,7 +525,7 @@ function ShelfBranch({
           type="button"
           onClick={() => setExpanded((value) => !value)}
           aria-label={expanded ? 'Shelf 접기' : 'Shelf 펼치기'}
-          className="border-border grid size-8 place-items-center border-2"
+          className="border-border grid size-11 place-items-center border-2"
         >
           {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </button>

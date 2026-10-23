@@ -91,6 +91,7 @@ describe('재고 상세', () => {
         confirmDisposal: true,
       }),
     )
+    expect(await screen.findByText('상태를 바꿨어요.')).toBeInTheDocument()
   })
 
   it('위치 이동 대화상자를 연다', async () => {
