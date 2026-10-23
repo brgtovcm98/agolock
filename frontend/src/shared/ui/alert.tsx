@@ -13,10 +13,13 @@ const styles: Record<AlertVariant, string> = {
 export function Alert({
   variant = 'info',
   children,
+  action,
   className,
 }: {
   variant?: AlertVariant
   children: ReactNode
+  /** 오류에서 복구할 수 있는 동작(예: 다시 시도) */
+  action?: ReactNode
   className?: string
 }) {
   const Icon = variant === 'error' ? AlertTriangle : variant === 'success' ? CheckCircle2 : Info
@@ -24,13 +27,16 @@ export function Alert({
     <div
       role={variant === 'error' ? 'alert' : 'status'}
       className={cn(
-        'bg-card flex items-start gap-2 border-[2.5px] px-3 py-2.5 text-xs font-bold',
+        'bg-card flex flex-wrap items-start gap-2 border-[2.5px] px-3 py-2 text-xs font-bold',
         styles[variant],
         className,
       )}
     >
-      <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={1.8} />
-      <div className="min-w-0">{children}</div>
+      <span className="grid h-4 shrink-0 place-items-center">
+        <Icon aria-hidden="true" className="size-4" strokeWidth={1.8} />
+      </span>
+      <div className="min-w-0 flex-1">{children}</div>
+      {action}
     </div>
   )
 }

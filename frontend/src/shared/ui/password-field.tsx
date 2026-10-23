@@ -18,7 +18,7 @@ export function PasswordField({ id, label, error, hint, className, ...props }: P
   const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ')
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <label htmlFor={inputId} className="text-xs font-black">
         {label}
       </label>
@@ -49,7 +49,7 @@ export function PasswordField({ id, label, error, hint, className, ...props }: P
         </button>
       </div>
       {hint && !error ? (
-        <p id={hintId} className="text-foreground/60 text-[11px]">
+        <p id={hintId} className="text-foreground/60 text-xs">
           {hint}
         </p>
       ) : null}

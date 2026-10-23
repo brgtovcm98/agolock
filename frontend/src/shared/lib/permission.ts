@@ -5,7 +5,7 @@ const labels: Record<AppPermission, string> = {
   VIEW: '보기',
   EDIT: '편집',
   MANAGE: '관리',
-  OWNER: '소유자',
+  OWNER: '내 소유',
 }
 
 const descriptions: Record<AppPermission, string> = {

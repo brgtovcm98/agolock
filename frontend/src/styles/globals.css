@@ -99,6 +99,11 @@
 
   --font-sans: 'Noto Sans KR', sans-serif;
 
+  --text-label: 11px;
+  --text-title: 34px;
+  --text-title--line-height: 1.05;
+  --text-label--line-height: 1.2;
+
   --shadow-brutal-sm: 4px 4px 0 var(--shadow-color);
   --shadow-brutal: 5px 5px 0 var(--shadow-color);
   --shadow-brutal-lg: 6px 6px 0 var(--shadow-color);
@@ -169,6 +174,22 @@
       var(--stripe-b) 14px,
       var(--stripe-b) 28px
     );
+  }
+
+  .tap {
+    display: inline-flex;
+    min-height: var(--control-sm);
+    align-items: center;
+  }
+
+  .tap-area {
+    position: relative;
+  }
+
+  .tap-area::after {
+    content: '';
+    position: absolute;
+    inset: -10px -4px;
   }
 
   .label-caps {

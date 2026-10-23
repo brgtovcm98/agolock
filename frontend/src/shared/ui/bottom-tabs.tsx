@@ -28,7 +28,7 @@ export function BottomTabs({
             to={item.href}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'border-border flex min-h-14 flex-col items-center justify-center gap-1 border-r-[1.5px] px-1 py-2 text-[11px] leading-none font-black transition-colors duration-150 last:border-r-0',
+              'border-border text-label flex min-h-14 flex-col items-center justify-center gap-1 border-r-[1.5px] px-1 py-2 leading-none font-black transition-colors duration-150 last:border-r-0',
               isActive ? 'bg-primary text-on-accent' : 'bg-card text-foreground',
             )}
           >

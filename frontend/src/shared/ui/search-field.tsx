@@ -44,7 +44,7 @@ export function SearchField({
         disabled={disabled}
         readOnly={readOnly}
         onChange={(event) => onChange?.(event.target.value)}
-        className="text-foreground placeholder:text-foreground/50 min-w-0 flex-1 bg-transparent px-3.5 py-3.5 text-[15px] font-medium outline-none disabled:cursor-not-allowed"
+        className="text-foreground placeholder:text-foreground/50 min-w-0 flex-1 bg-transparent px-4 py-3 text-base font-medium outline-none disabled:cursor-not-allowed"
       />
       <button
         type="submit"

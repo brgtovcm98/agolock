@@ -28,10 +28,7 @@ export function SectionTitle({
 export function PageTitle({ className, ...props }: ComponentProps<'h1'>) {
   return (
     <h1
-      className={cn(
-        'text-[34px] leading-[1.05] font-black tracking-[-0.04em] lg:text-3xl',
-        className,
-      )}
+      className={cn('text-title font-black tracking-[-0.04em] lg:text-3xl', className)}
       {...props}
     />
   )

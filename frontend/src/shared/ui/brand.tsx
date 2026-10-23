@@ -14,7 +14,7 @@ export function Brand({
     <Link
       to={to}
       className={cn(
-        'bg-foreground text-background inline-flex px-2 py-1 text-[15px] leading-none font-black tracking-[0.06em]',
+        'tap-area bg-foreground text-background inline-flex px-2 py-1 text-base leading-none font-black tracking-[0.06em]',
         className,
       )}
       aria-label={`${label} 홈`}

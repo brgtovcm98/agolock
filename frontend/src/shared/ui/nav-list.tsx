@@ -34,7 +34,7 @@ export function NavList({
             <Icon aria-hidden="true" className="size-[18px] shrink-0" strokeWidth={1.8} />
             <span className="truncate">{item.label}</span>
             {item.badge ? (
-              <span className="border-border bg-info text-on-info ml-auto inline-flex h-6 items-center border-2 px-1.5 text-[10px] font-bold">
+              <span className="border-border bg-info text-on-info ml-auto inline-flex h-6 items-center border-2 px-2 text-xs font-bold">
                 {item.badge}
               </span>
             ) : null}

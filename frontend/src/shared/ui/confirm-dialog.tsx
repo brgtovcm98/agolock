@@ -30,20 +30,16 @@ export function ConfirmDialog({
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
-        <AlertDialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <AlertDialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 border-[2.5px] p-4">
           <AlertDialog.Title className="text-xl font-black">{title}</AlertDialog.Title>
           {description ? (
             <AlertDialog.Description asChild>
-              <div className="text-foreground/70 mt-2 text-xs">{description}</div>
+              <div className="text-foreground/70 text-xs">{description}</div>
             </AlertDialog.Description>
           ) : null}
           {children}
-          {error ? (
-            <Alert variant="error" className="mt-3">
-              {error}
-            </Alert>
-          ) : null}
-          <div className="mt-5 flex justify-end gap-2">
+          {error ? <Alert variant="error">{error}</Alert> : null}
+          <div className="flex justify-end gap-2">
             <AlertDialog.Cancel asChild>
               <Button type="button" variant="secondary">
                 취소

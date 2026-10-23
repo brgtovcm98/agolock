@@ -11,7 +11,7 @@ export const buttonVariants = cva(
     'hover:-translate-x-px hover:-translate-y-px hover:shadow-[5px_5px_0_var(--shadow-color)]',
     'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--shadow-color)]',
     'focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-foreground',
-    'disabled:pointer-events-none disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-none disabled:opacity-50',
+    'disabled:bg-sunken disabled:text-foreground/70 disabled:border-dashed disabled:pointer-events-none disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-none',
     'motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0 motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0',
   ].join(' '),
   {

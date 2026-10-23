@@ -123,12 +123,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 <div className="toast-icon" aria-hidden="true">
                   <Icon className="size-5" strokeWidth={2.2} />
                 </div>
-                <div className="min-w-0 flex-1 py-3 pr-1">
-                  <ToastPrimitive.Title className="text-[13px] leading-tight font-black">
+                <div className="flex min-w-0 flex-1 flex-col gap-1 py-3 pr-2">
+                  <ToastPrimitive.Title className="text-sm leading-tight font-black">
                     {toast.title}
                   </ToastPrimitive.Title>
                   {toast.description ? (
-                    <ToastPrimitive.Description className="text-foreground/70 mt-1 text-xs leading-snug font-medium">
+                    <ToastPrimitive.Description className="text-foreground/70 text-xs leading-snug font-medium">
                       {toast.description}
                     </ToastPrimitive.Description>
                   ) : null}

@@ -16,7 +16,7 @@ export function TextField({ id, label, error, hint, className, ...props }: TextF
   const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ')
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <label htmlFor={inputId} className="text-xs font-black">
         {label}
       </label>
@@ -25,14 +25,14 @@ export function TextField({ id, label, error, hint, className, ...props }: TextF
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
         className={cn(
-          'border-border bg-card text-foreground placeholder:text-foreground/40 focus-visible:ring-foreground focus-visible:ring-offset-background h-12 w-full border-[2.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          'border-border bg-card text-foreground placeholder:text-foreground/40 focus-visible:ring-foreground focus-visible:ring-offset-background disabled:bg-sunken disabled:text-foreground/70 h-12 w-full border-[2.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-dashed',
           error && 'border-danger',
           className,
         )}
         {...props}
       />
       {hint && !error ? (
-        <p id={hintId} className="text-foreground/60 text-[11px]">
+        <p id={hintId} className="text-foreground/60 text-xs">
           {hint}
         </p>
       ) : null}
