@@ -434,7 +434,7 @@ docs:
     related_adrs:
       - ADR-016
       - ADR-021
-    last_verified_commit: "a3173d38e9cb64d06b89e61fe25d5f8fb649af8f"
+    last_verified_commit: "3c79ec03cf97b5996a3ee93cd708c60eb7d68d89"
 
   - id: DATA_DICTIONARY
     path: docs/generated/data-dictionary.md
@@ -725,7 +725,7 @@ docs:
     generated: false
     related_adrs:
       - ADR-016
-    last_verified_commit: "a3173d38e9cb64d06b89e61fe25d5f8fb649af8f"
+    last_verified_commit: "3c79ec03cf97b5996a3ee93cd708c60eb7d68d89"
 
   - id: LOCAL_RUNBOOK
     path: docs/local-runbook.md
