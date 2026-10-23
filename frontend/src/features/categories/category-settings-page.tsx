@@ -2,15 +2,16 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { GitMerge, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { inventoryApi, type Category, type CategoryMergeResult } from '@/features/inventory/api'
 import { useAuth } from '@/features/auth/auth-provider'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
-import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
+import { SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
 import { useToast } from '@/shared/ui/toast-context'
 
@@ -29,7 +30,7 @@ function DialogFrame({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
-        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 border-[2.5px] p-4">
           <div className="flex items-start justify-between gap-3">
             <Dialog.Title className="text-xl font-black">{title}</Dialog.Title>
             <Dialog.Close asChild>
@@ -42,7 +43,7 @@ function DialogFrame({
               </button>
             </Dialog.Close>
           </div>
-          <div className="mt-4">{children}</div>
+          {children}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -145,20 +146,19 @@ function CategoryMergeDialog({
           이 카테고리를 사용하는 물건과 재고값을 선택한 카테고리로 옮기고, 현재 카테고리는
           삭제합니다.
         </p>
-        <label className="flex flex-col gap-1.5">
+        <label className="flex flex-col gap-2">
           <span className="text-xs font-black">옮길 카테고리</span>
-          <select
+          <Select
             aria-label="옮길 카테고리"
             value={targetId}
             onChange={(event) => setTargetId(event.target.value)}
-            className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
           >
             {targets.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>
@@ -244,16 +244,13 @@ export function CategorySettingsPage() {
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link to="/settings" className="text-xs font-bold underline underline-offset-2">
-          ← 설정
-        </Link>
-        <p className="label-caps text-foreground/60">설정</p>
-        <PageTitle>카테고리 관리</PageTitle>
-        <MetaText>물건을 묶어 볼 때 사용할 카테고리를 관리합니다.</MetaText>
-      </div>
+      <PageHeader
+        back={{ to: '/settings', label: '설정' }}
+        title="카테고리 관리"
+        description="물건을 묶어 볼 때 사용할 카테고리를 관리합니다."
+      />
 
-      {!owner ? <Alert variant="info">카테고리는 Space 소유자만 관리할 수 있어요.</Alert> : null}
+      {!owner ? <Alert variant="info">카테고리는 공간 소유자만 관리할 수 있어요.</Alert> : null}
       {error ? <Alert variant="error">{error}</Alert> : null}
       {mergeResult ? (
         <Alert variant="success">
@@ -282,7 +279,7 @@ export function CategorySettingsPage() {
                 >
                   <span className="text-sm font-black">{category.name}</span>
                   {owner ? (
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
                         size="sm"
@@ -346,11 +343,7 @@ export function CategorySettingsPage() {
                   onChange={(event) => setName(event.target.value)}
                 />
               </div>
-              <Button
-                type="submit"
-                disabled={!name.trim() || createMutation.isPending}
-                className="mb-0.5"
-              >
+              <Button type="submit" disabled={!name.trim() || createMutation.isPending}>
                 <Plus aria-hidden="true" className="size-4" />
                 {createMutation.isPending ? '만드는 중…' : '추가'}
               </Button>

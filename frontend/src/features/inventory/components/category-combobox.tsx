@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { inventoryApi, type Category } from '../api'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Button } from '@/shared/ui/button'
 
 export function CategoryCombobox({
@@ -41,13 +42,12 @@ export function CategoryCombobox({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-end gap-2">
-        <label className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <label className="flex min-w-0 flex-1 flex-col gap-2">
           <span className="text-xs font-black">카테고리 (선택)</span>
-          <select
+          <Select
             aria-label="카테고리"
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
           >
             <option value="">없음</option>
             {categories.map((category) => (
@@ -55,14 +55,14 @@ export function CategoryCombobox({
                 {category.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {canCreate ? (
           <Button
             type="button"
             size="sm"
             variant="secondary"
-            className="mb-0.5"
+
             onClick={() => {
               setCreating((current) => !current)
               setError(null)
@@ -81,8 +81,8 @@ export function CategoryCombobox({
 
       {creating ? (
         <div className="border-border bg-sunken flex flex-col gap-2 border-2 p-2">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-black">새 카테고리 이름</span>
+          <label className="flex flex-col gap-2">
+            <span className="text-label font-black">새 카테고리 이름</span>
             <input
               value={name}
               maxLength={80}

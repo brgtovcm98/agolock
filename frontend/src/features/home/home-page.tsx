@@ -10,7 +10,8 @@ import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { SearchField } from '@/shared/ui/search-field'
-import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
+import { SectionTitle } from '@/shared/ui/typography'
 
 export function HomePage() {
   const { user, space } = useAuth()
@@ -27,14 +28,10 @@ export function HomePage() {
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <p className="label-caps text-foreground/60">홈·검색</p>
-          <PageTitle>{user?.displayName ?? '안녕하세요'}님, 무엇을 찾으세요?</PageTitle>
-          <MetaText>
-            {space?.name ?? '내 Space'}의 물건을 이름으로 찾거나, 최근에 등록한 물건을 이어서
-            관리하세요.
-          </MetaText>
-        </div>
+        <PageHeader
+          title={`${user?.displayName ?? '안녕하세요'}님, 무엇을 찾으세요?`}
+          description={`${space?.name ?? '내 공간'}의 물건을 이름으로 찾거나, 최근에 등록한 물건을 이어서 관리하세요.`}
+        />
 
         <SearchField
           value={query}
@@ -49,7 +46,7 @@ export function HomePage() {
         <section className="flex flex-col gap-3">
           <SectionTitle
             aside={
-              <Link to="/inventory" className="underline underline-offset-2">
+              <Link to="/inventory" className="tap underline underline-offset-2">
                 전체 보기
               </Link>
             }
@@ -61,7 +58,21 @@ export function HomePage() {
               불러오는 중…
             </p>
           ) : recentQuery.isError ? (
-            <Alert variant="error">최근 추가한 물건을 불러오지 못했습니다.</Alert>
+            <Alert
+              variant="error"
+              action={
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void recentQuery.refetch()}
+                >
+                  다시 시도
+                </Button>
+              }
+            >
+              최근 추가한 물건을 불러오지 못했습니다.
+            </Alert>
           ) : recent.length === 0 ? (
             <Card>
               <CardBody className="items-start gap-2">
@@ -75,7 +86,7 @@ export function HomePage() {
               </CardBody>
             </Card>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
               {recent.map((inventory) => (
                 <InventoryCard key={inventory.id} inventory={inventory} />
               ))}

@@ -3,14 +3,15 @@ import {
   Box as BoxIcon,
   ChevronDown,
   ChevronRight,
-  Layers,
+  DoorOpen,
   Pencil,
   Plus,
-  Square,
+  Rows3,
   Trash2,
   MoveRight,
 } from 'lucide-react'
 import { useState } from 'react'
+import { josaEulReul, locationTypeLabel } from '@/shared/lib/format'
 import { Link } from 'react-router-dom'
 import { hierarchyApi, type Box, type Room, type Shelf } from './api'
 import { DeleteDialog, MoveDialog, NodeFormDialog } from './components/hierarchy-dialogs'
@@ -20,7 +21,8 @@ import { Alert } from '@/shared/ui/alert'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
-import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
+import { SectionTitle } from '@/shared/ui/typography'
 import { permissionLabel } from '@/shared/lib/permission'
 import { useToast } from '@/shared/ui/toast-context'
 
@@ -101,13 +103,13 @@ export function SpaceTreePage() {
         if (input.kind === 'room')
           return hierarchyApi.createRoom({ name: input.name, description: input.description })
         if (input.kind === 'shelf') {
-          if (!input.parentId) throw new Error('상위 Room이 없습니다.')
+          if (!input.parentId) throw new Error('상위 방이 없습니다.')
           return hierarchyApi.createShelf(input.parentId, {
             name: input.name,
             description: input.description,
           })
         }
-        if (!input.parentId) throw new Error('상위 Shelf가 없습니다.')
+        if (!input.parentId) throw new Error('상위 선반이 없습니다.')
         return hierarchyApi.createBox(input.parentId, {
           name: input.name,
           description: input.description,
@@ -127,10 +129,13 @@ export function SpaceTreePage() {
       setCreateTarget(null)
       setEditTarget(null)
       setMutationError(null)
-      const label = input.kind === 'room' ? 'Room' : input.kind === 'shelf' ? 'Shelf' : 'Box'
+      const label = locationTypeLabel(input.kind.toUpperCase())
       show({
         id: `hierarchy:${input.kind}:${input.mode}:${input.node?.id ?? input.parentId ?? 'root'}`,
-        title: input.mode === 'create' ? `${label}을 추가했어요.` : `${label} 정보를 저장했어요.`,
+        title:
+          input.mode === 'create'
+            ? `${label}${josaEulReul(label)} 추가했어요.`
+            : `${label} 정보를 저장했어요.`,
         description: input.name,
         variant: 'success',
       })
@@ -149,10 +154,10 @@ export function SpaceTreePage() {
     onSuccess: async (_data, target) => {
       setDeleteTarget(null)
       setMutationError(null)
-      const label = target.kind === 'room' ? 'Room' : target.kind === 'shelf' ? 'Shelf' : 'Box'
+      const label = locationTypeLabel(target.kind.toUpperCase())
       show({
         id: `hierarchy:${target.kind}:delete:${target.node.id}`,
-        title: `${label}을 삭제했어요.`,
+        title: `${label}${josaEulReul(label)} 삭제했어요.`,
         description: target.node.name,
         variant: 'success',
       })
@@ -170,7 +175,7 @@ export function SpaceTreePage() {
       setMutationError(null)
       show({
         id: `hierarchy:shelf:move:${input.shelf.id}`,
-        title: 'Shelf를 옮겼어요.',
+        title: '선반을 옮겼어요.',
         description: input.shelf.name,
         variant: 'success',
       })
@@ -188,7 +193,7 @@ export function SpaceTreePage() {
       setMutationError(null)
       show({
         id: `hierarchy:box:move:${input.box.id}`,
-        title: 'Box를 옮겼어요.',
+        title: '박스를 옮겼어요.',
         description: input.box.name,
         variant: 'success',
       })
@@ -212,19 +217,19 @@ export function SpaceTreePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <p className="label-caps text-foreground/60">공간</p>
-          <PageTitle>공간 지도</PageTitle>
-          <MetaText>
-            Room &gt; Shelf &gt; Box 순서로 물건을 정리합니다. 소유자만 계층을 변경할 수 있어요.
-          </MetaText>
-        </div>
-        <Button type="button" variant="secondary" onClick={() => setCreateTarget({ kind: 'room' })}>
-          <Plus aria-hidden="true" className="size-4" />
-          Room 추가
-        </Button>
-      </div>
+      <PageHeader
+        title="공간 지도"
+        description="방 > 선반 > 박스 순서로 물건을 정리합니다. 소유자만 계층을 변경할 수 있어요."
+        actions={
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setCreateTarget({ kind: 'room' })}
+          >
+            <Plus aria-hidden="true" className="size-4" />방 추가
+          </Button>
+        }
+      />
 
       {mutationError && !createTarget && !editTarget && !deleteTarget && !moveTarget ? (
         <Alert variant="error">{mutationError}</Alert>
@@ -252,7 +257,7 @@ export function SpaceTreePage() {
           <CardBody className="items-start gap-3">
             <SectionTitle>아직 방이 없어요</SectionTitle>
             <p className="text-foreground/70 text-xs">
-              첫 Room을 만들고 Shelf와 Box를 추가해 보세요.
+              첫 방을 만들고 선반과 박스를 추가해 보세요.
             </p>
             <Button type="button" onClick={() => setCreateTarget({ kind: 'room' })}>
               방 만들기
@@ -286,7 +291,7 @@ export function SpaceTreePage() {
               disabled={roomsQuery.isFetchingNextPage}
               onClick={() => void roomsQuery.fetchNextPage()}
             >
-              {roomsQuery.isFetchingNextPage ? '불러오는 중…' : 'Room 더 보기'}
+              {roomsQuery.isFetchingNextPage ? '불러오는 중…' : '방 더 보기'}
             </Button>
           ) : null}
         </div>
@@ -298,10 +303,10 @@ export function SpaceTreePage() {
         onOpenChange={(open) => !open && setCreateTarget(null)}
         title={
           createTarget?.kind === 'room'
-            ? 'Room 추가'
+            ? '방 추가'
             : createTarget?.kind === 'shelf'
-              ? 'Shelf 추가'
-              : 'Box 추가'
+              ? '선반 추가'
+              : '박스 추가'
         }
         submitLabel="추가"
         pending={saveMutation.isPending}
@@ -342,8 +347,8 @@ export function SpaceTreePage() {
         key={`move-${moveTarget?.id ?? ''}`}
         open={moveTarget !== null}
         onOpenChange={(open) => !open && setMoveTarget(null)}
-        title="Shelf 이동"
-        label="이동할 Room"
+        title="선반 이동"
+        label="이동할 방"
         options={roomsForMove}
         initialId={moveTarget?.roomId}
         pending={moveMutation.isPending}
@@ -415,20 +420,23 @@ function RoomBranch({
 
   return (
     <div className="flex flex-col gap-2" role="treeitem" aria-expanded={expanded} aria-level={1}>
-      <div className="border-border bg-card flex flex-wrap items-center gap-2 border-[2.5px] px-3 py-2.5">
+      <div className="border-border bg-card flex flex-wrap items-center gap-2 border-[2.5px] px-3 py-2">
         <button
           type="button"
           onClick={onToggle}
-          aria-label={expanded ? 'Room 접기' : 'Room 펼치기'}
+          aria-label={expanded ? '방 접기' : '방 펼치기'}
           className="border-border grid size-11 place-items-center border-2"
         >
           {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </button>
-        <Square aria-hidden="true" className="size-4" />
-        <Link to={`/space/rooms/${room.id}`} className="min-w-0 text-sm font-black hover:underline">
+        <DoorOpen aria-hidden="true" className="size-4" />
+        <Link
+          to={`/space/rooms/${room.id}`}
+          className="tap min-w-0 text-sm font-black hover:underline"
+        >
           {room.name}
         </Link>
-        <Badge variant="neutral">Shelf {room.shelfCount}</Badge>
+        <Badge variant="neutral">선반 {room.shelfCount}</Badge>
         <Badge variant="neutral">{permissionLabel(room.effectivePermission)}</Badge>
         {room.isShared ? <Badge variant="info">공유</Badge> : null}
         {room.effectivePermission === 'OWNER' ? (
@@ -441,12 +449,12 @@ function RoomBranch({
         <div className="border-border ml-[22px] flex flex-col gap-2 border-l-[2.5px] pl-[14px]">
           {shelvesQuery.isLoading ? (
             <p className="text-xs" role="status">
-              Shelf를 불러오는 중…
+              선반을 불러오는 중…
             </p>
           ) : null}
           {shelvesQuery.isError ? (
             <div className="flex flex-col items-start gap-2">
-              <Alert variant="error">Shelf를 불러오지 못했습니다.</Alert>
+              <Alert variant="error">선반을 불러오지 못했습니다.</Alert>
               <Button
                 type="button"
                 size="sm"
@@ -457,7 +465,7 @@ function RoomBranch({
               </Button>
             </div>
           ) : shelves.length === 0 && !shelvesQuery.isLoading ? (
-            <p className="text-foreground/60 text-xs">Shelf가 없습니다. + 버튼으로 추가하세요.</p>
+            <p className="text-foreground/60 text-xs">선반이 없습니다. + 버튼으로 추가하세요.</p>
           ) : null}
           {shelves.map((shelf) => (
             <ShelfBranch
@@ -480,7 +488,7 @@ function RoomBranch({
               disabled={shelvesQuery.isFetchingNextPage}
               onClick={() => void shelvesQuery.fetchNextPage()}
             >
-              {shelvesQuery.isFetchingNextPage ? '불러오는 중…' : 'Shelf 더 보기'}
+              {shelvesQuery.isFetchingNextPage ? '불러오는 중…' : '선반 더 보기'}
             </Button>
           ) : null}
         </div>
@@ -520,24 +528,24 @@ function ShelfBranch({
 
   return (
     <div className="flex flex-col gap-2" role="treeitem" aria-expanded={expanded} aria-level={2}>
-      <div className="border-border bg-yellow-soft flex flex-wrap items-center gap-2 border-[2.5px] px-3 py-2.5">
+      <div className="border-border bg-yellow-soft flex flex-wrap items-center gap-2 border-[2.5px] px-3 py-2">
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          aria-label={expanded ? 'Shelf 접기' : 'Shelf 펼치기'}
+          aria-label={expanded ? '선반 접기' : '선반 펼치기'}
           className="border-border grid size-11 place-items-center border-2"
         >
           {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </button>
-        <Layers aria-hidden="true" className="size-4" />
+        <Rows3 aria-hidden="true" className="size-4" />
         <Link
           to={`/space/shelves/${shelf.id}`}
-          className="min-w-0 text-sm font-black hover:underline"
+          className="tap min-w-0 text-sm font-black hover:underline"
         >
           {shelf.name}
         </Link>
-        <Badge variant="neutral">Box {shelf.boxCount}</Badge>
-        <span className="text-[10px] font-bold">{permissionLabel(shelf.effectivePermission)}</span>
+        <Badge variant="neutral">박스 {shelf.boxCount}</Badge>
+        <span className="text-xs font-bold">{permissionLabel(shelf.effectivePermission)}</span>
         {shelf.effectivePermission === 'OWNER' ? (
           <div className="ml-auto flex items-center gap-1">
             <NodeActions onAdd={onAddBox} onEdit={onEdit} onDelete={onDelete} onMove={onMove} />
@@ -548,12 +556,12 @@ function ShelfBranch({
         <div className="border-border ml-[22px] flex flex-col gap-2 border-l-[2.5px] pl-[14px]">
           {boxesQuery.isLoading ? (
             <p className="text-xs" role="status">
-              Box를 불러오는 중…
+              박스를 불러오는 중…
             </p>
           ) : null}
           {boxesQuery.isError ? (
             <div className="flex flex-col items-start gap-2">
-              <Alert variant="error">Box를 불러오지 못했습니다.</Alert>
+              <Alert variant="error">박스를 불러오지 못했습니다.</Alert>
               <Button
                 type="button"
                 size="sm"
@@ -564,7 +572,7 @@ function ShelfBranch({
               </Button>
             </div>
           ) : boxes.length === 0 && !boxesQuery.isLoading ? (
-            <p className="text-foreground/60 text-xs">Box가 없습니다.</p>
+            <p className="text-foreground/60 text-xs">박스가 없습니다.</p>
           ) : null}
           {boxes.map((box) => (
             <div
@@ -574,7 +582,7 @@ function ShelfBranch({
               <BoxIcon aria-hidden="true" className="size-4" />
               <Link
                 to={`/space/boxes/${box.id}`}
-                className="min-w-0 text-sm font-black hover:underline"
+                className="tap min-w-0 text-sm font-black hover:underline"
               >
                 {box.name}
               </Link>
@@ -597,7 +605,7 @@ function ShelfBranch({
               disabled={boxesQuery.isFetchingNextPage}
               onClick={() => void boxesQuery.fetchNextPage()}
             >
-              {boxesQuery.isFetchingNextPage ? '불러오는 중…' : 'Box 더 보기'}
+              {boxesQuery.isFetchingNextPage ? '불러오는 중…' : '박스 더 보기'}
             </Button>
           ) : null}
         </div>

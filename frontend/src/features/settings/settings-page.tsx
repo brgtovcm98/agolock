@@ -10,14 +10,16 @@ import { useTheme, type ThemeMode } from '@/shared/theme/theme-provider'
 import { Alert } from '@/shared/ui/alert'
 import { Avatar } from '@/shared/ui/avatar'
 import { Badge } from '@/shared/ui/badge'
+import { RadioCard } from '@/shared/ui/choice'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
-import { PageTitle, MetaText, SectionTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
+import { SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
 
 const settingsSchema = z.object({
   displayName: z.string().trim().min(1, '표시 이름을 입력해 주세요.').max(80),
-  spaceName: z.string().trim().min(1, 'Space 이름을 입력해 주세요.').max(120),
+  spaceName: z.string().trim().min(1, '공간 이름을 입력해 주세요.').max(120),
 })
 
 type SettingsValues = z.infer<typeof settingsSchema>
@@ -91,21 +93,18 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <p className="label-caps text-foreground/60">설정</p>
-          <PageTitle>설정</PageTitle>
-          <MetaText>프로필과 Space 이름, 화면 모드, 카테고리를 관리합니다.</MetaText>
-        </div>
-        <Badge variant="info">{space?.name ?? '내 Space'}</Badge>
-      </div>
+      <PageHeader
+        title="설정"
+        description="프로필과 공간 이름, 화면 모드, 카테고리를 관리합니다."
+        actions={<Badge variant="info">{space?.name ?? '내 공간'}</Badge>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-4">
           <Card>
             <CardBody className="gap-4">
-              <SectionTitle aside={<Badge variant="info">소유자</Badge>}>
-                프로필과 Space
+              <SectionTitle aside={<Badge variant="info">내 소유</Badge>}>
+                프로필과 공간
               </SectionTitle>
               <div className="flex items-center gap-3">
                 <Avatar name={user?.displayName ?? '?'} />
@@ -125,7 +124,7 @@ export function SettingsPage() {
                 />
                 <TextField
                   {...register('spaceName')}
-                  label="Space 이름"
+                  label="공간 이름"
                   autoComplete="organization"
                   error={errors.spaceName?.message}
                 />
@@ -154,23 +153,18 @@ export function SettingsPage() {
               <fieldset className="flex flex-col gap-2">
                 <legend className="sr-only">화면 모드 선택</legend>
                 {themeOptions.map((option) => (
-                  <label
+                  <RadioCard
                     key={option.value}
-                    className="border-border bg-card hover:bg-sunken flex cursor-pointer items-center gap-3 border-[2.5px] p-3"
+                    name="theme"
+                    value={option.value}
+                    checked={mode === option.value}
+                    onChange={() => setMode(option.value)}
                   >
-                    <input
-                      type="radio"
-                      name="theme"
-                      value={option.value}
-                      checked={mode === option.value}
-                      onChange={() => setMode(option.value)}
-                      className="accent-primary size-4"
-                    />
-                    <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="flex min-w-0 flex-col gap-1">
                       <span className="text-sm font-black">{option.label}</span>
                       <span className="text-foreground/60 text-xs">{option.description}</span>
                     </span>
-                  </label>
+                  </RadioCard>
                 ))}
               </fieldset>
             </CardBody>
@@ -210,7 +204,7 @@ export function SettingsPage() {
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-foreground/60">Space ID</dt>
-                  <dd className="max-w-[180px] text-[10px] font-bold break-all">{space?.id}</dd>
+                  <dd className="max-w-[180px] text-xs font-bold break-all">{space?.id}</dd>
                 </div>
               </dl>
             </CardBody>

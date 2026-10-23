@@ -24,20 +24,19 @@ export function BoxDetailPage() {
   if (boxQuery.isLoading)
     return (
       <p role="status" className="text-sm font-bold">
-        Box를 불러오는 중…
+        박스를 불러오는 중…
       </p>
     )
   if (boxQuery.isError || !boxQuery.data)
-    return <Alert variant="error">Box를 찾을 수 없습니다.</Alert>
+    return <Alert variant="error">박스를 찾을 수 없습니다.</Alert>
 
   const box = boxQuery.data
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <Link to="/space" className="text-xs font-bold underline underline-offset-2">
+        <Link to="/space" className="tap text-xs font-bold underline underline-offset-2">
           ← 공간 지도
         </Link>
-        <p className="label-caps text-foreground/60">공간</p>
         <div className="flex flex-wrap items-center gap-2">
           <BoxIcon aria-hidden="true" className="size-7" />
           <PageTitle>{box.name}</PageTitle>

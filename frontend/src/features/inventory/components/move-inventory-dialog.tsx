@@ -59,7 +59,7 @@ export function MoveInventoryDialog({
     <Dialog.Root open onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
-        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,480px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 flex w-[min(92vw,480px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 border-[2.5px] p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
               <Dialog.Title className="text-xl font-black">위치 이동</Dialog.Title>
@@ -78,7 +78,7 @@ export function MoveInventoryDialog({
             </Dialog.Close>
           </div>
 
-          <div className="mt-4 flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             {error ? <Alert variant="error">{error}</Alert> : null}
             <LocationPicker
               value={location}

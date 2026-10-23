@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Button } from '@/shared/ui/button'
 import { TextField } from '@/shared/ui/text-field'
 
@@ -23,7 +24,7 @@ export function DialogFrame({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
-        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 flex w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 border-[2.5px] p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
               <Dialog.Title className="text-xl font-black">{title}</Dialog.Title>
@@ -43,7 +44,7 @@ export function DialogFrame({
               </button>
             </Dialog.Close>
           </div>
-          <div className="mt-4">{children}</div>
+          {children}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -99,7 +100,7 @@ export function NodeFormDialog({
           maxLength={120}
           autoFocus
         />
-        <label className="flex flex-col gap-1.5">
+        <label className="flex flex-col gap-2">
           <span className="text-xs font-black">설명 (선택)</span>
           <textarea
             value={details}
@@ -155,20 +156,16 @@ export function MoveDialog({
         }}
       >
         {error ? <Alert variant="error">{error}</Alert> : null}
-        <label className="flex flex-col gap-1.5">
+        <label className="flex flex-col gap-2">
           <span className="text-xs font-black">{label}</span>
-          <select
-            value={selected}
-            onChange={(event) => setSelected(event.target.value)}
-            className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background h-12 border-[2.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          >
+          <Select value={selected} onChange={(event) => setSelected(event.target.value)}>
             {options.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.name}
                 {option.id === initialId ? ' (현재)' : ''}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
@@ -206,17 +203,13 @@ export function DeleteDialog({
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
-        <AlertDialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <AlertDialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 border-[2.5px] p-4">
           <AlertDialog.Title className="text-xl font-black">삭제할까요?</AlertDialog.Title>
-          <AlertDialog.Description className="text-foreground/70 mt-2 text-xs">
+          <AlertDialog.Description className="text-foreground/70 text-xs">
             “{name}”을(를) 삭제합니다. 하위 항목이 있으면 삭제할 수 없습니다.
           </AlertDialog.Description>
-          {error ? (
-            <Alert variant="error" className="mt-3">
-              {error}
-            </Alert>
-          ) : null}
-          <div className="mt-5 flex justify-end gap-2">
+          {error ? <Alert variant="error">{error}</Alert> : null}
+          <div className="flex justify-end gap-2">
             <AlertDialog.Cancel asChild>
               <Button type="button" variant="secondary">
                 취소

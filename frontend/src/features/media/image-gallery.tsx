@@ -160,7 +160,7 @@ export function ImageGallery({
   })
 
   return (
-    <div className="border-border flex flex-col gap-2 border-t-2 pt-2">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-black">이미지 {images.length}/10</span>
         <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export function ImageGallery({
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
-          <span className="w-9 text-right text-[11px] font-black">{uploadProgress}%</span>
+          <span className="text-label w-9 text-right font-black">{uploadProgress}%</span>
         </div>
       ) : null}
       {error ? (
@@ -259,8 +259,8 @@ export function ImageGallery({
               <div
                 className={
                   singleImage
-                    ? 'bg-sunken flex aspect-[4/3] items-center justify-center text-[10px]'
-                    : 'bg-sunken flex aspect-square items-center justify-center text-[10px]'
+                    ? 'bg-sunken flex aspect-[4/3] items-center justify-center text-xs'
+                    : 'bg-sunken flex aspect-square items-center justify-center text-xs'
                 }
               >
                 {statusLabel[image.status]}

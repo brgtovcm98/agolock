@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { sharingApi, type SharePermission } from './api'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Button } from '@/shared/ui/button'
 import { TextField } from '@/shared/ui/text-field'
 import { permissionDescription, permissionLabel } from '@/shared/lib/permission'
@@ -41,7 +42,7 @@ export function ShareDialog({
     <Dialog.Root open onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
-        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 flex w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 border-[2.5px] p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
               <Dialog.Title className="text-xl font-black">공유 초대</Dialog.Title>
@@ -61,7 +62,7 @@ export function ShareDialog({
           </div>
 
           {sent ? (
-            <div className="mt-4 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <Alert variant="success">초대를 보냈어요. 상대가 수락하면 공유가 시작됩니다.</Alert>
               <Button type="button" onClick={onClose}>
                 닫기
@@ -69,7 +70,7 @@ export function ShareDialog({
             </div>
           ) : (
             <form
-              className="mt-4 flex flex-col gap-3"
+              className="flex flex-col gap-3"
               onSubmit={(event) => {
                 event.preventDefault()
                 if (email.trim()) mutation.mutate()
@@ -84,19 +85,18 @@ export function ShareDialog({
                 onChange={(event) => setEmail(event.target.value)}
                 autoFocus
               />
-              <label className="flex flex-col gap-1.5">
+              <label className="flex flex-col gap-2">
                 <span className="text-xs font-black">권한</span>
-                <select
+                <Select
                   aria-label="공유 권한"
                   value={permission}
                   onChange={(event) => setPermission(event.target.value as SharePermission)}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
                 >
                   <option value="VIEW">{permissionLabel('VIEW')}</option>
                   <option value="EDIT">{permissionLabel('EDIT')}</option>
                   <option value="MANAGE">{permissionLabel('MANAGE')}</option>
-                </select>
-                <span className="text-foreground/60 text-[11px]">
+                </Select>
+                <span className="text-foreground/60 text-xs">
                   {permissionDescription(permission)}
                 </span>
               </label>

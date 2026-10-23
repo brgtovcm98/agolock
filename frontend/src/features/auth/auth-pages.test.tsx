@@ -59,7 +59,7 @@ describe('인증 화면', () => {
 
     expect(screen.getByRole('heading', { name: '설정' })).toBeInTheDocument()
     expect(screen.getByLabelText('표시 이름')).toHaveValue('지민')
-    expect(screen.getByLabelText('Space 이름')).toHaveValue('지민의 Space')
+    expect(screen.getByLabelText('공간 이름')).toHaveValue('지민의 Space')
     expect(screen.getByRole('radio', { name: /시스템/ })).toBeChecked()
   })
 })

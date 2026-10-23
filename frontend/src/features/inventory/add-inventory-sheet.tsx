@@ -207,7 +207,7 @@ export function AddInventorySheet({
               }
             }}
           >
-            <div className="border-border flex items-start justify-between gap-3 border-b-[2.5px] p-4 sm:p-5">
+            <div className="border-border flex items-start justify-between gap-3 border-b-[2.5px] p-4 sm:p-4">
               <div className="flex flex-col gap-1">
                 <Dialog.Title className="text-xl font-black">물건 등록</Dialog.Title>
                 <Dialog.Description className="text-foreground/60 text-xs">
@@ -224,7 +224,7 @@ export function AddInventorySheet({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-4">
               {success ? (
                 <div className="flex flex-col gap-4">
                   <Alert variant="success">등록했어요.</Alert>
@@ -263,7 +263,7 @@ export function AddInventorySheet({
               ) : (
                 <form
                   id="add-inventory-form"
-                  className="flex flex-col gap-5"
+                  className="flex flex-col gap-6"
                   onSubmit={(event) => {
                     event.preventDefault()
                     submitMutation.mutate()
@@ -368,7 +368,7 @@ export function AddInventorySheet({
                       {(
                         [
                           ['STORED', '보관'],
-                          ['IN_USE', '사용 중'],
+                          ['IN_USE', '사용중'],
                         ] as const
                       ).map(([value, label]) => (
                         <button
@@ -396,7 +396,7 @@ export function AddInventorySheet({
                       type="button"
                       onClick={() => setDetailsOpen((current) => !current)}
                       aria-expanded={detailsOpen}
-                      className="text-foreground/70 flex items-center gap-1 text-left text-xs font-black"
+                      className="tap text-foreground/70 gap-1 text-left text-xs font-black"
                     >
                       <ChevronDown
                         aria-hidden="true"
@@ -417,7 +417,7 @@ export function AddInventorySheet({
                             setTouched(true)
                           }}
                         />
-                        <label className="flex flex-col gap-1.5">
+                        <label className="flex flex-col gap-2">
                           <span className="text-xs font-black">설명 (선택)</span>
                           <textarea
                             value={description}
@@ -438,7 +438,7 @@ export function AddInventorySheet({
             </div>
 
             {!success ? (
-              <div className="border-border flex items-center justify-end gap-2 border-t-[2.5px] p-4 sm:p-5">
+              <div className="border-border flex items-center justify-end gap-2 border-t-[2.5px] p-4 sm:p-4">
                 <Button type="button" variant="secondary" onClick={requestClose}>
                   취소
                 </Button>

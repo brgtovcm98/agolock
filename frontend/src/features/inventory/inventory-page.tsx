@@ -7,13 +7,13 @@ import { InventoryCard } from './components/inventory-card'
 import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
-import { MetaText, PageTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
 
 type FilterId = 'all' | InventoryStatus
 
 const filters: Array<{ id: FilterId; label: string; statuses?: InventoryStatus[] }> = [
   { id: 'all', label: '전체' },
-  { id: 'IN_USE', label: '사용 중', statuses: ['IN_USE'] },
+  { id: 'IN_USE', label: '사용중', statuses: ['IN_USE'] },
   { id: 'STORED', label: '보관', statuses: ['STORED'] },
   { id: 'DISPOSED', label: '폐기', statuses: ['DISPOSED'] },
 ]
@@ -41,13 +41,7 @@ export function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <p className="label-caps text-foreground/60">재고</p>
-          <PageTitle>재고</PageTitle>
-          <MetaText>등록한 물건을 찾고, 위치와 상태를 관리합니다.</MetaText>
-        </div>
-      </div>
+      <PageHeader title="재고" description="등록한 물건을 찾고, 위치와 상태를 관리합니다." />
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="재고 상태 필터">
         {filters.map((item) => (
@@ -113,7 +107,7 @@ export function InventoryPage() {
         </Card>
       ) : (
         <div className="flex flex-col gap-3">
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
             {inventories.map((inventory) => (
               <InventoryCard key={inventory.id} inventory={inventory} />
             ))}

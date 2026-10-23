@@ -56,9 +56,7 @@ export function InvitationTokenPage() {
         ) : null}
         {error ? <Alert variant="error">{error}</Alert> : null}
         {message ? <Alert variant="success">{message}</Alert> : null}
-        <p className="text-sm">
-          초대를 수락하면 공유받은 Room 또는 Shelf가 공유 목록에 나타납니다.
-        </p>
+        <p className="text-sm">초대를 수락하면 공유받은 방 또는 선반이 공유 목록에 나타납니다.</p>
         <div className="flex gap-2">
           <Button type="button" disabled={!token || busy} onClick={() => void run('accept')}>
             초대 수락

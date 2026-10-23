@@ -5,6 +5,7 @@ import type { LocationInput } from '../api'
 import { hierarchyApi } from '@/features/hierarchy/api'
 import { sharingApi } from '@/features/sharing/api'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { permissionLabel } from '@/shared/lib/permission'
@@ -186,23 +187,22 @@ export function LocationPicker({
         noOwnedRooms ? (
           <Alert variant="info">
             먼저 공간을 만들어 주세요.{' '}
-            <Link to="/space" className="font-black underline underline-offset-2">
+            <Link to="/space" className="tap-area font-black underline underline-offset-2">
               공간 지도로 이동
             </Link>
           </Alert>
         ) : (
           <>
             <div className="grid gap-2 sm:grid-cols-3">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-black">방</span>
-                <select
+              <label className="flex flex-col gap-2">
+                <span className="text-label font-black">방</span>
+                <Select
                   aria-label="방"
                   value={roomId}
                   onChange={(event) => {
                     const next = event.target.value
                     onChange(next ? { roomId: next } : {})
                   }}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
                 >
                   <option value="">선택</option>
                   {rooms.map((item) => (
@@ -210,11 +210,11 @@ export function LocationPicker({
                       {item.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-black">선반 (선택)</span>
-                <select
+              <label className="flex flex-col gap-2">
+                <span className="text-label font-black">선반 (선택)</span>
+                <Select
                   aria-label="선반"
                   value={shelfId}
                   disabled={!roomId}
@@ -222,7 +222,6 @@ export function LocationPicker({
                     const next = event.target.value
                     onChange(next ? { roomId, shelfId: next } : { roomId })
                   }}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm disabled:opacity-50"
                 >
                   <option value="">선택 안 함</option>
                   {shelves.map((item) => (
@@ -230,11 +229,11 @@ export function LocationPicker({
                       {item.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-black">박스 (선택)</span>
-                <select
+              <label className="flex flex-col gap-2">
+                <span className="text-label font-black">박스 (선택)</span>
+                <Select
                   aria-label="박스"
                   value={boxId}
                   disabled={!shelfId}
@@ -242,7 +241,6 @@ export function LocationPicker({
                     const next = event.target.value
                     onChange(next ? { roomId, shelfId, boxId: next } : { roomId, shelfId })
                   }}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm disabled:opacity-50"
                 >
                   <option value="">선택 안 함</option>
                   {boxes.map((item) => (
@@ -250,10 +248,10 @@ export function LocationPicker({
                       {item.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px]">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
               {room ? <span className="font-bold">{room.name}</span> : null}
               {shelf ? <span>› {shelf.name}</span> : null}
               {box ? <span>› {box.name}</span> : null}
@@ -264,13 +262,12 @@ export function LocationPicker({
         )
       ) : (
         <>
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-black">공유받은 위치</span>
-            <select
+          <label className="flex flex-col gap-2">
+            <span className="text-label font-black">공유받은 위치</span>
+            <Select
               aria-label="공유받은 위치"
               value={selectedSharedKey}
               onChange={(event) => void selectShared(event.target.value)}
-              className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
             >
               <option value="">선택</option>
               {sharedOptions.map((share) => {
@@ -284,14 +281,14 @@ export function LocationPicker({
                   </option>
                 )
               })}
-            </select>
+            </Select>
           </label>
 
           {sharedKey.startsWith('ROOM:') ? (
             <div className="grid gap-2 sm:grid-cols-2">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-black">선반 (선택)</span>
-                <select
+              <label className="flex flex-col gap-2">
+                <span className="text-label font-black">선반 (선택)</span>
+                <Select
                   aria-label="공유 선반"
                   value={shelfId}
                   onChange={(event) => {
@@ -302,7 +299,6 @@ export function LocationPicker({
                         : { roomId: effectiveSharedRoomId },
                     )
                   }}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
                 >
                   <option value="">선택 안 함</option>
                   {shelves.map((item) => (
@@ -310,11 +306,11 @@ export function LocationPicker({
                       {item.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-black">박스 (선택)</span>
-                <select
+              <label className="flex flex-col gap-2">
+                <span className="text-label font-black">박스 (선택)</span>
+                <Select
                   aria-label="공유 박스"
                   value={boxId}
                   disabled={!shelfId}
@@ -326,7 +322,6 @@ export function LocationPicker({
                         : { roomId: effectiveSharedRoomId, shelfId },
                     )
                   }}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm disabled:opacity-50"
                 >
                   <option value="">선택 안 함</option>
                   {boxes.map((item) => (
@@ -334,15 +329,15 @@ export function LocationPicker({
                       {item.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </div>
           ) : null}
 
           {sharedKey.startsWith('SHELF:') ? (
-            <label className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-black">박스 (선택)</span>
-              <select
+            <label className="flex flex-col gap-2">
+              <span className="text-label font-black">박스 (선택)</span>
+              <Select
                 aria-label="공유 박스"
                 value={boxId}
                 onChange={(event) => {
@@ -353,7 +348,6 @@ export function LocationPicker({
                       : { roomId: effectiveSharedRoomId, shelfId: sharedShelfId },
                   )
                 }}
-                className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
               >
                 <option value="">선택 안 함</option>
                 {boxes.map((item) => (
@@ -361,11 +355,11 @@ export function LocationPicker({
                     {item.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           ) : null}
 
-          <div className="flex flex-wrap items-center gap-2 text-[11px]">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             {selectedShare ? (
               <>
                 <span className="font-bold">

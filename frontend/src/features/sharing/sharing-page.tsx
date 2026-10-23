@@ -6,10 +6,12 @@ import { sharingApi, type InvitationStatus, type SharePermission } from './api'
 import { useAuth } from '@/features/auth/auth-provider'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
-import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
+import { SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
 import { permissionDescription, permissionLabel } from '@/shared/lib/permission'
 import { useToast } from '@/shared/ui/toast-context'
@@ -123,17 +125,13 @@ export function SharingPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <p className="label-caps text-foreground/60">공유</p>
-        <PageTitle>공유</PageTitle>
-        <MetaText>초대를 수락한 사람만 공유 공간을 볼 수 있습니다.</MetaText>
-      </div>
+      <PageHeader title="공유" description="초대를 수락한 사람만 공유 공간을 볼 수 있습니다." />
       {error ? <Alert variant="error">{error}</Alert> : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardBody className="gap-3">
-            <SectionTitle>Room 초대</SectionTitle>
+            <SectionTitle>방 초대</SectionTitle>
             <form
               className="grid gap-2"
               onSubmit={(event) => {
@@ -147,34 +145,29 @@ export function SharingPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
               />
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-black">Room</span>
-                <select
-                  value={roomId}
-                  onChange={(event) => setRoomId(event.target.value)}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
-                >
+              <label className="flex flex-col gap-2">
+                <span className="text-xs font-black">방</span>
+                <Select value={roomId} onChange={(event) => setRoomId(event.target.value)}>
                   <option value="">선택</option>
                   {rooms.map((room) => (
                     <option key={room.id} value={room.id}>
                       {room.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
-              <label className="flex flex-col gap-1.5">
+              <label className="flex flex-col gap-2">
                 <span className="text-xs font-black">권한</span>
-                <select
+                <Select
                   value={permission}
                   onChange={(event) => setPermission(event.target.value as SharePermission)}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
                 >
                   <option value="VIEW">{permissionLabel('VIEW')}</option>
                   <option value="EDIT">{permissionLabel('EDIT')}</option>
                   <option value="MANAGE">{permissionLabel('MANAGE')}</option>
-                </select>
+                </Select>
               </label>
-              <p className="text-foreground/60 text-[11px]">{permissionDescription(permission)}</p>
+              <p className="text-foreground/60 text-xs">{permissionDescription(permission)}</p>
               <Button type="submit" disabled={inviteMutation.isPending || !email.trim() || !roomId}>
                 <Plus aria-hidden="true" className="size-4" />
                 초대 보내기
@@ -275,7 +268,7 @@ export function SharingPage() {
             >
               <span className="font-black">{share.resourceName}</span>
               <span>{share.granteeDisplayName ?? share.granteeUserId}</span>
-              <select
+              <Select
                 aria-label="공유 권한"
                 value={share.permission}
                 onChange={(event) =>
@@ -284,12 +277,12 @@ export function SharingPage() {
                     permission: event.target.value as SharePermission,
                   })
                 }
-                className="border-border bg-card border-2 px-2 py-1 text-xs"
+                compact
               >
                 <option value="VIEW">{permissionLabel('VIEW')}</option>
                 <option value="EDIT">{permissionLabel('EDIT')}</option>
                 <option value="MANAGE">{permissionLabel('MANAGE')}</option>
-              </select>
+              </Select>
               <Button
                 type="button"
                 size="sm"

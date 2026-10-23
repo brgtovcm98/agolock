@@ -28,28 +28,27 @@ export function RoomDetailPage() {
   if (roomQuery.isLoading) {
     return (
       <p role="status" className="text-sm font-bold">
-        Room을 불러오는 중…
+        방을 불러오는 중…
       </p>
     )
   }
   if (roomQuery.isError || !roomQuery.data) {
-    return <Alert variant="error">Room을 찾을 수 없습니다.</Alert>
+    return <Alert variant="error">방을 찾을 수 없습니다.</Alert>
   }
 
   const room = roomQuery.data
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <Link to="/space" className="text-xs font-bold underline underline-offset-2">
+        <Link to="/space" className="tap text-xs font-bold underline underline-offset-2">
           ← 공간 지도
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <p className="label-caps text-foreground/60">공간</p>
             <div className="flex flex-wrap items-center gap-2">
               <PageTitle>{room.name}</PageTitle>
               <Badge variant="info">{permissionLabel(room.effectivePermission)}</Badge>
-              <Badge>Shelf {room.shelfCount}</Badge>
+              <Badge>선반 {room.shelfCount}</Badge>
               <Badge>재고 {room.inventoryCount ?? 0}</Badge>
             </div>
             {room.description ? <MetaText>{room.description}</MetaText> : null}
@@ -64,7 +63,7 @@ export function RoomDetailPage() {
 
       <Card>
         <CardBody className="gap-3">
-          <SectionTitle>Shelf</SectionTitle>
+          <SectionTitle>선반</SectionTitle>
           {shelvesQuery.isLoading ? (
             <p className="text-xs" role="status">
               불러오는 중…
@@ -72,7 +71,7 @@ export function RoomDetailPage() {
           ) : null}
           {shelvesQuery.data?.items.length === 0 ? (
             <p className="text-foreground/70 text-xs">
-              Shelf가 없습니다. 공간 지도에서 추가할 수 있어요.
+              선반이 없습니다. 공간 지도에서 추가할 수 있어요.
             </p>
           ) : null}
           <div className="flex flex-col gap-2">
@@ -80,10 +79,10 @@ export function RoomDetailPage() {
               <Link
                 key={shelf.id}
                 to={`/space/shelves/${shelf.id}`}
-                className="border-border bg-yellow-soft flex items-center justify-between gap-2 border-[2.5px] px-3 py-2 text-sm font-black"
+                className="border-border bg-yellow-soft flex min-h-11 items-center justify-between gap-2 border-[2.5px] px-3 py-2 text-sm font-black"
               >
                 {shelf.name}
-                <span className="text-xs">Box {shelf.boxCount}</span>
+                <span className="text-xs">박스 {shelf.boxCount}</span>
               </Link>
             ))}
           </div>

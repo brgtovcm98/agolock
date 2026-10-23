@@ -5,8 +5,8 @@ import { PageTitle } from '@/shared/ui/typography'
 
 export function NotFoundPage() {
   return (
-    <div className="bg-background grid min-h-dvh place-items-center px-4 py-10">
-      <div className="border-border bg-card shadow-brutal flex w-full max-w-lg flex-col gap-5 border-[2.5px] p-6">
+    <div className="bg-background grid min-h-dvh place-items-center px-4 py-12">
+      <div className="border-border bg-card shadow-brutal flex w-full max-w-lg flex-col gap-6 border-[2.5px] p-6">
         <Brand />
         <p className="text-7xl leading-none font-black tracking-[-0.06em]">404</p>
         <PageTitle className="text-2xl">화면을 찾지 못했어요</PageTitle>

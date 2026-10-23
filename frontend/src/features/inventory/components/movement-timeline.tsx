@@ -27,8 +27,10 @@ export function MovementTimeline({ inventory }: { inventory: Inventory }) {
           <ol className="flex flex-col gap-2">
             {movements.map((movement) => (
               <li key={movement.id} className="flex gap-2 text-xs">
-                <span className="bg-primary mt-1 size-2 shrink-0" aria-hidden="true" />
-                <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="flex h-4 shrink-0 items-center" aria-hidden="true">
+                  <span className="bg-primary size-2" />
+                </span>
+                <div className="flex min-w-0 flex-col gap-1">
                   <span className="font-black">
                     {movement.from.name} → {movement.to.name}
                   </span>
@@ -37,8 +39,10 @@ export function MovementTimeline({ inventory }: { inventory: Inventory }) {
               </li>
             ))}
             <li className="flex gap-2 text-xs">
-              <span className="bg-success mt-1 size-2 shrink-0" aria-hidden="true" />
-              <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="flex h-4 shrink-0 items-center" aria-hidden="true">
+                <span className="bg-success size-2" />
+              </span>
+              <div className="flex min-w-0 flex-col gap-1">
                 <span className="font-black">등록 · {inventory.location.name}</span>
                 <span className="text-foreground/60">{formatDate(inventory.createdAt)}</span>
               </div>

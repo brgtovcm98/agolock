@@ -4,10 +4,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { inventoryApi, type Category, type Inventory, type Item } from './api'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
+import { Choice } from '@/shared/ui/choice'
+import { Select } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
-import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
+import { SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
 import { useToast } from '@/shared/ui/toast-context'
 import { formatPrice } from '@/shared/lib/format'
@@ -28,18 +31,16 @@ function OverrideField({
 }) {
   return (
     <div className="border-border flex flex-col gap-2 border-2 p-3">
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(event) => onToggle(event.target.checked)}
-          className="accent-primary size-4"
-        />
+      <Choice
+        type="checkbox"
+        checked={enabled}
+        onChange={(event) => onToggle(event.target.checked)}
+      >
         <span className="text-xs font-black">{label}</span>
-        <Badge variant="neutral" className="ml-auto h-6 text-[10px]">
+        <Badge variant="neutral" className="ml-auto">
           마스터: {master}
         </Badge>
-      </label>
+      </Choice>
       <div className={enabled ? '' : 'pointer-events-none opacity-40'}>{children}</div>
     </div>
   )
@@ -124,17 +125,12 @@ function InventoryEditForm({
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link
-          to={`/inventory/${inventory.id}`}
-          className="text-xs font-bold underline underline-offset-2"
-        >
-          ← 재고 상세
-        </Link>
-        <p className="label-caps text-foreground/60">{inventory.displayName}</p>
-        <PageTitle>재고 편집</PageTitle>
-        <MetaText>마스터 값과 다르게 표시할 값만 직접 입력하세요.</MetaText>
-      </div>
+      <PageHeader
+        back={{ to: `/inventory/${inventory.id}`, label: '재고 상세' }}
+        eyebrow={inventory.displayName}
+        title="재고 편집"
+        description="마스터 값과 다르게 표시할 값만 직접 입력하세요."
+      />
 
       {error ? <Alert variant="error">{error}</Alert> : null}
 
@@ -170,7 +166,7 @@ function InventoryEditForm({
               master={item?.description ?? '설명 없음'}
               onToggle={setDescriptionOn}
             >
-              <label className="flex flex-col gap-1.5">
+              <label className="flex flex-col gap-2">
                 <span className="text-xs font-black">재고 설명</span>
                 <textarea
                   value={description}
@@ -189,14 +185,13 @@ function InventoryEditForm({
               master={itemCategoryName}
               onToggle={setCategoryOn}
             >
-              <label className="flex flex-col gap-1.5">
+              <label className="flex flex-col gap-2">
                 <span className="text-xs font-black">재고 카테고리</span>
-                <select
+                <Select
                   aria-label="재고 카테고리"
                   value={categoryId}
                   disabled={!categoryOn}
                   onChange={(event) => setCategoryId(event.target.value)}
-                  className="border-border bg-card h-12 border-[2.5px] px-3 text-sm disabled:opacity-50"
                 >
                   <option value="">마스터 값 사용</option>
                   {categories.map((category) => (
@@ -204,7 +199,7 @@ function InventoryEditForm({
                       {category.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </OverrideField>
 

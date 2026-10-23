@@ -43,7 +43,7 @@ export function ItemCombobox({
       <div className="border-border bg-card flex items-center gap-3 border-[2.5px] p-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black">{value.name}</p>
-          <p className="text-foreground/60 text-[11px]">{formatPrice(value.priceAmount)}</p>
+          <p className="text-foreground/60 text-xs">{formatPrice(value.priceAmount)}</p>
         </div>
         <Button type="button" size="sm" variant="secondary" onClick={() => onChange(null)}>
           변경
@@ -54,7 +54,7 @@ export function ItemCombobox({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="flex flex-col gap-1.5">
+      <label className="flex flex-col gap-2">
         <span className="text-xs font-black">물건 검색</span>
         <span className="border-border bg-card focus-within:outline-foreground flex items-center border-[2.5px] focus-within:outline-[3px] focus-within:outline-offset-[3px]">
           <Search aria-hidden="true" className="text-foreground/50 ml-3 size-4 shrink-0" />
@@ -81,9 +81,9 @@ export function ItemCombobox({
         </p>
       ) : null}
       {results.length > 0 ? (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           {!debounced ? <p className="label-caps text-foreground/60">최근 물건</p> : null}
-          <ul className="flex max-h-56 flex-col gap-1.5 overflow-y-auto">
+          <ul className="flex max-h-56 flex-col gap-2 overflow-y-auto">
             {results.map((item) => (
               <li key={item.id}>
                 <button
@@ -92,7 +92,7 @@ export function ItemCombobox({
                   className="border-border bg-card hover:bg-sunken flex w-full items-center justify-between gap-2 border-2 px-3 py-2 text-left"
                 >
                   <span className="truncate text-sm font-black">{item.name}</span>
-                  <span className="text-foreground/60 shrink-0 text-[11px]">
+                  <span className="text-foreground/60 shrink-0 text-xs">
                     {formatPrice(item.priceAmount)}
                   </span>
                 </button>

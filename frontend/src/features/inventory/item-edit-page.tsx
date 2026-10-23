@@ -4,10 +4,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { inventoryApi, type Category, type Item, type ItemUpdateImpact } from './api'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
-import { MetaText, PageTitle, SectionTitle } from '@/shared/ui/typography'
+import { PageHeader } from '@/shared/ui/page-header'
+import { SectionTitle } from '@/shared/ui/typography'
 import { TextField } from '@/shared/ui/text-field'
 import { useToast } from '@/shared/ui/toast-context'
 
@@ -82,14 +84,12 @@ function ItemEditForm({ item, categories }: { item: Item; categories: Category[]
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link to={`/items/${item.id}`} className="text-xs font-bold underline underline-offset-2">
-          ← 물건 상세
-        </Link>
-        <p className="label-caps text-foreground/60">물건 수정</p>
-        <PageTitle>{item.name}</PageTitle>
-        <MetaText>마스터 값을 바꾸면 재고값을 덮어쓰지 않은 재고에 바로 반영됩니다.</MetaText>
-      </div>
+      <PageHeader
+        back={{ to: `/items/${item.id}`, label: '물건 상세' }}
+        eyebrow="물건 수정"
+        title={item.name}
+        description="마스터 값을 바꾸면 재고값을 덮어쓰지 않은 재고에 바로 반영됩니다."
+      />
 
       {error ? <Alert variant="error">{error}</Alert> : null}
 
@@ -110,7 +110,7 @@ function ItemEditForm({ item, categories }: { item: Item; categories: Category[]
               maxLength={120}
               onChange={(event) => setName(event.target.value)}
             />
-            <label className="flex flex-col gap-1.5">
+            <label className="flex flex-col gap-2">
               <span className="text-xs font-black">설명 (선택)</span>
               <textarea
                 value={description}
@@ -120,13 +120,12 @@ function ItemEditForm({ item, categories }: { item: Item; categories: Category[]
                 className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               />
             </label>
-            <label className="flex flex-col gap-1.5">
+            <label className="flex flex-col gap-2">
               <span className="text-xs font-black">카테고리 (선택)</span>
-              <select
+              <Select
                 aria-label="카테고리"
                 value={categoryId}
                 onChange={(event) => setCategoryId(event.target.value)}
-                className="border-border bg-card h-12 border-[2.5px] px-3 text-sm"
               >
                 <option value="">없음</option>
                 {categories.map((category) => (
@@ -134,7 +133,7 @@ function ItemEditForm({ item, categories }: { item: Item; categories: Category[]
                     {category.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <TextField
               label="가격 (선택)"

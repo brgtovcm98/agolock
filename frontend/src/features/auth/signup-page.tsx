@@ -117,12 +117,12 @@ export function SignupPage() {
     <AuthLayout
       eyebrow="회원가입"
       title="내 물건을 시작해요"
-      description="가입하면 나만의 Space가 만들어지고, Room·Shelf·Box로 물건을 정리할 수 있어요."
+      description="가입하면 나만의 공간이 만들어지고, 방·선반·박스로 물건을 정리할 수 있어요."
       footer={
         <span>
           이미 계정이 있나요?{' '}
           <Link
-            className="font-black underline underline-offset-2"
+            className="tap-area font-black underline underline-offset-2"
             to={{ pathname: '/login', search: searchParams.toString() }}
           >
             로그인

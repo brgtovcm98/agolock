@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { House, Plus } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-provider'
 import { AddInventoryProvider } from '@/features/inventory/add-inventory-provider'
 import { useAddInventory } from '@/features/inventory/add-inventory-context'
@@ -40,20 +40,20 @@ function AppShellFrame({ children }: { children: ReactNode }) {
       >
         <Brand />
         <div className="flex flex-col gap-2">
-          <p className="label-caps text-foreground">SPACE</p>
+          <p className="label-caps text-foreground">공간</p>
           <div className="flex flex-col gap-2">
             <Link
               to="/"
-              className="border-border bg-primary text-on-accent shadow-brutal flex h-11 items-center gap-3 border-[2.5px] px-3 text-sm font-black"
+              className="border-border bg-card hover:bg-sunken flex h-11 items-center gap-3 border-[2.5px] px-3 text-sm font-black"
             >
-              <span aria-hidden="true" className="size-3 border-2 border-current" />
-              <span className="truncate">{space?.name ?? '내 Space'}</span>
+              <House aria-hidden="true" className="size-[18px] shrink-0" strokeWidth={1.8} />
+              <span className="truncate">{space?.name ?? '내 공간'}</span>
             </Link>
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="label-caps text-foreground">MENU</p>
+          <p className="label-caps text-foreground">메뉴</p>
           <NavList items={mainNavigation} active={active} />
         </div>
 
@@ -61,9 +61,9 @@ function AppShellFrame({ children }: { children: ReactNode }) {
           <Avatar name={user?.displayName ?? '?'} />
           <div className="min-w-0">
             <p className="truncate text-xs font-black">{user?.displayName ?? '사용자'}</p>
-            <p className="text-foreground/70 truncate text-[11px]">{user?.email}</p>
+            <p className="text-foreground/70 truncate text-xs">{user?.email}</p>
           </div>
-          <ThemeToggle className="ml-auto size-10 shadow-none" />
+          <ThemeToggle className="ml-auto shadow-none" />
         </div>
       </aside>
 
@@ -81,7 +81,9 @@ function AppShellFrame({ children }: { children: ReactNode }) {
               등록
             </Button>
             <ThemeToggle className="lg:hidden" />
-            <Avatar name={user?.displayName ?? '?'} className="hidden lg:grid" />
+            <Link to="/settings" aria-label="설정으로 이동" className="tap-area">
+              <Avatar name={user?.displayName ?? '?'} />
+            </Link>
           </div>
         </header>
 

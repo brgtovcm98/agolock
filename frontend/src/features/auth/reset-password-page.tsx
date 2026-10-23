@@ -48,7 +48,7 @@ export function ResetPasswordPage() {
       title="비밀번호를 잊었어요"
       description="가입한 이메일을 입력하면 재설정 링크를 보내 드려요. 보안을 위해 가입 여부와 관계없이 같은 안내를 보여 줍니다."
       footer={
-        <Link className="font-black underline underline-offset-2" to="/login">
+        <Link className="tap font-black underline underline-offset-2" to="/login">
           로그인으로 돌아가기
         </Link>
       }

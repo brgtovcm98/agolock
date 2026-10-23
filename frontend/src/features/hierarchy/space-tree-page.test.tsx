@@ -35,13 +35,13 @@ describe('공간 지도', () => {
       ],
     })
 
-    await user.click(await screen.findByRole('button', { name: 'Room 펼치기' }))
-    await user.click(await screen.findByRole('button', { name: 'Shelf 펼치기' }))
+    await user.click(await screen.findByRole('button', { name: '방 펼치기' }))
+    await user.click(await screen.findByRole('button', { name: '선반 펼치기' }))
     const moveButtons = await screen.findAllByRole('button', { name: '이동' })
     await user.click(moveButtons[moveButtons.length - 1])
 
     const dialog = await screen.findByRole('dialog')
-    await user.selectOptions(within(dialog).getByLabelText('이동할 Shelf'), 's2')
+    await user.selectOptions(within(dialog).getByLabelText('이동할 선반'), 's2')
     await user.click(within(dialog).getByRole('button', { name: '이동' }))
 
     expect(moveSpy).toHaveBeenCalledWith('b1', 's2', 1)

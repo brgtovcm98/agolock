@@ -9,6 +9,7 @@ import { useLocationPath } from './use-location-path'
 import { InventoryImages } from '@/features/media/inventory-images'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardBody } from '@/shared/ui/card'
@@ -20,7 +21,7 @@ import { formatPrice } from '@/shared/lib/format'
 import { canEdit, canManage, permissionLabel } from '@/shared/lib/permission'
 
 const statusOptions: Array<{ value: InventoryStatus; label: string }> = [
-  { value: 'IN_USE', label: '사용 중' },
+  { value: 'IN_USE', label: '사용중' },
   { value: 'STORED', label: '보관' },
   { value: 'DISPOSED', label: '폐기' },
 ]
@@ -36,16 +37,12 @@ function DetailRow({
 }) {
   return (
     <div className="border-border grid grid-cols-[96px_1fr] border-b-2 last:border-b-0">
-      <dt className="bg-yellow-soft border-border border-r-2 px-3 py-2 text-[11px] font-black">
+      <dt className="bg-yellow-soft border-border text-label border-r-2 px-3 py-2 font-black">
         {label}
       </dt>
       <dd className="flex flex-wrap items-center gap-2 px-3 py-2 text-xs font-medium">
         {children}
-        {override ? (
-          <Badge variant="override" className="h-5 px-1.5 text-[10px]">
-            재고값
-          </Badge>
-        ) : null}
+        {override ? <Badge variant="override">재고값</Badge> : null}
       </dd>
     </div>
   )
@@ -155,7 +152,7 @@ export function InventoryDetailPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <Link to="/inventory" className="text-xs font-bold underline underline-offset-2">
+        <Link to="/inventory" className="tap text-xs font-bold underline underline-offset-2">
           ← 재고 목록
         </Link>
         <div className="flex flex-wrap items-center gap-2">
@@ -225,7 +222,7 @@ export function InventoryDetailPage() {
           <Card>
             <CardBody className="gap-3">
               <SectionTitle>상태</SectionTitle>
-              <select
+              <Select
                 aria-label="재고 상태"
                 value={statusDraft}
                 disabled={!editable || updateMutation.isPending}
@@ -234,14 +231,13 @@ export function InventoryDetailPage() {
                   setStatusDraftOverride(next)
                   if (next === 'DISPOSED') setConfirmDisposeOpen(true)
                 }}
-                className="border-border bg-card h-12 border-[2.5px] px-3 text-sm font-bold disabled:opacity-50"
               >
                 {statusOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
               {editable ? (
                 <Button
                   type="button"
@@ -287,7 +283,7 @@ export function InventoryDetailPage() {
                   <Trash2 aria-hidden="true" className="size-4" />
                   재고 삭제
                 </Button>
-                <p className="text-foreground/60 text-[11px]">
+                <p className="text-foreground/60 text-xs">
                   삭제해도 다른 재고와 물건 정보는 유지됩니다.
                 </p>
               </CardBody>

@@ -39,7 +39,21 @@ export function LocationInventories({
           재고를 불러오는 중…
         </p>
       ) : inventoriesQuery.isError ? (
-        <Alert variant="error">재고를 불러오지 못했습니다.</Alert>
+        <Alert
+          variant="error"
+          action={
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => void inventoriesQuery.refetch()}
+            >
+              다시 시도
+            </Button>
+          }
+        >
+          재고를 불러오지 못했습니다.
+        </Alert>
       ) : inventories.length === 0 ? (
         <div className="border-border bg-card flex flex-col items-start gap-2 border-[2.5px] p-4">
           <p className="text-sm font-black">이 위치에 아직 물건이 없어요.</p>
@@ -57,7 +71,7 @@ export function LocationInventories({
         </div>
       ) : (
         <>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
             {inventories.map((inventory) => (
               <InventoryCard key={inventory.id} inventory={inventory} />
             ))}

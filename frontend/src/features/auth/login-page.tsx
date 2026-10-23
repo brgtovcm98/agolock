@@ -52,12 +52,12 @@ export function LoginPage() {
     <AuthLayout
       eyebrow="로그인"
       title="다시 만났네요"
-      description="이메일과 비밀번호로 로그인하면 내 Space의 물건을 이어서 관리할 수 있어요."
+      description="이메일과 비밀번호로 로그인하면 내 공간의 물건을 이어서 관리할 수 있어요."
       footer={
         <span>
           아직 계정이 없나요?{' '}
           <Link
-            className="font-black underline underline-offset-2"
+            className="tap-area font-black underline underline-offset-2"
             to={{ pathname: '/signup', search: location.search }}
           >
             회원가입
@@ -86,7 +86,7 @@ export function LoginPage() {
           {isSubmitting ? '로그인 중…' : '로그인'}
         </Button>
         <div className="flex items-center justify-center">
-          <Link className="text-xs font-bold underline underline-offset-2" to="/reset-password">
+          <Link className="tap text-xs font-bold underline underline-offset-2" to="/reset-password">
             비밀번호를 잊었어요
           </Link>
         </div>

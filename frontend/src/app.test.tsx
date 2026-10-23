@@ -55,7 +55,7 @@ describe('앱 라우팅', () => {
 
     expect(screen.getByRole('heading', { name: '공간 지도' })).toBeInTheDocument()
     expect(screen.getByText('아직 방이 없어요')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Room 추가' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '방 추가' })).toBeInTheDocument()
   })
 
   it('잘못된 주소는 404를 표시한다', () => {

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { hierarchyApi, type Box } from '../api'
 import { Alert } from '@/shared/ui/alert'
+import { Select } from '@/shared/ui/select'
 import { Button } from '@/shared/ui/button'
 import { DialogFrame } from './hierarchy-dialogs'
 
@@ -36,7 +37,7 @@ export function MoveBoxDialog({
   const shelves = shelvesQuery.data?.items ?? []
 
   return (
-    <DialogFrame open={open} onOpenChange={onOpenChange} title="Box 이동">
+    <DialogFrame open={open} onOpenChange={onOpenChange} title="박스 이동">
       <form
         className="flex flex-col gap-4"
         onSubmit={(event) => {
@@ -45,32 +46,30 @@ export function MoveBoxDialog({
         }}
       >
         {error ? <Alert variant="error">{error}</Alert> : null}
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-black">이동할 Room</span>
-          <select
-            aria-label="이동할 Room"
+        <label className="flex flex-col gap-2">
+          <span className="text-xs font-black">이동할 방</span>
+          <Select
+            aria-label="이동할 방"
             value={roomId}
             onChange={(event) => {
               setRoomId(event.target.value)
               setShelfId('')
             }}
-            className="border-border bg-card h-12 border-[2.5px] px-3 text-sm font-medium"
           >
             {rooms.map((room) => (
               <option key={room.id} value={room.id}>
                 {room.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-black">이동할 Shelf</span>
-          <select
-            aria-label="이동할 Shelf"
+        <label className="flex flex-col gap-2">
+          <span className="text-xs font-black">이동할 선반</span>
+          <Select
+            aria-label="이동할 선반"
             value={shelfId}
             disabled={shelvesQuery.isLoading}
             onChange={(event) => setShelfId(event.target.value)}
-            className="border-border bg-card h-12 border-[2.5px] px-3 text-sm font-medium disabled:opacity-50"
           >
             <option value="">선택</option>
             {shelves.map((shelf) => (
@@ -79,7 +78,7 @@ export function MoveBoxDialog({
                 {shelf.id === currentShelfId ? ' (현재)' : ''}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {box ? <p className="text-foreground/60 text-xs">“{box.name}”을(를) 이동합니다.</p> : null}
         <div className="flex justify-end gap-2">

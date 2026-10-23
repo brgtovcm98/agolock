@@ -31,7 +31,7 @@ export function VerifyEmailPage() {
           {state === 'error' ? (
             <Alert variant="error">인증 링크가 올바르지 않거나 만료되었습니다.</Alert>
           ) : null}
-          <Link className="text-sm font-black underline underline-offset-2" to="/">
+          <Link className="tap text-sm font-black underline underline-offset-2" to="/">
             AGO Lock으로 이동
           </Link>
         </CardBody>
