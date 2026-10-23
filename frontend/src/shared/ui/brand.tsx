@@ -17,7 +17,7 @@ export function Brand({
         'bg-foreground text-background inline-flex px-2 py-1 text-[15px] leading-none font-black tracking-[0.06em]',
         className,
       )}
-      aria-label="AGO Lock 홈"
+      aria-label={`${label} 홈`}
     >
       {label}
     </Link>

@@ -174,13 +174,20 @@ export function SearchPage() {
             </Card>
           ) : (
             <>
-              <div className={groups.length > 1 ? 'gap-3 lg:columns-2' : 'flex flex-col gap-3'}>
+              <ol
+                aria-label="검색 결과"
+                className={
+                  groups.length > 1
+                    ? 'list-none gap-3 lg:columns-2'
+                    : 'flex list-none flex-col gap-3'
+                }
+              >
                 {groups.map((group) => (
-                  <div key={group.itemId} className="mb-3 break-inside-avoid">
+                  <li key={group.itemId} className="mb-3 break-inside-avoid">
                     <SearchGroup group={group} onOpen={() => recordView.mutate(group.itemId)} />
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
               {results.hasNextPage ? (
                 <Button
                   type="button"
@@ -280,6 +287,7 @@ function SearchGroup({ group, onOpen }: { group: SearchItemGroup; onOpen: () => 
           <div className="flex min-w-0 flex-col gap-1">
             <Link
               to={`/items/${group.itemId}`}
+              viewTransition
               onClick={onOpen}
               className="truncate text-base font-black underline-offset-2 hover:underline"
             >
@@ -300,6 +308,7 @@ function SearchGroup({ group, onOpen }: { group: SearchItemGroup; onOpen: () => 
             <Link
               key={inventory.inventoryId}
               to={`/inventory/${inventory.inventoryId}`}
+              viewTransition
               className="hover:bg-sunken flex flex-col gap-1 py-2 first:pt-0 last:pb-0"
             >
               <div className="flex flex-wrap items-center gap-2">

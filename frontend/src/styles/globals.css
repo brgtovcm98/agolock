@@ -302,6 +302,26 @@
   }
 }
 
+::view-transition-old(root) {
+  animation: route-out 90ms var(--ease-in) both;
+}
+
+::view-transition-new(root) {
+  animation: route-in 160ms var(--ease-out) both;
+}
+
+@keyframes route-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes route-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @media (min-width: 1024px) {
   .toast-viewport {
     right: 1.5rem;
@@ -332,7 +352,9 @@
   .dialog-overlay,
   .dialog-content,
   .sheet-content,
-  .toast-root {
+  .toast-root,
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
     animation: none !important;
   }
 }

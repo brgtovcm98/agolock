@@ -63,9 +63,10 @@ export function ImageGallery({
 }) {
   const queryClient = useQueryClient()
   const inputRef = useRef<HTMLInputElement>(null)
-  const abortRef = useRef<AbortController | null>(null)
+  const abortRef = useRef<XMLHttpRequest | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastFile, setLastFile] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const queryKey = ['images', targetType.toLowerCase(), targetId] as const
   const imagesQuery = useQuery({
@@ -110,27 +111,40 @@ export function ImageGallery({
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       setLastFile(file)
+      setUploadProgress(0)
       const webp = await toWebp(file)
       const presigned = await mediaApi.presign(targetType, targetId, webp.size)
-      const controller = new AbortController()
-      abortRef.current = controller
-      const response = await fetch(presigned.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'image/webp' },
-        body: webp,
-        signal: controller.signal,
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('PUT', presigned.uploadUrl)
+        xhr.setRequestHeader('Content-Type', 'image/webp')
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            setUploadProgress(Math.round((event.loaded / event.total) * 100))
+          }
+        })
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve()
+          else reject(new Error('업로드에 실패했습니다.'))
+        })
+        xhr.addEventListener('error', () => reject(new Error('업로드에 실패했습니다.')))
+        xhr.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+        abortRef.current = xhr
+        xhr.send(webp)
       })
       abortRef.current = null
-      if (!response.ok) throw new Error('업로드에 실패했습니다.')
+      setUploadProgress(100)
       await mediaApi.complete(presigned.imageId, presigned.objectKey)
     },
     onSuccess: async () => {
       setError(null)
       setLastFile(null)
+      setUploadProgress(0)
       await refresh()
     },
     onError: (cause) => {
       abortRef.current = null
+      setUploadProgress(0)
       fail(cause)
     },
   })
@@ -188,6 +202,24 @@ export function ImageGallery({
           ) : null}
         </div>
       </div>
+      {uploadMutation.isPending ? (
+        <div className="flex items-center gap-2">
+          <div
+            role="progressbar"
+            aria-label="이미지 업로드 진행률"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={uploadProgress}
+            className="border-border bg-sunken h-3 min-w-0 flex-1 border-2"
+          >
+            <div
+              className="bg-primary h-full transition-[width] duration-150"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <span className="w-9 text-right text-[11px] font-black">{uploadProgress}%</span>
+        </div>
+      ) : null}
       {error ? (
         <div className="flex flex-col gap-2">
           <Alert variant="error">{error}</Alert>
