@@ -22,7 +22,7 @@ export function PasswordField({ id, label, error, hint, className, ...props }: P
       <label htmlFor={inputId} className="text-xs font-black">
         {label}
       </label>
-      <div className="border-border bg-card focus-within:ring-primary focus-within:ring-offset-background flex border-[2.5px] focus-within:ring-2 focus-within:ring-offset-2">
+      <div className="border-border bg-card focus-within:ring-foreground focus-within:ring-offset-background flex border-[2.5px] focus-within:ring-2 focus-within:ring-offset-2">
         <input
           id={inputId}
           type={visible ? 'text' : 'password'}

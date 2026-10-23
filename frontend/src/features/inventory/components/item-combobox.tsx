@@ -56,7 +56,7 @@ export function ItemCombobox({
     <div className="flex flex-col gap-2">
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-black">물건 검색</span>
-        <span className="border-border bg-card flex items-center border-[2.5px]">
+        <span className="border-border bg-card focus-within:outline-foreground flex items-center border-[2.5px] focus-within:outline-[3px] focus-within:outline-offset-[3px]">
           <Search aria-hidden="true" className="text-foreground/50 ml-3 size-4 shrink-0" />
           <input
             value={query}

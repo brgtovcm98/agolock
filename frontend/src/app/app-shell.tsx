@@ -5,6 +5,7 @@ import { useAuth } from '@/features/auth/auth-provider'
 import { AddInventoryProvider } from '@/features/inventory/add-inventory-provider'
 import { useAddInventory } from '@/features/inventory/add-inventory-context'
 import { activeNavigationHref, mainNavigation } from '@/shared/navigation'
+import { cn } from '@/shared/lib/cn'
 import { Avatar } from '@/shared/ui/avatar'
 import { BottomTabs } from '@/shared/ui/bottom-tabs'
 import { Brand } from '@/shared/ui/brand'
@@ -25,9 +26,11 @@ function AppShellFrame({ children }: { children: ReactNode }) {
   const { user, space } = useAuth()
   const { openAdd } = useAddInventory()
   const active = activeNavigationHref(location.pathname)
-  const hideAddFab = /^\/(inventory\/.+|items\/.+|space\/(rooms|shelves|boxes)\/.+)/.test(
-    location.pathname,
-  )
+  const hideAddFab =
+    /^\/(inventory\/.+|items\/.+|space\/(rooms|shelves|boxes)\/.+|search|sharing|invitations|settings)(\/|$)/.test(
+      location.pathname,
+    )
+  const showAddFab = !hideAddFab
 
   return (
     <div className="bg-background min-h-dvh">
@@ -82,18 +85,24 @@ function AppShellFrame({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-28 lg:px-8 lg:pt-8 lg:pb-10">
+        <main
+          className={cn(
+            'mx-auto w-full max-w-5xl px-4 pt-6 lg:px-8 lg:pt-8 lg:pb-10',
+            showAddFab ? 'pb-40' : 'pb-24',
+          )}
+        >
           {children}
         </main>
       </div>
 
-      {!hideAddFab ? (
+      {showAddFab ? (
         <Button
           type="button"
           size="lg"
           onClick={() => openAdd()}
           aria-label="물건 등록"
-          className="shadow-brutal fixed right-4 bottom-20 z-40 lg:hidden"
+          data-add-fab
+          className="shadow-brutal hover:shadow-brutal-lg fixed right-4 bottom-20 z-40 active:translate-x-[4px] active:translate-y-[4px] active:shadow-none motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0 lg:hidden"
         >
           <Plus aria-hidden="true" className="size-5" />
           등록

@@ -40,8 +40,8 @@ export function ShareDialog({
   return (
     <Dialog.Root open onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="bg-foreground/40 fixed inset-0 z-50" />
-        <Dialog.Content className="border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
+        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
               <Dialog.Title className="text-xl font-black">공유 초대</Dialog.Title>
@@ -53,7 +53,7 @@ export function ShareDialog({
               <button
                 type="button"
                 aria-label="닫기"
-                className="border-border bg-card grid size-9 shrink-0 place-items-center border-[2.5px]"
+                className="border-border bg-card grid size-11 shrink-0 place-items-center border-[2.5px]"
               >
                 <X aria-hidden="true" className="size-4" />
               </button>

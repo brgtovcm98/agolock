@@ -31,6 +31,7 @@ export function SearchField({
       role="search"
       className={cn(
         'border-border bg-card shadow-brutal flex border-[2.5px]',
+        'focus-within:shadow-brutal-lg focus-within:outline-foreground focus-within:outline-[3px] focus-within:outline-offset-[3px]',
         disabled && 'opacity-80',
         className,
       )}

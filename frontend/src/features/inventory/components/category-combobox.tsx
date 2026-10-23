@@ -87,7 +87,7 @@ export function CategoryCombobox({
               value={name}
               maxLength={80}
               onChange={(event) => setName(event.target.value)}
-              className="border-border bg-card h-10 border-2 px-2 text-sm font-medium outline-none"
+              className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background h-10 border-2 px-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               placeholder="예: 공구"
             />
           </label>

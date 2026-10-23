@@ -11,7 +11,7 @@ export function NotFoundPage() {
         <p className="text-7xl leading-none font-black tracking-[-0.06em]">404</p>
         <PageTitle className="text-2xl">화면을 찾지 못했어요</PageTitle>
         <p className="text-foreground/80 text-sm">
-          주소가 바뀌었거나 아직 M0에 없는 화면입니다. 홈에서 다시 시작해 주세요.
+          주소가 바뀌었거나 삭제된 화면입니다. 홈에서 다시 시작해 주세요.
         </p>
         <Button asChild>
           <Link to="/">홈으로</Link>

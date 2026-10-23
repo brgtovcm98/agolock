@@ -37,29 +37,28 @@ export function ShelfDetailPage() {
 
   const shelf = shelfQuery.data
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
         <Link to="/space" className="text-xs font-bold underline underline-offset-2">
           ← 공간 지도
         </Link>
-        <p className="label-caps text-foreground/60">공간</p>
-        <div className="flex flex-wrap items-center gap-2">
-          <PageTitle>{shelf.name}</PageTitle>
-          <Badge variant="info">{permissionLabel(shelf.effectivePermission)}</Badge>
-          <Badge>Box {shelf.boxCount}</Badge>
-          <Badge>재고 {shelf.inventoryCount ?? 0}</Badge>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <p className="label-caps text-foreground/60">공간</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <PageTitle>{shelf.name}</PageTitle>
+              <Badge variant="info">{permissionLabel(shelf.effectivePermission)}</Badge>
+              <Badge>Box {shelf.boxCount}</Badge>
+              <Badge>재고 {shelf.inventoryCount ?? 0}</Badge>
+            </div>
+            {shelf.description ? <MetaText>{shelf.description}</MetaText> : null}
+          </div>
+          {shelf.effectivePermission === 'OWNER' ? (
+            <Button type="button" variant="secondary" onClick={() => setShelfShareOpen(true)}>
+              공유
+            </Button>
+          ) : null}
         </div>
-        {shelf.description ? <MetaText>{shelf.description}</MetaText> : null}
-        {shelf.effectivePermission === 'OWNER' ? (
-          <Button
-            type="button"
-            variant="secondary"
-            className="self-start"
-            onClick={() => setShelfShareOpen(true)}
-          >
-            공유
-          </Button>
-        ) : null}
       </div>
       <Card>
         <CardBody className="gap-3">

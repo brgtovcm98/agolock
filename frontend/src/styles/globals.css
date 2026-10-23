@@ -30,6 +30,7 @@
   --info: #2f55e0;
   --danger: #b42318;
   --on-info: #ffffff;
+  --on-danger: #ffffff;
   --on-accent: #111111;
   --blue-soft: #dbe6ff;
   --yellow-soft: #fff6c2;
@@ -38,6 +39,20 @@
   --tag-h: 28px;
   --bw: 2.5px;
   --radius: 0px;
+
+  --control-sm: 44px;
+  --control-md: 48px;
+  --control-lg: 56px;
+  --page-gap: 24px;
+
+  --motion-press: 90ms;
+  --motion-fast: 140ms;
+  --motion-enter: 180ms;
+  --motion-sheet: 240ms;
+  --motion-exit: 120ms;
+  --ease-snap: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-in: cubic-bezier(0.3, 0, 0.8, 0.15);
 }
 
 .dark {
@@ -55,6 +70,7 @@
   --info: #8fb0ff;
   --danger: #ffb4a8;
   --on-info: #111111;
+  --on-danger: #111111;
   --on-accent: #111111;
   --blue-soft: #1c2744;
   --yellow-soft: #2d2a14;
@@ -74,6 +90,7 @@
   --color-info: var(--info);
   --color-danger: var(--danger);
   --color-on-info: var(--on-info);
+  --color-on-danger: var(--on-danger);
   --color-on-accent: var(--on-accent);
   --color-blue-soft: var(--blue-soft);
   --color-yellow-soft: var(--yellow-soft);
@@ -127,8 +144,8 @@
   }
 
   :focus-visible {
-    outline: 3px solid var(--primary);
-    outline-offset: 2px;
+    outline: 3px solid var(--foreground);
+    outline-offset: 3px;
   }
 
   ::selection {
@@ -163,6 +180,143 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
+
+  .toast-viewport {
+    position: fixed;
+    z-index: 60;
+    left: 50%;
+    bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    display: flex;
+    width: min(22rem, calc(100vw - 2rem));
+    flex-direction: column;
+    gap: 0.5rem;
+    outline: none;
+    pointer-events: none;
+    transform: translateX(-50%);
+  }
+
+  body:has([data-add-fab]) .toast-viewport {
+    bottom: calc(9rem + env(safe-area-inset-bottom));
+  }
+
+  .toast-root {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    border: 2.5px solid var(--border-color);
+    background: var(--card);
+    box-shadow: var(--shadow-brutal);
+    pointer-events: auto;
+  }
+
+  .toast-root[data-state='open'] {
+    animation: toast-in var(--motion-enter) var(--ease-out);
+  }
+
+  .toast-root[data-state='closed'] {
+    animation: toast-out var(--motion-exit) var(--ease-in);
+  }
+
+  .toast-icon {
+    display: grid;
+    width: 44px;
+    flex: none;
+    place-items: center;
+    border-right: 2.5px solid var(--border-color);
+  }
+
+  .toast-success .toast-icon {
+    background: var(--success);
+    color: var(--on-accent);
+  }
+
+  .toast-error .toast-icon {
+    background: var(--danger);
+    color: var(--on-danger);
+  }
+
+  .toast-info .toast-icon {
+    background: var(--info);
+    color: var(--on-info);
+  }
+
+  .dialog-overlay[data-state='open'] {
+    animation: overlay-in var(--motion-fast) var(--ease-out);
+  }
+
+  .dialog-content[data-state='open'] {
+    animation: dialog-in var(--motion-enter) var(--ease-out);
+  }
+
+  .sheet-content[data-state='open'] {
+    animation: sheet-in var(--motion-sheet) var(--ease-out);
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .toast-viewport {
+    right: 1.5rem;
+    left: auto;
+    bottom: 1.5rem;
+    width: 22rem;
+    max-width: calc(100vw - 3rem);
+    transform: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .sheet-content[data-state='open'] {
+    animation: dialog-in var(--motion-enter) var(--ease-out);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -173,5 +327,12 @@
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  .dialog-overlay,
+  .dialog-content,
+  .sheet-content,
+  .toast-root {
+    animation: none !important;
   }
 }

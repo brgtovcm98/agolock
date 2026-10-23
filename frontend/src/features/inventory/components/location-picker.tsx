@@ -159,8 +159,8 @@ export function LocationPicker({
             onClick={() => switchSource('owned')}
             className={
               source === 'owned'
-                ? 'bg-primary text-on-accent h-9 text-xs font-black'
-                : 'bg-card h-9 text-xs font-black'
+                ? 'bg-primary text-on-accent h-11 text-xs font-black'
+                : 'bg-card h-11 text-xs font-black'
             }
           >
             내 공간
@@ -171,8 +171,8 @@ export function LocationPicker({
             onClick={() => switchSource('shared')}
             className={
               source === 'shared'
-                ? 'bg-primary text-on-accent h-9 text-xs font-black'
-                : 'bg-card h-9 text-xs font-black'
+                ? 'bg-primary text-on-accent h-11 text-xs font-black'
+                : 'bg-card h-11 text-xs font-black'
             }
           >
             공유받은 공간

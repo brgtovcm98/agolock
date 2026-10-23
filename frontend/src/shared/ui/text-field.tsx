@@ -25,7 +25,7 @@ export function TextField({ id, label, error, hint, className, ...props }: TextF
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
         className={cn(
-          'border-border bg-card text-foreground placeholder:text-foreground/40 focus-visible:ring-primary focus-visible:ring-offset-background h-12 w-full border-[2.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          'border-border bg-card text-foreground placeholder:text-foreground/40 focus-visible:ring-foreground focus-visible:ring-offset-background h-12 w-full border-[2.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
           error && 'border-danger',
           className,
         )}

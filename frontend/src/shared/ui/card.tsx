@@ -6,7 +6,7 @@ export function Card({ className, ...props }: ComponentProps<'div'>) {
 }
 
 export function CardBody({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('flex flex-col gap-3 p-3', className)} {...props} />
+  return <div className={cn('flex flex-col gap-3 p-4', className)} {...props} />
 }
 
 export function CardRow({ className, ...props }: ComponentProps<'div'>) {

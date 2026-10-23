@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, MapPin, Package, Search as SearchIcon } from 'lucide-react'
+import { ChevronDown, MapPin, Package } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Alert } from '@/shared/ui/alert'
@@ -86,14 +86,14 @@ export function SearchPage() {
           onChange={setDraft}
           onSubmit={submit}
         />
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="border-border bg-card flex flex-wrap items-center gap-2 border-[2.5px] p-2">
           {statusOptions.map((option) => (
             <button
               key={option.value}
               type="button"
               aria-pressed={filters.statuses.includes(option.value)}
               onClick={() => toggleStatus(option.value)}
-              className={`border-border border-2 px-2 py-1 text-[11px] font-black ${
+              className={`border-border h-11 border-2 px-3 text-xs font-black transition-colors duration-150 ${
                 filters.statuses.includes(option.value) ? 'bg-primary text-on-accent' : 'bg-card'
               }`}
             >
@@ -109,7 +109,7 @@ export function SearchPage() {
                 scope: event.target.value as SearchFilters['scope'],
               }))
             }
-            className="border-border bg-card border-2 px-2 py-1 text-[11px] font-black"
+            className="border-border bg-card h-11 border-2 px-2 text-xs font-black"
           >
             <option value="ALL">전체</option>
             <option value="OWNED">내 것만</option>
@@ -124,7 +124,7 @@ export function SearchPage() {
                 sort: event.target.value as SearchFilters['sort'],
               }))
             }
-            className="border-border bg-card border-2 px-2 py-1 text-[11px] font-black"
+            className="border-border bg-card h-11 border-2 px-2 text-xs font-black"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -132,9 +132,10 @@ export function SearchPage() {
               </option>
             ))}
           </select>
-          <label className="flex items-center gap-1 text-[11px] font-bold">
+          <label className="flex h-11 items-center gap-2 px-2 text-xs font-bold">
             <input
               type="checkbox"
+              className="size-4"
               checked={filters.hasImage === true}
               onChange={(event) =>
                 setFilters((current) => ({
@@ -172,7 +173,7 @@ export function SearchPage() {
               </CardBody>
             </Card>
           ) : (
-            <div className="grid gap-3">
+            <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
               {groups.map((group) => (
                 <SearchGroup
                   key={group.itemId}
@@ -218,7 +219,7 @@ export function SearchPage() {
                       key={item.id}
                       type="button"
                       onClick={() => submit(item.query)}
-                      className="border-border bg-card border-2 px-2 py-1 text-xs font-bold"
+                      className="border-border bg-card h-11 border-2 px-3 text-xs font-bold"
                     >
                       {item.query}
                     </button>
@@ -293,7 +294,6 @@ function SearchGroup({ group, onOpen }: { group: SearchItemGroup; onOpen: () => 
               {group.hasMoreInventories ? <Badge>일부 표시</Badge> : null}
             </div>
           </div>
-          <SearchIcon aria-hidden="true" className="text-foreground/40 size-4 shrink-0" />
         </div>
         <div className="flex flex-col divide-y-2">
           {group.inventories.map((inventory) => (

@@ -88,6 +88,7 @@ export function ImageGallery({
     })),
   })
   const urlMap = new Map(ready.map((image, index) => [image.id, urls[index]?.data?.url]))
+  const singleImage = images.length === 1
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey })
@@ -204,15 +205,32 @@ export function ImageGallery({
       ) : null}
       <div className="flex flex-wrap gap-2">
         {images.map((image) => (
-          <div key={image.id} className="border-border flex w-28 flex-col gap-1 border-2 p-1">
+          <div
+            key={image.id}
+            className={
+              singleImage
+                ? 'border-border flex w-full max-w-lg flex-col gap-1 border-2 p-1'
+                : 'border-border flex w-36 flex-col gap-1 border-2 p-1 lg:w-44'
+            }
+          >
             {image.status === 'READY' && urlMap.get(image.id) ? (
               <img
                 src={urlMap.get(image.id)}
                 alt={`${targetType === 'ITEM' ? '물건' : '재고'} 이미지`}
-                className="aspect-square w-full object-cover"
+                className={
+                  singleImage
+                    ? 'aspect-[4/3] w-full object-cover'
+                    : 'aspect-square w-full object-cover'
+                }
               />
             ) : (
-              <div className="bg-sunken flex aspect-square items-center justify-center text-[10px]">
+              <div
+                className={
+                  singleImage
+                    ? 'bg-sunken flex aspect-[4/3] items-center justify-center text-[10px]'
+                    : 'bg-sunken flex aspect-square items-center justify-center text-[10px]'
+                }
+              >
                 {statusLabel[image.status]}
               </div>
             )}
@@ -227,15 +245,17 @@ export function ImageGallery({
                     aria-label="대표 이미지"
                     disabled={image.status !== 'READY' || image.isPrimary}
                     onClick={() => primaryMutation.mutate(image.id)}
+                    className="hover:bg-sunken hover:border-border grid size-8 place-items-center border border-transparent disabled:opacity-40"
                   >
-                    <Star aria-hidden="true" className="size-3" />
+                    <Star aria-hidden="true" className="size-3.5" />
                   </button>
                   <button
                     type="button"
                     aria-label="이미지 삭제"
                     onClick={() => deleteMutation.mutate(image.id)}
+                    className="hover:bg-sunken hover:border-border grid size-8 place-items-center border border-transparent"
                   >
-                    <Trash2 aria-hidden="true" className="size-3" />
+                    <Trash2 aria-hidden="true" className="size-3.5" />
                   </button>
                 </div>
               ) : null}

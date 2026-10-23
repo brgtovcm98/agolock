@@ -40,7 +40,7 @@ export function InventoryPage() {
   const hasNextPage = Boolean(inventoriesQuery.hasNextPage)
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <p className="label-caps text-foreground/60">재고</p>
@@ -58,8 +58,8 @@ export function InventoryPage() {
             onClick={() => setFilter(item.id)}
             className={
               filter === item.id
-                ? 'border-border bg-foreground text-background h-9 border-[2.5px] px-3 text-xs font-black'
-                : 'border-border bg-card hover:bg-sunken h-9 border-[2.5px] px-3 text-xs font-black'
+                ? 'border-border bg-foreground text-background h-11 border-[2.5px] px-3 text-xs font-black transition-colors duration-150'
+                : 'border-border bg-card hover:bg-sunken h-11 border-[2.5px] px-3 text-xs font-black transition-colors duration-150'
             }
           >
             {item.label}

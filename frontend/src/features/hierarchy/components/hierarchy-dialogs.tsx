@@ -22,8 +22,8 @@ export function DialogFrame({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="bg-foreground/40 fixed inset-0 z-50" />
-        <Dialog.Content className="border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
+        <Dialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
               <Dialog.Title className="text-xl font-black">{title}</Dialog.Title>
@@ -37,7 +37,7 @@ export function DialogFrame({
               <button
                 type="button"
                 aria-label="닫기"
-                className="border-border bg-card grid size-9 shrink-0 place-items-center border-[2.5px]"
+                className="border-border bg-card grid size-11 shrink-0 place-items-center border-[2.5px]"
               >
                 <X aria-hidden="true" className="size-4" />
               </button>
@@ -106,7 +106,7 @@ export function NodeFormDialog({
             onChange={(event) => setDetails(event.target.value)}
             maxLength={2000}
             rows={3}
-            className="border-border bg-card focus-visible:ring-primary focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           />
         </label>
         <div className="flex justify-end gap-2">
@@ -160,7 +160,7 @@ export function MoveDialog({
           <select
             value={selected}
             onChange={(event) => setSelected(event.target.value)}
-            className="border-border bg-card focus-visible:ring-primary focus-visible:ring-offset-background h-12 border-[2.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background h-12 border-[2.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             {options.map((option) => (
               <option key={option.id} value={option.id}>
@@ -205,8 +205,8 @@ export function DeleteDialog({
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="bg-foreground/40 fixed inset-0 z-50" />
-        <AlertDialog.Content className="border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
+        <AlertDialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
+        <AlertDialog.Content className="dialog-content border-border bg-background shadow-brutal fixed top-1/2 left-1/2 z-50 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 border-[2.5px] p-5">
           <AlertDialog.Title className="text-xl font-black">삭제할까요?</AlertDialog.Title>
           <AlertDialog.Description className="text-foreground/70 mt-2 text-xs">
             “{name}”을(를) 삭제합니다. 하위 항목이 있으면 삭제할 수 없습니다.

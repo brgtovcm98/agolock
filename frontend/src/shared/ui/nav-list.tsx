@@ -24,7 +24,7 @@ export function NavList({
             to={item.href}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex h-11 items-center gap-3 border-[2.5px] px-3 text-sm font-black',
+              'flex h-11 items-center gap-3 border-[2.5px] px-3 text-sm font-black transition-colors duration-150',
               isActive
                 ? 'border-border bg-primary text-on-accent shadow-brutal'
                 : 'hover:bg-sunken border-transparent',

@@ -197,9 +197,9 @@ export function AddInventorySheet({
     <>
       <Dialog.Root open onOpenChange={(next) => !next && requestClose()}>
         <Dialog.Portal>
-          <Dialog.Overlay className="bg-foreground/40 fixed inset-0 z-50" />
+          <Dialog.Overlay className="dialog-overlay bg-foreground/40 fixed inset-0 z-50" />
           <Dialog.Content
-            className="border-border bg-background shadow-brutal fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col border-[2.5px] sm:top-1/2 sm:right-auto sm:bottom-auto sm:left-1/2 sm:max-h-[90dvh] sm:w-[560px] sm:-translate-x-1/2 sm:-translate-y-1/2"
+            className="sheet-content border-border bg-background shadow-brutal fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col border-[2.5px] sm:top-1/2 sm:right-auto sm:bottom-auto sm:left-1/2 sm:max-h-[90dvh] sm:w-[560px] sm:-translate-x-1/2 sm:-translate-y-1/2"
             onInteractOutside={(event) => {
               if (!success && touched) {
                 event.preventDefault()
@@ -218,7 +218,7 @@ export function AddInventorySheet({
                 type="button"
                 aria-label="닫기"
                 onClick={requestClose}
-                className="border-border bg-card grid size-9 shrink-0 place-items-center border-[2.5px]"
+                className="border-border bg-card grid size-11 shrink-0 place-items-center border-[2.5px]"
               >
                 <X aria-hidden="true" className="size-4" />
               </button>
@@ -427,7 +427,7 @@ export function AddInventorySheet({
                               setTouched(true)
                             }}
                             rows={3}
-                            className="border-border bg-card min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none disabled:opacity-50"
+                            className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
                           />
                         </label>
                       </>

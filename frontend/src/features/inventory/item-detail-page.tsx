@@ -61,7 +61,7 @@ export function ItemDetailPage() {
   const canAdd = item.effectivePermission ? canManage(item.effectivePermission) : owner
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <Link to="/inventory" className="text-xs font-bold underline underline-offset-2">
           ← 재고 목록

@@ -18,7 +18,7 @@ export function InventoryCard({ inventory }: { inventory: Inventory }) {
   return (
     <Link
       to={`/inventory/${inventory.id}`}
-      className="surface hover:bg-sunken flex items-center gap-3 p-3 transition-colors"
+      className="surface hover:bg-sunken hover:shadow-brutal-lg flex items-center gap-3 p-3 transition-[translate,box-shadow,background-color] duration-[var(--motion-press)] ease-[var(--ease-snap)] hover:-translate-y-px active:translate-y-0"
     >
       <Thumbnail tone={toneFor(inventory.id)} size="sm" />
       <div className="min-w-0 flex-1">
