@@ -1,5 +1,5 @@
 version: 1
-last_updated: "2026-10-21"
+last_updated: "2026-10-23"
 docs:
   - id: PRODUCT
     path: docs/product-spec.md
@@ -419,6 +419,23 @@ docs:
       - ADR-020
     last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
 
+  - id: PLAN_012_MICROINTERACTIONS
+    path: docs/implementation/PLAN-012-microinteractions.md
+    title: 레이아웃 일관성과 마이크로인터랙션
+    summary: 컨트롤 44/48/56px, 24px 페이지 간격, 버튼·토스트·대화상자 모션
+    read_when:
+      - 화면 간격·컨트롤 크기·버튼 상태를 변경할 때
+      - 토스트·모션·reduced motion 동작을 확인할 때
+    code_paths:
+      - frontend/src/styles/**
+      - frontend/src/shared/ui/**
+      - frontend/src/features/**
+    generated: false
+    related_adrs:
+      - ADR-016
+      - ADR-021
+    last_verified_commit: "a3173d38e9cb64d06b89e61fe25d5f8fb649af8f"
+
   - id: DATA_DICTIONARY
     path: docs/generated/data-dictionary.md
     title: 데이터 사전
@@ -695,6 +712,20 @@ docs:
       - ADR-010
       - ADR-015
     last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+
+  - id: ADR_021
+    path: docs/decisions/ADR-021-microinteractions.md
+    title: 레이아웃 일관성과 마이크로인터랙션
+    summary: 44/48/56px 컨트롤, 그림자 물리, Radix Toast, reduced motion
+    read_when:
+      - 버튼·토스트·모션의 설계 결정을 확인할 때
+    code_paths:
+      - frontend/src/styles/**
+      - frontend/src/shared/ui/**
+    generated: false
+    related_adrs:
+      - ADR-016
+    last_verified_commit: "a3173d38e9cb64d06b89e61fe25d5f8fb649af8f"
 
   - id: LOCAL_RUNBOOK
     path: docs/local-runbook.md

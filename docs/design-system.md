@@ -142,6 +142,50 @@
 | `--tag-h` | 28px |
 | 화면 외곽 | 4px 테두리 |
 
+### 5.5 컨트롤 크기와 간격
+
+| 토큰 | 값 | 사용처 |
+|---|---|---|
+| `--control-sm` | 44px | 보조 버튼, 칩, 필터, 닫기 버튼 |
+| `--control-md` | 48px | 기본 버튼, 입력, 셀렉트 |
+| `--control-lg` | 56px | FAB, 큰 CTA |
+| `--page-gap` | 24px | 페이지 루트 세로 간격 |
+| 카드 본문 패딩 | 16px | `CardBody` |
+| 배지·상태 태그 | 28px | 비상호작용 표시 |
+
+- 페이지 루트는 `gap-6`, 카드·섹션 내부는 `gap-3`~`gap-4`를 사용합니다.
+- 편집·설정 폼은 데스크톱에서 `max-w-2xl`로 제한합니다.
+- FAB는 홈·공간·재고 목록에만 표시하고 검색·공유·설정·상세·편집 화면에서는 숨깁니다.
+- 모든 상호작용 컨트롤은 최소 44px 높이를 사용합니다. 28px 배지는 상호작용 요소로 쓰지 않습니다.
+
+### 5.6 모션 토큰
+
+| 토큰 | 값 | 용도 |
+|---|---|---|
+| `--motion-press` | 90ms | 버튼 hover·press, 칩 선택 |
+| `--motion-fast` | 140ms | 작은 상태 변화, 오버레이 |
+| `--motion-enter` | 180ms | 토스트·대화상자 등장 |
+| `--motion-sheet` | 240ms | 모바일 시트 등장 |
+| `--motion-exit` | 120ms | 퇴장 |
+| `--ease-snap` | `cubic-bezier(0.2, 0, 0, 1)` | press/hover |
+| `--ease-out` | `cubic-bezier(0.05, 0.7, 0.1, 1)` | 등장 |
+| `--ease-in` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | 퇴장 |
+
+버튼 상태는 다음 물리를 따릅니다.
+
+| 상태 | 이동 | 그림자 |
+|---|---|---|
+| 기본 | 0 | 4px |
+| hover (pointer) | -1px, -1px | 5px |
+| active | +2px, +2px | 2px |
+| focus-visible | 0 | 4px + 전경색 3px 링, offset 3px |
+| disabled | 0 | 없음, opacity 50% |
+
+- 그림자의 바깥 모서리가 고정되도록 이동량과 그림자 변화량을 같게 합니다.
+- `transform`이 아니라 `translate`·`scale` 개별 속성을 애니메이션해 기존 중앙 정렬 transform과 충돌하지 않게 합니다.
+- `prefers-reduced-motion: reduce`에서는 이동·슬라이드·스케일을 제거하고 최종 상태와 색·그림자만 유지합니다.
+- 토스트는 모바일에서 FAB가 있으면 FAB 위(하단 144px), 없으면 탭 위(72px), 데스크톱은 우하단 24px입니다.
+
 ## 6. 컴포넌트 카탈로그
 
 shadcn/ui 대응은 구현 시 시작점이며, 모든 컴포넌트에 R-01~R-08을 추가로 적용합니다.
@@ -149,15 +193,16 @@ shadcn/ui 대응은 구현 시 시작점이며, 모든 컴포넌트에 R-01~R-08
 | 컴포넌트 | 클래스 | 규격 | 변형과 상태 | shadcn 대응 |
 |---|---|---|---|---|
 | 검색창 | `.search` | 테두리 2.5px, 하드 섀도 5px, 입력 패딩 14px, 오른쪽에 primary 버튼부 | 입력 중, 빈 상태(플레이스홀더) | `Input` + 버튼 |
-| 칩 | `.chip` | 28px, 12px/700, 터치 영역 44px | 기본(흰 배경), `.on`(반전 배경) | `Badge`(outline) 또는 `ToggleGroup` |
+| 칩 | `.chip` | 44px, 12px/700, 2.5px 테두리 | 기본(흰 배경), `.on`(반전 배경) | `Badge`(outline) 또는 `ToggleGroup` |
 | 상태 태그 | `.st` | 28px 단일 규격 | `use` 연두 / `sto` 노랑 / `dis` 회색 + 취소선 | `Badge` |
 | 뱃지 | `.badge` | 28px, 파란색, 앞 간격 8px | 소유자(`민지 소유`), 공유 | `Badge` |
 | 오버라이드 표시 | `.ov` | 28px, primary 배경 | `재고값` | `Badge` |
-| 카드 | `.card` | 2.5px 테두리, 하드 섀도, 패딩 12px | 기본, 하위 목록 펼침(`.sub`) | `Card` |
+| 카드 | `.card` | 2.5px 테두리, 하드 섀도, 패딩 16px(목록 행 12px) | 기본, 하위 목록 펼침(`.sub`) | `Card` |
 | 썸네일 | `.ph` | 64px 정사각(데스크톱 목록 48px, 그리드 전폭 × 84px) | 색 4종, 상자 아이콘 | 직접 구성 |
 | 하위 재고 목록 | `.sub` | 행 패딩 8×12, 점선 구분 | 마지막 행에 구분선 없음 | `Collapsible` |
 | 더 보기 | `.more` | 노랑 배경, 12px/900 | 클릭 시 전체 조회 | `Button`(variant 추가) |
-| 버튼 | `.btn` | 패딩 12px, 14px/900, 하드 섀도 4px | primary, `.w`(흰 배경 보조) | `Button` |
+| 버튼 | `.btn` | 44/48/56px 높이, 2.5px 테두리, 하드 섀도 4px | primary, secondary, invert, ghost, icon, disabled, loading | `Button` |
+| 토스트 | `.toast-root` | 352px, 2.5px 테두리, 5px 섀도, 44px 아이콘 셀 | success, error, info, 닫기, foreground/background | `Toast` |
 | 하단 탭 | `.tabs` | 5칸 격자, 활성 칸 primary | 홈, 공간, 재고, 공유, 설정 | 직접 구성 |
 | 사이드바 | `.side`, `.nav` | 폭 248px, 항목 높이 44px | 활성 항목은 primary + 섀도, 공유 공간은 뱃지 | `Sidebar` |
 | 상단 바 | `.bar` | 검색 + 재고 추가 버튼 + 아바타 | 폭이 좁으면 줄바꿈 | 직접 구성 |

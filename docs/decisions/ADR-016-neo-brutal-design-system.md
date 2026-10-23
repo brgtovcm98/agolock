@@ -43,3 +43,4 @@ M1부터 화면을 계속 추가하므로 토큰, 컴포넌트 규격, 다크 �
 - [화면과 흐름](../frontend.md)
 - [M0 기반 부트스트랩 계획](../implementation/PLAN-001-foundation.md)
 - [E안 미리보기](../../design/e/)
+- [ADR-021: 레이아웃 일관성과 마이크로인터랙션](ADR-021-microinteractions.md)
