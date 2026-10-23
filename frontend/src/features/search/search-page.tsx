@@ -173,14 +173,14 @@ export function SearchPage() {
               </CardBody>
             </Card>
           ) : (
-            <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
-              {groups.map((group) => (
-                <SearchGroup
-                  key={group.itemId}
-                  group={group}
-                  onOpen={() => recordView.mutate(group.itemId)}
-                />
-              ))}
+            <>
+              <div className={groups.length > 1 ? 'gap-3 lg:columns-2' : 'flex flex-col gap-3'}>
+                {groups.map((group) => (
+                  <div key={group.itemId} className="mb-3 break-inside-avoid">
+                    <SearchGroup group={group} onOpen={() => recordView.mutate(group.itemId)} />
+                  </div>
+                ))}
+              </div>
               {results.hasNextPage ? (
                 <Button
                   type="button"
@@ -192,7 +192,7 @@ export function SearchPage() {
                   {results.isFetchingNextPage ? '더 불러오는 중…' : '더 보기'}
                 </Button>
               ) : null}
-            </div>
+            </>
           )}
         </section>
       ) : (

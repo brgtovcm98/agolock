@@ -1,6 +1,6 @@
 import * as ToastPrimitive from '@radix-ui/react-toast'
 import { AlertTriangle, Check, Info, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ToastContext, type ToastInput, type ToastVariant } from '@/shared/ui/toast-context'
 
 type ToastItem = {
@@ -10,6 +10,7 @@ type ToastItem = {
   variant: ToastVariant
   duration: number
   type: 'foreground' | 'background'
+  open: boolean
 }
 
 const icons = {
@@ -42,9 +43,34 @@ function useCompactViewport() {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const compact = useCompactViewport()
+  const closeTimers = useRef(new Map<string, number>())
 
   const dismiss = useCallback((id: string) => {
+    const timer = closeTimers.current.get(id)
+    if (timer) window.clearTimeout(timer)
+    closeTimers.current.delete(id)
     setToasts((current) => current.filter((toast) => toast.id !== id))
+  }, [])
+
+  const close = useCallback((id: string) => {
+    setToasts((current) =>
+      current.map((toast) => (toast.id === id ? { ...toast, open: false } : toast)),
+    )
+    const existing = closeTimers.current.get(id)
+    if (existing) window.clearTimeout(existing)
+    const timer = window.setTimeout(() => {
+      closeTimers.current.delete(id)
+      setToasts((current) => current.filter((toast) => toast.id !== id))
+    }, 120)
+    closeTimers.current.set(id, timer)
+  }, [])
+
+  useEffect(() => {
+    const timers = closeTimers.current
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer))
+      timers.clear()
+    }
   }, [])
 
   const show = useCallback(
@@ -57,6 +83,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         variant: input.variant ?? 'info',
         duration: input.duration ?? (input.variant === 'error' ? 8000 : 5000),
         type: input.type ?? (input.variant === 'error' ? 'foreground' : 'background'),
+        open: true,
+      }
+      const pendingClose = closeTimers.current.get(id)
+      if (pendingClose) {
+        window.clearTimeout(pendingClose)
+        closeTimers.current.delete(id)
       }
       setToasts((current) => {
         const next = [...current.filter((toast) => toast.id !== id), item]
@@ -82,8 +114,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 className={`toast-root toast-${toast.variant}`}
                 duration={toast.duration}
                 type={toast.type}
+                open={toast.open}
+                forceMount
                 onOpenChange={(open) => {
-                  if (!open) dismiss(toast.id)
+                  if (!open) close(toast.id)
                 }}
               >
                 <div className="toast-icon" aria-hidden="true">
