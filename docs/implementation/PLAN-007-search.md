@@ -1,6 +1,6 @@
 # PLAN-007: M6 검색과 추천 상세 구현 계획
 
-> 상태: M6 MVP 구현 (검색 API·ACL·최근 검색·자주 본 물건·검색 UI). keyset cursor·성능 gate·계약 정합성 보완 필요
+> 상태: M6 보완 진행. 그룹 keyset cursor·정확한 집계·추천 ACL·검색어 없는 필터·계약 제약 구현, 성능 gate 검증 중
 > 역할: 구현 로드맵 M6의 키워드 검색, 그룹 페이지네이션, 추천, 성능 gate, 검색 UI 계획
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md) · 선행 계획: [PLAN-001](PLAN-001-foundation.md), [PLAN-005 공유](PLAN-005-sharing.md)
 > 후속 계획: [PLAN-008 M7 AI·이미지 검색](PLAN-008-ai-image-search.md)
@@ -37,7 +37,7 @@ M6.0은 기능 구현 전에 계약·ACL·성능을 검증하는 gate다. 이 �
 - 데이터: Item 10,000·Inventory 50,000 시드를 만들고 `ANALYZE item`, `ANALYZE inventory` 후 기준 쿼리를 측정한다.
 - ACL: `AccessService`가 접근 가능한 Room/Shelf ID를 계산하는 경로를 먼저 구현하고, 검색 결과와 `AccessService.effectivePermission`을 비교하는 parity test 골격을 만든다. SQL EXISTS 최적화는 p95 gate 실패 후에만 한다.
 - 쿼리: `effective_inventory → candidate → grouped → page → group_inventories` CTE를 실제 데이터로 실행하고 `EXPLAIN (ANALYZE, BUFFERS)`를 남긴다.
-- 결정: 마이그레이션 번호를 `V16`·`V17`로 확정하고, `/` 인덱스의 `SearchPage` 교체와 조회 기록 API 포함을 계약에 반영한다.
+- 결정: 마이그레이션 번호를 `V17`·`V18`로 확정하고, `/` 인덱스의 `SearchPage` 교체와 조회 기록 API 포함을 계약에 반영한다.
 - 종료 조건: 한 개의 실제 그룹 페이지 쿼리가 동작하고, ACL parity test 초안이 있으며, p95가 300ms 이하이거나 미달 시 개선안(인덱스·쿼리·읽기 모델 여부)이 결정되어 있어야 한다.
 - Go/no-go: 종료 조건을 못 넘으면 M6.1 UI를 시작하지 않는다. 읽기 모델은 p95 gate를 두 번 연속 실패할 때만 [ADR-019](../decisions/ADR-019-search-acl-pagination.md)에 따라 별도 ADR로 검토한다.
 
@@ -48,7 +48,7 @@ M6.0은 기능 구현 전에 계약·ACL·성능을 검증하는 gate다. 이 �
 - 테이블·컬럼·제약의 단일 원본은 [데이터 사전](../generated/data-dictionary.md)이고, 인덱스 원칙은 [운영](../operations.md) 3.1번 항목을 따릅니다.
 - trigram GIN은 `space_id`를 선두에 둘 수 없으므로 부분 인덱스와 ACL overfetch로 보완합니다.
 - `inventory_search` 읽기 모델은 4.9번 p95 gate를 두 번 연속 실패할 때만 추가합니다.
-- 마이그레이션은 현재 마지막인 `V15__image.sql` 다음의 `V16__search_indexes.sql`, `V17__search_recommendation_indexes.sql`로 고정합니다. M5 완료 시 번호를 재확인하되 적용된 마이그레이션은 수정하지 않습니다.
+- 마이그레이션은 `V17__search_indexes.sql`, `V18__search_recommendations.sql` 및 `V24__search_description_indexes.sql`로 고정합니다. M5 완료 시 번호를 재확인하되 적용된 마이그레이션은 수정하지 않습니다.
 
 ### 3.2 검색 인덱스
 
@@ -103,8 +103,8 @@ accessible(inv) =
 
 | 파일 | 내용 |
 |---|---|
-| `backend/src/main/resources/db/migration/V16__search_indexes.sql` | trigram GIN, `recent_search` 정리, ACL 보조 인덱스 |
-| `backend/src/main/resources/db/migration/V17__search_recommendation_indexes.sql` | 선택 인덱스가 필요할 때 분리 |
+| `backend/src/main/resources/db/migration/V17__search_indexes.sql` | trigram GIN, `recent_search` 정리, ACL 보조 인덱스 |
+| `backend/src/main/resources/db/migration/V18__search_recommendations.sql` | 선택 인덱스가 필요할 때 분리 |
 
 장시간 lock이 필요한 인덱스는 `CREATE INDEX CONCURRENTLY` 사용 여부를 배포 절차와 함께 검토합니다. 확인 필요.
 
@@ -150,16 +150,7 @@ accessible(inv) =
 
 ### 4.4 정렬
 
-| `sort` | 그룹 키 | 동점 | `q` 없음 |
-|---|---|---|---|
-| `RELEVANCE` | 일치 Inventory 최대 관련도 | `item_id` 오름차순 | `UPDATED_DESC`로 대체 |
-| `UPDATED_DESC` | `max(inventory.updated_at)` | `item_id` 오름차순 | 그대로 |
-| `NAME_ASC` | `lower(item.name)` | `item_id` 오름차순 | 그대로 |
-| `VIEWED_DESC` | `max(user_item_view.last_viewed_at)` | `item_id` 오름차순, NULL 뒤 | 그대로 |
-| `STATUS_ASC` | 일치 Inventory 최소 상태 순위 | `item_id` 오름차순 | 그대로 |
-
-- 상태 순위는 `IN_USE=0`, `STORED=1`, `DISPOSED=2`이고, 관련도 점수는 [검색](../search.md) 4번 항목의 식을 `numeric(10,4)`로 계산해 그룹에서는 최댓값을 씁니다. 점수식을 여기서 재정의하지 않습니다.
-- 빈 `q`에 `RELEVANCE`를 요청하면 `UPDATED_DESC`로 대체하고 커서에도 대체 정렬을 기록합니다. 이름 정렬 collation은 DB 기본값을 사용하며 운영·테스트가 같아야 합니다. 확인 필요.
+그룹 정렬 키와 동점 규칙의 단일 원본은 [검색 4.1번 항목](../search.md)입니다. SQL과 커서는 같은 비교 규칙을 사용합니다.
 
 ### 4.5 커서
 
@@ -176,9 +167,10 @@ Base64URL(패딩 없음) JSON입니다.
 | `k` | 정렬 키 | 타입별 파싱 실패 시 오류 |
 | `i` | 마지막 Item ID | UUID가 아니면 오류 |
 | `f` | 필터 지문 | 현재 요청 지문과 다르면 오류 |
+| `u` | 마지막 그룹 수정 시각 | 관련도 동점 비교, ISO 8601 시각 |
 
 - 지문은 정규화 `q`, 유효 정렬, `status`, 위치 ID, `categoryId`, `scope`, `ownerId`, `hasImage`를 고정 순서로 연결한 SHA-256 앞 16자이며 `limit`은 제외합니다.
-- 커서는 512자를 넘을 수 없고, 초과·디코딩 실패·버전 불일치는 `400 INVALID_CURSOR`입니다. 페이지는 내림차순이면 `(sort_key, item_id) < (:k, :i)`, 오름차순이면 `>`를 사용합니다.
+- 한글 이름 정렬 키의 UTF-8·Base64 크기를 고려해 커서는 2,048자를 넘을 수 없고, 초과·디코딩 실패·버전 불일치는 `400 INVALID_CURSOR`입니다. 내림차순 키는 `<`, 오름차순 키는 `>`로 비교하며, 동점의 Item ID는 항상 오름차순입니다. 관련도는 수정 시각 내림차순도 비교합니다.
 - 커서에 사용자 ID, Space ID, 검색어 원문을 담지 않습니다. M6는 지문으로 재사용만 막고 HMAC·TTL은 사용하지 않으며, 오류 응답에 커서 원문을 되돌려주지 않습니다. 확인 필요.
 
 ### 4.6 그룹 페이지네이션
@@ -212,7 +204,7 @@ Base64URL(패딩 없음) JSON입니다.
 | 측정 조건 | 단일 Space, Item 10,000, Inventory 50,000, 공유 10%, 이미지 70%, 20개 그룹 |
 | p95·p99 | 300ms 이하·600ms 이하 ([검색](../search.md) 3.1번 항목) |
 | 측정 | 워밍업 5회, 측정 20회, `EXPLAIN (ANALYZE, BUFFERS)` 1회 |
-| 통과 | p95 300ms 이하, `inventory`·`item` Seq Scan 없음, trigram GIN 사용 |
+| 통과 | p95 300ms 이하. 선택적 키워드 검색의 실제 SQL에서 trigram GIN 사용 확인. 전체 집계 검색은 Seq Scan을 허용 |
 
 - `SearchPerformanceTest`는 `search-perf` 태그로 분리해 기본 테스트에서 제외하고 야간·성능 라벨 PR에서 실행합니다. 시드 후 `ANALYZE inventory`, `ANALYZE item`을 실행하며 통계가 없으면 측정이 무의미합니다.
 - p95 초과 시 순서대로 적용합니다: 불필요한 OR 제거, 설명 검색 분리, `inventory_count` 사전 집계, `inventory_search` 읽기 모델. 읽기 모델은 두 번 연속 gate 실패 시에만 새 ADR로 도입합니다.
@@ -508,3 +500,28 @@ M7 상세 계획은 [PLAN-008 AI·이미지 검색](PLAN-008-ai-image-search.md)
 - 후보는 `limit * 5`, 최대 200개를 가져온 뒤 ACL을 적용합니다([검색](../search.md) 13번 항목, [운영](../operations.md)의 `search.candidate-multiplier`·`search.candidate-max`).
 - 임베딩 모델·버전 필터와 fallback 금지는 [ADR-012](../decisions/ADR-012-embedding-versioning.md)를 따릅니다.
 - M6에서 SCR-003 이미지 검색 진입점을 비활성으로 두고 M7에서 `features/search/image-search-dialog.tsx`와 같은 결과 카드 UI를 재사용합니다. M6 종료 시 `SearchGroupAssembler`와 필터 DTO의 재사용성을 리뷰합니다.
+
+## 13. M6 보완 실행 기록 (2026-10-23)
+
+기존 ADR-019와 이 계획의 4번 항목을 구현합니다. 현재 500개 후보 제한과 앱의 offset 그룹핑을 제거하고, SQL에서 전체 일치 수를 집계한 뒤 Item 그룹 `limit + 1`과 그룹별 최대 6개를 조회합니다. 정렬 키와 Item ID, 필터 지문을 담은 커서를 사용하며 ACL은 기존 접근 ID 주입을 유지합니다.
+
+| 순서 | 작업 | 검증 |
+|---|---|---|
+| 1 | 누락·중복·잘못된 커서·그룹 개수 회귀 테스트 추가 | 기존 구현에서 실패 확인 |
+| 2 | SQL 그룹 페이지와 정렬 5종 keyset cursor 구현 | 통합 테스트, ktlint·detekt |
+| 3 | 재현 가능한 10,000 Item·50,000 Inventory 성능 검증 | 워밍업 5회·측정 20회, p95·EXPLAIN 기록 |
+| 4 | 계약·생성 타입·문서 상태 대조 | 계약 생성, 문서 검사, 전체 회귀 테스트 |
+
+검토 초점은 한 Item의 재고가 500개를 넘는 경우, 동일 정렬 키, 페이지 사이의 새 그룹 추가·삭제, 필터를 바꾼 커서 재사용, 공유 철회 후의 커서 재사용입니다. 변경은 `fix/search-release-gates` 브랜치에서 순차 구현합니다.
+
+### 13.1 검증 현황
+
+- 검색 통합 테스트 12개, 커서 단위 테스트 3개, OpenAPI 계약 테스트 2개 통과.
+- 프론트엔드 테스트 37개와 모바일·데스크톱 검색 E2E 통과.
+- 최초 그룹 집계 구현의 p95는 전체 20그룹 1,061ms·100그룹 1,479ms로 실패했습니다. 삭제 필터의 행 수 오추정, 후보 임시 결과 재탐색, 전 후보 이미지 조회와 JIT 비용을 실제 EXPLAIN으로 확인했습니다.
+- 이미지 조회를 페이지 뒤로 옮긴 2026-10-23 로컬 측정에서 전체 20그룹 p95 194.68ms, 100그룹 254.51ms, 이름 부분 검색 299.46ms, 공유 필터 34.15ms, 사진 필터 230.28ms를 기록했습니다. p99는 모두 600ms 이하였습니다.
+- 독립 리뷰에서 실제 검색 SQL 대신 별도 Item 쿼리의 인덱스를 검사하는 검증 공백을 발견해 실제 MyBatis SQL의 GIN 사용을 검사하도록 보강했습니다. PostgreSQL 시간대 범위 밖 커서도 요청 단계에서 거부합니다.
+- 보강된 성능 gate와 백엔드 전체 회귀 테스트를 재확인 중입니다. 위 수치는 로컬 단일 사용자 측정이며 VPS 동시 부하 검증은 별도입니다.
+- API 타입은 기존 ADR-015의 미리보기 모드를 유지합니다. 생성물 기록 모드 전환과 추천·최근 검색 잔여 검증은 별도 마감 항목입니다.
+
+- 기존 로컬 DB에는 이 브랜치에 없는 `V19__inventory_access_view.sql`이 적용되어 있어 이력이 다릅니다. 릴리스 브랜치의 V19~V23과 충돌을 피하려고 설명 인덱스는 V24로 배정했습니다. 기존 DB를 repair하거나 이력을 수정하지 않고 깨끗한 임시 DB에서 V1~V18·V24 적용과 데이터 사전 생성을 검증합니다. 로컬 DB를 이 브랜치로 기동하려면 V19 이력의 출처를 먼저 맞춰야 합니다.

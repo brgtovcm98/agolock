@@ -1,6 +1,7 @@
 package com.agolock.contract
 
 import com.agolock.support.TestcontainersConfiguration
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -28,6 +29,19 @@ class OpenApiExportTest
     constructor(
         private val restTemplate: TestRestTemplate,
     ) {
+        @Test
+        fun `검색 요청의 길이 범위와 정렬을 계약에 기록한다`() {
+            val response = restTemplate.getForEntity("/v3/api-docs", String::class.java)
+            val document = ObjectMapper().readTree(response.body)
+            val searchOperation = document["paths"]["/api/v1/search"]["get"]
+            val parameters = searchOperation["parameters"].associateBy { it["name"].asText() }
+            assertThat(parameters.getValue("q")["schema"]["maxLength"]?.asInt()).isEqualTo(200)
+            assertThat(parameters.getValue("limit")["schema"]["minimum"]?.asInt()).isEqualTo(1)
+            assertThat(parameters.getValue("limit")["schema"]["maximum"]?.asInt()).isEqualTo(100)
+            assertThat(parameters.getValue("scope")["schema"]["enum"]?.map { it.asText() })
+                .containsExactly("ALL", "OWNED", "SHARED")
+        }
+
         @Test
         fun `현재 컨트롤러의 OpenAPI를 build contracts에 기록한다`() {
             val response = restTemplate.getForEntity("/v3/api-docs", String::class.java)

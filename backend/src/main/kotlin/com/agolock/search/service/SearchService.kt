@@ -65,10 +65,12 @@ class SearchService(
         val scope = request.scope.uppercase()
         val includeOwned = scope == "ALL" || scope == "OWNED"
         val includeShared = scope == "ALL" || scope == "SHARED"
-        val offset = SearchCursorCodec.decode(request.cursor)
-        val limit = request.limit.coerceIn(1, 50)
+        val limit = request.limit
         val statuses = request.statuses?.takeIf { it.isNotEmpty() } ?: listOf(InventoryStatus.IN_USE, InventoryStatus.STORED)
         val q = normalizeQuery(request.q).takeIf { it.isNotBlank() }
+        val sort = request.sort.uppercase().let { if (it == "RELEVANCE" && q == null) "UPDATED_DESC" else it }
+        val fingerprint = SearchCursorCodec.fingerprint(request.copy(q = q, statuses = statuses, scope = scope, sort = sort))
+        val cursor = SearchCursorCodec.decode(request.cursor, sort, fingerprint)
 
         val rows =
             searchMapper.search(
@@ -89,14 +91,17 @@ class SearchService(
                     categoryId = request.categoryId,
                     ownerId = request.ownerId,
                     hasImage = request.hasImage,
-                    sort = request.sort.uppercase(),
-                    limit = minOf(500, (offset + limit) * 10),
+                    sort = sort,
+                    limit = limit + 1,
+                    cursorKey = cursor?.k,
+                    cursorItemId = cursor?.i,
+                    cursorUpdatedAt = cursor?.u?.let(OffsetDateTime::parse),
                 ),
             )
 
         val groups = groupRows(rows, access.ownSpaceId)
-        val page = groups.drop(offset).take(limit)
-        val nextCursor = if (groups.size > offset + limit) SearchCursorCodec.encode(offset + page.size) else null
+        val page = groups.take(limit)
+        val nextCursor = nextCursor(rows, groups.size > limit, page.lastOrNull()?.itemId, sort, fingerprint)
 
         if (q != null && request.cursor.isNullOrBlank()) {
             recentSearchMapper.upsert(
@@ -125,7 +130,7 @@ class SearchService(
     fun frequent(actor: Actor): FrequentItemList {
         val since = OffsetDateTime.now(clock).minusDays(90)
         return FrequentItemList(
-            userItemViewMapper.list(actor.userId, since).map {
+            userItemViewMapper.list(actor.userId, since, accessService.resolve(actor)).map {
                 FrequentItemResponse(it.itemId, it.itemName, it.primaryImageId, it.viewCount, it.lastViewedAt)
             },
         )
@@ -154,6 +159,20 @@ class SearchService(
         userItemViewMapper.record(actor.userId, itemId, item.spaceId, now, now.minusMinutes(30))
     }
 
+    private fun nextCursor(
+        rows: List<SearchRow>,
+        hasMore: Boolean,
+        lastItemId: UUID?,
+        sort: String,
+        fingerprint: String,
+    ): String? {
+        if (!hasMore) return null
+        val last = rows.last { it.itemId == lastItemId }
+        return SearchCursorCodec.encode(
+            SearchCursor(s = sort, k = last.sortKey, i = last.itemId, f = fingerprint, u = last.groupUpdatedAt.toString()),
+        )
+    }
+
     private fun groupRows(
         rows: List<SearchRow>,
         ownSpaceId: UUID,
@@ -165,10 +184,10 @@ class SearchService(
             SearchItemGroup(
                 itemId = itemId,
                 itemName = first.itemName,
-                matchedInventoryCount = inventories.size,
-                inventoryCount = inventories.size,
-                hasMoreInventories = inventories.size > 5,
-                primaryImageId = inventories.firstNotNullOfOrNull { it.primaryImageId },
+                matchedInventoryCount = first.inventoryCount,
+                inventoryCount = first.inventoryCount,
+                hasMoreInventories = first.inventoryCount > 5,
+                primaryImageId = inventories.firstNotNullOfOrNull { it.groupPrimaryImageId },
                 effectiveCategory =
                     first.categoryId?.let { SearchCategory(it, first.categoryName ?: "", first.categoryColor) },
                 inventories =
@@ -187,6 +206,9 @@ class SearchService(
     }
 
     private fun validate(request: SearchRequest) {
+        if (request.limit !in 1..100 || (request.q?.length ?: 0) > 200) {
+            throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "검색어는 200자, limit은 1~100이어야 합니다.")
+        }
         if (listOfNotNull(request.roomId, request.shelfId, request.boxId).size > 1) {
             throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "위치 필터는 하나만 지정할 수 있습니다.")
         }
