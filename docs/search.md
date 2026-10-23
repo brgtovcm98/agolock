@@ -75,15 +75,16 @@ CREATE INDEX idx_box_name_trgm
 ```
 
 - effective name은 두 테이블에 걸친 COALESCE 표현식이므로 단일 인덱스로 처리되지 않습니다.
-- 1차 구현은 `name_override IS NOT NULL`과 `name_override IS NULL` 두 분기를 UNION ALL로 나누고 각자의 trigram 인덱스를 사용합니다.
+- 검색어를 NFKC·소문자·공백으로 정규화하고 토큰을 모두 AND로 적용합니다. 각 토큰은 이름·설명·위치·카테고리 중 하나와 일치하면 됩니다. 이름은 부분 일치와 trigram 유사도(기본 0.3)를 함께 적용합니다.
+- 가장 긴 토큰으로 후보 ID를 먼저 구합니다. 마스터·재고 오버라이드의 이름·설명, 위치·카테고리를 UNION으로 결합한 뒤 전체 토큰과 ACL을 적용합니다. 이름과 설명 오버라이드는 각각 독립적으로 적용합니다.
 - 초기 목표는 검색 p95 300ms 이하입니다.
-- 목표를 넘으면 effective field와 위치 경로를 담은 `inventory_search` 읽기 모델을 추가합니다.
+- 목표를 넘으면 직접 쿼리와 인덱스를 먼저 개선합니다. 읽기 모델은 [ADR-019](decisions/ADR-019-search-acl-pagination.md)의 성능 gate를 두 번 연속 실패한 뒤 별도 ADR로 검토합니다.
 - 읽기 모델은 outbox 이벤트로 갱신하고, 검색 인덱스와 원본의 차이를 재생성 job으로 복구합니다.
 - inventory 수가 작은 초기에는 조인 쿼리로 충분합니다.
 
 ## 4. 랭킹
 
-기본 정렬은 관련도 점수입니다. 단, `q`가 없으면 관련도 점수를 계산하지 않고 최근 수정순으로 정렬합니다.
+기본 정렬은 관련도 점수입니다.
 
 ```text
 score =
@@ -112,13 +113,17 @@ score =
 - 최근 조회순
 - 상태순
 
-### 4.1 페이지네이션
+### 4.1 그룹 정렬 키
 
-- `UPDATED_DESC`는 `(updated_at, item_id)` keyset 커서를 사용합니다. `q`가 없으면 이 정렬이 기본입니다.
-- `RELEVANCE`는 첫 페이지만 제공합니다. `nextCursor`는 null이며, 커서를 보내면 `400 CURSOR_NOT_SUPPORTED_FOR_SORT`입니다.
-- `NAME_ASC`, `VIEWED_DESC`, `STATUS_ASC`는 1차에서 기존 offset 커서를 유지합니다.
-- keyset 페이지는 20개 Item 그룹을 먼저 고른 뒤, 각 그룹의 Inventory를 최대 5개까지 재조회합니다.
-- 기존 offset 커서로 `UPDATED_DESC`를 호출하면 `400 INVALID_CURSOR`입니다. 배포 시 검색 커서가 한 번 무효화됩니다.
+| 정렬 | 그룹 키 | 동점 |
+|---|---|---|
+| `RELEVANCE` | 일치 Inventory의 최대 관련도 | 그룹 최근 수정 시각 내림차순, `itemId` 오름차순 |
+| `UPDATED_DESC` | 일치 Inventory의 최대 수정 시각 | `itemId` 오름차순 |
+| `NAME_ASC` | 소문자로 정규화한 Item 마스터 이름 | `itemId` 오름차순 |
+| `VIEWED_DESC` | 해당 사용자의 마지막 조회 시각, 미조회 뒤 | `itemId` 오름차순 |
+| `STATUS_ASC` | 일치 Inventory의 최소 상태 순위 | `itemId` 오름차순 |
+
+상태 순위는 `IN_USE=0`, `STORED=1`, `DISPOSED=2`입니다. 검색어가 없으면 `RELEVANCE`는 `UPDATED_DESC`로 처리합니다. 이름은 DB collation을 따릅니다.
 
 ## 5. 결과 단위
 
@@ -241,7 +246,9 @@ score =
 - 페이지 단위는 Item 그룹입니다.
 - 기본 페이지 크기는 20개 그룹입니다.
 - 최대 페이지 크기는 100개 그룹입니다.
-- 커서는 정렬 키와 `itemId`를 포함합니다.
+- 커서는 버전·유효 정렬·정렬 키·`itemId`·필터 지문·그룹 수정 시각을 포함하는 Base64URL JSON입니다.
+- 필터를 바꾼 커서는 거부하며 페이지 크기는 지문에서 제외합니다. 관련도 동점은 그룹 수정 시각까지 비교합니다.
+- 커서는 최대 2,048자입니다. 한글 Item 이름을 정렬 키로 담을 수 있도록 UTF-8과 Base64 확장을 고려합니다.
 - 그룹 내 Inventory는 최대 5개까지 반환합니다.
 - 결과가 없으면 빈 상태 UI를 제공합니다.
 - 총 개수는 필요할 때만 별도 count 쿼리로 제공합니다.
@@ -271,12 +278,11 @@ score =
 - 이미지 검색 결과도 Item 그룹 단위로 페이지네이션합니다.
 
 
-## 12. 현재 구현 메모
+## 14. 현재 구현 메모
 
-- `GET /search`는 Item 그룹 결과를 반환하고, Inventory는 그룹당 최대 5개를 포함합니다.
-- `scope`, 상태·위치·카테고리·소유자·사진 필터와 정렬 5종을 지원합니다.
-- `GET /search/recent`, `DELETE /search/recent`, `GET /search/frequent`, `GET /search/suggestions`를 제공합니다.
-- `POST /items/{itemId}/view`는 30분 디바운스로 조회 횟수를 기록합니다.
-- 현재 cursor는 그룹 offset을 opaque Base64로 감싼 **MVP 구현**입니다. 정렬 키 기반 keyset cursor와 대규모 후보의 정확한 `inventoryCount`는 M6 후속 보완입니다.
-- 검색 후보는 최대 500개 Inventory로 제한합니다. 상한에 밀려 빠진 그룹은 해당 Item만 최대 5개 Inventory로 보충 조회하므로 그룹이 페이지에서 사라지지 않습니다. `inventoryCount`는 그룹 쿼리 값을 유지합니다.
-- p95 300ms gate는 아직 측정하지 않았습니다. M6.0 성능 시드와 `EXPLAIN` 결과로 검증해야 합니다.
+- `GET /search`는 DB에서 전체 일치 Inventory 수를 집계하고 Item 그룹 `limit + 1`개를 조회합니다. 그룹별 최대 6개를 조회해 응답은 5개로 제한합니다.
+- offset과 500개 후보 절단을 사용하지 않습니다. `scope`, 상태·위치·카테고리·소유자·사진 필터와 정렬 5종을 지원합니다.
+- 위치 해석은 릴리스 브랜치의 `inventory_access` view를 재사용합니다. 후보 CTE는 조건 전달을 허용하고, 이미지 대표 선택은 페이지를 고른 뒤 수행합니다. 사진 필터는 READY 이미지의 대상 ID 집합으로 판정합니다.
+- 자주 본 물건은 현재 ACL과 폐기 제외를 적용한 뒤 상위 10개를 고릅니다. 공유 철회 후 새 요청에 항목이 남지 않습니다.
+- 최근 검색의 저장·정리와 제안 4종 전체 연결은 후속 검증 항목입니다.
+- 재현 가능한 10,000 Item·50,000 Inventory 시드는 `backend/src/test/resources/search/performance-seed.sql`입니다. `./gradlew :backend:searchPerformanceTest`가 p95와 실제 검색 SQL의 실행 계획을 `backend/build/reports/`에 기록합니다.

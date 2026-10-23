@@ -3708,6 +3708,7 @@
             "name": "q",
             "required": false,
             "schema": {
+              "maxLength": 200,
               "type": "string"
             }
           },
@@ -3769,6 +3770,11 @@
             "required": false,
             "schema": {
               "default": "ALL",
+              "enum": [
+                "ALL",
+                "OWNED",
+                "SHARED"
+              ],
               "type": "string"
             }
           },
@@ -3795,6 +3801,13 @@
             "required": false,
             "schema": {
               "default": "RELEVANCE",
+              "enum": [
+                "RELEVANCE",
+                "UPDATED_DESC",
+                "NAME_ASC",
+                "VIEWED_DESC",
+                "STATUS_ASC"
+              ],
               "type": "string"
             }
           },
@@ -3805,6 +3818,8 @@
             "schema": {
               "default": 20,
               "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
               "type": "integer"
             }
           },

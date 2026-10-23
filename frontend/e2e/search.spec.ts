@@ -79,4 +79,17 @@ test('검색 결과를 물건 그룹과 재고로 보여준다', async ({ page }
   await expect(page.getByText('거실 > 서랍')).toBeVisible()
   await expect(page.getByText('무선 이어폰(여행용)')).toBeVisible()
   await expect(page.getByRole('link', { name: /무선 이어폰\(여행용\).*공유/ })).toBeVisible()
+
+  await page.goto('/search')
+  const filtered = page.waitForRequest((request) => {
+    const url = new URL(request.url())
+    return (
+      url.pathname.endsWith('/search') &&
+      url.searchParams.get('scope') === 'SHARED' &&
+      !url.searchParams.has('q')
+    )
+  })
+  await page.getByLabel('검색 범위').selectOption('SHARED')
+  await filtered
+  await expect(page.getByRole('heading', { name: '필터 결과' })).toBeVisible()
 })

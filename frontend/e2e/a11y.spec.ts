@@ -151,7 +151,7 @@ test('토스트 접근성', async ({ page }) => {
   await page.goto('/settings/categories')
   await page.getByLabel('새 카테고리').fill('테스트')
   await page.getByRole('button', { name: '추가' }).click()
-  await expect(page.getByText('카테고리를 만들었어요.')).toBeVisible()
+  await expect(page.getByText('카테고리를 만들었어요.', { exact: true })).toBeVisible()
   await expectNoA11yViolations(page)
 })
 

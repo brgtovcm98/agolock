@@ -3,17 +3,9 @@ package com.agolock.search.service
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.persistence.BoxMapper
 import com.agolock.hierarchy.persistence.ShelfMapper
+import com.agolock.search.domain.SearchAccessScope
 import com.agolock.sharing.persistence.ShareMapper
 import org.springframework.stereotype.Service
-import java.util.UUID
-
-data class SearchAccessScope(
-    val ownSpaceId: UUID,
-    val sharedSpaceIds: Set<UUID>,
-    val roomIds: Set<UUID>,
-    val shelfIds: Set<UUID>,
-    val boxIds: Set<UUID>,
-)
 
 @Service
 class SearchAccessService(

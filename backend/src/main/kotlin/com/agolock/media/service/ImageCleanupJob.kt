@@ -17,12 +17,14 @@ class ImageCleanupJob(
     private val imageMapper: ImageMapper,
     private val storage: ImageStoragePort,
     private val clock: Clock,
+    private val processTransaction: ImageProcessTransaction,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(fixedDelayString = "\${agolock.image.cleanup-interval-ms:600000}")
     fun cleanup() {
         val now = OffsetDateTime.now(clock)
+        processTransaction.recoverStuckProcessing(now.minusMinutes(STUCK_MINUTES), now)
         imageMapper.failStuckProcessing(now.minusMinutes(STUCK_MINUTES), now)
         imageMapper.findExpiredUploads(now, 100).forEach { cleanup(it) }
         imageMapper.findExpiredDeleted(now.minusDays(DELETED_RETENTION_DAYS), 100).forEach { cleanup(it) }

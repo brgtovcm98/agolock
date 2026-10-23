@@ -7,6 +7,7 @@ import com.agolock.media.domain.ImageStatus
 import org.apache.ibatis.annotations.Delete
 import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
+import org.apache.ibatis.annotations.Options
 import org.apache.ibatis.annotations.Param
 import org.apache.ibatis.annotations.Select
 import org.apache.ibatis.annotations.Update
@@ -221,13 +222,37 @@ interface ImageMapper {
         """
         UPDATE image
         SET status = 'FAILED', last_error = 'PROCESSING_TIMEOUT', updated_at = #{now}
-        WHERE status = 'PROCESSING' AND updated_at < #{before}
+        WHERE status = 'PROCESSING' AND updated_at < #{before} AND processing_attempts >= 5
         """,
     )
     fun failStuckProcessing(
         @Param("before") before: OffsetDateTime,
         @Param("now") now: OffsetDateTime,
     ): Int
+
+    @Select(
+        value = [
+            """
+            WITH stale AS (
+              SELECT id FROM image
+              WHERE status = 'PROCESSING' AND deleted_at IS NULL
+                AND updated_at < #{before} AND processing_attempts < 5
+              ORDER BY updated_at, id LIMIT 100 FOR UPDATE SKIP LOCKED
+            )
+            UPDATE image SET status = 'PENDING', last_error = 'PROCESSING_TIMEOUT', updated_at = #{now}
+            FROM stale WHERE image.id = stale.id
+            RETURNING image.id, image.space_id, image.item_id, image.inventory_id,
+                      image.object_key, image.thumbnail_key, image.status, image.upload_expires_at,
+                      image.created_at, image.mime_type, image.size_bytes, image.is_primary
+            """,
+        ],
+        affectData = true,
+    )
+    @Options(flushCache = Options.FlushCachePolicy.TRUE, useCache = false)
+    fun requeueStuckProcessing(
+        @Param("before") before: OffsetDateTime,
+        @Param("now") now: OffsetDateTime,
+    ): List<Image>
 
     @Delete("DELETE FROM image WHERE id = #{id}")
     fun deleteRow(

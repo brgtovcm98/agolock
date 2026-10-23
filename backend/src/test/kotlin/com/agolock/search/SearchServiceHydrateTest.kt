@@ -4,12 +4,11 @@ import com.agolock.hierarchy.domain.Actor
 import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.ItemMapper
+import com.agolock.search.domain.SearchAccessScope
 import com.agolock.search.persistence.RecentSearchMapper
 import com.agolock.search.persistence.SearchMapper
-import com.agolock.search.persistence.SearchPageRow
 import com.agolock.search.persistence.SearchRow
 import com.agolock.search.persistence.UserItemViewMapper
-import com.agolock.search.service.SearchAccessScope
 import com.agolock.search.service.SearchAccessService
 import com.agolock.search.service.SearchRequest
 import com.agolock.search.service.SearchService
@@ -27,28 +26,20 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class SearchServiceHydrateTest {
     @Test
-    fun `hydrate 상한에서 빠진 그룹은 해당 Item만 보충 조회한다`() {
+    fun `그룹 페이지는 한 번 조회하고 모든 그룹과 정확한 개수를 보존한다`() {
         val spaceId = UUID.randomUUID()
         val actor = Actor(UUID.randomUUID(), spaceId)
         val firstItemId = UUID.randomUUID()
         val secondItemId = UUID.randomUUID()
         val now = OffsetDateTime.of(2026, 10, 23, 0, 0, 0, 0, ZoneOffset.UTC)
-        val pageRows =
-            listOf(
-                SearchPageRow(firstItemId, now, 1),
-                SearchPageRow(secondItemId, now.minusMinutes(1), 1),
-            )
         val searchCalls = AtomicInteger()
         val mapper =
             mock(SearchMapper::class.java) { invocation: InvocationOnMock ->
                 when (invocation.method.name) {
-                    "searchPageUpdated" -> pageRows
-                    "search" ->
-                        if (searchCalls.getAndIncrement() == 0) {
-                            listOf(searchRow(firstItemId, spaceId, now))
-                        } else {
-                            listOf(searchRow(secondItemId, spaceId, now.minusMinutes(1)))
-                        }
+                    "search" -> {
+                        searchCalls.incrementAndGet()
+                        listOf(searchRow(firstItemId, spaceId, now, 601), searchRow(secondItemId, spaceId, now, 1))
+                    }
                     else -> null
                 }
             }
@@ -70,12 +61,16 @@ class SearchServiceHydrateTest {
         val response = service.search(actor, SearchRequest(sort = "UPDATED_DESC", limit = 2))
 
         assertThat(response.items.map { it.itemId }).containsExactly(firstItemId, secondItemId)
+        assertThat(response.items.first().inventoryCount).isEqualTo(601)
+        assertThat(response.items.first().hasMoreInventories).isTrue()
+        assertThat(searchCalls.get()).isEqualTo(1)
     }
 
     private fun searchRow(
         itemId: UUID,
         spaceId: UUID,
         updatedAt: OffsetDateTime,
+        inventoryCount: Int,
     ): SearchRow =
         SearchRow(
             inventoryId = UUID.randomUUID(),
@@ -91,8 +86,11 @@ class SearchServiceHydrateTest {
             roomName = "방",
             shelfName = null,
             boxName = null,
-            primaryImageId = null,
             ownerName = null,
             updatedAt = updatedAt,
+            inventoryCount = inventoryCount,
+            sortKey = updatedAt.toString(),
+            groupUpdatedAt = updatedAt,
+            groupPrimaryImageId = null,
         )
 }

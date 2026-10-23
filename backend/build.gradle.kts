@@ -64,8 +64,19 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform {
-        excludeTags("contract")
+        excludeTags("contract", "search-perf")
     }
+}
+
+tasks.register<Test>("searchPerformanceTest") {
+    description = "10,000 Item·50,000 Inventory 검색 성능과 실행 계획을 검증합니다."
+    group = "verification"
+    testClassesDirs =
+        sourceSets.test
+            .get()
+            .output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform { includeTags("search-perf") }
 }
 
 val contractTest by tasks.registering(Test::class) {

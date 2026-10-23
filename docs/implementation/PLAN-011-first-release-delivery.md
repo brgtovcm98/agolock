@@ -1,10 +1,10 @@
 # PLAN-011: 1차 릴리스 완료와 배포 구성
 
-> 상태: 실행 계획 초안 (2026-10-22), 인프라 결정 승인 대기
+> 상태: 1차 마감 진행 (2026-10-23). VPS + Docker Compose 기준, 서버·도메인 연결 전
 > 역할: 1차(M0~M6) 마감, staging 배포, production gate의 실행 순서·산출물·검증
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md), [운영](../operations.md)
 > 관련 문서: [M5 계획](PLAN-006-media-messaging.md), [M6 계획](PLAN-007-search.md), [M8 계획](PLAN-009-release-hardening.md), [등록 UX P0/P1](PLAN-010-registration-ux.md), [화면과 흐름](../frontend.md), [아키텍처](../architecture.md)
-> 전제: M0~M4 완료, M5 진행 중, M6 미착수, M7은 2차, M8은 착수 전
+> 전제: M0~M4 핵심 구현, M5.5 P0와 배포 골격 및 M6 검색 MVP·보완 구현. M7은 2차이며 출시·운영 gate는 별도 검증
 
 ## 1. 목표와 비목표
 
@@ -22,14 +22,14 @@
 | 영역 | 현재 | 1차 완료까지 |
 |---|---|---|
 | M0~M4 | 완료 | 유지 |
-| M5 | presign·complete·목록·URL·대표·삭제·Outbox·worker 착수 | M5.5 P0: Item 권한, S3 health, worker 프로필, Item 갤러리, 업로드 상태 UI |
-| M6 | 없음. `/items?q=` 임시 이름 검색만 존재 | `/search`·추천·그룹 커서·필터·정렬·검색 UI |
+| M5 | M5.5 P0(Item 권한·S3 health·worker·갤러리·업로드 상태) 구현 | 실패·만료·재시도와 실제 저장소 E2E 마감 |
+| M6 | 검색 API·SQL 그룹 커서·정확한 집계·필터·정렬·UI 구현 | 보관·추천·계약 마감과 VPS 성능 검증 |
 | P0/P1 UX | 등록 시트·상세·편집·공유·공유 위치·Box 이동 완료 | 1차 프리즈 전 문서·잔여물 정리 |
-| 품질 | backend full test, frontend 34개, E2E 10개 green | 검색·이미지 E2E, staging 스모크 |
-| 배포 | Dockerfile·prod 프로필·nginx·릴리스 workflow 없음 | staging/production 동일 스크립트 |
+| 품질 | backend 145개·계약 2개, frontend 37개·E2E 32개 통과 | 실제 staging 스모크·복구·부하 검증 |
+| 배포 | Dockerfile·프로필·nginx·Compose·GHCR 빌드 골격 | VPS 연결·실제 배포·백업·롤백 스크립트 |
 | 운영 | 백업·관측·롤백 리허설 없음 | M8 최소 gate |
 
-현재 최신 마이그레이션은 `V16__email_verification.sql`입니다. M6 계획의 `V16`·`V17` 표기는 오래되었으므로 **V17·V18로 재확정**합니다.
+M6은 `V17__search_indexes.sql`과 `V18__search_recommendations.sql`을 사용하고, 설명 검색 인덱스는 `V24__search_description_indexes.sql`로 추가합니다. 적용된 마이그레이션은 수정하지 않습니다.
 
 ## 3. 릴리스 계약
 
@@ -280,7 +280,7 @@
 
 - [ ] M5.5 P0 0건
 - [ ] M6.0 gate 통과
-- [ ] 검색 API·UI·E2E
+- [x] 검색 API·UI·E2E
 - [ ] 이미지 Item/Inventory 권한
 - [ ] 1차 프리즈·문서·P0 0건
 - [ ] `v0.1.0-rc.1`
@@ -310,3 +310,9 @@
 | 2026-10-22 | 배포 골격: backend/frontend Dockerfile, nginx, staging Compose, staging/prod 프로필, GHCR release workflow, healthcheck·smoke | compose config, 두 이미지 빌드, staging 스택 기동·readiness·worker 분리 확인 |
 | 2026-10-22 | M6 MVP: V17/V18, 검색 API·ACL·최근 검색·자주 본 물건·조회 기록, `/search` UI, 홈 검색 연결 | 검색 통합 테스트, 프론트 35 tests, E2E 12개 |
 | 2026-10-22 | Box 이동 UI와 이동 테스트 | 프론트 단위 테스트 |
+
+| 2026-10-23 | SQL 그룹 keyset cursor·정확한 집계·토큰/trigram 검색·추천 ACL·필터 단독 검색·요청 계약 제약, V24 설명 인덱스 | 검색·커서·계약 테스트, 프론트 37 tests, E2E 12개. 로컬 p95 결과는 [PLAN-007](PLAN-007-search.md) 13번 항목 |
+
+실제 staging 대상은 VPS + Docker Compose로 진행합니다. SSH 대상·도메인·TLS·시크릿 연결과 실제 부하·복구·롤백 검증을 완료해야 배포 완료로 처리합니다.
+
+2026-10-23 릴리스 통합 검증: 백엔드 145개·계약 2개, 프론트엔드 37개, E2E 32개 및 검색 성능 gate 통과. 워커 중단 후 이미지 재처리 누락과 통합 의존성 규칙을 보완했습니다. `main` 병합에는 기존 릴리스 브랜치와 검색 보완 브랜치의 이력을 함께 포함합니다.

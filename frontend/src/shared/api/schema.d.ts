@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["info"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/config": {
         parameters: {
             query?: never;
@@ -198,6 +214,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/shared/rooms/{roomId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: components["parameters"]["RoomId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getSharedRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shared/shelves/{shelfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelfId: components["parameters"]["ShelfId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getSharedShelf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shared/boxes/{boxId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boxId: components["parameters"]["BoxId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getSharedBox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shared/inventories/{inventoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inventoryId: components["parameters"]["InventoryId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getSharedInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/shared": {
         parameters: {
             query?: never;
@@ -373,6 +461,24 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["updateItem"];
+        trace?: never;
+    };
+    "/items/{itemId}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: components["parameters"]["ItemId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recordItemView"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/items/{itemId}/inventories": {
@@ -925,6 +1031,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/share-invitations/{invitationId}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitationId: components["parameters"]["InvitationId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resendShareInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/share-invitations/received": {
         parameters: {
             query?: never;
@@ -1283,8 +1407,6 @@ export interface components {
             effectiveDescription?: string | null;
             effectiveCategory?: components["schemas"]["Category"];
             effectivePrice?: components["schemas"]["Price"];
-            /** Format: uuid */
-            primaryImageId?: string | null;
             status: components["schemas"]["InventoryStatus"];
             location: components["schemas"]["Location"];
             shared?: boolean;
@@ -1678,6 +1800,31 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    info: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 애플리케이션 정보 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        name: string;
+                        version: string;
+                        environment: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
     getAuthConfig: {
         parameters: {
             query?: never;
@@ -2036,6 +2183,102 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             403: components["responses"]["Forbidden"];
+        };
+    };
+    getSharedRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: components["parameters"]["RoomId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 공유받은 Room 상세 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Room"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getSharedShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelfId: components["parameters"]["ShelfId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 공유받은 Shelf 상세 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Shelf"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getSharedBox: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boxId: components["parameters"]["BoxId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 공유받은 Box 상세 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Box"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getSharedInventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inventoryId: components["parameters"]["InventoryId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 공유받은 Inventory 상세 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inventory"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     listSharedResources: {
@@ -2563,6 +2806,28 @@ export interface operations {
             };
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    recordItemView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: components["parameters"]["ItemId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 기록 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     listItemInventories: {
@@ -3562,6 +3827,31 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    resendShareInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitationId: components["parameters"]["InvitationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 초대 재발송 */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareInvitation"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
     listReceivedShareInvitations: {

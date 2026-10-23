@@ -19,8 +19,8 @@
 - 공유 사용자는 기존 Room·Inventory 상세, shared MANAGE Inventory 생성·이동·삭제를 사용할 수 있습니다.
 - 초대 메일은 Outbox 릴레이로 발송되며 `/invitations#token=...` 링크에서 수락·거절합니다.
 - staging 배포 골격(Dockerfile·nginx·Compose·프로필·GHCR workflow)을 추가했습니다.
-- M6 검색 MVP(검색 API·ACL·최근 검색·자주 본 물건·`/search` UI)를 구현했습니다. keyset cursor·p95 gate·계약 정합성은 후속 보완입니다.
-- 다음 1차 작업은 M6 보완, Box 이동, 1차 프리즈입니다. M7 AI는 2차입니다.
+- M6 검색의 SQL 그룹 집계·keyset cursor·복수 토큰·trigram 검색·추천 ACL·검색어 없는 필터를 구현했습니다. 로컬 검색 성능 gate를 통과했으며 릴리스 운영 검증이 남아 있습니다.
+- Box 이동 UI를 구현했습니다. 다음 1차 작업은 M6 잔여 검증과 1차 프리즈, VPS staging 배포입니다. M7 AI는 2차입니다.
 - 제품 기준 문서는 [docs/product-spec.md](docs/product-spec.md)입니다.
 - AI 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다.
 
@@ -244,10 +244,9 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 
 ## 다음 단계
 
-M3에서 다음을 구현합니다.
+- M6 최근 검색 보관·정리와 추천 4종, 생성 계약 기록 모드를 마감합니다.
+- 이미지 실패·만료·재시도 E2E를 보강하고 1차 프리즈를 진행합니다.
+- VPS의 도메인·TLS·시크릿을 연결해 staging 배포와 실제 스모크를 수행합니다.
+- 백업·복구·롤백, 관측·보안·접근성·PWA 출시 gate를 검증합니다.
 
-- `item`, `category`, `inventory`와 상태·수량
-- Inventory 위치·상태·카테고리 변경과 이동 이력
-- Item·Inventory CRUD와 검색·필터 기반
-- `HierarchyDeleteGuard`에 재고 존재 검사 추가
-- 재고 목록·상세 화면과 M3 계약·테스트
+실행 순서와 완료 조건은 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.

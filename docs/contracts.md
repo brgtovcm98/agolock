@@ -108,6 +108,8 @@ RFC 7807 `application/problem+json`을 사용합니다.
 | `AI_QUOTA_EXCEEDED` | AI 호출 한도 초과 |
 | `AI_PROVIDER_UNAVAILABLE` | AI provider 사용 불가 |
 
+검색의 요청 제약과 정렬 enum은 컨트롤러의 OpenAPI annotation에서도 생성합니다. 검색 계약 테스트는 검색어 200자와 페이지 크기 1~100을 검증합니다. 실제 구현 계약은 `build/contracts/openapi.yaml` 미리보기에서 확인하며, 기록 모드 전환은 [ADR-015](decisions/ADR-015-contract-preview-mode.md)를 따릅니다.
+
 ## 4. 페이지네이션
 
 - 커서 기반 페이지네이션을 사용합니다.

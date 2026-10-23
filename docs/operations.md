@@ -89,6 +89,8 @@ docker compose -f infra/docker-compose.yml up -d
 
 ### 3.2 정리 job
 
+이미지 처리 중단 복구의 상태·배치·재시도 규칙은 [미디어·AI 장애 처리](media-ai.md)의 8번 항목을 따릅니다. 상태 복구와 재처리 Outbox 등록은 같은 트랜잭션으로 수행합니다.
+
 - `UPLOADING`과 `DRAFT` 이미지는 `upload_expires_at` 이후 삭제합니다.
 - `FAILED` 이미지는 7일 후 삭제합니다.
 - soft delete된 이미지는 30일 후 원본과 썸네일을 함께 삭제합니다.

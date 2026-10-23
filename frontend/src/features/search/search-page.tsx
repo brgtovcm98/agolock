@@ -28,18 +28,26 @@ const sortOptions = [
   { value: 'STATUS_ASC', label: '상태순' },
 ] as const
 
+const defaultFilters: SearchFilters = {
+  statuses: [],
+  scope: 'ALL',
+  sort: 'RELEVANCE',
+  hasImage: null,
+}
+
 export function SearchPage() {
   const [params, setParams] = useSearchParams()
   const queryClient = useQueryClient()
   const q = params.get('q') ?? ''
   const [draft, setDraft] = useState(q)
-  const [filters, setFilters] = useState<SearchFilters>({
-    statuses: [],
-    scope: 'ALL',
-    sort: 'RELEVANCE',
-    hasImage: null,
-  })
-  const hasSearch = q.trim().length > 0 || filters.statuses.length > 0
+  const [filters, setFilters] = useState<SearchFilters>(defaultFilters)
+  const hasSearch =
+    q.trim().length > 0 ||
+    filters.statuses.length > 0 ||
+    filters.scope !== 'ALL' ||
+    filters.hasImage !== null ||
+    filters.sort !== 'RELEVANCE' ||
+    filters.categoryId !== undefined
 
   const results = useInfiniteQuery({
     queryKey: ['search', q, filters],
@@ -180,7 +188,15 @@ export function SearchPage() {
                 <p className="text-foreground/70 text-xs">
                   다른 이름으로 찾거나 필터를 풀어 보세요.
                 </p>
-                <Button type="button" size="sm" onClick={() => setParams({})}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setDraft('')
+                    setFilters(defaultFilters)
+                    setParams({})
+                  }}
+                >
                   검색 초기화
                 </Button>
               </CardBody>

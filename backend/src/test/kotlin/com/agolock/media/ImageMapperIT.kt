@@ -2,15 +2,20 @@ package com.agolock.media
 
 import com.agolock.media.domain.ImageStatus
 import com.agolock.media.persistence.ImageMapper
+import com.agolock.media.service.ImageCleanupJob
+import com.agolock.media.service.ImageProcessTransaction
+import com.agolock.media.storage.ImageStoragePort
 import com.agolock.support.TestcontainersConfiguration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -25,7 +30,50 @@ class ImageMapperIT
     constructor(
         private val imageMapper: ImageMapper,
         private val jdbcTemplate: JdbcTemplate,
+        private val processTransaction: ImageProcessTransaction,
     ) {
+        @Test
+        fun `워커 중단으로 남은 PROCESSING 이미지는 Outbox로 한 번만 재등록한다`() {
+            val fixture = fixture()
+            val imageId = UUID.randomUUID()
+            imageMapper.insertUploading(
+                imageId,
+                fixture.spaceId,
+                fixture.itemId,
+                null,
+                "spaces/${fixture.spaceId}/$imageId/original.webp",
+                "image/webp",
+                100,
+                fixture.now.plusHours(24),
+                fixture.userId,
+                fixture.now.minusHours(1),
+            )
+            imageMapper.completeUpload(
+                imageId,
+                ImageStatus.PENDING,
+                "image/webp",
+                100L,
+                "a".repeat(64),
+                fixture.now.minusHours(1),
+            )
+            assertThat(imageMapper.claimForProcessing(imageId, fixture.now.minusMinutes(31))).isEqualTo(1)
+            // 장애 후 재전달은 이미 PROCESSING이므로 claim하지 못합니다.
+            assertThat(imageMapper.claimForProcessing(imageId, fixture.now)).isZero()
+            val job = cleanupJob(fixture.now)
+
+            job.cleanup()
+            job.cleanup()
+
+            assertThat(imageMapper.findById(imageId)?.status).isEqualTo(ImageStatus.PENDING)
+            assertThat(
+                jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM outbox_event WHERE aggregate_id = ? AND event_type = 'image.uploaded'",
+                    Int::class.java,
+                    imageId,
+                ),
+            ).isEqualTo(1)
+        }
+
         @Test
         fun `findById는 Image의 12개 필드를 그대로 매핑한다`() {
             val fixture = fixture()
@@ -63,6 +111,63 @@ class ImageMapperIT
             val byItem = imageMapper.listByItem(fixture.itemId)
             assertThat(byItem).hasSize(1)
             assertThat(byItem[0].id).isEqualTo(imageId)
+        }
+
+        @Test
+        fun `복구 배치를 넘는 작업은 다음 정리에서 재등록하고 시도 한도는 유지한다`() {
+            val fixture = fixture()
+            jdbcTemplate.update(
+                """
+                INSERT INTO image (id, space_id, item_id, object_key, status, processing_attempts,
+                                   upload_expires_at, created_by, created_at, updated_at, mime_type, size_bytes)
+                SELECT gen_random_uuid(), ?, ?, ? || n, 'PROCESSING', 1, ?, ?, ?, ?, 'image/webp', 100
+                FROM generate_series(1, 101) n
+                """.trimIndent(),
+                fixture.spaceId,
+                fixture.itemId,
+                "recovery/${fixture.spaceId}/",
+                fixture.now.plusHours(24),
+                fixture.userId,
+                fixture.now.minusHours(1),
+                fixture.now.minusMinutes(31),
+            )
+            val job = cleanupJob(fixture.now)
+            job.cleanup()
+            assertThat(
+                jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM image WHERE space_id = ? AND status = 'PROCESSING'",
+                    Int::class.java,
+                    fixture.spaceId,
+                ),
+            ).isEqualTo(1)
+            job.cleanup()
+            assertThat(
+                jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM outbox_event WHERE space_id = ? AND event_type = 'image.uploaded'",
+                    Int::class.java,
+                    fixture.spaceId,
+                ),
+            ).isEqualTo(101)
+            jdbcTemplate.update(
+                "UPDATE image SET status = 'PROCESSING', processing_attempts = 5, updated_at = ? WHERE space_id = ?",
+                fixture.now.minusMinutes(31),
+                fixture.spaceId,
+            )
+            job.cleanup()
+            assertThat(
+                jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM image WHERE space_id = ? AND status = 'FAILED'",
+                    Int::class.java,
+                    fixture.spaceId,
+                ),
+            ).isEqualTo(101)
+            assertThat(
+                jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM outbox_event WHERE space_id = ? AND event_type = 'image.uploaded'",
+                    Int::class.java,
+                    fixture.spaceId,
+                ),
+            ).isEqualTo(101)
         }
 
         @Test
@@ -155,6 +260,14 @@ class ImageMapperIT
                 .contains(deletedId)
                 .doesNotContain(expiredUploadId)
         }
+
+        private fun cleanupJob(now: OffsetDateTime): ImageCleanupJob =
+            ImageCleanupJob(
+                imageMapper = imageMapper,
+                storage = mock(ImageStoragePort::class.java),
+                clock = Clock.fixed(now.toInstant(), ZoneOffset.UTC),
+                processTransaction = processTransaction,
+            )
 
         private data class Fixture(
             val userId: UUID,

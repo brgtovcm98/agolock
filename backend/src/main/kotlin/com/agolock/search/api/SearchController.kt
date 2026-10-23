@@ -6,6 +6,8 @@ import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.search.service.SearchRequest
 import com.agolock.search.service.SearchService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -29,16 +31,41 @@ class SearchController(
     @Suppress("LongParameterList")
     fun search(
         @AuthenticationPrincipal principal: AppUserPrincipal,
+        @Parameter(schema = Schema(maxLength = 200))
         @RequestParam(required = false) q: String?,
         @RequestParam(required = false) status: List<InventoryStatus>?,
         @RequestParam(required = false) roomId: UUID?,
         @RequestParam(required = false) shelfId: UUID?,
         @RequestParam(required = false) boxId: UUID?,
         @RequestParam(required = false) categoryId: UUID?,
+        @Parameter(schema = Schema(allowableValues = ["ALL", "OWNED", "SHARED"], defaultValue = "ALL"))
         @RequestParam(defaultValue = "ALL") scope: String,
         @RequestParam(required = false) ownerId: UUID?,
         @RequestParam(required = false) hasImage: Boolean?,
+        @Parameter(
+            schema =
+                Schema(
+                    defaultValue = "RELEVANCE",
+                    allowableValues = [
+                        "RELEVANCE",
+                        "UPDATED_DESC",
+                        "NAME_ASC",
+                        "VIEWED_DESC",
+                        "STATUS_ASC",
+                    ],
+                ),
+        )
         @RequestParam(defaultValue = "RELEVANCE") sort: String,
+        @Parameter(
+            schema =
+                Schema(
+                    type = "integer",
+                    format = "int32",
+                    defaultValue = "20",
+                    minimum = "1",
+                    maximum = "100",
+                ),
+        )
         @RequestParam(defaultValue = "20") limit: Int,
         @RequestParam(required = false) cursor: String?,
     ): SearchResponse =

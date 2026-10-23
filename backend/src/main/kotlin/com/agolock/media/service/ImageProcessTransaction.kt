@@ -4,6 +4,7 @@ package com.agolock.media.service
 
 import com.agolock.media.domain.Image
 import com.agolock.media.persistence.ImageMapper
+import com.agolock.messaging.outbox.OutboxService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
@@ -17,7 +18,28 @@ import java.util.UUID
 @Service
 class ImageProcessTransaction(
     private val imageMapper: ImageMapper,
+    private val outboxService: OutboxService,
 ) {
+    @Transactional
+    fun recoverStuckProcessing(
+        before: OffsetDateTime,
+        now: OffsetDateTime,
+    ) {
+        imageMapper.requeueStuckProcessing(before, now).forEach { image ->
+            outboxService.enqueueImageUploaded(
+                image.spaceId,
+                image.id,
+                mapOf(
+                    "imageId" to image.id,
+                    "targetType" to if (image.itemId != null) "ITEM" else "INVENTORY",
+                    "targetId" to (image.itemId ?: image.inventoryId),
+                    "objectKey" to image.objectKey,
+                    "declaredSizeBytes" to image.sizeBytes,
+                ),
+            )
+        }
+    }
+
     @Transactional
     fun claim(
         imageId: UUID,
