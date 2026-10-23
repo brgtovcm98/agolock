@@ -56,7 +56,7 @@ P0·P1에서 등록·재고·공유·검색 화면이 빠르게 늘어나면서 
 
 ## 5. 검증
 
-- Vitest 36개, Playwright E2E 12개, `tsc --noEmit`, `vite build`가 통과합니다. 재고 상세 테스트에 상태 변경 토스트 확인을 추가했습니다.
+- Vitest 36개, Playwright E2E 24개(axe 접근성 12개 포함), `tsc --noEmit`, `vite build`가 통과합니다. 재고 상세 테스트에 상태 변경 토스트 확인을 추가했습니다.
 - Playwright로 390×844, 1280×900, 라이트·다크의 주요 화면을 캡처했습니다.
 - Playwright로 다음을 확인했습니다.
   - 버튼 hover `-1px / 5px`, active `+2px / 2px`, transition에 `translate` 포함
@@ -67,12 +67,17 @@ P0·P1에서 등록·재고·공유·검색 화면이 빠르게 늘어나면서 
   - reduced motion에서 시트·overlay·토스트 `animation: none`
   - 토스트 352px, 모바일 FAB 없음 72px / FAB 있음 144px, 데스크톱 우하단 24px
   - 성공 토스트 `aria-live=polite`, 오류는 foreground
+  - 토스트 닫기 시 `data-state=closed` → 120ms `toast-out` → DOM 제거
+  - 업로드 XHR 진행률 `role=progressbar`와 퍼센트 표시
+  - 검색 결과는 `<ol aria-label="검색 결과">`로 DOM 순서를 유지
 - 캡처 원본은 `design/review/2026-10-23/`에 둡니다.
 - 단일 이미지는 4:3 대형 카드로, Room·Shelf 공유 버튼은 헤더 우측으로 배치해 캡처로 확인했습니다.
 
 ## 6. 남은 작업
 
 - 토스트 퇴장은 controlled `open`과 `forceMount`로 120ms `toast-out`을 재생한 뒤 제거합니다.
-- 업로드 진행률, AI 분석 단계 표시, View Transitions, Undo, 햅틱·사운드는 P2입니다.
+- AI 분석 단계 표시, Undo, 햅틱·사운드는 백엔드/제품 결정이 필요해 P2로 남깁니다.
+- View Transitions는 목록→상세 링크에 적용했고, 브라우저 미지원 시 일반 이동으로 동작합니다.
 - 데스크톱 검색 masonry는 빈 공간을 줄이지만 읽기 순서가 열 기준이 되므로 실제 사용성 테스트로 확인합니다.
+- axe WCAG 2 A/AA 자동 검사는 홈·재고 상세·검색·등록 시트·토스트·다크 홈에서 통과했습니다.
 - 실제 스크린리더(NVDA+Chrome, VoiceOver+Safari)와 200% 확대 검증은 M8 접근성 점검에서 수행합니다.

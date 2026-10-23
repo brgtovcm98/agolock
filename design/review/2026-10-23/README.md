@@ -43,6 +43,7 @@ Playwright로 현재 프론트엔드를 390×844(모바일), 1280×900(데스크
 ## 검증
 
 - Vitest 36개 통과
-- `tsc --noEmit` 통과
-- Playwright에서 버튼 hover/active, focus ring, 시트·토스트 등장, `prefers-reduced-motion` 정지 확인
+- Playwright E2E 24개 통과(axe WCAG 2 A/AA 접근성 12개 포함)
+- `tsc --noEmit`, ESLint, Prettier, `vite build` 통과
+- 버튼 hover/active, focus ring, 시트·토스트 등장/퇴장, `prefers-reduced-motion` 정지 확인
 - 실제 백엔드 연동·스크린리더 수동 검증은 별도 단계입니다.

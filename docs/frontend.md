@@ -179,7 +179,7 @@ flowchart TD
 | 등록 저장 중 | 저장 버튼 비활성화와 진행 상태, 중복 제출 차단 |
 | 새 물건 부분 실패 | Item은 생성되었음을 알리고 Inventory 생성만 재시도 |
 | 등록 완료 | 위치 경로와 "계속 등록", "물건 보기" 표시 |
-| 업로드 중 | `UPLOADING` 진행 상태와 취소 |
+| 업로드 중 | XHR 진행률(`role=progressbar`)·퍼센트·취소 |
 | 업로드 만료 | 24시간 경과 안내와 재업로드 |
 | AI 분석 중 | 진행 상태와 취소 버튼 |
 | AI 실패 | 수동 입력 유지, 재시도 안내 |
@@ -271,4 +271,4 @@ flowchart TD
 - `/design-preview`는 개발 빌드에서만 노출합니다.
 - 레이아웃은 44/48/56px 컨트롤 스케일, 24px 페이지 간격, 16px 카드 패딩으로 정리했습니다.
 - 마이크로인터랙션은 [디자인 시스템 5.5~5.6](design-system.md)의 모션 토큰과 그림자 물리를 따릅니다.
-- 검증은 Vitest 36개, `pnpm lint`, `pnpm build`, Playwright E2E 12개, 화면 캡처를 통과했습니다.
+- 검증은 Vitest 36개, Playwright E2E 24개(axe 접근성 포함), `pnpm lint`, `pnpm build`, 화면 캡처를 통과했습니다.
