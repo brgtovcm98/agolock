@@ -389,5 +389,6 @@ flowchart LR
 - M5 완료 게이트: [PLAN-006 M5.5](implementation/PLAN-006-media-messaging.md)
 - M6 계획·M6.0 gate: [PLAN-007 검색](implementation/PLAN-007-search.md)
 - 검색 ACL 결정: [ADR-019](decisions/ADR-019-search-acl-pagination.md)
+- UI 점검 후속과 소유자 이름 노출 인계: [PLAN-013](implementation/PLAN-013-ui-review-followups.md)
 - 제품 단계와 종료 조건: [운영](operations.md)
 - API·이벤트 계약: [계약](contracts.md)

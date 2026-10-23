@@ -3,7 +3,7 @@
 > 상태: 확정
 > 역할: 채택된 시각 디자인의 규칙, 제약, 토큰, 컴포넌트, 화면별 요소의 기록
 > 범위: 화면 목록과 흐름은 [화면과 흐름](frontend.md)이 단일 원본이며, 이 문서는 그 화면의 시각 표현만 다룹니다.
-> 관련 문서: [화면과 흐름](frontend.md), [도메인](domain.md), [공유](sharing.md), [구현 로드맵](implementation-roadmap.md), [ADR-016](decisions/ADR-016-neo-brutal-design-system.md)
+> 관련 문서: [화면과 흐름](frontend.md), [도메인](domain.md), [공유](sharing.md), [구현 로드맵](implementation-roadmap.md), [ADR-016](decisions/ADR-016-neo-brutal-design-system.md), [PLAN-013](implementation/PLAN-013-ui-review-followups.md)
 
 ## 1. 채택 결과 요약
 
