@@ -128,7 +128,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | `backend` | `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test`(`:backend:cleanTest`가 이전 테스트 결과를 지워 `:backend:test`가 `UP-TO-DATE`로 건너뛰지 않게 함) |
 | `frontend` | `pnpm install --frozen-lockfile`(워크트리에 `node_modules` 없을 때) → `pnpm generate:api` → `git diff --exit-code frontend/src/shared/api/schema.d.ts` → `pnpm lint` → `pnpm format:check` → `pnpm test` → `pnpm build` |
 | `contract` | `./gradlew :backend:generateOpenApiPreview` → `python3 scripts/normalize_openapi.py` → `python3 scripts/export_events.py` → `python3 scripts/docs_check.py` |
-| `e2e` | `pnpm install --frozen-lockfile`(워트리에 `node_modules` 없을 때) → `pnpm exec playwright install chromium`(브라우저 없을 때) → `pnpm test:e2e` |
+| `e2e` | `pnpm install --frozen-lockfile`(워트리에 `node_modules` 없을 때) → `pnpm --filter @agolock/frontend exec playwright install chromium`(브라우저 없을 때, `playwright`는 `frontend` 패키지 의존이므로 루트 `pnpm exec`로는 실행되지 않음) → `pnpm test:e2e` |
 | `full` | 위 5개 전부. 병합 전 필수(환경상 불가능하면 `merge --partial "<이유>"`) |
 
 각 스코프는 명령 실행 전에 환경 사전 조건을 확인합니다. `pnpm`·`java`·`python3`·`./gradlew`가 없거나 `python3`의 `yaml` 모듈을 불러올 수 없거나, `pnpm install`·Playwright 브라우저 설치가 실패하거나, `backend`에서 Docker를 사용할 수 없거나, `e2e`에서 `127.0.0.1:5173`이 점유되어 있으면 명령을 실행하지 않고 `result: blocked`로 기록한 뒤 `환경 실패(보류): <이유> — 코드 실패가 아닙니다`를 출력하고 exit 1합니다. 아래 목록이 `blocked`로 기록하는 사전 조건의 단일 기준이며, 목록에 없는 실패는 코드·테스트 실패와 같은 `fail`로 기록되므로 로그를 근거로 판단합니다.

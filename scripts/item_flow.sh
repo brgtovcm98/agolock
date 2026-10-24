@@ -46,7 +46,7 @@ usage_verify() {
              (이전 결과 재사용을 막기 위해 테스트를 항상 다시 실행)
   frontend   pnpm install(필요 시) → generate:api → schema diff → lint → format:check → test → build
   contract   generateOpenApiPreview → normalize_openapi.py → export_events.py → docs_check.py
-  e2e        pnpm install(필요 시) → pnpm exec playwright install chromium(필요 시) → pnpm test:e2e
+  e2e        pnpm install(필요 시) → pnpm --filter @agolock/frontend exec playwright install chromium(필요 시) → pnpm test:e2e
   full       위 5개 전부(병합 전 필수). 기본값입니다.
 
 item/ 브랜치 워크트리에서만 실행할 수 있습니다. 결과는 .state/<slug>.json의 verifications[]에 쌓입니다.
@@ -403,7 +403,7 @@ run_scope() {
         fi
       fi
       if ! playwright_ready; then
-        if ! run_step "$log" pnpm exec playwright install chromium; then
+        if ! run_step "$log" pnpm --filter @agolock/frontend exec playwright install chromium; then
           block_env "$log" "Playwright chromium 브라우저를 설치하지 못했습니다"
           return 2
         fi
