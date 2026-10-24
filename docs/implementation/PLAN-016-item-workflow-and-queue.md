@@ -274,11 +274,15 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 | scope | 명령 | 결과 | 로그 | HEAD SHA |
 |---|---|---|---|---|
-| `backend` 1회차 | `./gradlew :backend:cleanTest :backend:test` | pass, 46클래스·175테스트·실패 0 | `/tmp/inv02-fix-run1.log` | `2e1a55b`(커밋 전) |
-| `backend` 2회차 | `./gradlew :backend:cleanTest :backend:test` | pass, 46클래스·175테스트·실패 0 | `/tmp/inv02-fix-run2.log` | `2e1a55b`(커밋 전) |
-| `backend` 린트 | `./gradlew :backend:ktlintCheck :backend:detekt --rerun-tasks` | pass | `/tmp/inv02-fix-lint.log` | `2e1a55b`(커밋 전) |
+| `docs` | `python3 scripts/docs_check.py` | pass, 51개 인덱스 문서·53개 Markdown | `.state/logs/inv-02-test-suite-green-20261024T200500-321567.log` | `d853143` |
+| `backend` | `./gradlew :backend:cleanTest` 뒤 `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | pass, 46클래스·175테스트·실패 0·오류 0·스킵 0, 46초 | `.state/logs/inv-02-test-suite-green-20261024T200523-322984.log` | `d853143` |
+| `contract` | `./gradlew :backend:generateOpenApiPreview` → `python3 scripts/normalize_openapi.py` → `python3 scripts/export_events.py` → `python3 scripts/docs_check.py` | pass, OpenAPI 60 path·이벤트 0채널(기존 생성기 한계), 19초 | `.state/logs/inv-02-test-suite-green-20261024T200620-325639.log` | `d853143` |
 
-두 회차 모두 `HierarchyIntegrationTest`가 6건 전부 통과했고(1.4~1.8초), `grep -c ERROR`는 0입니다. 이 환경에서 `compileKotlin`·`compileTestKotlin`이 Kotlin 데몬 RMI 연결로 수 분 멈추는 경우가 있어 `-Pkotlin.compiler.execution.strategy=in-process`로 컴파일했습니다. 테스트 동작은 바뀌지 않으며 컴파일 위치만 달라집니다.
+로그 경로는 `../agolock-worktrees/.state/logs/` 아래이며 상태 파일 `inv-02-test-suite-green.json`의 `verifications[]`에 같은 값이 기록됩니다. `backend` 로그의 `grep -c ERROR`는 0이고 `HierarchyIntegrationTest`는 6건 모두 통과했습니다(1.271초). 커밋 전 같은 코드로 `./gradlew :backend:cleanTest :backend:test`를 두 번 연속 실행해 46클래스·175테스트·실패 0을 확인했고 로그는 `/tmp/inv02-fix-run1.log`·`/tmp/inv02-fix-run2.log`에 남겼습니다(세션 임시 경로). `./gradlew :backend:ktlintCheck :backend:detekt --rerun-tasks`도 통과했습니다.
+
+이 환경에서 `compileKotlin`·`compileTestKotlin`이 Kotlin 데몬 RMI 연결로 수 분 멈추는 경우가 있어 컴파일이 필요하면 `-Pkotlin.compiler.execution.strategy=in-process`를 붙입니다. 테스트 동작은 바뀌지 않고 컴파일 위치만 달라집니다.
+
+`verify --scope backend`는 Gradle 증분 판정을 그대로 따르므로, 직전 실행의 테스트 결과가 살아 있으면 `:backend:test`가 `UP-TO-DATE`로 끝나 테스트를 다시 실행하지 않고도 `pass`를 기록합니다. 실제 실행을 근거로 남기려면 위 표처럼 `:backend:cleanTest`를 먼저 실행합니다.
 
 #### 6.1.4 컨테이너 회계
 
@@ -297,6 +301,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | 참고 | 커넥션 여유: context 6개 × `maximum-pool-size: 10`이면 약 60커넥션이 Postgres 기본 `max_connections` 100에 걸립니다. 지금은 여유가 있지만 context 조합이 7~8개로 늘면 확인해야 합니다 | context를 늘리는 변경은 이 수치를 함께 확인합니다 |
 | 참고 | `test_<uuid>` 데이터베이스는 지우지 않습니다. 컨테이너가 사라지면 함께 사라져 실행 간 상태가 남지 않고, 정리 코드를 넣으면 살아 있는 context와 경쟁할 수 있습니다 | 삭제 로직을 추가하지 않습니다 |
 | 권장 | 로그 판정 기준: 공유 컨테이너를 빈으로 두던 중간 형태는 종료 시 ERROR를 남겼고 지금은 0줄입니다. 이후 테스트 로그는 `BUILD SUCCESSFUL`과 `backend/build/test-results/test/TEST-*.xml` 카운트로 판정합니다 | `docs/operations.md` 6.5에 같은 기준을 적었습니다 |
+| 권장 | `verify --scope backend`는 Gradle 증분 판정을 그대로 따르므로 `:backend:test`가 `UP-TO-DATE`이면 테스트를 다시 실행하지 않고도 `pass`를 기록합니다 | 실제 실행 증거가 필요하면 `:backend:cleanTest`를 먼저 실행합니다. 스크립트에 이 단계를 넣는 것은 후속 개선 항목으로 남깁니다(pass만 보고 실행 여부를 구분하지 않음) |
 
 ### 6.2 INV-01 실제 API 브라우저 편집 화면 타임아웃
 
