@@ -14,7 +14,7 @@
 | 소유자 이름 노출 (`내 소유`를 `민지 소유`로) | 결정 대기, 백엔드 계약 변경 필요 |
 | 스크린리더 실기기 확인 | 사람이 직접 해야 함, 미실시 |
 | 화면별 오류·충돌 상태, 이미지 상태 시각 확인 | 미실시 |
-| 브랜치 | 당시 `release/p3-readiness` 작업은 main에 통합됨. 물건·재고 후속 `447c971`도 main에 반영되어 현재 브랜치는 `main` 하나이며 `origin/main`과 동일 |
+| 브랜치 | 당시 `release/p3-readiness` 작업은 main에 통합됨. 물건·재고 후속 `447c971`도 main에 반영되어 현재 브랜치는 `main`(`298a2cb`) 하나입니다. push하지 않아 로컬 `origin/main` 추적 ref(`9e1f066`)보다 `main`이 앞서 있습니다 |
 
 UI 최초 반영 커밋은 아래 4개입니다. 이후 물건·재고의 충돌·상속·조회 개선은 [PLAN-014](PLAN-014-inventory-hardening.md)에 있으며, 미완료 전체 목록은 [PLAN-015](PLAN-015-current-status-and-followups.md)를 따릅니다.
 
