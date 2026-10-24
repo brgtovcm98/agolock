@@ -1,6 +1,6 @@
 # PLAN-016: 항목 단위 작업 루프와 대기열
 
-> 상태: 규약 확정, INV-02 리뷰 대기(`full` pass 확보, 리뷰 승인 대기)·INV-01 실행 대기 (2026-10-24)
+> 상태: 규약 확정, 이번 배치 INV-02(`09121d0`)·INV-01(`298a2cb`) 병합 완료, 다음 항목 INV-03 대기 (2026-10-24)
 > 역할: 항목 1건을 독립 워크트리에서 수정·검증·리뷰·병합하는 8단계 루프와 17건 대기열(그중 이번 배치 개선 항목 15건)의 단일 기준
 > 상위 문서: [PLAN-015](PLAN-015-current-status-and-followups.md), [구현 로드맵](../implementation-roadmap.md)
 > 검증 기준: [CI](../../.github/workflows/ci.yml), [운영](../operations.md), [AGENTS.md 3번 항목](../../AGENTS.md)
@@ -152,8 +152,8 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 | ID | 브랜치 슬러그 | 의존 항목 | 완료 조건 | 병합 SHA |
 |---|---|---|---|---|
-| INV-01 | `inv-01-live-inventory-e2e` | INV-02 | 최신 API·독립 DB·별도 포트에서 모킹 없이 소유/공유 MANAGE 등록·빈 설명·0원 편집·이동이 데스크톱과 모바일에서 통과 | — |
-| INV-02 | `inv-02-test-suite-green` | — | 동일 커밋의 깨끗한 환경에서 전체 백엔드·계약·프론트·브라우저 검사를 단일 실행으로 통과하고 로그를 보존 | — |
+| INV-01 | `inv-01-live-inventory-e2e` | INV-02 | 최신 API·독립 DB·별도 포트에서 모킹 없이 소유/공유 MANAGE 등록·빈 설명·0원 편집·이동이 데스크톱과 모바일에서 통과 | `298a2cb` |
+| INV-02 | `inv-02-test-suite-green` | — | 동일 커밋의 깨끗한 환경에서 전체 백엔드·계약·프론트·브라우저 검사를 단일 실행으로 통과하고 로그를 보존 | `09121d0` |
 | INV-03 | `inv-03-inventory-command-types` | INV-02 | HTTP의 생략/null 의미를 유지하면서 내부 명령을 유지/설정의 명시적 타입으로 바꾸고 기존 API·회귀 테스트 통과 | — |
 | INV-04 | `inv-04-inventory-permission-types` | INV-02 | 승인 구현 스키마에 맞춰 Item 권한·공유 필드를 필수 타입으로 정리하고 누락 응답·권한 UI를 검증 | — |
 | INV-05 | `inv-05-inventory-response-assembler` | INV-02 | 조회와 순수 응답 계산을 분리하고 단건·목록의 상속/null/빈 문자열/위치 의미가 같음을 검증 | — |
@@ -173,6 +173,22 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 ### 4.2 이번 배치 순서
 
 이번 배치는 **INV-02 → INV-01** 순서로 실행합니다. PLAN-015의 권장 순서(INV-01 → INV-02)를 뒤집는 이유는 병합 게이트가 현재 HEAD의 전체 검증 `pass`를 요구하기 때문입니다. 백엔드 전체 실행이 175개 중 169개 통과로 red였던 상태에서는 어떤 항목도 병합할 수 없으므로, 먼저 INV-02로 게이트를 green으로 만든 뒤 INV-01을 진행합니다.
+
+두 항목 모두 병합했습니다: INV-02 `09121d0`(부모 `2e1a55b`·`74104e8`), INV-01 `298a2cb`(부모 `09121d0`·`8144073`). 기록은 6.1·6.2번 항목입니다.
+
+### 4.3 후속 항목
+
+INV-02·INV-01을 실행하며 남긴 개선 후보입니다. 4.1번 표에 새 ID를 만들지 않고, 다음에 대기열을 편성할 때 승격 여부를 정합니다.
+
+| 후속 후보 | 발견 경위 | 완료 조건 |
+|---|---|---|
+| `item_flow.sh verify`가 더러운 작업 트리를 구분하지 않음 | 항목 HEAD에 커밋하지 않은 수정이 있는 상태로 검증하면 `verifications[].head`가 직전 커밋 SHA로 기록되어, 실제로 실행한 내용과 다른 커밋에 `pass`가 붙습니다. INV-01의 실제 API 실행은 이 상태로 수행했습니다(수정 내용은 이후 `d160837`으로 커밋) | `git status --porcelain`이 비어 있지 않으면 검증을 거부하거나 `dirty: true`를 상태 파일에 남기고, `merge`는 `dirty` 기록이 있는 `pass`를 인정하지 않음 |
+| `main`에서 검증할 수 있는 경로 부재 | `verify`는 `item/` 브랜치 워크트리에서만 동작하므로 병합 뒤 `main` 전체 검증은 명령을 손으로 조합해야 합니다(이번 배치 마감이 그 예) | `verify --main`(또는 `verify-main`) 경로를 추가해 `main` 작업 디렉터리에서도 같은 스코프 명령·상태 기록을 사용 |
+| `DirtyLeave` 이동 진행 동작의 단위 테스트 부재 | INV-02에서 `dirty-leave.tsx`에 `blocker.proceed()` 효과를 넣었지만, 이를 직접 검증하는 테스트는 저장 흐름 테스트(`inventory-edit-page.test.tsx`)의 통과로만 간접 확인됩니다 | 이탈 차단과 `dirty` 해제 뒤 이동 진행을 각각 단언하는 단위 테스트 추가 |
+| Hikari `initialization-fail-timeout` 경화 미실시 | INV-02는 fail-fast 기동 창을 6에서 1로 줄이는 것으로 마무리했고, `initialization-fail-timeout` 값은 바꾸지 않았습니다 | 운영·테스트 프로필의 커넥션 풀 기동 실패 기준을 정하고, 근거를 `docs/operations.md`에 남김 |
+| `docs/index.yaml`의 `FRONTEND` `code_paths`가 `frontend/e2e/**`를 매핑하지 않음 | `docs_impact.py`가 `frontend/e2e/inventory-live.spec.ts`를 `PLAN_001_FOUNDATION`(`frontend/**`)으로만 매핑해 실제 관련 문서가 나오지 않았습니다 | `FRONTEND` 항목에 `frontend/e2e/**`를 추가하고 영향 분석 결과를 확인 |
+| 저장 핸들러가 `await invalidateInventory()` 뒤에 `navigate()`를 호출 | INV-02 6.1.6번 항목의 ② 원인입니다. 재조회가 느리면 저장 뒤 화면 전환이 그만큼 늦어집니다 | 이동을 먼저 하고 재조회를 백그라운드로 돌리는 구조로 바꾸고, 늦은 재조회에서 입력이 덮이지 않는지 검증 |
+| 실제 API 실행의 trace·로그가 임시 경로 | `frontend/test-results/`는 gitignore 대상이고 `/tmp` 로그는 세션과 함께 사라집니다 | 실행 뒤 trace·로그를 `../agolock-worktrees/.state/artifacts/<slug>/`로 복사하는 단계를 3번 항목에 추가 |
 
 ## 5. 리뷰와 승인
 
@@ -236,16 +252,16 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 | 필드 | 기록 내용 |
 |---|---|
-| 상태 | 리뷰 (2026-10-24). 리뷰 승인 뒤 `승인`·`병합`으로 갱신하고 병합 SHA를 채웁니다 |
+| 상태 | 병합 (2026-10-24). 워크트리 `../agolock-worktrees/inv-02-test-suite-green`와 `item/` 브랜치를 제거했습니다 |
 | 브랜치·워크트리 | `item/inv-02-test-suite-green`, `../agolock-worktrees/inv-02-test-suite-green` |
 | 기준 SHA | `2e1a55b1240dcda004252ab2e9299ac3124cae93`(`main`) |
 | 실행 환경 | `source scripts/env.sh`(메인 체크아웃 기준), JDK 21 `temurin-21.0.12+101.0.LTS`, Gradle 8.14.3, Docker 29.7.2 |
 | 변경 요약 | `git diff --stat main...HEAD` 9개 파일(+222/−24). ① 테스트 인프라 `backend/src/test/kotlin/com/agolock/support/TestcontainersConfiguration.kt`(+87/−5) ② 루프 도구 `scripts/item_flow.sh`(+10/−4, `:backend:cleanTest`·워크스페이스 Playwright 설치) ③ 문서 3개(이 문서, [PLAN-015](PLAN-015-current-status-and-followups.md), `docs/operations.md`) ④ 프론트 수정 4개(6.1.6): `frontend/e2e/registration.spec.ts`·`frontend/e2e/inventory-images.spec.ts`·`frontend/src/features/inventory/inventory-edit-page.test.tsx`·`frontend/src/features/inventory/dirty-leave.tsx`. `backend/src/main/kotlin`, `backend/build.gradle.kts`, `application-test.yml`은 바꾸지 않았습니다 |
-| 검증 | 6.1.3. HEAD `75cbaac`에서 `docs`·`backend`·`contract`·`frontend`·`e2e`·`full` 모두 `pass`입니다. 병합 게이트 조건(`full` pass)을 충족했습니다 |
+| 검증 | 6.1.3. HEAD `75cbaac`에서 5개 스코프가 모두 `pass`이고, 항목 HEAD `74104e8`에서 `full` pass(4분 0초)를 확인했습니다. 병합 게이트 조건(`full` pass)을 충족했습니다 |
 | 영향 문서 | `docs/operations.md` 6.5(테스트 컨테이너 수명)·6.4(검증 명령), 이 문서 6.1, [PLAN-015](PLAN-015-current-status-and-followups.md) 2·3번 항목. 제품 동작·계약·스키마 변경이 없어 `docs/frontend.md`·`docs/architecture.md`·`docs/contracts.md`·`docs/generated/*`는 갱신하지 않았습니다 |
-| 리뷰 | 6.1.5의 위험 항목과 6.1.6의 원인·수정 내역. 차단 0건, 참고·권장만 있습니다 |
-| 승인 | 대기 |
-| 병합 SHA | — |
+| 리뷰 | 6.1.7번 항목의 리뷰 보고서. 차단 0건·권장 3건·참고 4건입니다 |
+| 승인 | 승인 (2026-10-24). 차단 0건 판정을 받았고, 권장 3건은 이번 배치 마감에서 반영했습니다 |
+| 병합 SHA | `09121d0baf385bea7cb40096344e275261a9ed63`(`--no-ff`, 부모 `2e1a55b`·`74104e8`) |
 
 #### 6.1.1 진단과 원인
 
@@ -285,6 +301,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | `frontend` | `pnpm install --frozen-lockfile` → `pnpm generate:api` → `git diff --exit-code frontend/src/shared/api/schema.d.ts` → `pnpm lint` → `pnpm format:check` → `pnpm test` → `pnpm build` | pass, 17개 파일·50개 테스트 전부 통과, 34초 | `.state/logs/inv-02-test-suite-green-20261024T203825-390242.log` | `75cbaac` |
 | `e2e` | `pnpm --filter @agolock/frontend exec playwright install chromium` → `pnpm test:e2e` | pass, 32개 통과·2개 스킵·0개 실패(수정 전 28/2/4), 2분 25초 | `.state/logs/inv-02-test-suite-green-20261024T203902-392309.log` | `75cbaac` |
 | `full` | `docs` → `backend` → `frontend` → `contract` → `e2e` 순서로 위 5개 스코프 전부 | pass, 3분 51초. 병합 게이트 조건 충족 | `.state/logs/inv-02-test-suite-green-20261024T204130-397156.log` | `75cbaac` |
+| `full` | `scripts/item_flow.sh verify --scope full`(위 5개 스코프를 순서대로 실행) | pass, 4분 0초. 문서 커밋 뒤 항목 HEAD에서 다시 실행해 병합 게이트 기록을 확정 | `.state/logs/inv-02-test-suite-green-20261024T204625-407989.log` | `74104e8` |
 
 `b2677da`의 `frontend`·`e2e`·`full` 실패는 6.1.6번 항목의 원인 세 건으로 설명되며, 수정한 `75cbaac`에서 세 스코프 모두 `pass`로 바뀌었습니다. `0d07206`에서도 같은 수정 코드로 `frontend`·`e2e`가 `pass`였고(커밋 전 상태), 커밋 뒤 `75cbaac`에서 다시 실행해 기록을 갱신했습니다. 수정 뒤 테스트 수는 늘거나 줄지 않았습니다(`frontend` 17파일·50테스트 유지, `e2e` 32+2 유지).
 
@@ -329,20 +346,44 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 남은 후속(이번 항목에서 고치지 않음): 저장 핸들러가 `await invalidateInventory()` 뒤에 화면을 바꾸는 구조 자체는 그대로이므로, 관련 재조회가 느리면 저장 뒤 화면 전환이 그만큼 늦어집니다. 이동을 먼저 하고 재조회를 백그라운드로 돌리는 개선은 별도 항목으로 다룹니다.
 
+#### 6.1.7 리뷰 보고서
+
+5.2번 형식으로 남긴 항목 리뷰 결과입니다. 판정은 **차단 0건, 병합 가능**입니다.
+
+| 항목 | 내용 |
+|---|---|
+| 항목 목표 | 동일 커밋의 깨끗한 환경에서 전체 백엔드·계약·프론트·브라우저 검사를 단일 실행으로 통과하고 로그를 보존 |
+| 변경 요약 | 9개 파일 +222/−24(6.1번 표의 변경 요약과 같음). 제품 코드·마이그레이션·계약 파일은 포함되지 않고 테스트 인프라·테스트 하네스·테스트 스펙·문서만 바뀌었습니다 |
+| 검증 | 6.1.3번 표. 5개 스코프 `pass`, 항목 HEAD `74104e8`의 `full` pass(4분 0초) |
+| 영향 문서 | `docs/operations.md` 6.4·6.5, 이 문서 6.1, [PLAN-015](PLAN-015-current-status-and-followups.md) 2·3번 항목 |
+| 체크리스트 | 계약·불변식: 변경 없음(테스트·문서만) / 테넌트 경계: 해당 없음 / 권한 누적: 해당 없음 / PATCH 버전 규칙: 해당 없음 / HTTP 의미: 해당 없음 / 마이그레이션 안전성: 해당 없음(마이그레이션 미변경) / 에러 처리: 공유 컨테이너 종료 시 ERROR 0줄 / 문서 정합성: `docs_check.py` 통과 |
+
+| 심각도 | 파일:줄 | 내용 | 조치안 | 처리 |
+|---|---|---|---|---|
+| 권장 | 이 문서 6.1.3 | 항목 HEAD `74104e8`의 `full` pass 행이 빠져 있어 병합 게이트 기록이 표에 보이지 않았습니다 | 표에 `74104e8` 행 추가 | 이번 배치 마감에서 반영 |
+| 권장 | `README.md:252` | "현재 상태"가 175개 중 169개 통과와 "단일 실행 증거 없음"을 그대로 서술해 현재 상태와 어긋났습니다 | 실제 기록(175/175 단일 실행, 두 번 연속 green)으로 교체 | 이번 배치 마감에서 반영 |
+| 권장 | [PLAN-015](PLAN-015-current-status-and-followups.md) 2번 항목 | "원인을 확정해"라는 표현이 트리거까지 재현해 확정한 것처럼 읽혔습니다 | "구조 원인은 확정, 트리거는 미확정"으로 맞춤 | 이번 배치 마감에서 반영 |
+| 참고 | 6.1.5번 표 | 컨테이너 유실·커넥션 여유·`test_<uuid>` 미삭제가 남은 위험입니다 | 컨테이너 유실이 재관측되면 docker 환경에서 원인을 찾음 | 6.1.5에 유지 |
+| 참고 | `backend/src/main/resources/application.yml` | Hikari `initialization-fail-timeout` 상향은 하지 않고 fail-fast 기동 창을 6에서 1로 줄이는 방식으로 대응했습니다 | 설정 경화는 별도 항목으로 검토 | 4.3번 후속 항목 |
+| 참고 | `frontend/src/features/inventory/dirty-leave.tsx` | `blocker.proceed()` 효과를 직접 검증하는 단위 테스트가 없습니다 | 이탈 차단·진행을 단위 테스트로 고정 | 4.3번 후속 항목 |
+| 참고 | `frontend/src/features/inventory/inventory-edit-page.tsx` | 저장 뒤 `await invalidateInventory()`가 끝나야 화면이 바뀌는 구조가 남아 있습니다 | 이동을 먼저 하는 구조로 개선 | 4.3번 후속 항목 |
+
+- 승인 요청: 차단 0건으로 **병합 가능**. 승인 뒤 `merge`로 `09121d0`을 만들었습니다.
+
 ### 6.2 INV-01 실제 API 브라우저 편집 화면 타임아웃
 
 | 필드 | 기록 내용 |
 |---|---|
-| 상태 | 리뷰 (2026-10-24). 다음 호출에서 `verify --scope full`과 5번 항목 리뷰 보고를 마친 뒤 `승인`·`병합`으로 갱신하고 병합 SHA를 채웁니다 |
+| 상태 | 병합 (2026-10-24). 워크트리 `../agolock-worktrees/inv-01-live-inventory-e2e`와 `item/` 브랜치를 제거했습니다 |
 | 브랜치·워크트리 | `item/inv-01-live-inventory-e2e`, `../agolock-worktrees/inv-01-live-inventory-e2e` |
 | 기준 SHA | `09121d0baf385bea7cb40096344e275261a9ed63`(`main`, INV-02 병합 커밋) |
-| 변경 요약 | `git diff --stat main...HEAD` 1개 파일 `frontend/e2e/inventory-live.spec.ts`(+7/−2). 제품 코드와 `frontend/playwright.config.ts`·`frontend/vite.config.ts`, 테스트 단계·단언, `test.setTimeout(120000)`은 바꾸지 않았습니다 |
+| 변경 요약 | 코드 1개 파일 `frontend/e2e/inventory-live.spec.ts`(+7/−2) + 문서 2개 파일(`docs/frontend.md` 신규 11번 항목, 이 문서 6.2), 합계 3개 파일 +121/−11. 제품 코드와 `frontend/playwright.config.ts`·`frontend/vite.config.ts`, 테스트 단계·단언, `test.setTimeout(120000)`은 바꾸지 않았습니다 |
 | 실행 조건 | 6.2.2번 항목 |
-| 검증 | 6.2.4번 항목. 데스크톱·모바일 각 2회, 총 4회 실행 모두 `pass`입니다. 병합 게이트용 `verify --scope full`은 다음 호출에서 기록합니다 |
+| 검증 | 6.2.4번 항목. 실제 API 실행이 데스크톱·모바일 각 2회 모두 `pass`이고, 항목 HEAD `8144073`에서 `verify --scope full`이 pass(680초)입니다. 병합 게이트 조건을 충족했습니다 |
 | 영향 문서 | 6.2.5번 항목 |
-| 리뷰 | 대기. 6.2.6번 항목의 사전 점검 항목을 5.1번 체크리스트로 확인해 다음 호출에서 보고서를 작성합니다 |
-| 승인 | 대기 |
-| 병합 SHA | — |
+| 리뷰 | 6.2.7번 항목의 리뷰 보고서. 차단 0건·참고 5건이고, 리뷰어가 HEAD `8144073`에서 실제 API 시나리오를 독립 재실행해 2건 통과(18.3초)를 확인했습니다 |
+| 승인 | 승인 (2026-10-24). 차단 0건 판정을 받았고, 이번 항목에서 재계획은 필요하지 않았습니다 |
+| 병합 SHA | `298a2cb14154daccb6aeac43c781cfb11d039d26`(`--no-ff`, 부모 `09121d0`·`8144073`) |
 
 #### 6.2.1 진단과 원인
 
@@ -415,14 +456,18 @@ await page.getByLabel('재고 가격').fill('0')
 
 | 실행 | 명령 | 결과 | 로그·trace | HEAD SHA |
 |---|---|---|---|---|
-| 1회차 `desktop-chromium` | `env -u CI INVENTORY_LIVE=1 MAILPIT_URL=http://127.0.0.1:8025 pnpm exec playwright test e2e/inventory-live.spec.ts --project=desktop-chromium --workers=1 --trace on --reporter=line` | pass, 1건 통과, 7.3초(벽시계 8초). 수정 전에는 66행에서 120초 시간 초과 | `/tmp/inv01-fixed-desktop.log` | `09121d0` |
-| 1회차 `mobile-chromium` | 같은 명령에서 `--project=mobile-chromium` | pass, 1건 통과, 6.6초(벽시계 7초) | `/tmp/inv01-fixed-mobile.log` | `09121d0` |
-| 2회차 두 프로젝트 | 같은 명령에서 `--project` 없이 실행 | pass, 2건 통과, 16.8초(벽시계 17초) | `/tmp/inv01-fixed-run2.log` | `09121d0` |
-| trace | 2회차 산출물 | 두 프로젝트 모두 녹화 | `frontend/test-results/inventory-live-…-desktop-chromium/trace.zip`, `…-mobile-chromium/trace.zip`(gitignore 대상) | `09121d0` |
+| 1회차 `desktop-chromium` | `env -u CI INVENTORY_LIVE=1 MAILPIT_URL=http://127.0.0.1:8025 pnpm exec playwright test e2e/inventory-live.spec.ts --project=desktop-chromium --workers=1 --trace on --reporter=line` | pass, 1건 통과, 7.3초(벽시계 8초). 수정 전에는 66행에서 120초 시간 초과 | `/tmp/inv01-fixed-desktop.log` | `d160837` |
+| 1회차 `mobile-chromium` | 같은 명령에서 `--project=mobile-chromium` | pass, 1건 통과, 6.6초(벽시계 7초) | `/tmp/inv01-fixed-mobile.log` | `d160837` |
+| 2회차 두 프로젝트 | 같은 명령에서 `--project` 없이 실행 | pass, 2건 통과, 16.8초(벽시계 17초) | `/tmp/inv01-fixed-run2.log` | `d160837` |
+| trace | 2회차 산출물 | 두 프로젝트 모두 녹화 | `frontend/test-results/inventory-live-…-desktop-chromium/trace.zip`, `…-mobile-chromium/trace.zip`(gitignore 대상) | `d160837` |
+| 리뷰어 재실행 | 위와 같은 명령(`desktop-chromium`·`mobile-chromium`) | pass, 2건 통과, 18.3초. 리뷰어가 HEAD에서 독립 재실행 | `/tmp/inv01-review-run.log`(리뷰 세션 임시 경로) | `8144073` |
+| `verify --scope full` | `scripts/item_flow.sh verify --scope full`(docs → backend → frontend → contract → e2e) | pass, 13개 명령 종료 코드 0, 680초. `e2e`는 모킹 스코프라 실제 API 2건을 스킵(32 통과·2 스킵) | `.state/logs/inv-01-live-inventory-e2e-20261024T211935-463193.log` | `8144073` |
+
+실제 API 실행 4회는 수정을 커밋하기 전에 돌렸으므로 그 시점의 HEAD는 `09121d0`이고, 실행한 작업 트리 내용이 `d160837`과 같습니다. 표의 SHA는 같은 내용의 커밋을 가리킵니다. trace와 `/tmp` 로그는 세션 임시 경로이거나 gitignore 대상입니다(4.3번 후속 항목).
 
 네 번의 실행(데스크톱 2회, 모바일 2회)이 모두 통과해 일회성 통과가 아님을 확인했습니다. 시나리오는 그대로입니다: 가입 → 방·선반·박스 생성 → `/inventory` 등록 → `/inventory/{id}/edit` 빈 설명·0원 저장 → 위치 이동 → Mailpit 초대 수락 → 공유 `MANAGE` 재고 추가·이동. 모킹·`skip`·`--partial`·시간 초과 상향은 쓰지 않았습니다.
 
-`verify --scope full`(docs·backend·frontend·contract·e2e)은 다음 호출에서 커밋 뒤 HEAD로 실행해 이 표에 추가합니다.
+`verify --scope full`(docs·backend·frontend·contract·e2e)은 항목 HEAD `8144073`에서 pass(680초)입니다. 다만 그 `e2e` 스코프는 모킹 스모크이고 `INVENTORY_LIVE`를 설정하지 않으므로 실제 API 2건을 스킵합니다(32 통과·2 스킵). 그래서 이 항목의 실제 API 증거는 위 표의 라이브 실행 4회와 리뷰어 재실행이며, 모킹 `e2e` 통과를 대신 증거로 쓰지 않습니다.
 
 #### 6.2.5 영향 문서
 
@@ -437,6 +482,28 @@ await page.getByLabel('재고 가격').fill('0')
 | 참고 | 실제 API 시나리오는 워크트리 Vite가 5173을 단독 점유해야 하고 `env -u CI`가 필요합니다. 그래서 `item_flow.sh verify --scope e2e`(모킹 스모크)와 동시에 돌릴 수 없습니다 | 실행 절차를 `docs/frontend.md` 11번 항목에 적었습니다 |
 | 참고 | `frontend/playwright.config.ts:14`의 `webServer.command`가 `VITE_API_TARGET`을 넘기지 않습니다. Playwright가 서버를 새로 띄우는 환경에서는 기본값 `http://localhost:8080`을 봅니다 | 이번 항목에서는 설정을 바꾸지 않았습니다. CI에서 실제 API를 돌릴 때 검토할 항목으로 남깁니다 |
 | 참고 | `docs/frontend.md`의 10번 항목 제목이 두 번 나옵니다(`구현 상태`, `물건·재고 변경과 충돌 복구`). 이번에 추가한 절은 다음 번호인 11번을 씁니다 | 번호 정리는 별도 문서 항목으로 미룹니다 |
+
+#### 6.2.7 리뷰 보고서
+
+5.2번 형식으로 남긴 항목 리뷰 결과입니다. 판정은 **차단 0건, 병합 가능**입니다.
+
+| 항목 | 내용 |
+|---|---|
+| 항목 목표 | 최신 API·독립 DB·별도 포트에서 모킹 없이 소유/공유 `MANAGE` 등록·빈 설명·0원 편집·이동이 데스크톱과 모바일에서 통과 |
+| 변경 요약 | 3개 파일 +121/−11(6.2번 표의 변경 요약과 같음). 코드는 테스트 스펙 1개뿐이고 제품 코드·설정·계약·스키마 변경이 없습니다 |
+| 검증 | 6.2.4번 표. 라이브 실행 4회 pass, 리뷰어 재실행 2건 pass(18.3초), `verify --scope full` pass(680초) |
+| 영향 문서 | [화면과 흐름 11번 항목](../frontend.md), 이 문서 6.2. `docs_impact.py`는 `PLAN-001`로 매핑하는데 내용을 고칠 필요가 없었습니다(6.2.5) |
+| 체크리스트 | 계약·불변식: 변경 없음(테스트 스펙만) / 테넌트 경계: 해당 없음 / 권한 누적: 시나리오가 공유 `MANAGE`의 추가·이동을 실제 API로 확인 / PATCH 버전 규칙: 해당 없음(편집 화면이 보내는 필드만 단언) / HTTP 의미: 빈 설명·0원이 그대로 저장됨을 확인 / 마이그레이션 안전성: 해당 없음 / 에러 처리: 가입·초대·CSRF 실패 없이 완주 / 문서 정합성: `docs_check.py` 통과 |
+
+| 심각도 | 파일:줄 | 내용 | 조치안 | 처리 |
+|---|---|---|---|---|
+| 참고 | `frontend/src/shared/ui/choice.tsx:12-25` | 이 항목의 시간 초과는 제품 결함이 아니라 이 마크업에 대한 테스트 로케이터 결함이었습니다 | 이후 `Choice`·`RadioCard` 스펙은 label 클릭 + `toBeChecked()` | `docs/frontend.md` 11번에 기록 |
+| 참고 | `frontend/e2e/inventory-live.spec.ts:66-70` | 헬퍼가 `xpath=ancestor::label`에 의존합니다 | `choice.tsx`를 바꿀 때 이 스펙도 실행 | 대기열(REL-06)에서 확인 |
+| 참고 | `frontend/playwright.config.ts:14` | `webServer.command`가 `VITE_API_TARGET`을 넘기지 않아 Playwright가 서버를 새로 띄우면 프록시가 `http://localhost:8080`을 봅니다 | CI에서 실제 API를 돌릴 때 서버 기동 방식을 명시 | 6.2.6에 유지 |
+| 참고 | `frontend/test-results/` | trace와 스크린샷이 gitignore 대상이라 영구 증거로 남지 않습니다 | `.state/artifacts/<slug>/`로 복사 | 4.3번 후속 항목 |
+| 참고 | `docs/frontend.md:283` 부근 | 10번 항목 제목이 두 번 나오는 번호 문제가 남아 있습니다 | 번호 정리 | 별도 문서 항목 |
+
+- 승인 요청: 차단 0건으로 **병합 가능**. 승인 뒤 `merge`로 `298a2cb`를 만들었습니다. 진단 결과가 테스트 로케이터 결함이므로 제품 코드는 재계획 없이 그대로 두었습니다.
 
 ## 7. 롤백과 충돌
 

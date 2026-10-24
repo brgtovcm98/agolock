@@ -249,6 +249,10 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 
 ## 현재 작업과 다음 단계
 
-2026-10-24 기준 기존 릴리스·검색 보완과 물건·재고 개선(`447c971`·`7c42304`)은 로컬 `main`과 `origin/main`에 반영됐습니다. 백엔드 전체 테스트는 175개 중 169개가 통과했고 `HierarchyIntegrationTest` 6개는 분리 재실행에서만 통과했으며, 실제 API 브라우저 시나리오는 편집 화면에서 시간 초과가 남아 있습니다. 같은 커밋의 전체 검증 단일 실행과 실제 API 성공 증거는 아직 없습니다.
+2026-10-24 기준 기존 릴리스·검색 보완과 물건·재고 개선(`447c971`·`7c42304`)은 로컬 `main`(`298a2cb`)에 반영됐습니다. push하지 않았으므로 로컬 `origin/main` 추적 ref(`9e1f066`)보다 `main`이 앞서 있습니다.
 
-이후 작업은 항목마다 독립 워크트리와 `item/<slug>` 브랜치를 만들어 검증·리뷰·승인 후 `--no-ff`로 병합하는 [PLAN-016 루프](docs/implementation/PLAN-016-item-workflow-and-queue.md)를 따르며, 이번 배치는 INV-02 → INV-01 순서입니다. 완료 작업·검증 근거·남은 기능/구조/출시 작업은 [현재 현황과 후속 개선 목록](docs/implementation/PLAN-015-current-status-and-followups.md)을 먼저 읽습니다. 물건·재고의 상세 결과는 [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md), 제품 단계와 배포 기준은 [운영](docs/operations.md)과 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.
+- 백엔드 전체 테스트는 46클래스·175개가 단일 실행으로 통과합니다. INV-02에서 테스트 컨테이너를 테스트 JVM당 한 쌍으로 공유하도록 고쳐 175개 중 169개만 통과하던 상태를 없앴고, 연속 2회 통과와 컨테이너 14개 → 4개, 전체 실행 148초 → 약 45초를 확인했습니다(`09121d0` 병합).
+- 실제 API 브라우저 시나리오는 모킹 없이 데스크톱·모바일에서 통과합니다. INV-01에서 편집 화면 시간 초과 원인을 체크박스 로케이터 결함으로 확정해 고쳤고, Mailpit 초대 수락과 공유 `MANAGE` 재고 추가·이동까지 확인했습니다(`298a2cb` 병합).
+- 같은 커밋에서 `verify --scope full`(docs·backend·frontend·contract·e2e)이 통과한 기록을 남겼습니다.
+
+이후 작업은 항목마다 독립 워크트리와 `item/<slug>` 브랜치를 만들어 검증·리뷰·승인 후 `--no-ff`로 병합하는 [PLAN-016 루프](docs/implementation/PLAN-016-item-workflow-and-queue.md)를 따릅니다. 이번 배치는 INV-02 → INV-01 순서로 완료했고 다음 항목은 INV-03(`item/inv-03-inventory-command-types`)입니다. 완료 작업·검증 근거·남은 기능/구조/출시 작업은 [현재 현황과 후속 개선 목록](docs/implementation/PLAN-015-current-status-and-followups.md)을 먼저 읽습니다. 물건·재고의 상세 결과는 [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md), 제품 단계와 배포 기준은 [운영](docs/operations.md)과 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.

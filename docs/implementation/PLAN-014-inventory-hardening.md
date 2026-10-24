@@ -1,6 +1,6 @@
 # PLAN-014: 물건·재고 관리 개선
 
-> 상태: 코드 반영·분리 회귀 확인, 실제 API 검증·일부 구조 정리 남음 (2026-10-24)
+> 상태: 코드 반영·분리 회귀 확인, 실제 API 검증 병합 완료, 구조 정리 남음 (2026-10-24)
 > 요구사항: [제품 사양](../product-spec.md), [도메인](../domain.md), [공유](../sharing.md)
 > 구조·결정: [아키텍처](../architecture.md), [ADR-023](../decisions/ADR-023-inventory-write-consistency.md)
 > 화면: [프론트엔드](../frontend.md), 전체 현황·남은 작업: [PLAN-015](PLAN-015-current-status-and-followups.md)
@@ -14,7 +14,7 @@
 | 착수 기준 | main `f27f0f7` |
 | 구현 | `447c97178a8cb966c83a9b6c67a805c727b48906` |
 | 검증 기록 | `7c42304` |
-| 작업 브랜치 | `fix/inventory-hardening`에서 작업해 main에 반영됨(`447c971`). `origin/main` 동일, 실제 VPS 배포 미실시 |
+| 작업 브랜치 | `fix/inventory-hardening`에서 작업해 main에 반영됨(`447c971`). 원격 미반영(push 없음), 실제 VPS 배포 미실시 |
 
 ## 2. 반영 결과
 
@@ -38,13 +38,13 @@
 | 확인 대상 | 결과 |
 |---|---|
 | 수정 전 회귀 | 별도 기준 코드에서 폐기 편집·빈 이름·병합 version·오래된 삭제·생성과 삭제 경합의 실패 확인 |
-| 백엔드 전체 | 175개 중 169개 통과, HierarchyIntegrationTest 6개는 테스트 DB 연결 거부로 실패 |
-| 실패 묶음 재확인 | 같은 코드에서 HierarchyIntegrationTest 6개 분리 재실행 모두 통과. 전체 단일 실행 성공 기록은 별도로 남길 필요가 있음 |
+| 백엔드 전체 | INV-02에서 테스트 컨테이너를 JVM당 한 쌍으로 공유하도록 고쳐 175/175 단일 실행으로 통과합니다. 46클래스·175테스트가 연속 2회 통과했고 `full` 검증도 통과했습니다(`09121d0` 병합, [PLAN-016 6.1](PLAN-016-item-workflow-and-queue.md)) |
+| 실패 묶음 재확인 | 같은 코드에서 HierarchyIntegrationTest 6개 분리 재실행 모두 통과했습니다. 전체 단일 실행 기록은 INV-02에서 확보했습니다 |
 | 신규 핵심 회귀 | 쓰기·동시성 12개, 조회·공유·페이지 4개, PATCH 파싱 3개 통과. 위 전체 실행의 부분집합 |
 | 계약 | OpenAPI 테스트 2개 통과, 구현 preview 60개 path·승인 스냅샷·프론트 타입 갱신 |
 | 프론트엔드 | 최종 단위 테스트 50개, TypeScript·ESLint·Prettier·빌드 통과 |
-| 브라우저·접근성 | 모킹 기반 32개 통과, 실제 API opt-in 2개 기본 실행에서 제외 |
-| 실제 API 브라우저 | 독립 DB에 V25까지 적용 후 별도 실행했으나 편집 화면에서 시간 초과. 성공 미확인 |
+| 브라우저·접근성 | 모킹 기반 32개 통과, 실제 API opt-in 2개는 기본 실행에서 스킵 |
+| 실제 API 브라우저 | INV-01에서 원인을 확정해 고쳤습니다(체크박스 로케이터 결함). 독립 DB에 V25까지 적용한 API로 데스크톱·모바일 모두 통과하고 공유 MANAGE 후반 흐름까지 확인했습니다(`298a2cb` 병합, [PLAN-016 6.2](PLAN-016-item-workflow-and-queue.md)) |
 | 정적·문서 | ktlintCheck·detekt·문서 검사 통과 |
 | 생성물 | 데이터 사전 preview 25개 table, 이벤트 preview 0채널은 기존 생성기 한계 |
 
@@ -54,8 +54,8 @@ MyBatis SESSION 캐시의 잠금 후 오래된 조회와 충돌 재조회 중 �
 
 아래 항목의 우선순위·수정 대상·완료 조건은 [PLAN-015 3번 항목](PLAN-015-current-status-and-followups.md)에 통합합니다.
 
-- [ ] INV-01: 실제 API 브라우저 시간 초과 원인 확인과 소유/공유 MANAGE 전체 흐름 성공 검증
-- [ ] INV-02: 같은 커밋의 전체 검사 단일 실행 기록 확보
+- [x] INV-01: 실제 API 브라우저 시간 초과 원인 확인과 소유/공유 MANAGE 전체 흐름 성공 검증 — 테스트 로케이터 결함을 고쳐 데스크톱·모바일 통과, `298a2cb` 병합
+- [x] INV-02: 같은 커밋의 전체 검사 단일 실행 기록 확보 — 175/175 연속 2회·`full` pass, `09121d0` 병합
 - [ ] INV-03: Boolean presence flag로 남은 내부 PATCH 명령을 명시적 타입으로 정리
 - [ ] INV-04: 프론트 Item 권한·공유 필수 타입과 소유자 추측 fallback 정리
 - [ ] INV-05: InventoryResponseAssembler의 DB 조회·effective 값 계산 분리와 중복 정리
