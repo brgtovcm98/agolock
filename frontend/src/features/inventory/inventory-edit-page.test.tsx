@@ -18,6 +18,11 @@ describe('재고 편집', () => {
     vi.spyOn(inventoryApi, 'inventory').mockResolvedValue(
       testInventory({ nameOverride: '내 드릴', displayName: '내 드릴', version: 3 }),
     )
+    vi.spyOn(inventoryApi, 'item').mockResolvedValue(testItem())
+    vi.spyOn(inventoryApi, 'categories').mockResolvedValue({
+      items: [testCategory],
+      nextCursor: null,
+    })
     renderApp(['/inventory/v1/edit'], {
       seeds: [
         [['inventory', 'detail', 'v1'], testInventory()],

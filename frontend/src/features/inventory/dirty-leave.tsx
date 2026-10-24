@@ -4,6 +4,9 @@ import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 export function DirtyLeave({ dirty }: { dirty: boolean }) {
   const blocker = useBlocker(dirty)
   useEffect(() => {
+    if (!dirty && blocker.state === 'blocked') blocker.proceed()
+  }, [blocker, dirty])
+  useEffect(() => {
     if (!dirty) return
     const beforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault()

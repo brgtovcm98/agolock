@@ -79,6 +79,14 @@ test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page 
       json: { inviteRequired: false, passwordMinLength: 10, passwordMaxLength: 128 },
     }),
   )
+  await page.route('**/api/v1/auth/csrf', (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { 'set-cookie': 'XSRF-TOKEN=e2e-csrf; Path=/' },
+      contentType: 'application/json',
+      body: JSON.stringify({ token: 'e2e-csrf' }),
+    }),
+  )
   await page.route('**/api/v1/categories**', (route) => route.fulfill({ json: { items: [] } }))
   await page.route('**/api/v1/shared', (route) => route.fulfill({ json: { items: [] } }))
   await page.route('**/api/v1/inventories**', async (route) => {

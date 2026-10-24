@@ -53,6 +53,14 @@ test('Inventory 이미지를 업로드하고 READY 갤러리에 표시한다', a
       }),
     }),
   )
+  await page.route('**/api/v1/auth/csrf', (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { 'set-cookie': 'XSRF-TOKEN=e2e-csrf; Path=/' },
+      contentType: 'application/json',
+      body: JSON.stringify({ token: 'e2e-csrf' }),
+    }),
+  )
   await page.route('**/api/v1/inventories?**', (route) =>
     route.fulfill({
       status: 200,

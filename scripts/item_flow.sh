@@ -42,10 +42,11 @@ usage_verify() {
 사용법: scripts/item_flow.sh verify [--scope docs|contract|backend|frontend|e2e|full]
 
   docs       python3 scripts/docs_check.py
-  backend    ./gradlew :backend:ktlintCheck :backend:detekt :backend:test
+  backend    ./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test
+             (이전 결과 재사용을 막기 위해 테스트를 항상 다시 실행)
   frontend   pnpm install(필요 시) → generate:api → schema diff → lint → format:check → test → build
   contract   generateOpenApiPreview → normalize_openapi.py → export_events.py → docs_check.py
-  e2e        pnpm install(필요 시) → pnpm exec playwright install chromium(필요 시) → pnpm test:e2e
+  e2e        pnpm install(필요 시) → pnpm --filter @agolock/frontend exec playwright install chromium(필요 시) → pnpm test:e2e
   full       위 5개 전부(병합 전 필수). 기본값입니다.
 
 item/ 브랜치 워크트리에서만 실행할 수 있습니다. 결과는 .state/<slug>.json의 verifications[]에 쌓입니다.
@@ -337,7 +338,8 @@ run_scope() {
         block_env "$log" "Docker를 사용할 수 없어 testcontainers 백엔드 테스트를 실행할 수 없습니다"
         return 2
       fi
-      run_step "$log" ./gradlew :backend:ktlintCheck :backend:detekt :backend:test || return 1
+      printf '백엔드 검증은 이전 결과 재사용(UP-TO-DATE)을 막기 위해 :backend:cleanTest로 테스트를 항상 다시 실행합니다.\n' | tee -a "$log"
+      run_step "$log" ./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test || return 1
       ;;
     frontend)
       if ! require_command pnpm; then
@@ -401,7 +403,7 @@ run_scope() {
         fi
       fi
       if ! playwright_ready; then
-        if ! run_step "$log" pnpm exec playwright install chromium; then
+        if ! run_step "$log" pnpm --filter @agolock/frontend exec playwright install chromium; then
           block_env "$log" "Playwright chromium 브라우저를 설치하지 못했습니다"
           return 2
         fi

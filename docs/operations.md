@@ -328,11 +328,23 @@ scripts/staging_runbook.sh smoke
 - 항목 1건은 독립 워크트리 `../agolock-worktrees/<slug>`와 브랜치 `item/<slug>`에서 작업하고, 워크트리 생성·검증 기록·병합은 `scripts/item_flow.sh`가 강제합니다. 규약과 대기열은 [PLAN-016](implementation/PLAN-016-item-workflow-and-queue.md)이 단일 기준입니다.
 - `scripts/item_flow.sh start <slug>`는 `main`이 clean일 때만 워크트리와 브랜치를 만들고 `../agolock-worktrees/.state/<slug>.json`을 초기화합니다.
 - `scripts/item_flow.sh verify --scope docs|backend|frontend|contract|e2e|full`은 CI와 같은 명령을 실행하고 로그 경로·종료 코드·HEAD SHA를 상태 파일에 남깁니다. 결과는 `pass`, `fail`(코드·테스트 실패), `blocked`(환경 실패 보류) 중 하나입니다. 병합 전에는 `full`의 `pass`가 필수입니다.
+- `verify --scope backend`는 `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test`를 실행합니다. 직전 결과가 남아 있어 Gradle이 `:backend:test`를 `UP-TO-DATE`로 건너뛰면 테스트를 실행하지 않은 `pass` 기록이 생기므로, `:backend:cleanTest`로 결과를 지워 항상 실제 실행을 근거로 남깁니다.
 - `scripts/item_flow.sh merge`는 항목 워크트리 clean, 현재 HEAD의 `scope full` + `pass` 검증 기록, `main` clean, 현재 `main` 이후 커밋 존재를 모두 확인할 때만 `--no-ff`로 병합하고 워크트리와 `item/` 브랜치를 정리합니다. `blocked` 기록은 병합 근거가 되지 않습니다.
 - `merge --partial "<이유>"`는 도구·컨테이너·메일 서버처럼 환경 때문에 `full`을 실행할 수 없을 때만 쓰는 예외입니다. 이유가 비어 있으면 거부하며, 쓰면 `partial_reason`을 상태 파일과 PLAN-016 항목 기록에 남깁니다. `--partial`이 아닌 병합은 `--keep`을 쓰더라도 이전 `partial_reason`·`partial_head`를 지우고, `cleanup_pending`만 실제 정리 성공 여부에 따라 지웁니다.
-- `verify --scope e2e`는 `127.0.0.1:5173`이 점유되어 있으면 다른 서버를 재사용하지 않고 `blocked`(보류)로 기록합니다. 점유 확인은 `ss`를 우선 쓰고 없으면 2초 제한으로 수행해 확인이 멈추지 않게 하며 `5173 포트 확인: <결과> (<경과>)`를 출력합니다. `node_modules`가 없으면 `pnpm install --frozen-lockfile`을 먼저 실행합니다.
+- `verify --scope e2e`는 `127.0.0.1:5173`이 점유되어 있으면 다른 서버를 재사용하지 않고 `blocked`(보류)로 기록합니다. 점유 확인은 `ss`를 우선 쓰고 없으면 2초 제한으로 수행해 확인이 멈추지 않게 하며 `5173 포트 확인: <결과> (<경과>)`를 출력합니다. `node_modules`가 없으면 `pnpm install --frozen-lockfile`을 먼저 실행하고, 브라우저가 없으면 `pnpm --filter @agolock/frontend exec playwright install chromium`으로 받습니다(`playwright`는 `frontend` 패키지 의존이라 루트 `pnpm exec`로는 찾지 못함).
 - 도구 부재(`pnpm`·`java`·`python3`·`./gradlew`, `python3`의 `yaml` 모듈 포함)·의존성 설치 실패·Docker 사용 불가·5173 점유처럼 스크립트가 확인하는 사전 조건(PLAN-016 3.3 목록)만 `blocked`로 남기고 코드 수정으로 덮지 않습니다. 그 밖의 환경 문제는 `fail`로 기록되므로 로그를 근거로 판단합니다.
 - 검증 로그와 상태 파일은 저장소 밖 `../agolock-worktrees/.state/`에 두며 커밋하지 않습니다.
+
+### 6.5 테스트 컨테이너 수명과 실행 환경
+
+- 통합 테스트는 클래스 속성·프로필 조합에 따라 Spring application context를 여러 개 만들지만, Postgres·RabbitMQ 컨테이너는 테스트 JVM 하나가 한 쌍만 사용합니다(`backend/src/test/kotlin/com/agolock/support/TestcontainersConfiguration.kt`의 `SharedTestcontainers`). 컨테이너를 context 스코프 빈으로 선언하면 context마다 한 쌍이 새로 기동해 기동 지점이 context 수만큼 늘어납니다.
+- 컨테이너를 `@Bean @ServiceConnection`(`Startable`)으로 등록하지 않고 `JdbcConnectionDetails`·`RabbitConnectionDetails` 빈으로 연결 정보만 노출합니다. Spring은 context 종료 시 `Startable` 빈을 닫으므로, 컨테이너를 빈으로 두면 첫 context 정리에서 공유 컨테이너가 내려가 종료 시점에 `Unexpected error occurred in scheduled task` 오류가 남고 `@DirtiesContext`가 실행 중 컨테이너를 종료시키는 경로가 열립니다.
+- context 사이의 스키마 간섭을 막기 위해 context마다 빈 데이터베이스 `test_<uuid>`를 하나 만듭니다. 한 스키마를 공유하면 `@Scheduled` Outbox relay가 다른 context의 `PENDING` 이벤트를 가져가 그 context의 메일 fake로 발송해, 초대 메일을 기다리는 테스트가 실패할 수 있습니다. 이 데이터베이스는 명시적으로 삭제하지 않으며 컨테이너와 함께 사라집니다.
+- 컨테이너는 마지막 테스트 뒤 JVM 종료와 함께 내려가고 Ryuk이 20~35초 뒤 정리합니다. 실행 직후가 아니라 35초 뒤 `docker ps -a`로 남은 컨테이너가 없는지 확인합니다.
+- 컨테이너 수 회귀 감지는 `docker events --since <시작 epoch> --until <종료 epoch> --filter type=container --filter event=create --format '{{.Actor.Attributes.image}}' | sort | uniq -c`로 합니다. 정상값은 pgvector 1, RabbitMQ 1, MinIO 1, Ryuk 1의 합계 4이며, 늘어나면 테스트 JVM당 한 쌍 공유가 깨진 것입니다.
+- 테스트 결과 판정은 `BUILD SUCCESSFUL`과 `backend/build/test-results/test/TEST-*.xml`의 `tests`·`failures`·`errors`·`skipped` 합계로 합니다. 종료 로그에 남는 일부 ERROR만으로 실패로 판정하지 않습니다. `:backend:test`는 이전 결과가 남아 있으면 `UP-TO-DATE`로 끝나 테스트를 실행하지 않으므로, 실행 증거가 필요하면 `:backend:cleanTest`를 함께 실행합니다(`verify --scope backend`는 항상 이렇게 실행합니다).
+- 이 개발 환경에서 `compileKotlin`·`compileTestKotlin`이 Kotlin 컴파일 데몬의 RMI 연결에서 수 분 멈추는 경우가 있습니다. 그때는 `-Pkotlin.compiler.execution.strategy=in-process`를 붙여 컴파일하며, 테스트 동작은 바뀌지 않습니다.
+- Gradle 실행 전 `source scripts/env.sh`로 `GRADLE_USER_HOME`·`NPM_CONFIG_CACHE`·`PYTHONPATH`·`PLAYWRIGHT_BROWSERS_PATH`를 메인 체크아웃 기준으로 고정하고 JDK 21 `JAVA_HOME`을 사용합니다. 기본 `java`가 21이 아니면 Gradle 실행이 실패합니다.
 
 ## 7. 관측
 
