@@ -7,6 +7,8 @@
 > 관련 문서: [도메인](../domain.md), [공유](../sharing.md), [검색](../search.md), [계약](../contracts.md), [화면과 흐름](../frontend.md), [디자인 시스템](../design-system.md), [데이터 사전](../generated/data-dictionary.md), [OpenAPI](../generated/openapi.yaml), [ADR-002](../decisions/ADR-002-inventory-location.md), [ADR-003](../decisions/ADR-003-permission-model.md), [ADR-004](../decisions/ADR-004-mybatis.md), [ADR-009](../decisions/ADR-009-ai-confirmation.md), [ADR-010](../decisions/ADR-010-item-creation-permissions.md), [ADR-011](../decisions/ADR-011-image-upload-lifecycle.md), [ADR-016](../decisions/ADR-016-neo-brutal-design-system.md)
 > 전제: 2026-10-21 현재 M0-M2 완료. M1은 [PLAN-002](PLAN-002-identity-space.md), M2는 [PLAN-003](PLAN-003-hierarchy-permissions.md)으로 구현·검증되었고, M3는 V6부터 시작합니다.
 
+> 이 문서는 M3 착수 당시 설계 계획을 포함합니다. 가격 객체·오류 코드·영향 응답 등 당시 초안과 현재 구현의 차이는 [PLAN-014](PLAN-014-inventory-hardening.md)와 [생성 API 계약](../generated/openapi.yaml)을 우선 확인합니다. 내부 명령 타입화·응답 조립 등 남은 개선은 [PLAN-015](PLAN-015-current-status-and-followups.md)에 있습니다.
+
 ## 1. 목적, 범위, 비목표
 
 M3의 목적은 소유자가 카테고리와 Item 마스터를 만들고, 첫 Inventory를 등록한 뒤, 재고별 오버라이드·상태·위치를 관리하고 이동 이력을 확인하는 첫 수직 슬라이스를 완성하는 것입니다.

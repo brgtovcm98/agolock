@@ -14,6 +14,10 @@
 - 각 마일스톤 종료 시 OpenAPI, 이벤트 계약, 데이터 사전을 재생성하고 문서 검사를 통과합니다.
 - 3차 범위는 이 로드맵에서 구현하지 않습니다.
 
+### 현재 구현과 후속 작업 (2026-10-24)
+
+현재 브랜치별 반영 상태·검증 결과·남은 작업의 통합 입구는 [PLAN-015](implementation/PLAN-015-current-status-and-followups.md)입니다. 이 문서의 마일스톤 표는 원래 작업 순서와 종료 조건이며 모든 조건의 현재 완료를 뜻하지 않습니다. 물건·재고 변경은 [PLAN-014](implementation/PLAN-014-inventory-hardening.md)에 반영됐고 실제 API 검증·일부 구조 정리·main 통합이 남아 있습니다.
+
 ## 2. 전제
 
 - ADR-001~014의 결정이 승인되어 있습니다.
@@ -389,6 +393,8 @@ flowchart LR
 - M5 완료 게이트: [PLAN-006 M5.5](implementation/PLAN-006-media-messaging.md)
 - M6 계획·M6.0 gate: [PLAN-007 검색](implementation/PLAN-007-search.md)
 - 검색 ACL 결정: [ADR-019](decisions/ADR-019-search-acl-pagination.md)
+- 완료·미완료 전체 목록: [PLAN-015](implementation/PLAN-015-current-status-and-followups.md)
+- 물건·재고 개선 결과와 검증: [PLAN-014](implementation/PLAN-014-inventory-hardening.md)
 - UI 점검 후속과 소유자 이름 노출 인계: [PLAN-013](implementation/PLAN-013-ui-review-followups.md)
 - 제품 단계와 종료 조건: [운영](operations.md)
 - API·이벤트 계약: [계약](contracts.md)

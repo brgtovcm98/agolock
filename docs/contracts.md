@@ -320,7 +320,7 @@ Outbox 기준 주요 이벤트 타입:
 ## 9. 계약 커버리지 검사
 
 - `python3 scripts/openapi_coverage.py`는 `build/contracts/openapi.yaml`의 구현 path/method가 이 문서에 있는지 검사합니다.
-- `/info`, `/share-invitations/{invitationId}/resend`, `/shared/*` 5개는 아직 계약 문서에 옮기지 않아 allowlist에 있습니다. 계약을 추가하면 allowlist에서 제거합니다.
+- 현재 `openapi_coverage.py`의 allowlist는 비어 있습니다. 신규 구현 path/method도 계약에 포함해야 합니다.
 
 ## 10. Schema snapshot 검사
 

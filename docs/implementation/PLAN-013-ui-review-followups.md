@@ -1,6 +1,6 @@
 # PLAN-013: UI 점검 반영과 후속 작업 인계
 
-> 상태: 프론트엔드 반영 완료, 소유자 이름 노출은 결정 대기 (2026-10-23)
+> 상태: 프론트엔드 반영 완료, 소유자 이름 노출은 결정 대기 (2026-10-24)
 > 역할: 2026-10-23 UI 일관성 점검의 반영 결과와, 다른 세션이 이어서 할 후속 작업의 현재 상태·결정·절차를 남긴 인계 문서
 > 상위 문서: [화면과 흐름](../frontend.md), [디자인 시스템](../design-system.md)
 > 관련 문서: [PLAN-012](PLAN-012-microinteractions.md), [공유와 권한](../sharing.md), [API 계약 규칙](../contracts.md), [화면 검토 기록](../../design/review/2026-10-23/README.md)
@@ -14,9 +14,9 @@
 | 소유자 이름 노출 (`내 소유`를 `민지 소유`로) | 결정 대기, 백엔드 계약 변경 필요 |
 | 스크린리더 실기기 확인 | 사람이 직접 해야 함, 미실시 |
 | 화면별 오류·충돌 상태, 이미지 상태 시각 확인 | 미실시 |
-| 브랜치 | `release/p3-readiness`, 푸시하지 않음 |
+| 브랜치 | 당시 `release/p3-readiness` 작업은 main에 통합됨. 현재 물건·재고 후속은 `fix/inventory-hardening`, main 미병합 |
 
-반영 커밋은 아래 4개입니다.
+UI 최초 반영 커밋은 아래 4개입니다. 이후 물건·재고의 충돌·상속·조회 개선은 [PLAN-014](PLAN-014-inventory-hardening.md)에 있으며, 미완료 전체 목록은 [PLAN-015](PLAN-015-current-status-and-followups.md)를 따릅니다.
 
 | 커밋 | 내용 |
 |---|---|
@@ -54,7 +54,7 @@
 | 검색 응답 | `backend/src/main/kotlin/com/agolock/search/api/SearchDtos.kt`에만 `ownerName`이 있고, 내 Space면 `null` |
 | 프론트엔드 | `frontend/src/features/sharing/api.ts`의 `Share` 타입이 실제 구현 응답(`resourceName`, `roomId`, `shelfId`, `granteeDisplayName`)을 따름 |
 
-생성 문서는 [ADR-014](../decisions/ADR-014-generated-docs-draft.md)에 따라 설계 초안으로 수동 갱신하는 단계라, 문서와 구현의 불일치를 `docs_check.py`가 잡지 못합니다.
+생성 문서는 설계 초안을 유지하지만 [ADR-023](../decisions/ADR-023-inventory-write-consistency.md) 이후 프론트 타입은 승인 구현 스냅샷에서 생성합니다. 물건·재고의 부분 동기화가 공유 전체 계약 정리를 완료한 것은 아닙니다. 현재 검사는 path/method와 구현 preview 스냅샷을 검사하며 공유 설계 초안의 모든 응답 의미까지 같음을 보장하지 않습니다.
 
 **먼저 정해야 할 결정**
 
@@ -69,7 +69,7 @@
 
 1. ADR을 작성하고 [ADR 목록](../decisions/README.md)에 추가합니다.
 2. 백엔드: `RoomResponse`, `ShelfResponse`, `BoxResponse`에 `ownerName: String?`을 추가합니다. 값은 해당 리소스의 Space 소유자 표시 이름이며, 요청자 Space의 리소스면 `null`입니다. 매퍼 조회와 서비스 조립을 고칩니다.
-3. 계약: `docs/generated/openapi.yaml`을 갱신하고(생성 스크립트가 있으면 실행) `SharedResource` 불일치를 정리합니다. 프론트엔드 타입은 `pnpm --filter @agolock/frontend generate:api`로 재생성하되 아래 4번 항목의 주의를 따릅니다.
+3. 계약: springdoc preview 생성·정규화 후 승인 스냅샷을 갱신하고 `pnpm --filter @agolock/frontend generate:api`를 실행합니다. 공유·계층 범위를 생성기로 초안에 동기화해 `SharedResource` 불일치를 정리합니다. 현재 `sync_inventory_contracts.py`는 공유 전체를 동기화하지 않으므로 해당 범위의 생성 경로도 보완해야 합니다. 규칙은 [계약](../contracts.md)을 따릅니다.
 4. 프론트엔드: `frontend/src/features/hierarchy/api.ts`의 `Room`, `Shelf`, `Box` 타입에 `ownerName`을 추가합니다. `frontend/src/shared/lib/permission.ts`에 표시용 헬퍼를 만들어 `ownerName`이 있으면 `{이름} 소유`, 없으면 기존 권한 라벨을 보입니다. 적용 위치는 공간 트리 행, 방·선반·박스 상세 헤더, 재고 상세 헤더입니다.
 5. 테스트: 백엔드는 공유받은 Space와 내 Space에서의 `ownerName` 값을 검증하고, 프론트엔드는 `renderApp` 기반 테스트로 `민지 소유` 표시를 검증합니다.
 6. 문서: [공유와 권한](../sharing.md)과 [화면과 흐름](../frontend.md)에 표시 규칙을 적고, 이 문서의 상태와 `last_verified_commit`을 갱신합니다.
@@ -102,7 +102,7 @@
 | 대상 | 확인할 것 |
 |---|---|
 | 이미지가 있는 화면 | `READY`, `UPLOADING`, `FAILED` 이미지의 갤러리 썸네일 줄, 대표 이미지 표시, 삭제 버튼 터치 영역 44px, 업로드 진행 바와 간격(`image-gallery.tsx`의 위쪽 선을 제거해서 간격이 바뀜) |
-| 오류·충돌 상태 | 화면별 403, 404, 409(버전 충돌), 네트워크 끊김의 문구와 복구 동작. 지금까지는 일괄 500만 확인했음 |
+| 오류·충돌 상태 | 화면별 403, 404, 409(버전 충돌), 네트워크 끊김의 문구와 복구 동작. PLAN-014의 충돌 입력 보존·최신 조회 거부 회귀는 통과했으나 실제 화면·실기기 시각 확인은 남음 |
 | 다크 모드 | 정적 측정만 모든 화면에서 했고 눈으로 본 것은 일부. 반투명 글자(`text-foreground/60` 등)의 다크 명암비 |
 | 모바일 등록 시트 키보드 | 키보드가 올라올 때 본문만 스크롤되고 하단 액션이 고정되는지 (실기기) |
 

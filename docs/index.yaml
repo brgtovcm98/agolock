@@ -124,7 +124,7 @@ docs:
       - ADR-011
       - ADR-013
       - ADR-014
-    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
 
   - id: FRONTEND
     path: docs/frontend.md
@@ -201,7 +201,7 @@ docs:
       - ADR-012
       - ADR-013
       - ADR-014
-    last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
 
   - id: PLAN_001_FOUNDATION
     path: docs/implementation/PLAN-001-foundation.md
@@ -296,7 +296,7 @@ docs:
       - ADR-004
       - ADR-010
       - ADR-011
-    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
 
   - id: PLAN_005_SHARING
     path: docs/implementation/PLAN-005-sharing.md
@@ -346,7 +346,7 @@ docs:
       - ADR-003
       - ADR-012
       - ADR-019
-    last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
 
   - id: PLAN_008_AI
     path: docs/implementation/PLAN-008-ai-image-search.md
@@ -417,7 +417,7 @@ docs:
       - ADR-008
       - ADR-019
       - ADR-020
-    last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
 
   - id: PLAN_012_MICROINTERACTIONS
     path: docs/implementation/PLAN-012-microinteractions.md
@@ -454,7 +454,7 @@ docs:
       - ADR-013
       - ADR-016
       - ADR-021
-    last_verified_commit: "c4d31786cf65b8088563b0543573d8f57ce2b6ef"
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
 
   - id: DATA_DICTIONARY
     path: docs/generated/data-dictionary.md
@@ -774,7 +774,7 @@ docs:
       - frontend/src/features/categories/**
     generated: false
     related_adrs: [ADR-023]
-    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
 
   - id: ADR_023
     path: docs/decisions/ADR-023-inventory-write-consistency.md
@@ -789,3 +789,15 @@ docs:
     generated: false
     related_adrs: [ADR-015]
     last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
+
+  - id: PLAN_015_CURRENT_STATUS
+    path: docs/implementation/PLAN-015-current-status-and-followups.md
+    title: 현재 구현 현황과 후속 개선 목록
+    summary: main·작업 브랜치 반영 상태, 완료·검증 근거, 물건·재고 구조 개선과 검색·공유·계약·배포 잔여 작업
+    read_when:
+      - 현재 완료 작업과 남은 개선 전체를 확인할 때
+      - 물건·재고 개선을 인계받거나 출시 후속의 우선순위를 정할 때
+    code_paths: []
+    generated: false
+    related_adrs: [ADR-023]
+    last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"

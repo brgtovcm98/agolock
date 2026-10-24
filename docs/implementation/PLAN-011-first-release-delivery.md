@@ -1,10 +1,12 @@
 # PLAN-011: 1차 릴리스 완료와 배포 구성
 
-> 상태: 1차 마감 진행 (2026-10-23). VPS + Docker Compose 기준, 서버·도메인 연결 전
+> 상태: 1차 마감 진행 (2026-10-24). VPS + Docker Compose 기준, 서버·도메인 연결 전
 > 역할: 1차(M0~M6) 마감, staging 배포, production gate의 실행 순서·산출물·검증
 > 상위 문서: [구현 로드맵](../implementation-roadmap.md), [운영](../operations.md)
 > 관련 문서: [M5 계획](PLAN-006-media-messaging.md), [M6 계획](PLAN-007-search.md), [M8 계획](PLAN-009-release-hardening.md), [등록 UX P0/P1](PLAN-010-registration-ux.md), [화면과 흐름](../frontend.md), [아키텍처](../architecture.md)
 > 전제: M0~M4 핵심 구현, M5.5 P0와 배포 골격 및 M6 검색 MVP·보완 구현. M7은 2차이며 출시·운영 gate는 별도 검증
+
+> 현재 완료/미완료 판정은 [PLAN-015](PLAN-015-current-status-and-followups.md)를 따릅니다. 아래 작업 표는 원래 실행 계획이며, 이미 구현된 Dockerfile·Box 이동·검색 보완을 미구현으로 해석하지 않습니다. 물건·재고 후속 커밋은 main 통합 전입니다.
 
 ## 1. 목표와 비목표
 
@@ -316,3 +318,7 @@ M6은 `V17__search_indexes.sql`과 `V18__search_recommendations.sql`을 사용�
 실제 staging 대상은 VPS + Docker Compose로 진행합니다. SSH 대상·도메인·TLS·시크릿 연결과 실제 부하·복구·롤백 검증을 완료해야 배포 완료로 처리합니다.
 
 2026-10-23 릴리스 통합 검증: 백엔드 145개·계약 2개, 프론트엔드 37개, E2E 32개 및 검색 성능 gate 통과. 워커 중단 후 이미지 재처리 누락과 통합 의존성 규칙을 보완했습니다. `main` 병합에는 기존 릴리스 브랜치와 검색 보완 브랜치의 이력을 함께 포함합니다.
+
+## 10. 현재 마감 순서 (2026-10-24)
+
+물건·재고의 실제 API 검증·전체 연속 검사와 남은 구조 정리 → 검색 보관·추천/공유 표시·계약/이미지·UI 마감 → VPS staging → 운영 gate 순서입니다. 항목별 ID·완료 조건은 [PLAN-015](PLAN-015-current-status-and-followups.md)에서 관리하며 제품 단계 범위는 [운영](../operations.md)을 유지합니다.

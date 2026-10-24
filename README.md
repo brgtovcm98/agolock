@@ -216,6 +216,10 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 | [PLAN-007](docs/implementation/PLAN-007-search.md) | M6 검색·추천 상세 계획 |
 | [PLAN-008](docs/implementation/PLAN-008-ai-image-search.md) | M7 AI·이미지 검색 상세 계획 |
 | [PLAN-009](docs/implementation/PLAN-009-release-hardening.md) | M8 출시 경화 상세 계획 |
+| [PLAN-011](docs/implementation/PLAN-011-first-release-delivery.md) | 1차 릴리스·VPS 배포 계획 |
+| [PLAN-013](docs/implementation/PLAN-013-ui-review-followups.md) | UI·공유 소유자 표시 후속 |
+| [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md) | 물건·재고 개선 결과와 검증 |
+| [PLAN-015](docs/implementation/PLAN-015-current-status-and-followups.md) | 현재 브랜치·완료 작업·남은 개선 전체 목록 |
 | [docs/generated/data-dictionary.md](docs/generated/data-dictionary.md) | 테이블·컬럼·인덱스·제약 (설계 초안) |
 | [docs/generated/openapi.yaml](docs/generated/openapi.yaml) | HTTP API 계약 (설계 초안) |
 | [docs/generated/events.yaml](docs/generated/events.yaml) | 비동기 이벤트 계약 (설계 초안) |
@@ -242,11 +246,8 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 - M0에서는 [ADR-015](docs/decisions/ADR-015-contract-preview-mode.md)에 따라 미리보기를 `build/contracts/`에만 생성합니다.
 - 코드 변경 후 [AGENTS.md](AGENTS.md)의 문서 갱신 절차를 따릅니다.
 
-## 다음 단계
+## 현재 작업과 다음 단계
 
-- M6 최근 검색 보관·정리와 추천 4종, 생성 계약 기록 모드를 마감합니다.
-- 이미지 실패·만료·재시도 E2E를 보강하고 1차 프리즈를 진행합니다.
-- VPS의 도메인·TLS·시크릿을 연결해 staging 배포와 실제 스모크를 수행합니다.
-- 백업·복구·롤백, 관측·보안·접근성·PWA 출시 gate를 검증합니다.
+2026-10-24 기준 기존 릴리스·검색 보완은 로컬 main에 통합됐고, 물건·재고 개선은 `fix/inventory-hardening`의 `447c971`·`7c42304`에 있습니다. 실제 API 브라우저 검증과 main 통합은 아직 남아 있습니다.
 
-실행 순서와 완료 조건은 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.
+완료 작업·검증 근거·남은 기능/구조/출시 작업·실행 순서는 [현재 현황과 후속 개선 목록](docs/implementation/PLAN-015-current-status-and-followups.md)을 먼저 읽습니다. 물건·재고의 상세 결과는 [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md), 제품 단계와 배포 기준은 [운영](docs/operations.md)과 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.
