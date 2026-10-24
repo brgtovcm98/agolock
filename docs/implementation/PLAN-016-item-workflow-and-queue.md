@@ -1,6 +1,6 @@
 # PLAN-016: 항목 단위 작업 루프와 대기열
 
-> 상태: 규약 확정, INV-02·INV-01 실행 대기 (2026-10-24)
+> 상태: 규약 확정, INV-02 리뷰 대기·INV-01 실행 대기 (2026-10-24)
 > 역할: 항목 1건을 독립 워크트리에서 수정·검증·리뷰·병합하는 8단계 루프와 17건 대기열(그중 이번 배치 개선 항목 15건)의 단일 기준
 > 상위 문서: [PLAN-015](PLAN-015-current-status-and-followups.md), [구현 로드맵](../implementation-roadmap.md)
 > 검증 기준: [CI](../../.github/workflows/ci.yml), [운영](../operations.md), [AGENTS.md 3번 항목](../../AGENTS.md)
@@ -172,7 +172,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 ### 4.2 이번 배치 순서
 
-이번 배치는 **INV-02 → INV-01** 순서로 실행합니다. PLAN-015의 권장 순서(INV-01 → INV-02)를 뒤집는 이유는 병합 게이트가 현재 HEAD의 전체 검증 `pass`를 요구하기 때문입니다. 백엔드 전체 실행이 175개 중 169개 통과로 red인 상태에서는 어떤 항목도 병합할 수 없으므로, 먼저 INV-02로 게이트를 green으로 만든 뒤 INV-01을 진행합니다.
+이번 배치는 **INV-02 → INV-01** 순서로 실행합니다. PLAN-015의 권장 순서(INV-01 → INV-02)를 뒤집는 이유는 병합 게이트가 현재 HEAD의 전체 검증 `pass`를 요구하기 때문입니다. 백엔드 전체 실행이 175개 중 169개 통과로 red였던 상태에서는 어떤 항목도 병합할 수 없으므로, 먼저 INV-02로 게이트를 green으로 만든 뒤 INV-01을 진행합니다.
 
 ## 5. 리뷰와 승인
 
@@ -236,15 +236,67 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 | 필드 | 기록 내용 |
 |---|---|
-| 상태 | 대기. 실행 시 `진행`·`리뷰`·`승인`·`병합`으로 갱신 |
+| 상태 | 리뷰 (2026-10-24). 리뷰 승인 뒤 `승인`·`병합`으로 갱신하고 병합 SHA를 채웁니다 |
 | 브랜치·워크트리 | `item/inv-02-test-suite-green`, `../agolock-worktrees/inv-02-test-suite-green` |
-| 기준 SHA | 항목 시작 시 `main` HEAD |
-| 변경 요약 | 실행 시 `git diff --stat main...HEAD` 결과 |
-| 검증 | scope·명령·결과·로그 경로·HEAD SHA를 실행 시 기록. 병합 전 `full` 필수이며, 환경상 불가하면 `--partial` 사유를 함께 기록 |
-| 영향 문서 | `docs_impact.py` 결과와 실제 갱신 문서 |
-| 리뷰 | 심각도별 발견사항과 파일:줄, 조치안 |
-| 승인 | 승인 판정과 일시, 재계획 내역 |
-| 병합 SHA | `main` 병합 후 기록 |
+| 기준 SHA | `2e1a55b1240dcda004252ab2e9299ac3124cae93`(`main`) |
+| 실행 환경 | `source scripts/env.sh`(메인 체크아웃 기준), JDK 21 `temurin-21.0.12+101.0.LTS`, Gradle 8.14.3, Docker 29.7.2 |
+| 변경 요약 | 테스트 인프라 1개 파일 `backend/src/test/kotlin/com/agolock/support/TestcontainersConfiguration.kt`(+82/−5). 제품 코드(`backend/src/main/kotlin`), 프론트엔드, 기존 테스트, `backend/build.gradle.kts`, `application-test.yml`은 바꾸지 않았습니다 |
+| 검증 | 6.1.3. 이번 기록은 `docs`·`backend`·`contract` 스코프이며, 현재 HEAD의 `full`은 리뷰 승인 뒤 병합 전에 실행합니다 |
+| 영향 문서 | `docs/operations.md` 6.5, 이 문서 6.1, [PLAN-015](PLAN-015-current-status-and-followups.md) 2·3번 항목 |
+| 리뷰 | 6.1.5의 위험 항목. 차단 0건, 참고·권장만 있습니다 |
+| 승인 | 대기 |
+| 병합 SHA | — |
+
+#### 6.1.1 진단과 원인
+
+17개 `@SpringBootTest` 클래스는 클래스 속성·프로필 조합에 따라 application context 6개를 만듭니다. 변경 전 `TestcontainersConfiguration`은 컨테이너를 `@Bean @ServiceConnection`으로 선언했으므로 context마다 Postgres·RabbitMQ 한 쌍이 새로 기동했습니다. `docker events --filter type=container --filter event=create` 측정값은 run당 14개(pgvector 6, RabbitMQ 6, MinIO 1, Ryuk 1)였고 생성 시각은 +1초에서 +77초까지 흩어졌습니다.
+
+169/175 서명의 원인은 다음 조합으로 설명됩니다. `backend/src/main/resources/application.yml`의 `hikari.connection-timeout: 3000`과 Hikari `initializationFailTimeout` 기본값 1ms 때문에 context 기동 중 한 번의 연결 거부만으로 커넥션 풀 생성이 즉시 실패합니다. Spring TestContext는 로드에 실패한 context를 캐시하지 않으므로, 그 context를 만들던 클래스의 테스트가 모두 실패하고 같은 키를 쓰는 다음 클래스는 새 컨테이너로 context를 다시 만들어 통과합니다. 그래서 일시적 거부 한 번이 "한 클래스 6건만 실패"로 나타납니다.
+
+| 후보 | 판정 | 근거 |
+|---|---|---|
+| (a) 컨테이너 수명·context별 재사용 | 원인 | 컨테이너가 context 스코프 빈이라 context마다 기동합니다. 정적 싱글턴·`withReuse` 없음. 생성 14개/run 실측 |
+| (b) 테스트 포크·병렬 실행 | 배제 | `tasks.test`에 `useJUnitPlatform { excludeTags(...) }`만 있고 `maxParallelForks`·`forkEvery`·`junit-platform.properties`·`@Execution`이 없습니다(단일 fork·순차) |
+| (c) 포트·자원 고갈 | 배제 | 모든 컨테이너가 랜덤 포트, `port is already allocated` 0건, OOM 0건, 새 컨테이너 포트 accept 11ms·DB ready 1.1초 |
+| (d) `application-test.yml` 부재 | 배제 | 파일은 `backend/src/main/resources/application-test.yml`에 있습니다. 테스트 리소스에 프로필 파일이 없는 것이 정상이며, 설정 자체는 175/175 실행으로 정상 동작을 확인했습니다 |
+
+트리거는 아직 확정하지 못했습니다. 기준 `main`에서도 전체 실행 3회가 모두 175/175로 통과해 일시적 거부를 재현하지 못했습니다. 이 머신에는 docker 데몬·WSL 재시작으로 컨테이너가 유실된 전례(`digital-board-mysql-1`이 `Exited (255)`)가 있습니다. 그래서 이 항목의 값은 재현되는 결함의 수정이 아니라 **구조적 위험 감소**(fail-fast 기동 창 6 → 1, 전체 실행 148초 → 41~54초)와 같은 커밋의 단일 실행 green 증거입니다.
+
+#### 6.1.2 변경 내용
+
+- `object SharedTestcontainers`가 테스트 JVM마다 pgvector(`pgvector/pgvector:0.8.7-pg16`) 1개와 RabbitMQ(`rabbitmq:3.13.7-management`) 1개를 `init`에서 한 번만 기동하고, 모든 context가 같은 인스턴스를 받습니다.
+- 컨테이너를 빈으로 등록하지 않고 `JdbcConnectionDetails`·`RabbitConnectionDetails` 빈으로 연결 정보만 노출합니다. 두 타입은 `Startable`이 아니므로 `TestcontainersLifecycleBeanPostProcessor`가 context 종료 시 컨테이너를 닫지 않습니다. 컨테이너를 `@ServiceConnection` 빈으로 유지하면 첫 context 정리에서 공유 컨테이너가 종료되어 종료 시점에 `Unexpected error occurred in scheduled task` ERROR가 남고(중간 형태에서 3~84줄), `@DirtiesContext`가 실행 중 컨테이너를 죽이는 경로가 열립니다.
+- context마다 빈 데이터베이스 `test_<uuid>`를 하나 만들어 스키마를 분리합니다. 한 스키마를 공유하면 `@EnableScheduling`이 켜진 모든 context의 `OutboxRelayService`(5초 주기)가 테넌트 구분 없이 `PENDING` 행을 가져가고 `NotificationRequestedHandler`가 가져간 context의 `FakeMailPort`로 메일을 보내, 초대 메일을 기다리는 다른 context의 테스트가 실패할 수 있습니다. 만든 데이터베이스는 명시적으로 삭제하지 않으며 컨테이너와 함께 사라집니다.
+- `withReuse(true)`는 쓰지 않습니다. JVM 사이에 상태가 남아 격리가 깨질 수 있으므로 JVM 안 싱글턴만 사용합니다.
+- KDoc에 실제 수명(테스트 JVM당 1회 기동, Spring `Startable` 미관여, Ryuk이 프로세스 종료 뒤 정리)을 적었습니다.
+
+#### 6.1.3 검증
+
+| scope | 명령 | 결과 | 로그 | HEAD SHA |
+|---|---|---|---|---|
+| `backend` 1회차 | `./gradlew :backend:cleanTest :backend:test` | pass, 46클래스·175테스트·실패 0 | `/tmp/inv02-fix-run1.log` | `2e1a55b`(커밋 전) |
+| `backend` 2회차 | `./gradlew :backend:cleanTest :backend:test` | pass, 46클래스·175테스트·실패 0 | `/tmp/inv02-fix-run2.log` | `2e1a55b`(커밋 전) |
+| `backend` 린트 | `./gradlew :backend:ktlintCheck :backend:detekt --rerun-tasks` | pass | `/tmp/inv02-fix-lint.log` | `2e1a55b`(커밋 전) |
+
+두 회차 모두 `HierarchyIntegrationTest`가 6건 전부 통과했고(1.4~1.8초), `grep -c ERROR`는 0입니다. 이 환경에서 `compileKotlin`·`compileTestKotlin`이 Kotlin 데몬 RMI 연결로 수 분 멈추는 경우가 있어 `-Pkotlin.compiler.execution.strategy=in-process`로 컴파일했습니다. 테스트 동작은 바뀌지 않으며 컴파일 위치만 달라집니다.
+
+#### 6.1.4 컨테이너 회계
+
+| 구분 | pgvector | RabbitMQ | MinIO | Ryuk | 합계 |
+|---|---|---|---|---|---|
+| 변경 전 | 6 | 6 | 1 | 1 | 14 |
+| 변경 후 | 1 | 1 | 1 | 1 | 4 |
+
+컨테이너는 마지막 테스트가 끝난 뒤 JVM 종료와 함께 내려가고 Ryuk이 20~35초 뒤 정리합니다. 실행 직후가 아니라 35초 뒤 `docker ps -a`로 확인해야 남은 컨테이너가 없음을 확정할 수 있습니다. 회귀 감지는 `docker events --since <시작 epoch> --until <종료 epoch> --filter type=container --filter event=create --format '{{.Actor.Attributes.image}}' | sort | uniq -c`로 하며 합계가 4를 넘으면 공유가 깨진 것입니다.
+
+#### 6.1.5 리뷰에서 확인할 위험
+
+| 구분 | 내용 | 조치 |
+|---|---|---|
+| 참고 | 단일 실패 지점: JVM당 한 쌍이므로 실행 중 컨테이너가 유실되면 여러 클래스가 함께 실패합니다. 대신 fail-fast 기동 창은 6에서 1로 줄었습니다 | 컨테이너 유실이 다시 관측되면 원인을 docker 환경에서 찾고 테스트 설정으로 덮지 않습니다 |
+| 참고 | 커넥션 여유: context 6개 × `maximum-pool-size: 10`이면 약 60커넥션이 Postgres 기본 `max_connections` 100에 걸립니다. 지금은 여유가 있지만 context 조합이 7~8개로 늘면 확인해야 합니다 | context를 늘리는 변경은 이 수치를 함께 확인합니다 |
+| 참고 | `test_<uuid>` 데이터베이스는 지우지 않습니다. 컨테이너가 사라지면 함께 사라져 실행 간 상태가 남지 않고, 정리 코드를 넣으면 살아 있는 context와 경쟁할 수 있습니다 | 삭제 로직을 추가하지 않습니다 |
+| 권장 | 로그 판정 기준: 공유 컨테이너를 빈으로 두던 중간 형태는 종료 시 ERROR를 남겼고 지금은 0줄입니다. 이후 테스트 로그는 `BUILD SUCCESSFUL`과 `backend/build/test-results/test/TEST-*.xml` 카운트로 판정합니다 | `docs/operations.md` 6.5에 같은 기준을 적었습니다 |
 
 ### 6.2 INV-01 실제 API 브라우저 편집 화면 타임아웃
 
