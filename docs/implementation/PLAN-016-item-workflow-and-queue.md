@@ -1,6 +1,6 @@
 # PLAN-016: 항목 단위 작업 루프와 대기열
 
-> 상태: 규약 확정, 이번 배치 INV-02(`09121d0`)·INV-01(`298a2cb`) 병합 완료, 다음 항목 INV-03 대기 (2026-10-24)
+> 상태: 규약 확정, 이번 배치 INV-02(`09121d0`)·INV-01(`298a2cb`) 병합 및 배치 마감 전체 검증(`0c57f8d`) 통과, 다음 항목 INV-03 대기 (2026-10-24)
 > 역할: 항목 1건을 독립 워크트리에서 수정·검증·리뷰·병합하는 8단계 루프와 17건 대기열(그중 이번 배치 개선 항목 15건)의 단일 기준
 > 상위 문서: [PLAN-015](PLAN-015-current-status-and-followups.md), [구현 로드맵](../implementation-roadmap.md)
 > 검증 기준: [CI](../../.github/workflows/ci.yml), [운영](../operations.md), [AGENTS.md 3번 항목](../../AGENTS.md)
@@ -504,6 +504,25 @@ await page.getByLabel('재고 가격').fill('0')
 | 참고 | `docs/frontend.md:283` 부근 | 10번 항목 제목이 두 번 나오는 번호 문제가 남아 있습니다 | 번호 정리 | 별도 문서 항목 |
 
 - 승인 요청: 차단 0건으로 **병합 가능**. 승인 뒤 `merge`로 `298a2cb`를 만들었습니다. 진단 결과가 테스트 로케이터 결함이므로 제품 코드는 재계획 없이 그대로 두었습니다.
+
+### 6.3 배치 마감 검증
+
+2026-10-24에 `main`(HEAD `0c57f8d`)에서 두 병합 이후 처음으로 5개 스코프를 실행했습니다. `scripts/item_flow.sh verify`는 `item/` 브랜치 워크트리에서만 동작하므로 같은 명령을 메인 체크아웃에서 순서대로 손으로 실행했고, 결과는 모두 종료 코드 0입니다. 병합 이후 회귀는 없습니다.
+
+| scope | 실행 명령 | 결과와 핵심 수치 |
+|---|---|---|
+| `docs` | `python3 scripts/docs_check.py` | pass. 인덱스 문서 51개, Markdown 53개, 계약 검사 포함 |
+| `backend` | `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test` | pass, 8분 9초. 테스트 175건·실패 0·에러 0·스킵 0(결과 XML 46개) |
+| `frontend` | `pnpm install --frozen-lockfile`(메인 체크아웃에 `node_modules`가 없어 선행) → `pnpm generate:api` → `git diff --exit-code frontend/src/shared/api/schema.d.ts` → `pnpm lint` → `pnpm format:check` → `pnpm test` → `pnpm build` | pass. 설치 1초(353개 재사용), 생성 스키마 diff 없음, 테스트 17개 파일·50건(19.46초), 빌드 2.35초 |
+| `contract` | `./gradlew :backend:generateOpenApiPreview` → `python3 scripts/normalize_openapi.py` → `python3 scripts/export_events.py` → `python3 scripts/docs_check.py` | pass, 미리보기 19초. OpenAPI 60개 경로, 이벤트 0개 채널, 문서 검사 통과 |
+| `e2e` | `pnpm test:e2e`(시작 전 5173 비어 있음 확인, 공유 `.playwright-browsers/chromium-1248` 사용) | pass, 32건 통과·2건 스킵(2.5분). 스킵 2건은 `INVENTORY_LIVE` 실제 API 시나리오이고 그 증거는 6.2.4번 항목입니다 |
+
+- 검증 HEAD: `0c57f8dd8ba8006026e56b3f3683921a04076054`. INV-01 병합 `298a2cb` 뒤 문서 커밋 `ee300ef`·`440c4e8`·`0c57f8d`를 포함한 상태입니다.
+- 실행 구간: 2026-10-24 21:43:09 ~ 약 21:55:05, 합계 약 716초. 백엔드 489초가 대부분이며 `:backend:cleanTest`를 포함한 냉간 빌드입니다. 계획의 전체 900초 상한과 백엔드 600초 상한 안에서 끝났습니다.
+- 로그: `../agolock-worktrees/.state/logs/batch-close-20261024T215511.log`(원본 `/tmp/batch-close-main.log`를 복사한 보존본).
+- 실행 방식: `item_flow.sh verify`가 항목 워크트리 전용이라 명령을 손으로 조합했습니다. 이 한계는 4.3번 표의 "`main`에서 검증할 수 있는 경로 부재" 항목으로 이미 등록돼 있습니다.
+- 환경: JDK 21(`temurin-21.0.12+101.0.LTS`), Node 24.20.0, pnpm 10.34.7, `scripts/env.sh`가 지정하는 `GRADLE_USER_HOME`·`NPM_CONFIG_CACHE`·`PYTHONPATH`·`PLAYWRIGHT_BROWSERS_PATH`.
+- 이 검증이 실제로 확인한 커밋 `0c57f8d`로 `docs/index.yaml`의 `FRONTEND`·`PLAN_016_ITEM_WORKFLOW` `last_verified_commit`을 갱신했습니다.
 
 ## 7. 롤백과 충돌
 

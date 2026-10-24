@@ -143,7 +143,7 @@ docs:
       - ADR-013
       - ADR-016
       - ADR-020
-    last_verified_commit: "298a2cb14154daccb6aeac43c781cfb11d039d26"
+    last_verified_commit: "0c57f8dd8ba8006026e56b3f3683921a04076054"
 
   - id: DESIGN
     path: docs/design-system.md
@@ -815,4 +815,4 @@ docs:
       - docs/implementation/PLAN-016-item-workflow-and-queue.md
     generated: false
     related_adrs: []
-    last_verified_commit: "298a2cb14154daccb6aeac43c781cfb11d039d26"
+    last_verified_commit: "0c57f8dd8ba8006026e56b3f3683921a04076054"
