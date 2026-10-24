@@ -186,7 +186,7 @@ INV-02·INV-01을 실행하며 남긴 개선 후보입니다. 4.1번 표에 새 
 | `main`에서 검증할 수 있는 경로 부재 | `verify`는 `item/` 브랜치 워크트리에서만 동작하므로 병합 뒤 `main` 전체 검증은 명령을 손으로 조합해야 합니다(이번 배치 마감이 그 예) | `verify --main`(또는 `verify-main`) 경로를 추가해 `main` 작업 디렉터리에서도 같은 스코프 명령·상태 기록을 사용 |
 | `DirtyLeave` 이동 진행 동작의 단위 테스트 부재 | INV-02에서 `dirty-leave.tsx`에 `blocker.proceed()` 효과를 넣었지만, 이를 직접 검증하는 테스트는 저장 흐름 테스트(`inventory-edit-page.test.tsx`)의 통과로만 간접 확인됩니다 | 이탈 차단과 `dirty` 해제 뒤 이동 진행을 각각 단언하는 단위 테스트 추가 |
 | Hikari `initialization-fail-timeout` 경화 미실시 | INV-02는 fail-fast 기동 창을 6에서 1로 줄이는 것으로 마무리했고, `initialization-fail-timeout` 값은 바꾸지 않았습니다 | 운영·테스트 프로필의 커넥션 풀 기동 실패 기준을 정하고, 근거를 `docs/operations.md`에 남김 |
-| `docs/index.yaml`의 `FRONTEND` `code_paths`가 `frontend/e2e/**`를 매핑하지 않음 | `docs_impact.py`가 `frontend/e2e/inventory-live.spec.ts`를 `PLAN_001_FOUNDATION`(`frontend/**`)으로만 매핑해 실제 관련 문서가 나오지 않았습니다 | `FRONTEND` 항목에 `frontend/e2e/**`를 추가하고 영향 분석 결과를 확인 |
+| `docs/index.yaml`의 `FRONTEND` `code_paths`가 `frontend/e2e/**`를 매핑하지 않음 | `docs_impact.py`가 `frontend/e2e/inventory-live.spec.ts`를 `PLAN_001_FOUNDATION`(`frontend/**`)으로만 매핑해 실제 관련 문서가 나오지 않았습니다 | 이번 배치 마감에서 `frontend/e2e/**`를 추가했고, 같은 파일이 `FRONTEND`·`PLAN_001_FOUNDATION` 두 문서로 매핑되는 것을 확인했습니다 |
 | 저장 핸들러가 `await invalidateInventory()` 뒤에 `navigate()`를 호출 | INV-02 6.1.6번 항목의 ② 원인입니다. 재조회가 느리면 저장 뒤 화면 전환이 그만큼 늦어집니다 | 이동을 먼저 하고 재조회를 백그라운드로 돌리는 구조로 바꾸고, 늦은 재조회에서 입력이 덮이지 않는지 검증 |
 | 실제 API 실행의 trace·로그가 임시 경로 | `frontend/test-results/`는 gitignore 대상이고 `/tmp` 로그는 세션과 함께 사라집니다 | 실행 뒤 trace·로그를 `../agolock-worktrees/.state/artifacts/<slug>/`로 복사하는 단계를 3번 항목에 추가 |
 
