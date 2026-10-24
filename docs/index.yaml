@@ -814,4 +814,4 @@ docs:
       - docs/implementation/PLAN-016-item-workflow-and-queue.md
     generated: false
     related_adrs: []
-    last_verified_commit: 40e3c080ffb89cbf5260d63ff086c2b5bc8b7cfa
+    last_verified_commit: ceb6411c7f8adc0cd81f7cf0df992733e1ac98c8
