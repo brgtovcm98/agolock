@@ -29,7 +29,7 @@
 |---|---|---|
 | 1. 시작 | `main`이 clean인지 확인하고 `scripts/item_flow.sh start <slug>`를 실행합니다. 메인 체크아웃 루트에서 워크트리, 브랜치, 상태 파일을 만듭니다. | 워크트리 `../agolock-worktrees/<slug>`, 브랜치 `item/<slug>`, 상태 파일 `../agolock-worktrees/.state/<slug>.json`의 `base_sha` |
 | 2. 수정 | 워크트리에서 코드를 고치고 `python3 scripts/docs_impact.py`로 영향 문서를 확인해 함께 갱신합니다. | 변경 diff, 갱신 문서, `docs_check.py` 통과 |
-| 3. 검증 | 항목 영향 범위를 먼저 검사하고, 병합 전에 `verify --scope full`을 실행합니다. | 로그 `../agolock-worktrees/.state/logs/<slug>-<시각>.log`, 상태 파일 `verifications[]`의 `scope`·`head`·`result`·`log`·`finished_at` |
+| 3. 검증 | 항목 영향 범위를 먼저 검사하고, 병합 전에 `verify --scope full`을 실행합니다. | 로그 `../agolock-worktrees/.state/logs/<slug>-<시각>-<pid>.log`, 상태 파일 `verifications[]`의 `scope`·`head`·`result`·`log`·`finished_at` |
 | 4. 리뷰 | 5번 항목의 체크리스트로 코드리뷰를 수행하고 보고서를 터미널에 출력합니다. | 리뷰 보고서, 발견사항의 심각도·파일:줄·조치안 |
 | 5. 승인 | 사용자 승인을 기다립니다. 차단 발견이 있으면 지적사항 기준으로 재계획하고 2단계로 돌아갑니다. | 승인 또는 재계획 판정 |
 | 6. 커밋 | 지적사항 해소를 확인하고 항목 브랜치에 커밋합니다. HEAD가 바뀌면 전체 검증을 다시 실행합니다. | 항목 커밋과 현재 HEAD의 `pass` 검증 기록 |
@@ -65,15 +65,15 @@ graph LR
 scripts/item_flow.sh start <slug> [--base main]
 scripts/item_flow.sh verify [--scope docs|contract|backend|frontend|e2e|full]
 scripts/item_flow.sh status [<slug>]
-scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"]
+scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<이유>"]
 ```
 
 | 명령 | 전제 | 동작과 거부 조건 |
 |---|---|---|
 | `start` | `main` 작업 디렉터리, `main` clean, 같은 slug의 워크트리·브랜치 없음 | 워크트리와 `item/<slug>` 브랜치를 만들고 상태 파일을 초기화합니다. dirty이거나 이미 있으면 exit 1이며 아무것도 바꾸지 않습니다. |
-| `verify` | `item/` 브랜치 워크트리 안 | `--scope` 기본값은 `full`입니다. 스코프 명령을 순서대로 실행하고 각 종료 코드를 로그에 남기며, 전체 결과와 HEAD SHA를 상태 파일에 기록합니다. 하나라도 실패하면 `result`는 `fail`입니다. |
-| `status` | 없음 | 상태 파일을 읽어 브랜치·검증 결과·HEAD SHA·병합 SHA를 출력합니다. slug를 생략하면 전체 상태를 출력합니다. |
-| `merge` | `main` 작업 디렉터리, 게이트 3종 통과 | `git merge --no-ff` 후 워크트리를 제거하고 `item/` 브랜치를 삭제합니다. `--keep`은 정리만 생략하고, `--message "<text>"`는 병합 커밋 메시지를 대체합니다. slug를 생략하면 워크트리가 남아 있는 항목을 자동 선택하며, 병합할 커밋이 없으면 거부합니다. |
+| `verify` | `item/` 브랜치 워크트리 안 | `--scope` 기본값은 `full`입니다. 스코프 명령을 순서대로 실행하고 각 종료 코드를 로그에 남기며, 전체 결과와 HEAD SHA를 상태 파일에 기록합니다. 결과는 `pass`, `fail`(코드·테스트 실패), `blocked`(환경 실패 보류) 중 하나입니다. |
+| `status` | 없음 | 상태 파일을 읽어 브랜치·검증 결과·HEAD SHA·병합 SHA를 출력합니다. slug를 생략하면 전체 상태를 출력합니다. slug는 `start`와 같은 규칙으로 검증합니다. |
+| `merge` | `main` 작업 디렉터리, 게이트 4종 통과 | `git merge --no-ff` 후 워크트리를 제거하고 `item/` 브랜치를 삭제합니다. 게이트는 ① 워크트리 clean ② 현재 HEAD의 `scope full` + `result pass` 기록 ③ `main` clean ④ 현재 `main` 이후 커밋 존재입니다. `--keep`은 정리만 생략하고, `--message "<text>"`는 병합 커밋 메시지를 대체하며, `--partial "<이유>"`는 환경상 `full`을 실행할 수 없을 때만 쓰는 예외입니다. slug를 생략하면 워크트리가 남아 있는 항목을 자동 선택합니다. |
 
 ### 3.2 상태 파일
 
@@ -91,15 +91,32 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"]
       "scope": "full",
       "head": "<40자 SHA>",
       "result": "pass",
-      "log": "<절대 경로>/agolock-worktrees/.state/logs/inv-02-20261024T101500.log",
+      "log": "<절대 경로>/agolock-worktrees/.state/logs/inv-02-20261024T101500-12345.log",
       "finished_at": "2026-10-24T10:15:00+09:00"
+    },
+    {
+      "scope": "full",
+      "head": "<40자 SHA>",
+      "result": "blocked",
+      "log": "<절대 경로>/agolock-worktrees/.state/logs/inv-02-20261024T103000-12360.log",
+      "finished_at": "2026-10-24T10:30:00+09:00",
+      "reason": "Docker를 사용할 수 없어 testcontainers 백엔드 테스트를 실행할 수 없습니다"
     }
   ],
-  "merged_sha": null
+  "merged_sha": null,
+  "partial_reason": null,
+  "partial_head": null,
+  "cleanup_pending": null
 }
 ```
 
-`merge`는 ① 워크트리 clean ② 현재 HEAD에 대한 `result: pass` 검증 기록 존재 ③ `main` clean을 모두 만족할 때만 병합합니다. 하나라도 어긋나면 병합하지 않고 이유를 출력합니다.
+`result`는 셋 중 하나입니다. `pass`는 모든 명령이 성공한 경우, `fail`은 코드·테스트·계약 검사가 실패한 경우, `blocked`는 도구 부재·의존성 미설치·포트 점유·컨테이너 미기동처럼 환경이 원인인 경우입니다. `blocked`에는 `reason`을 함께 남기며, 환경 문제를 코드 수정으로 덮지 않습니다.
+
+`merge`는 ① 워크트리 clean ② 현재 HEAD에 대한 `scope: full` + `result: pass` 검증 기록 존재 ③ `main` clean ④ 현재 `main` 이후 커밋 존재를 모두 만족할 때만 병합합니다. 하나라도 어긋나면 병합하지 않고 이유를 출력합니다. `blocked`와 `fail`은 ②를 만족하지 않으며, 부분 스코프 `pass`만으로는 병합하지 않습니다.
+
+`merge --partial "<이유>"`는 환경상 `full`을 실행할 수 없을 때만 쓰는 예외입니다. 이유가 비어 있으면 거부하고, 이유가 있으면 현재 HEAD의 `pass` 기록(scope 무관)을 요구하면서 경고를 출력하고 `partial_reason`·`partial_head`를 기록합니다. 이 예외를 쓴 항목은 사유를 6번 항목 기록에 그대로 옮기고, 사유가 해소되면 `full`을 다시 실행합니다.
+
+`merged_sha`는 병합 커밋, `cleanup_pending`은 병합 뒤 워크트리·브랜치 정리가 끝나지 않은 경로입니다. `status`는 `cleanup_pending`이 있으면 `병합 <sha> (워크트리 정리 미완: <경로>)`로, `partial_reason`만 있으면 `병합 <sha> (부분 검증: <사유>)`로 표시합니다.
 
 `clean` 판정은 추적 파일 기준입니다(`git status --porcelain --untracked-files=no`). 커밋하지 않은 untracked 파일은 경고만 남기고 진행합니다. 상태 파일은 사람이 읽는 `<slug>.json` 외에 구현용 `<slug>.meta`(기본 정보)와 `<slug>.verify.jsonl`(검증 기록 원본)을 함께 쓰며, 세 파일 모두 저장소 밖에서만 관리합니다. `worktree`와 `log` 값은 절대 경로로 기록합니다.
 
@@ -111,16 +128,18 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"]
 | `backend` | `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` |
 | `frontend` | `pnpm install --frozen-lockfile`(워크트리에 `node_modules` 없을 때) → `pnpm generate:api` → `git diff --exit-code frontend/src/shared/api/schema.d.ts` → `pnpm lint` → `pnpm format:check` → `pnpm test` → `pnpm build` |
 | `contract` | `./gradlew :backend:generateOpenApiPreview` → `python3 scripts/normalize_openapi.py` → `python3 scripts/export_events.py` → `python3 scripts/docs_check.py` |
-| `e2e` | `pnpm exec playwright install chromium`(브라우저 없을 때) → `pnpm test:e2e` |
-| `full` | 위 5개 전부. 병합 전 필수 |
+| `e2e` | `pnpm install --frozen-lockfile`(워트리에 `node_modules` 없을 때) → `pnpm exec playwright install chromium`(브라우저 없을 때) → `pnpm test:e2e` |
+| `full` | 위 5개 전부. 병합 전 필수(환경상 불가능하면 `merge --partial "<이유>"`) |
+
+각 스코프는 명령 실행 전에 환경 사전 조건을 확인합니다. `pnpm`·`java`·`python3`·`./gradlew`가 없거나, `pnpm install`·Playwright 브라우저 설치가 실패하거나, `backend`에서 Docker를 사용할 수 없거나, `e2e`에서 `127.0.0.1:5173`이 점유되어 있으면 명령을 실행하지 않고 `result: blocked`로 기록한 뒤 `환경 실패(보류): <이유> — 코드 실패가 아닙니다`를 출력하고 exit 1합니다.
 
 ### 3.4 도구 경로와 사전 조건
 
 - 스크립트는 `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`로 메인 체크아웃 루트를 찾아 그쪽 `scripts/env.sh`를 source합니다. `--git-common-dir`가 돌려주는 값은 공통 `.git` 디렉터리이므로 그대로 루트로 쓰지 않습니다. 워크트리에는 `.tools`, `.gradle-user`, `.python-packages`, `.playwright-browsers`가 없기 때문입니다.
 - `GRADLE_USER_HOME`, `NPM_CONFIG_CACHE`, `PYTHONPATH`, `PLAYWRIGHT_BROWSERS_PATH`는 메인 체크아웃 기준으로 고정합니다. `node_modules`는 워크트리마다 설치합니다.
 - 검증 전에 `python3 -c "import yaml"`이 성공하는지 확인합니다. 실패하면 검증을 시작하지 않습니다.
-- `verify --scope e2e` 전에 `127.0.0.1:5173` 점유를 확인합니다. 점유되어 있으면 다른 서버를 재사용하지 않고 실패로 기록하며 자동으로 종료하지 않습니다.
-- 컨테이너·Mailpit·가입 설정처럼 환경이 원인인 실패는 코드 실패와 구분해 `보류`로 기록합니다. 환경 문제를 코드 수정으로 덮지 않습니다.
+- `verify --scope e2e` 전에 `127.0.0.1:5173` 점유를 확인합니다. 점유되어 있으면 다른 서버를 재사용하지 않고 `blocked`(보류)로 기록하며 자동으로 종료하지 않습니다.
+- 컨테이너·Mailpit·가입 설정처럼 환경이 원인인 실패는 코드 실패와 구분해 `blocked`(보류)로 기록합니다. 환경 문제를 코드 수정으로 덮지 않습니다.
 - `scripts/item_flow.sh`는 `bash`와 `set -euo pipefail`만 사용하며 파이썬 패키지나 외부 유틸 의존을 새로 추가하지 않습니다.
 
 ## 4. 대기열
@@ -221,7 +240,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"]
 | 브랜치·워크트리 | `item/inv-02-test-suite-green`, `../agolock-worktrees/inv-02-test-suite-green` |
 | 기준 SHA | 항목 시작 시 `main` HEAD |
 | 변경 요약 | 실행 시 `git diff --stat main...HEAD` 결과 |
-| 검증 | scope·명령·결과·로그 경로·HEAD SHA를 실행 시 기록. 병합 전 `full` 필수 |
+| 검증 | scope·명령·결과·로그 경로·HEAD SHA를 실행 시 기록. 병합 전 `full` 필수이며, 환경상 불가하면 `--partial` 사유를 함께 기록 |
 | 영향 문서 | `docs_impact.py` 결과와 실제 갱신 문서 |
 | 리뷰 | 심각도별 발견사항과 파일:줄, 조치안 |
 | 승인 | 승인 판정과 일시, 재계획 내역 |

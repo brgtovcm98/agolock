@@ -13,12 +13,13 @@ usage() {
       메인 체크아웃에서 실행하며, main이 clean이 아니거나 이미 있으면 아무것도 바꾸지 않습니다.
   verify [--scope docs|contract|backend|frontend|e2e|full]
       item/ 브랜치 워크트리에서 CI와 같은 명령을 실행하고 로그·HEAD SHA·결과를 기록합니다.
-      기본값은 full입니다.
+      기본값은 full입니다. 결과는 pass / fail / blocked(환경 실패 보류) 중 하나입니다.
   status [<slug>]
       대기열 항목의 브랜치·워크트리·최근 검증·병합 SHA를 출력합니다.
-  merge [<slug>] [--keep] [--message "<text>"]
-      게이트 3종(워크트리 clean, 현재 HEAD의 pass 검증, main clean)을 통과할 때만 --no-ff로 병합하고
-      워크트리와 item/ 브랜치를 정리합니다. --keep은 정리를 생략합니다.
+  merge [<slug>] [--keep] [--message "<text>"] [--partial "<이유>"]
+      게이트 4종(워크트리 clean, 현재 HEAD의 full pass 검증, main clean, 병합할 커밋 존재)을
+      통과할 때만 --no-ff로 병합하고 워크트리와 item/ 브랜치를 정리합니다. --keep은 정리를 생략합니다.
+      --partial은 환경상 full 검증이 불가능할 때만 쓰는 예외이며, 이유가 필수입니다.
 
 검증 로그와 상태 파일은 저장소 밖 ../agolock-worktrees/.state/에 기록합니다.
 USAGE
@@ -44,11 +45,12 @@ usage_verify() {
   backend    ./gradlew :backend:ktlintCheck :backend:detekt :backend:test
   frontend   pnpm install(필요 시) → generate:api → schema diff → lint → format:check → test → build
   contract   generateOpenApiPreview → normalize_openapi.py → export_events.py → docs_check.py
-  e2e        pnpm exec playwright install chromium(필요 시) → pnpm test:e2e
+  e2e        pnpm install(필요 시) → pnpm exec playwright install chromium(필요 시) → pnpm test:e2e
   full       위 5개 전부(병합 전 필수). 기본값입니다.
 
 item/ 브랜치 워크트리에서만 실행할 수 있습니다. 결과는 .state/<slug>.json의 verifications[]에 쌓입니다.
-e2e 전에 127.0.0.1:5173 점유를 확인하며, 점유되어 있으면 다른 서버를 재사용하지 않고 실패로 기록합니다.
+결과는 pass(전부 성공), fail(코드·테스트 실패), blocked(환경 실패 보류) 중 하나이며 merge 게이트는 pass만 인정합니다.
+e2e 전에 127.0.0.1:5173 점유를 확인하며, 점유되어 있으면 다른 서버를 재사용하지 않고 보류로 기록합니다.
 USAGE
 }
 
@@ -57,23 +59,26 @@ usage_status() {
 사용법: scripts/item_flow.sh status [<slug>]
 
 slug를 생략하면 PLAN-016 대기열의 모든 항목과 상태를 출력합니다.
-상태 파일이 없는 항목은 미시작으로 표시합니다.
+상태 파일이 없는 항목은 미시작으로 표시합니다. 병합 뒤 워크트리 정리가 실패한 항목은 정리 미완 경로를 함께 표시합니다.
 USAGE
 }
 
 usage_merge() {
   cat <<'USAGE'
-사용법: scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"]
+사용법: scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<이유>"]
 
   <slug>              생략하면 워크트리가 남아 있는 항목을 자동 선택합니다. 후보가 여럿이면 지정해야 합니다.
   --keep              병합 후 워크트리 제거와 브랜치 삭제를 생략합니다.
   --message "<text>"  병합 커밋 메시지를 대체합니다. 기본값은 "merge: <ID> <요약>"입니다.
+  --partial "<이유>"  환경상 full 검증을 실행할 수 없을 때만 쓰는 예외입니다. 이유가 비어 있으면 거부합니다.
+                      현재 HEAD의 pass 기록(scope 무관)을 요구하고, 사유를 상태 파일에 남깁니다.
 
-메인 체크아웃에서 실행합니다. 게이트 3종을 모두 통과해야 병합합니다(fail-closed).
+메인 체크아웃에서 실행합니다. 게이트 4종을 모두 통과해야 병합합니다(fail-closed).
   1) 항목 워크트리에 추적 파일 변경이 없음
-  2) 현재 항목 HEAD에 대한 pass 검증 기록이 상태 파일에 있음
+  2) 현재 항목 HEAD에 대한 `scope full` + `result pass` 검증 기록이 상태 파일에 있음
   3) main 작업 디렉터리에 추적 파일 변경이 없음
-하나라도 어긋나면 병합하지 않고 이유를 출력합니다.
+  4) 항목 브랜치에 현재 main 이후 커밋이 있음
+하나라도 어긋나면 병합하지 않고 이유를 출력합니다. `result blocked`(환경 실패 보류)는 2)를 만족하지 않습니다.
 USAGE
 }
 
@@ -131,10 +136,21 @@ meta_set() {
   mv "$tmp" "$file"
 }
 
+# 메타데이터 값이 있으면 문자열, 없으면 null로 상태 파일 필드를 출력합니다.
+print_state_field() {
+  local slug="$1" key="$2" sep="$3" value
+  value="$(meta_get "$slug" "$key")"
+  if [ -n "$value" ]; then
+    printf '  "%s": "%s"%s\n' "$key" "$(json_escape "$value")" "$sep"
+  else
+    printf '  "%s": null%s\n' "$key" "$sep"
+  fi
+}
+
 # 항목 메타데이터(.meta)와 검증 기록(.verify.jsonl)에서 사람이 읽는 상태 파일(.json)을 다시 만듭니다.
 # 검증 기록을 덧붙이기만 하면 되도록 분리했고, JSON 조립은 printf만 사용합니다.
 write_state() {
-  local slug="$1" file tmp record line first=1 merged
+  local slug="$1" file tmp record line first=1
   file="$(state_file "$slug")"
   tmp="$file.tmp"
   record="$(record_file "$slug")"
@@ -160,23 +176,27 @@ write_state() {
       printf '\n  '
     fi
     printf '],\n'
-    merged="$(meta_get "$slug" merged_sha)"
-    if [ -n "$merged" ]; then
-      printf '  "merged_sha": "%s"\n' "$merged"
-    else
-      printf '  "merged_sha": null\n'
-    fi
+    print_state_field "$slug" merged_sha ","
+    print_state_field "$slug" partial_reason ","
+    print_state_field "$slug" partial_head ","
+    print_state_field "$slug" cleanup_pending ""
     printf '}\n'
   } > "$tmp"
   mv "$tmp" "$file"
 }
 
 record_verification() {
-  local slug="$1" scope="$2" head="$3" result="$4" log="$5"
+  local slug="$1" scope="$2" head="$3" result="$4" log="$5" reason="${6:-}"
   mkdir -p "$STATE_DIR"
-  printf '{"scope": "%s", "head": "%s", "result": "%s", "log": "%s", "finished_at": "%s"}\n' \
-    "$(json_escape "$scope")" "$head" "$result" "$(json_escape "$log")" "$(iso_now)" \
-    >> "$(record_file "$slug")"
+  if [ -n "$reason" ]; then
+    printf '{"scope": "%s", "head": "%s", "result": "%s", "log": "%s", "finished_at": "%s", "reason": "%s"}\n' \
+      "$(json_escape "$scope")" "$head" "$result" "$(json_escape "$log")" "$(iso_now)" "$(json_escape "$reason")" \
+      >> "$(record_file "$slug")"
+  else
+    printf '{"scope": "%s", "head": "%s", "result": "%s", "log": "%s", "finished_at": "%s"}\n' \
+      "$(json_escape "$scope")" "$head" "$result" "$(json_escape "$log")" "$(iso_now)" \
+      >> "$(record_file "$slug")"
+  fi
   write_state "$slug"
 }
 
@@ -212,8 +232,17 @@ validate_slug() {
   esac
 }
 
+require_command() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 port_busy() {
   (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1
+}
+
+docker_ready() {
+  require_command docker || return 1
+  docker info >/dev/null 2>&1
 }
 
 playwright_ready() {
@@ -235,11 +264,20 @@ run_step() {
   return "$status"
 }
 
-fail_early() {
+# 도구 부재·서버 점유처럼 코드가 원인이 아닌 사전 조건 실패를 환경 실패(보류)로 표시합니다.
+# 사유는 BLOCK_REASON으로 넘겨 verify가 result blocked 기록에 함께 남깁니다.
+BLOCK_REASON=""
+block_env() {
+  local log="$1" reason="$2"
+  BLOCK_REASON="$reason"
+  printf '\n환경 실패(보류): %s — 코드 실패가 아닙니다.\n' "$reason" | tee -a "$log" >&2
+}
+
+block_early() {
   local slug="$1" scope="$2" head="$3" log="$4" reason="$5"
-  printf '\n검증 중단: %s\n' "$reason" | tee -a "$log" >&2
-  record_verification "$slug" "$scope" "$head" "fail" "$log"
-  printf '검증 실패: %s\n로그: %s\n' "$reason" "$log" >&2
+  printf '\n환경 실패(보류): %s — 코드 실패가 아닙니다.\n' "$reason" | tee -a "$log" >&2
+  record_verification "$slug" "$scope" "$head" "blocked" "$log" "$reason"
+  printf '검증 보류: %s\n로그: %s\n' "$reason" "$log" >&2
   exit 1
 }
 
@@ -247,14 +285,37 @@ run_scope() {
   local scope="$1" log="$2"
   case "$scope" in
     docs)
+      if ! require_command python3; then
+        block_env "$log" "python3를 찾을 수 없습니다"
+        return 2
+      fi
       run_step "$log" python3 scripts/docs_check.py || return 1
       ;;
     backend)
+      if ! require_command java; then
+        block_env "$log" "java를 찾을 수 없습니다"
+        return 2
+      fi
+      if [ ! -x ./gradlew ]; then
+        block_env "$log" "./gradlew를 실행할 수 없습니다"
+        return 2
+      fi
+      if ! docker_ready; then
+        block_env "$log" "Docker를 사용할 수 없어 testcontainers 백엔드 테스트를 실행할 수 없습니다"
+        return 2
+      fi
       run_step "$log" ./gradlew :backend:ktlintCheck :backend:detekt :backend:test || return 1
       ;;
     frontend)
+      if ! require_command pnpm; then
+        block_env "$log" "pnpm을 찾을 수 없습니다(corepack 활성화 또는 scripts/env.sh의 .tools 확인)"
+        return 2
+      fi
       if [ ! -d frontend/node_modules ]; then
-        run_step "$log" pnpm install --frozen-lockfile || return 1
+        if ! run_step "$log" pnpm install --frozen-lockfile; then
+          block_env "$log" "pnpm install --frozen-lockfile을 실행할 수 없습니다(의존성 설치 실패)"
+          return 2
+        fi
       fi
       run_step "$log" pnpm generate:api || return 1
       run_step "$log" git diff --exit-code frontend/src/shared/api/schema.d.ts || return 1
@@ -264,6 +325,18 @@ run_scope() {
       run_step "$log" pnpm build || return 1
       ;;
     contract)
+      if ! require_command python3; then
+        block_env "$log" "python3를 찾을 수 없습니다"
+        return 2
+      fi
+      if ! require_command java; then
+        block_env "$log" "java를 찾을 수 없습니다"
+        return 2
+      fi
+      if [ ! -x ./gradlew ]; then
+        block_env "$log" "./gradlew를 실행할 수 없습니다"
+        return 2
+      fi
       run_step "$log" ./gradlew :backend:generateOpenApiPreview || return 1
       run_step "$log" python3 scripts/normalize_openapi.py || return 1
       run_step "$log" python3 scripts/export_events.py || return 1
@@ -271,12 +344,24 @@ run_scope() {
       ;;
     e2e)
       if port_busy 5173; then
-        printf '\n127.0.0.1:5173이 이미 사용 중입니다. 다른 서버를 재사용하지 않고 실패로 기록합니다.\n' \
-          | tee -a "$log" >&2
-        return 1
+        block_env "$log" "127.0.0.1:5173이 이미 사용 중입니다. 다른 서버를 재사용하지 않습니다"
+        return 2
+      fi
+      if ! require_command pnpm; then
+        block_env "$log" "pnpm을 찾을 수 없습니다(corepack 활성화 또는 scripts/env.sh의 .tools 확인)"
+        return 2
+      fi
+      if [ ! -d frontend/node_modules ]; then
+        if ! run_step "$log" pnpm install --frozen-lockfile; then
+          block_env "$log" "pnpm install --frozen-lockfile을 실행할 수 없습니다(의존성 설치 실패)"
+          return 2
+        fi
       fi
       if ! playwright_ready; then
-        run_step "$log" pnpm exec playwright install chromium || return 1
+        if ! run_step "$log" pnpm exec playwright install chromium; then
+          block_env "$log" "Playwright chromium 브라우저를 설치하지 못했습니다"
+          return 2
+        fi
       fi
       run_step "$log" pnpm test:e2e || return 1
       ;;
@@ -343,6 +428,9 @@ cmd_start() {
   meta_set "$slug" base "$base"
   meta_set "$slug" base_sha "$base_sha"
   meta_set "$slug" merged_sha ""
+  meta_set "$slug" partial_reason ""
+  meta_set "$slug" partial_head ""
+  meta_set "$slug" cleanup_pending ""
   write_state "$slug"
 
   printf '항목 시작: %s\n' "$slug"
@@ -395,7 +483,7 @@ cmd_verify() {
   cd "$top"
   mkdir -p "$LOG_DIR"
   local log head
-  log="$LOG_DIR/${slug}-$(date +%Y%m%dT%H%M%S).log"
+  log="$LOG_DIR/${slug}-$(date +%Y%m%dT%H%M%S)-$$.log"
   head="$(git rev-parse HEAD)"
   {
     printf '항목: %s\n' "$slug"
@@ -409,7 +497,7 @@ cmd_verify() {
   printf '검증 시작: %s / %s\n  HEAD: %s\n  로그: %s\n' "$slug" "$scope" "$head" "$log"
 
   if ! python3 -c "import yaml" >/dev/null 2>&1; then
-    fail_early "$slug" "$scope" "$head" "$log" "python3에서 yaml 모듈을 불러올 수 없습니다. scripts/env.sh의 PYTHONPATH를 확인하세요."
+    block_early "$slug" "$scope" "$head" "$log" "python3에서 yaml 모듈을 불러올 수 없습니다. scripts/env.sh의 PYTHONPATH를 확인하세요."
   fi
 
   local -a scopes_to_run
@@ -419,17 +507,23 @@ cmd_verify() {
     scopes_to_run=("$scope")
   fi
 
-  local item_scope status=0
+  local item_scope status=0 reason
+  BLOCK_REASON=""
   for item_scope in "${scopes_to_run[@]}"; do
-    if ! run_scope "$item_scope" "$log"; then
-      status=1
-      break
-    fi
+    status=0
+    run_scope "$item_scope" "$log" || status=$?
+    [ "$status" -eq 0 ] || break
   done
 
   if [ "$status" -eq 0 ]; then
     record_verification "$slug" "$scope" "$head" "pass" "$log"
     printf '\n검증 통과: %s / %s (HEAD %s)\n로그: %s\n' "$slug" "$scope" "$head" "$log"
+  elif [ "$status" -eq 2 ]; then
+    reason="${BLOCK_REASON:-환경 사전 조건을 만족하지 못했습니다}"
+    record_verification "$slug" "$scope" "$head" "blocked" "$log" "$reason"
+    printf '\n검증 보류: %s / %s (HEAD %s) — 코드 실패가 아닙니다.\n사유: %s\n로그: %s\n' \
+      "$slug" "$scope" "$head" "$reason" "$log" >&2
+    exit 1
   else
     record_verification "$slug" "$scope" "$head" "fail" "$log"
     printf '\n검증 실패: %s / %s (HEAD %s)\n로그: %s\n' "$slug" "$scope" "$head" "$log" >&2
@@ -445,14 +539,22 @@ latest_record_field() {
 }
 
 print_status() {
-  local slug="$1" merged scope result head log_path line
+  local slug="$1" merged scope result head log_path line pending partial
   if [ ! -f "$(state_file "$slug")" ]; then
     printf '%-36s %s\n' "$slug" "미시작"
     return 0
   fi
   merged="$(meta_get "$slug" merged_sha)"
   if [ -n "$merged" ]; then
-    printf '%-36s 병합 %s\n' "$slug" "$merged"
+    pending="$(meta_get "$slug" cleanup_pending)"
+    partial="$(meta_get "$slug" partial_reason)"
+    if [ -n "$pending" ]; then
+      printf '%-36s 병합 %s (워크트리 정리 미완: %s)\n' "$slug" "$merged" "$pending"
+    elif [ -n "$partial" ]; then
+      printf '%-36s 병합 %s (부분 검증: %s)\n' "$slug" "$merged" "$partial"
+    else
+      printf '%-36s 병합 %s\n' "$slug" "$merged"
+    fi
     return 0
   fi
   scope="$(latest_record_field "$slug" scope)"
@@ -494,6 +596,7 @@ cmd_status() {
   done
 
   if [ -n "$slug" ]; then
+    validate_slug "$slug"
     print_status "$slug"
     return 0
   fi
@@ -545,6 +648,7 @@ default_merge_message() {
 resolve_slug() {
   local requested="$1" candidates=() file slug
   if [ -n "$requested" ]; then
+    validate_slug "$requested"
     if [ ! -f "$(state_file "$requested")" ]; then
       die "상태 파일이 없습니다: $(state_file "$requested")"
     fi
@@ -568,7 +672,7 @@ resolve_slug() {
 }
 
 cmd_merge() {
-  local keep=0 message="" requested=""
+  local keep=0 message="" requested="" partial=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --keep)
@@ -578,6 +682,12 @@ cmd_merge() {
       --message)
         [ "$#" -ge 2 ] || die "--message 값이 필요합니다."
         message="$2"
+        shift 2
+        ;;
+      --partial)
+        [ "$#" -ge 2 ] || die "--partial 값에 병합 사유가 필요합니다."
+        [ -n "${2//[[:space:]]/}" ] || die "--partial 사유가 비어 있습니다. 환경상 full 검증이 불가능한 이유를 적어야 합니다."
+        partial="$2"
         shift 2
         ;;
       --help|-h)
@@ -618,8 +728,28 @@ cmd_merge() {
   if [ ! -s "$record" ]; then
     die "검증 기록이 없습니다: $record. verify를 먼저 실행하세요."
   fi
-  if ! grep -F "\"head\": \"$item_head\"" "$record" | grep -F '"result": "pass"' >/dev/null; then
-    die "현재 HEAD($item_head)에 대한 pass 검증 기록이 없습니다. verify --scope full을 다시 실행하세요."
+
+  # 게이트 2: 기본 요구는 현재 HEAD의 full pass입니다. --partial은 환경상 full이 불가능할 때만 쓰는 예외입니다.
+  local last_summary full_pass=0 any_pass=0
+  last_summary="scope=$(latest_record_field "$slug" scope) result=$(latest_record_field "$slug" result) head=$(latest_record_field "$slug" head)"
+  if grep -F "\"head\": \"$item_head\"" "$record" | grep -F '"result": "pass"' >/dev/null; then
+    any_pass=1
+  fi
+  if grep -F "\"head\": \"$item_head\"" "$record" | grep -F '"result": "pass"' | grep -F '"scope": "full"' >/dev/null; then
+    full_pass=1
+  fi
+  if [ "$full_pass" -eq 0 ]; then
+    if [ -z "$partial" ]; then
+      die "현재 HEAD($item_head)에 대한 full 검증 pass 기록이 없습니다. 마지막 기록: $last_summary. verify --scope full을 실행하거나, 환경상 불가능하면 merge --partial \"<이유>\"를 쓰세요."
+    fi
+    if [ "$any_pass" -eq 0 ]; then
+      die "현재 HEAD($item_head)에 대한 pass 검증 기록이 없습니다. 마지막 기록: $last_summary. --partial도 pass 기록은 필요합니다."
+    fi
+    printf '경고: --partial 병합입니다. full 검증 없이 병합합니다.\n  사유: %s\n  사유를 PLAN-016 항목 기록에 반드시 남기고, 사유가 해소되면 full 검증을 다시 실행하세요.\n' \
+      "$partial" >&2
+  elif [ -n "$partial" ]; then
+    printf '참고: 현재 HEAD에 full 검증 pass 기록이 있으므로 --partial 사유를 기록하지 않습니다.\n' >&2
+    partial=""
   fi
 
   require_clean_tracked "$MAIN_ROOT" "main 작업 디렉터리" || exit 1
@@ -643,24 +773,41 @@ cmd_merge() {
   local merged_sha
   merged_sha="$(git -C "$MAIN_ROOT" rev-parse HEAD)"
   meta_set "$slug" merged_sha "$merged_sha"
+  if [ -n "$partial" ]; then
+    meta_set "$slug" partial_reason "$partial"
+    meta_set "$slug" partial_head "$item_head"
+  fi
   write_state "$slug"
   printf '병합 완료: %s\n  병합 커밋: %s\n  메시지: %s\n' "$slug" "$merged_sha" "$message"
+  if [ -n "$partial" ]; then
+    printf '  부분 검증: %s (상태 파일: %s)\n' "$partial" "$(state_file "$slug")"
+  fi
 
   if [ "$keep" -eq 1 ]; then
     printf '  --keep: 워크트리와 브랜치를 남깁니다.\n    워크트리 %s\n    브랜치 %s\n' "$worktree_path" "$branch"
     return 0
   fi
 
+  local cleanup_failed=""
   if git -C "$MAIN_ROOT" worktree remove "$worktree_path"; then
     printf '  워크트리 제거: %s\n' "$worktree_path"
   else
+    cleanup_failed="$worktree_path"
     printf '경고: 워크트리를 제거하지 못했습니다(추적되지 않은 파일이 있을 수 있음): %s\n' "$worktree_path" >&2
-    printf '      정리 후 git worktree remove %s, git branch -d %s를 실행하세요.\n' "$worktree_path" "$branch" >&2
+    printf '      내용을 확인한 뒤 다음을 실행하세요:\n' >&2
+    printf '        git worktree remove --force %s\n' "$worktree_path" >&2
+    printf '        git branch -d %s\n' "$branch" >&2
   fi
   if git -C "$MAIN_ROOT" branch -d "$branch"; then
     printf '  브랜치 삭제: %s\n' "$branch"
   else
-    printf '경고: 브랜치를 삭제하지 못했습니다: %s\n' "$branch" >&2
+    printf '경고: 브랜치를 삭제하지 못했습니다(워크트리가 남아 있으면 워크트리 제거 뒤 다시 실행): %s\n' "$branch" >&2
+    [ -n "$cleanup_failed" ] || cleanup_failed="$worktree_path"
+  fi
+  if [ -n "$cleanup_failed" ]; then
+    meta_set "$slug" cleanup_pending "$cleanup_failed"
+    write_state "$slug"
+    printf '      정리 전 상태: scripts/item_flow.sh status %s 에 정리 미완으로 표시됩니다.\n' "$slug" >&2
   fi
 }
 
