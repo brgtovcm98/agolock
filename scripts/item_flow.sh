@@ -72,6 +72,8 @@ usage_merge() {
   --message "<text>"  병합 커밋 메시지를 대체합니다. 기본값은 "merge: <ID> <요약>"입니다.
   --partial "<이유>"  환경상 full 검증을 실행할 수 없을 때만 쓰는 예외입니다. 이유가 비어 있으면 거부합니다.
                       현재 HEAD의 pass 기록(scope 무관)을 요구하고, 사유를 상태 파일에 남깁니다.
+                      --partial이 아닌 병합은 --keep을 쓰더라도 이전 partial 사유를 지웁니다.
+                      cleanup_pending은 워크트리·브랜치 정리에 성공한 경우에만 지웁니다.
 
 메인 체크아웃에서 실행합니다. 게이트 4종을 모두 통과해야 병합합니다(fail-closed).
   1) 항목 워크트리에 추적 파일 변경이 없음
@@ -817,6 +819,10 @@ cmd_merge() {
   if [ -n "$partial" ]; then
     meta_set "$slug" partial_reason "$partial"
     meta_set "$slug" partial_head "$item_head"
+  else
+    # 앞선 --partial 병합의 흔적은 최신 full 검증 병합과 어긋나므로 병합 직후 지웁니다. --keep은 정리에만 영향을 줍니다.
+    meta_set "$slug" partial_reason ""
+    meta_set "$slug" partial_head ""
   fi
   write_state "$slug"
   printf '병합 완료: %s\n  병합 커밋: %s\n  메시지: %s\n' "$slug" "$merged_sha" "$message"
@@ -850,12 +856,8 @@ cmd_merge() {
     write_state "$slug"
     printf '      정리 전 상태: scripts/item_flow.sh status %s 에 정리 미완으로 표시됩니다.\n' "$slug" >&2
   else
-    # 앞선 --partial 병합이나 정리 실패의 흔적은 최신 병합 결과와 어긋나므로 지웁니다.
+    # 정리에 성공한 경우에만 이전 정리 실패 흔적을 지웁니다. partial 값은 병합 직후 이미 정리했습니다.
     meta_set "$slug" cleanup_pending ""
-    if [ -z "$partial" ]; then
-      meta_set "$slug" partial_reason ""
-      meta_set "$slug" partial_head ""
-    fi
     write_state "$slug"
   fi
 }

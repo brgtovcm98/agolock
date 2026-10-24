@@ -116,7 +116,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 `merge --partial "<이유>"`는 환경상 `full`을 실행할 수 없을 때만 쓰는 예외입니다. 이유가 비어 있으면 거부하고, 이유가 있으면 현재 HEAD의 `pass` 기록(scope 무관)을 요구하면서 경고를 출력하고 `partial_reason`·`partial_head`를 기록합니다. 이 예외를 쓴 항목은 사유를 6번 항목 기록에 그대로 옮기고, 사유가 해소되면 `full`을 다시 실행합니다.
 
-`merged_sha`는 병합 커밋, `cleanup_pending`은 병합 뒤 워크트리·브랜치 정리가 끝나지 않은 경로입니다. `status`는 `cleanup_pending`이 있으면 `병합 <sha> (워크트리 정리 미완: <경로>)`로, `partial_reason`만 있으면 `병합 <sha> (부분 검증: <사유>)`로 표시합니다. 정리까지 끝난 병합이 `full` pass로 다시 수행되면 이전 `partial_reason`·`partial_head`·`cleanup_pending`은 지워 최신 병합 결과만 남깁니다.
+`merged_sha`는 병합 커밋, `cleanup_pending`은 병합 뒤 워크트리·브랜치 정리가 끝나지 않은 경로입니다. `status`는 `cleanup_pending`이 있으면 `병합 <sha> (워크트리 정리 미완: <경로>)`로, `partial_reason`만 있으면 `병합 <sha> (부분 검증: <사유>)`로 표시합니다. `--partial`이 아닌 병합은 `--keep`을 쓰더라도 병합 직후 이전 `partial_reason`·`partial_head`를 지웁니다. `cleanup_pending`은 워크트리·브랜치 정리에 성공한 경우에만 지우므로, `--keep` 병합 뒤에는 실제로 정리될 때까지 남습니다.
 
 `clean` 판정은 추적 파일 기준입니다(`git status --porcelain --untracked-files=no`). 커밋하지 않은 untracked 파일은 경고만 남기고 진행합니다. 상태 파일은 사람이 읽는 `<slug>.json` 외에 구현용 `<slug>.meta`(기본 정보)와 `<slug>.verify.jsonl`(검증 기록 원본)을 함께 쓰며, 세 파일 모두 저장소 밖에서만 관리합니다. `worktree`와 `log` 값은 절대 경로로 기록합니다.
 
@@ -131,13 +131,13 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | `e2e` | `pnpm install --frozen-lockfile`(워트리에 `node_modules` 없을 때) → `pnpm exec playwright install chromium`(브라우저 없을 때) → `pnpm test:e2e` |
 | `full` | 위 5개 전부. 병합 전 필수(환경상 불가능하면 `merge --partial "<이유>"`) |
 
-각 스코프는 명령 실행 전에 환경 사전 조건을 확인합니다. `pnpm`·`java`·`python3`·`./gradlew`가 없거나, `pnpm install`·Playwright 브라우저 설치가 실패하거나, `backend`에서 Docker를 사용할 수 없거나, `e2e`에서 `127.0.0.1:5173`이 점유되어 있으면 명령을 실행하지 않고 `result: blocked`로 기록한 뒤 `환경 실패(보류): <이유> — 코드 실패가 아닙니다`를 출력하고 exit 1합니다. 아래 목록이 `blocked`로 기록하는 사전 조건의 단일 기준이며, 목록에 없는 실패는 코드·테스트 실패와 같은 `fail`로 기록되므로 로그를 근거로 판단합니다.
+각 스코프는 명령 실행 전에 환경 사전 조건을 확인합니다. `pnpm`·`java`·`python3`·`./gradlew`가 없거나 `python3`의 `yaml` 모듈을 불러올 수 없거나, `pnpm install`·Playwright 브라우저 설치가 실패하거나, `backend`에서 Docker를 사용할 수 없거나, `e2e`에서 `127.0.0.1:5173`이 점유되어 있으면 명령을 실행하지 않고 `result: blocked`로 기록한 뒤 `환경 실패(보류): <이유> — 코드 실패가 아닙니다`를 출력하고 exit 1합니다. 아래 목록이 `blocked`로 기록하는 사전 조건의 단일 기준이며, 목록에 없는 실패는 코드·테스트 실패와 같은 `fail`로 기록되므로 로그를 근거로 판단합니다.
 
 ### 3.4 도구 경로와 사전 조건
 
 - 스크립트는 `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`로 메인 체크아웃 루트를 찾아 그쪽 `scripts/env.sh`를 source합니다. `--git-common-dir`가 돌려주는 값은 공통 `.git` 디렉터리이므로 그대로 루트로 쓰지 않습니다. 워크트리에는 `.tools`, `.gradle-user`, `.python-packages`, `.playwright-browsers`가 없기 때문입니다.
 - `GRADLE_USER_HOME`, `NPM_CONFIG_CACHE`, `PYTHONPATH`, `PLAYWRIGHT_BROWSERS_PATH`는 메인 체크아웃 기준으로 고정합니다. `node_modules`는 워크트리마다 설치합니다.
-- 검증 전에 `python3 -c "import yaml"`이 성공하는지 확인합니다. 실패하면 검증을 시작하지 않습니다.
+- 검증 전에 `python3 -c "import yaml"`이 성공하는지 확인합니다. 실패하면 `blocked`(보류)로 기록하고 검증을 시작하지 않습니다.
 - `verify --scope e2e` 전에 `127.0.0.1:5173` 점유를 확인합니다. 점유되어 있으면 다른 서버를 재사용하지 않고 `blocked`(보류)로 기록하며 자동으로 종료하지 않습니다. 점유 확인은 `ss -ltn`을 우선 쓰고, `ss`가 없으면 2초 제한 연결로 수행해 확인 자체가 멈추지 않게 하며 `5173 포트 확인: <결과> (<경과>)`를 출력합니다.
 - 스크립트가 확인하는 사전 조건(3.3번 목록)만 `blocked`(보류)입니다. 컨테이너가 기동한 뒤 실패하거나 Mailpit·가입 설정이 문제인 경우처럼 목록 밖의 환경 문제는 `fail`로 기록되므로 로그를 근거로 판단합니다. 환경 문제를 코드 수정으로 덮지 않습니다.
 - `scripts/item_flow.sh`는 `bash`와 `set -euo pipefail`만 사용하며 파이썬 패키지나 외부 유틸 의존을 새로 추가하지 않습니다.
