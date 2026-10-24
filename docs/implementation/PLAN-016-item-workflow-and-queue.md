@@ -125,7 +125,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | scope | 실행 명령 |
 |---|---|
 | `docs` | `python3 scripts/docs_check.py` |
-| `backend` | `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` |
+| `backend` | `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test`(`:backend:cleanTest`가 이전 테스트 결과를 지워 `:backend:test`가 `UP-TO-DATE`로 건너뛰지 않게 함) |
 | `frontend` | `pnpm install --frozen-lockfile`(워크트리에 `node_modules` 없을 때) → `pnpm generate:api` → `git diff --exit-code frontend/src/shared/api/schema.d.ts` → `pnpm lint` → `pnpm format:check` → `pnpm test` → `pnpm build` |
 | `contract` | `./gradlew :backend:generateOpenApiPreview` → `python3 scripts/normalize_openapi.py` → `python3 scripts/export_events.py` → `python3 scripts/docs_check.py` |
 | `e2e` | `pnpm install --frozen-lockfile`(워트리에 `node_modules` 없을 때) → `pnpm exec playwright install chromium`(브라우저 없을 때) → `pnpm test:e2e` |
@@ -282,7 +282,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 이 환경에서 `compileKotlin`·`compileTestKotlin`이 Kotlin 데몬 RMI 연결로 수 분 멈추는 경우가 있어 컴파일이 필요하면 `-Pkotlin.compiler.execution.strategy=in-process`를 붙입니다. 테스트 동작은 바뀌지 않고 컴파일 위치만 달라집니다.
 
-`verify --scope backend`는 Gradle 증분 판정을 그대로 따르므로, 직전 실행의 테스트 결과가 살아 있으면 `:backend:test`가 `UP-TO-DATE`로 끝나 테스트를 다시 실행하지 않고도 `pass`를 기록합니다. 실제 실행을 근거로 남기려면 위 표처럼 `:backend:cleanTest`를 먼저 실행합니다.
+`verify --scope backend`는 Gradle 증분 판정을 그대로 따르므로, 직전 실행의 테스트 결과가 살아 있으면 `:backend:test`가 `UP-TO-DATE`로 끝나 테스트를 다시 실행하지 않고도 `pass`를 기록했습니다. 이 구멍은 `scripts/item_flow.sh`가 `:backend:cleanTest`를 함께 실행하도록 고쳐 닫았으므로(3.3번 표), 이후 기록은 항상 실제 테스트 실행을 근거로 남깁니다. 위 표의 `backend` 행은 수정 전 스크립트로 실행한 이력이라 `cleanTest`를 별도 명령으로 적었습니다.
 
 #### 6.1.4 컨테이너 회계
 
@@ -301,7 +301,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | 참고 | 커넥션 여유: context 6개 × `maximum-pool-size: 10`이면 약 60커넥션이 Postgres 기본 `max_connections` 100에 걸립니다. 지금은 여유가 있지만 context 조합이 7~8개로 늘면 확인해야 합니다 | context를 늘리는 변경은 이 수치를 함께 확인합니다 |
 | 참고 | `test_<uuid>` 데이터베이스는 지우지 않습니다. 컨테이너가 사라지면 함께 사라져 실행 간 상태가 남지 않고, 정리 코드를 넣으면 살아 있는 context와 경쟁할 수 있습니다 | 삭제 로직을 추가하지 않습니다 |
 | 권장 | 로그 판정 기준: 공유 컨테이너를 빈으로 두던 중간 형태는 종료 시 ERROR를 남겼고 지금은 0줄입니다. 이후 테스트 로그는 `BUILD SUCCESSFUL`과 `backend/build/test-results/test/TEST-*.xml` 카운트로 판정합니다 | `docs/operations.md` 6.5에 같은 기준을 적었습니다 |
-| 권장 | `verify --scope backend`는 Gradle 증분 판정을 그대로 따르므로 `:backend:test`가 `UP-TO-DATE`이면 테스트를 다시 실행하지 않고도 `pass`를 기록합니다 | 실제 실행 증거가 필요하면 `:backend:cleanTest`를 먼저 실행합니다. 스크립트에 이 단계를 넣는 것은 후속 개선 항목으로 남깁니다(pass만 보고 실행 여부를 구분하지 않음) |
+| 권장 | `verify --scope backend`는 Gradle 증분 판정을 그대로 따르므로 `:backend:test`가 `UP-TO-DATE`이면 테스트를 다시 실행하지 않고도 `pass`를 기록했습니다. 이 구멍은 닫았습니다: 스크립트가 `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test`를 실행하고 테스트를 다시 실행한다는 줄을 출력합니다 | 3.3번 표와 `docs/operations.md` 6.4·6.5에 반영 |
 
 ### 6.2 INV-01 실제 API 브라우저 편집 화면 타임아웃
 
