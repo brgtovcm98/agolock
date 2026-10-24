@@ -323,6 +323,15 @@ scripts/staging_runbook.sh smoke
 - 이미지 테스트는 작은 샘플 파일을 사용합니다.
 - AI provider는 테스트에서 stub 또는 fake로 대체합니다.
 
+### 6.4 항목 단위 작업과 검증
+
+- 항목 1건은 독립 워크트리 `../agolock-worktrees/<slug>`와 브랜치 `item/<slug>`에서 작업하고, 워크트리 생성·검증 기록·병합은 `scripts/item_flow.sh`가 강제합니다. 규약과 대기열은 [PLAN-016](implementation/PLAN-016-item-workflow-and-queue.md)이 단일 기준입니다.
+- `scripts/item_flow.sh start <slug>`는 `main`이 clean일 때만 워크트리와 브랜치를 만들고 `../agolock-worktrees/.state/<slug>.json`을 초기화합니다.
+- `scripts/item_flow.sh verify --scope docs|backend|frontend|contract|e2e|full`은 CI와 같은 명령을 실행하고 로그 경로·종료 코드·HEAD SHA를 상태 파일에 남깁니다. 병합 전에는 `full`이 필수입니다.
+- `scripts/item_flow.sh merge`는 항목 워크트리 clean, 현재 HEAD의 `pass` 검증 기록, `main` clean을 모두 확인할 때만 `--no-ff`로 병합하고 워크트리와 `item/` 브랜치를 정리합니다.
+- `verify --scope e2e`는 `127.0.0.1:5173`이 점유되어 있으면 다른 서버를 재사용하지 않고 실패로 기록합니다.
+- 검증 로그와 상태 파일은 저장소 밖 `../agolock-worktrees/.state/`에 두며 커밋하지 않습니다.
+
 ## 7. 관측
 
 - 구조화 로그에 `request_id`, `space_id`, `user_id`, `job_id`를 포함합니다.

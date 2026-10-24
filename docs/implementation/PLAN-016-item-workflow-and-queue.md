@@ -65,7 +65,7 @@ graph LR
 scripts/item_flow.sh start <slug> [--base main]
 scripts/item_flow.sh verify [--scope docs|contract|backend|frontend|e2e|full]
 scripts/item_flow.sh status [<slug>]
-scripts/item_flow.sh merge [--keep] [--message "<text>"]
+scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"]
 ```
 
 | 명령 | 전제 | 동작과 거부 조건 |
@@ -73,7 +73,7 @@ scripts/item_flow.sh merge [--keep] [--message "<text>"]
 | `start` | `main` 작업 디렉터리, `main` clean, 같은 slug의 워크트리·브랜치 없음 | 워크트리와 `item/<slug>` 브랜치를 만들고 상태 파일을 초기화합니다. dirty이거나 이미 있으면 exit 1이며 아무것도 바꾸지 않습니다. |
 | `verify` | `item/` 브랜치 워크트리 안 | `--scope` 기본값은 `full`입니다. 스코프 명령을 순서대로 실행하고 각 종료 코드를 로그에 남기며, 전체 결과와 HEAD SHA를 상태 파일에 기록합니다. 하나라도 실패하면 `result`는 `fail`입니다. |
 | `status` | 없음 | 상태 파일을 읽어 브랜치·검증 결과·HEAD SHA·병합 SHA를 출력합니다. slug를 생략하면 전체 상태를 출력합니다. |
-| `merge` | `main` 작업 디렉터리, 게이트 3종 통과 | `git merge --no-ff` 후 워크트리를 제거하고 `item/` 브랜치를 삭제합니다. `--keep`은 정리만 생략하고, `--message "<text>"`는 병합 커밋 메시지를 대체합니다. |
+| `merge` | `main` 작업 디렉터리, 게이트 3종 통과 | `git merge --no-ff` 후 워크트리를 제거하고 `item/` 브랜치를 삭제합니다. `--keep`은 정리만 생략하고, `--message "<text>"`는 병합 커밋 메시지를 대체합니다. slug를 생략하면 워크트리가 남아 있는 항목을 자동 선택하며, 병합할 커밋이 없으면 거부합니다. |
 
 ### 3.2 상태 파일
 
@@ -83,7 +83,7 @@ scripts/item_flow.sh merge [--keep] [--message "<text>"]
 {
   "item": "inv-02-test-suite-green",
   "branch": "item/inv-02-test-suite-green",
-  "worktree": "../agolock-worktrees/inv-02-test-suite-green",
+  "worktree": "<절대 경로>/agolock-worktrees/inv-02-test-suite-green",
   "base": "main",
   "base_sha": "<40자 SHA>",
   "verifications": [
@@ -91,7 +91,7 @@ scripts/item_flow.sh merge [--keep] [--message "<text>"]
       "scope": "full",
       "head": "<40자 SHA>",
       "result": "pass",
-      "log": "../agolock-worktrees/.state/logs/inv-02-20261024T101500.log",
+      "log": "<절대 경로>/agolock-worktrees/.state/logs/inv-02-20261024T101500.log",
       "finished_at": "2026-10-24T10:15:00+09:00"
     }
   ],
@@ -100,6 +100,8 @@ scripts/item_flow.sh merge [--keep] [--message "<text>"]
 ```
 
 `merge`는 ① 워크트리 clean ② 현재 HEAD에 대한 `result: pass` 검증 기록 존재 ③ `main` clean을 모두 만족할 때만 병합합니다. 하나라도 어긋나면 병합하지 않고 이유를 출력합니다.
+
+`clean` 판정은 추적 파일 기준입니다(`git status --porcelain --untracked-files=no`). 커밋하지 않은 untracked 파일은 경고만 남기고 진행합니다. 상태 파일은 사람이 읽는 `<slug>.json` 외에 구현용 `<slug>.meta`(기본 정보)와 `<slug>.verify.jsonl`(검증 기록 원본)을 함께 쓰며, 세 파일 모두 저장소 밖에서만 관리합니다. `worktree`와 `log` 값은 절대 경로로 기록합니다.
 
 ### 3.3 verify 스코프와 명령
 
