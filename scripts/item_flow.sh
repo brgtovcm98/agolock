@@ -113,7 +113,26 @@ state_file() { printf '%s/%s.json\n' "$STATE_DIR" "$1"; }
 
 iso_now() { date +%Y-%m-%dT%H:%M:%S%:z; }
 
-json_escape() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+# 경과 시간을 밀리초로 재기 위한 현재 시각입니다. bash 5의 EPOCHREALTIME을 우선 쓰고, 없으면 초 단위로 떨어집니다.
+now_ms() {
+  if [ -n "${EPOCHREALTIME:-}" ]; then
+    local t="${EPOCHREALTIME//[.,]/}"
+    printf '%s' "$(( t / 1000 ))"
+  else
+    printf '%s' "$(( $(date +%s) * 1000 ))"
+  fi
+}
+
+# 여러 줄 문자열을 한 줄로 눌러 meta(한 줄 단위)와 JSON에서 값을 잃지 않게 합니다.
+# JSON 문자열에 넣을 수 없는 제어 문자는 공백으로 바꿉니다.
+flatten_text() {
+  printf '%s' "$1" | tr '\r\n\t' '   ' | tr -d '\000-\010\013\014\016-\037'
+}
+
+# JSON 문자열에 넣을 수 없는 문자를 이스케이프합니다.
+json_escape() {
+  flatten_text "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
 
 meta_get() {
   local file
@@ -236,8 +255,20 @@ require_command() {
   command -v "$1" >/dev/null 2>&1
 }
 
+# 포트 점유를 최대 2초 안에 확인합니다. 닫힌 포트에 /dev/tcp로 연결하면 tcp_syn_retries 설정에 따라
+# 수십 초 걸릴 수 있으므로 ss를 우선 쓰고, 없으면 timeout으로 연결 시도 시간을 제한합니다.
 port_busy() {
-  (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1
+  local port="$1" busy=1
+  if require_command ss; then
+    if ss -ltn 2>/dev/null | grep -qE "[:.]${port}([^0-9]|$)"; then
+      busy=0
+    fi
+    return "$busy"
+  fi
+  if timeout 2 bash -c "exec 3<>/dev/tcp/127.0.0.1/${port}" >/dev/null 2>&1; then
+    busy=0
+  fi
+  return "$busy"
 }
 
 docker_ready() {
@@ -343,7 +374,17 @@ run_scope() {
       run_step "$log" python3 scripts/docs_check.py || return 1
       ;;
     e2e)
+      local probe_start probe_elapsed probe_state
+      probe_start="$(now_ms)"
       if port_busy 5173; then
+        probe_state="사용 중"
+      else
+        probe_state="비어 있음"
+      fi
+      probe_elapsed=$(( $(now_ms) - probe_start ))
+      printf '5173 포트 확인: %s (%d.%03ds)\n' \
+        "$probe_state" $((probe_elapsed / 1000)) $((probe_elapsed % 1000)) | tee -a "$log"
+      if [ "$probe_state" = "사용 중" ]; then
         block_env "$log" "127.0.0.1:5173이 이미 사용 중입니다. 다른 서버를 재사용하지 않습니다"
         return 2
       fi
@@ -687,7 +728,7 @@ cmd_merge() {
       --partial)
         [ "$#" -ge 2 ] || die "--partial 값에 병합 사유가 필요합니다."
         [ -n "${2//[[:space:]]/}" ] || die "--partial 사유가 비어 있습니다. 환경상 full 검증이 불가능한 이유를 적어야 합니다."
-        partial="$2"
+        partial="$(flatten_text "$2")"
         shift 2
         ;;
       --help|-h)
@@ -808,6 +849,14 @@ cmd_merge() {
     meta_set "$slug" cleanup_pending "$cleanup_failed"
     write_state "$slug"
     printf '      정리 전 상태: scripts/item_flow.sh status %s 에 정리 미완으로 표시됩니다.\n' "$slug" >&2
+  else
+    # 앞선 --partial 병합이나 정리 실패의 흔적은 최신 병합 결과와 어긋나므로 지웁니다.
+    meta_set "$slug" cleanup_pending ""
+    if [ -z "$partial" ]; then
+      meta_set "$slug" partial_reason ""
+      meta_set "$slug" partial_head ""
+    fi
+    write_state "$slug"
   fi
 }
 
