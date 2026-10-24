@@ -282,3 +282,14 @@ flowchart TD
 - VERSION_CONFLICT는 작성 내용을 보존하고 원본 필드의 기준값·입력·최신값을 비교합니다. 서로 다른 필드의 변경은 합치고 같은 필드의 다른 변경은 사용자가 선택합니다. 자동 재저장하지 않습니다.
 - 최신 조회가 403·404이면 입력을 보존하고 저장을 막습니다. 저장하지 않은 변경이 있으면 화면 이탈을 확인합니다.
 - 연결 재고·위치 재고·물건·카테고리·위치 선택은 다음 페이지를 조회할 수 있습니다. 일부만 조회한 개수를 전체 개수로 표시하지 않습니다.
+
+## 11. 실제 API 브라우저 검증
+
+- `frontend/e2e/inventory-live.spec.ts`는 라우트를 가로채지 않고 실제 백엔드로 소유자·공유 `MANAGE` 흐름을 확인하는 시나리오입니다. `INVENTORY_LIVE=1`일 때만 실행되고 그 외에는 스킵됩니다.
+- 확인 범위는 가입 → 방·선반·박스 생성 → `/inventory` 등록 → `/inventory/{id}/edit`의 빈 설명·0원 오버라이드 저장 → 같은 Space 위치 이동 → Mailpit 초대 수락 → 공유 `MANAGE` 재고 추가·이동입니다.
+- 준비 순서는 인프라(`infra/docker-compose.yml`의 `postgres`·`rabbitmq`·`minio`·`mailpit`) → 독립 DB → API(8087) → 이 작업 디렉터리의 Vite(5173, API 대상 고정) → Playwright 실행입니다.
+- API는 실제 제품과 같은 `local` 프로필로 띄우고 `DATABASE_URL`은 독립 DB를, `AUTH_SIGNUP_INVITE_REQUIRED=false`와 `PUBLIC_BASE_URL`은 그 환경에 맞는 값을 넘깁니다. 준비 판정은 기동 로그의 `Started AgolockApplicationKt`와 `GET /api/v1/auth/csrf` = 200이며, `/actuator/health`는 로컬 프로필에서도 인증이 필요해 판정에 쓰지 않습니다.
+- Vite는 `VITE_API_TARGET`으로 API를 고정합니다. `playwright.config.ts`의 `webServer`는 이 값을 넘기지 않으므로 서버는 Playwright보다 먼저 직접 띄우고, 5173은 이 작업 디렉터리 서버만 점유하게 합니다.
+- 셸에 `CI=1`이 있으면 `reuseExistingServer`가 꺼져 5173 점유만으로 실패합니다. 그래서 `env -u CI INVENTORY_LIVE=1 MAILPIT_URL=http://127.0.0.1:8025 pnpm exec playwright test e2e/inventory-live.spec.ts --workers=1 --trace on --reporter=line`으로 실행합니다.
+- `desktop-chromium`과 `mobile-chromium` 두 프로젝트에서 각각 통과해야 합니다. 2026-10-24 실행에서 두 프로젝트를 각각 두 번씩, 총 네 번 모두 통과했습니다(프로젝트당 6.6~7.3초, 두 프로젝트 연속 16.8초). 환경 값과 근거는 [PLAN-016 6.2](implementation/PLAN-016-item-workflow-and-queue.md)에 있습니다.
+- 체크박스·라디오는 `Choice`가 `sr-only` 입력 위에 22px 장식 박스를 그리므로([디자인 시스템 3번 항목 R-15](design-system.md)) 스펙에서 `check()`를 쓰지 않고 `label`을 클릭한 뒤 `toBeChecked()`로 확인합니다.
