@@ -16,7 +16,7 @@ commands:
   backup      PostgreSQL custom-format 백업 생성
   migrate     app 재배포(Flyway V19~V23 적용)
   audit       scripts/audit_data.sql 실행
-  smoke       readiness/auth config 확인
+  smoke       내부 health·공개 healthz·인증 설정·비인증 접근 확인
   load        k6 실행 안내
 USAGE
 }
@@ -75,13 +75,48 @@ audit() {
     < "$ROOT/scripts/audit_data.sql"
 }
 
-smoke() {
-  require_env_file
-  docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" \
-    exec -T app curl -fsS "http://127.0.0.1:9090/actuator/health/readiness"
-  curl -fsS -o /dev/null -w 'auth config: %{http_code}\n' "$PUBLIC_BASE_URL/api/v1/auth/config"
-  curl -sS -o /dev/null -w 'info unauth: %{http_code}\n' "$PUBLIC_BASE_URL/api/v1/info"
+check_status() {
+  local label="$1" expected="$2" actual="$3"
+  if [[ "$actual" != "$expected" ]]; then
+    echo "$label: expected $expected, got $actual" >&2
+    return 1
+  fi
+  echo "$label: $actual"
 }
+
+smoke() (
+  require_env_file
+  : "${PUBLIC_BASE_URL:?required}"
+  local base_url="${PUBLIC_BASE_URL%/}" response_dir status path
+  response_dir="$(mktemp -d)"
+  trap 'rm -rf "$response_dir"' EXIT
+
+  # Actuator는 공개하지 않고 app 컨테이너의 관리 포트에서 확인한다.
+  for path in liveness readiness; do
+    status="$(docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" \
+      exec -T app curl -sS --connect-timeout 5 --max-time 15 \
+      -o /dev/null -w '%{http_code}' "http://127.0.0.1:9090/actuator/health/$path")"
+    check_status "$path" 200 "$status"
+  done
+
+  status="$(curl -sS --connect-timeout 5 --max-time 15 -o /dev/null -w '%{http_code}' "$base_url/healthz")"
+  check_status healthz 200 "$status"
+  status="$(curl -sS --connect-timeout 5 --max-time 15 -o "$response_dir/auth.json" \
+    -w '%{http_code}' "$base_url/api/v1/auth/config")"
+  check_status 'auth config' 200 "$status"
+  python3 - "$response_dir/auth.json" <<'PYTHON'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as response:
+    config = json.load(response)
+if not isinstance(config, dict) or type(config.get("inviteRequired")) is not bool:
+    sys.exit("auth config: inviteRequired must be a boolean")
+print("auth config body: ok")
+PYTHON
+  status="$(curl -sS --connect-timeout 5 --max-time 15 -o /dev/null -w '%{http_code}' "$base_url/api/v1/info")"
+  check_status 'info unauth' 401 "$status"
+)
 
 load() {
   cat <<'MSG'

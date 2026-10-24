@@ -253,6 +253,7 @@ scripts/staging_runbook.sh smoke
 - M0의 readiness는 DB와 RabbitMQ만 확인하고, S3 health indicator는 M5 이미지 파이프라인에서 추가합니다.
 - AI provider 장애는 readiness 실패로 처리하지 않습니다.
 - 헬스 응답에는 비밀 값과 내부 오류 상세를 포함하지 않습니다.
+- 배포 후 `bash scripts/staging_runbook.sh smoke`로 컨테이너 내부 liveness·readiness, 공개 `/healthz`·인증 설정 API의 HTTP 200, `inviteRequired`의 Boolean 타입, 비인증 `/api/v1/info`의 HTTP 401을 확인합니다. 예상 상태·응답 형식과 다르거나 연결에 실패하면 실패로 종료합니다. 실행 호스트에 Docker Compose·curl·Python 3가 필요합니다.
 
 ## 5.7 부하/실행 계획
 
@@ -271,6 +272,8 @@ scripts/staging_runbook.sh smoke
 - PostgreSQL + pgvector 컨테이너로 통합 테스트를 수행합니다.
 - RabbitMQ 컨테이너로 Outbox·DLQ·재시도를 검증합니다.
 - MyBatis 매퍼는 실제 SQL로 검증합니다.
+- V21 이메일 인증 백필은 별도 DB에 V15와 기존 사용자를 준비하고 V16·V20을 거쳐 적용합니다. 기존 미인증 사용자의 보정, V16 경계·이후 가입자와 삭제 사용자의 제외, 기존 인증 시각 보존을 확인합니다.
+- liveness·readiness는 `ApplicationSmokeTest`, 비인증 접근은 `SecurityConfigTest`에서 확인합니다. RabbitMQ 연결은 실제 메시지 발행·DLQ 이동 통합 테스트에서 함께 확인합니다.
 - 권한·테넌트 격리 테스트는 필수입니다.
 - M0 공통 기반은 UUIDv7, `request_id`, 설정 검증, 로그 마스킹, problem+json, 계약 미리보기로 검증합니다.
 
@@ -325,9 +328,10 @@ scripts/staging_runbook.sh smoke
 
 ### 6.4 항목 단위 작업과 검증
 
-- 일반 기능 작업은 현재 작업 브랜치나 워크트리에서 바로 진행합니다. 전용 워크트리·`item/<slug>` 브랜치·`scripts/item_flow.sh` 사용·작업 대기열 등록은 요구하지 않습니다.
+- 문서·설계 변경 검사는 `docs.yml`에서 실행합니다. `ci.yml`은 백엔드·프론트엔드 검증과 생성 계약 미리보기를 검사하며, 계약 생성 뒤의 문서 검사는 생성물과의 정합성 확인을 위해 유지합니다.
+- 일반 기능 작업은 현재 작업 브랜치나 워크트리에서 바로 진행합니다. 전용 워크트리·`item/<slug>` 브랜치·작업 대기열 등록은 요구하지 않습니다.
 - 변경에 맞는 검증을 선택하고 실행 결과를 기록합니다. 전체 검증은 여러 영역을 함께 바꾸거나 릴리스 준비를 할 때 사용하며, 모든 기능 작업의 병합 전 게이트로 요구하지 않습니다.
-- 남은 작업은 [TODO](todo.md)에서 관리합니다. 기존 PLAN과 `scripts/item_flow.sh`는 과거 실행 기록·도구이며, 기능 작업의 시작이나 로컬 병합을 위한 필수 절차로 적용하지 않습니다.
+- 남은 작업은 [TODO](todo.md)에서 관리합니다. 기존 PLAN은 과거 실행 기록이며, 기능 작업의 시작이나 로컬 병합을 위한 필수 절차로 적용하지 않습니다. 과거 `item_flow.sh` 도구는 제거했습니다.
 - push·배포 등 외부 시스템이나 사용자에게 영향을 주는 반영은 실행 전에 사용자 확인을 받습니다.
 
 ### 6.5 테스트 컨테이너 수명과 실행 환경
@@ -337,7 +341,7 @@ scripts/staging_runbook.sh smoke
 - context 사이의 스키마 간섭을 막기 위해 context마다 빈 데이터베이스 `test_<uuid>`를 하나 만듭니다. 한 스키마를 공유하면 `@Scheduled` Outbox relay가 다른 context의 `PENDING` 이벤트를 가져가 그 context의 메일 fake로 발송해, 초대 메일을 기다리는 테스트가 실패할 수 있습니다. 이 데이터베이스는 명시적으로 삭제하지 않으며 컨테이너와 함께 사라집니다.
 - 컨테이너는 마지막 테스트 뒤 JVM 종료와 함께 내려가고 Ryuk이 20~35초 뒤 정리합니다. 실행 직후가 아니라 35초 뒤 `docker ps -a`로 남은 컨테이너가 없는지 확인합니다.
 - 컨테이너 수 회귀 감지는 `docker events --since <시작 epoch> --until <종료 epoch> --filter type=container --filter event=create --format '{{.Actor.Attributes.image}}' | sort | uniq -c`로 합니다. 정상값은 pgvector 1, RabbitMQ 1, MinIO 1, Ryuk 1의 합계 4이며, 늘어나면 테스트 JVM당 한 쌍 공유가 깨진 것입니다.
-- 테스트 결과 판정은 `BUILD SUCCESSFUL`과 `backend/build/test-results/test/TEST-*.xml`의 `tests`·`failures`·`errors`·`skipped` 합계로 합니다. 종료 로그에 남는 일부 ERROR만으로 실패로 판정하지 않습니다. `:backend:test`는 이전 결과가 남아 있으면 `UP-TO-DATE`로 끝나 테스트를 실행하지 않으므로, 실행 증거가 필요하면 `:backend:cleanTest`를 함께 실행합니다(`verify --scope backend`는 항상 이렇게 실행합니다).
+- 테스트 결과 판정은 `BUILD SUCCESSFUL`과 `backend/build/test-results/test/TEST-*.xml`의 `tests`·`failures`·`errors`·`skipped` 합계로 합니다. 종료 로그에 남는 일부 ERROR만으로 실패로 판정하지 않습니다. `:backend:test`는 이전 결과가 남아 있으면 `UP-TO-DATE`로 끝나 테스트를 실행하지 않으므로, 실행 증거가 필요하면 `:backend:cleanTest`를 함께 실행합니다.
 - 이 개발 환경에서 `compileKotlin`·`compileTestKotlin`이 Kotlin 컴파일 데몬의 RMI 연결에서 수 분 멈추는 경우가 있습니다. 그때는 `-Pkotlin.compiler.execution.strategy=in-process`를 붙여 컴파일하며, 테스트 동작은 바뀌지 않습니다.
 - Gradle 실행 전 `source scripts/env.sh`로 `GRADLE_USER_HOME`·`NPM_CONFIG_CACHE`·`PYTHONPATH`·`PLAYWRIGHT_BROWSERS_PATH`를 메인 체크아웃 기준으로 고정하고 JDK 21 `JAVA_HOME`을 사용합니다. 기본 `java`가 21이 아니면 Gradle 실행이 실패합니다.
 

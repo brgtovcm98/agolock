@@ -36,12 +36,5 @@ class ApplicationSmokeTest
             assertThat(response.body).contains("\"status\":\"UP\"")
         }
 
-        @Test
-        fun `info API는 인증을 요구한다`() {
-            val response = restTemplate.getForEntity("/api/v1/info", Map::class.java)
-
-            assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
-        }
-
         private fun managementUrl(path: String): String = "http://127.0.0.1:$managementPort$path"
     }

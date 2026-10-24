@@ -58,18 +58,7 @@ INV-01·INV-02는 완료 기록이 있어 제외했습니다. 오래된 체크�
 | OPS-05 | 비밀·의존성·컨테이너 취약점 검사, Gradle 의존성 검증·잠금 정책, SBOM·이미지 서명의 적용 상태를 확인하고 필요한 보호를 구성합니다. | [운영](operations.md), [공급망 제안](implementation/PLAN-009-release-hardening.md) |
 | OPS-06 | 제품 단계별 실제 종료 조건과 운영 안내·개인정보 고지·파일럿·릴리스 태그를 확인합니다. AI 출시는 비용·품질·오류 복구도 확인합니다. | [운영의 제품 단계](operations.md#9-로드맵), [출시 체크리스트 참고](implementation/PLAN-009-release-hardening.md) |
 
-## 4. 기존 도구의 개선 후보
-
-`scripts/item_flow.sh`는 보관된 절차를 지원하는 기존 도구입니다. 이 도구의 개선은 기능 작업의 선행 조건이 아니며, 다시 사용할 필요가 있을 때 선택합니다.
-
-| ID | 할 일과 완료 기준 | 참고 |
-|---|---|---|
-| TOOL-01 | 검증 시 미커밋 변경을 거부하거나 dirty 상태를 기록해 다른 내용의 HEAD에 pass가 붙지 않게 합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
-| TOOL-02 | 필요하면 main에서도 같은 검증 스코프와 결과 기록을 사용할 수 있게 합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
-| TOOL-03 | 대기열 파싱 범위를 제한해 status에 잘못된 `배제` 항목이 나타나지 않게 합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
-| TOOL-04 | 실제 API 검증의 trace·로그를 임시 디렉터리 밖에 보관하도록 지원합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
-
-## 5. 제품 결정이 필요한 후보
+## 4. 제품 결정이 필요한 후보
 
 - Undo·햅틱·사운드는 필요성과 지원 범위를 먼저 결정합니다. [기존 사용성 제안](implementation/PLAN-012-microinteractions.md)을 참고합니다.
 - 그룹·링크·직접 공유, 인앱 알림, 사진별 임베딩, Space 간 복사, 감사 로그 UI·내보내기, OAuth와 선반별 비공개 예외는 [3차 확장 후보](operations.md#3차-확장)입니다. 현재 MVP의 미완료 결함으로 취급하지 않습니다.

@@ -17,12 +17,14 @@ cp deploy/.env.staging.example deploy/.env.staging
 # 값을 채운 뒤
 docker compose -f deploy/compose.staging.yml --env-file deploy/.env.staging up -d --build
 docker compose -f deploy/compose.staging.yml --env-file deploy/.env.staging ps
-docker compose -f deploy/compose.staging.yml exec app curl -fsS http://127.0.0.1:9090/actuator/health/readiness
+bash scripts/staging_runbook.sh smoke
 ```
 
 `PUBLIC_BASE_URL`은 실제 HTTPS 주소여야 합니다. staging은 `SESSION_COOKIE_SECURE=true`이므로 TLS 종단(로드밸런서 또는 리버스 프록시) 뒤에서 접속합니다. 로컬에서 HTTP로만 확인하려면 `APP_ENVIRONMENT=local`로 별도 실행하고 staging 프로필을 사용하지 않습니다.
 
 `S3_PUBLIC_ENDPOINT`는 **브라우저에서 접근 가능한 S3 주소**입니다. Compose의 MinIO를 외부에 공개하지 않는다면 관리형 S3 또는 별도 HTTPS 프록시를 사용하고, 이 값을 그 주소로 설정하세요. 서버 내부 접근은 `S3_ENDPOINT`를 사용합니다.
+
+smoke 실행 호스트에는 Docker Compose·curl·Python 3가 필요합니다. 내부 liveness·readiness, 공개 `/healthz`와 인증 설정의 HTTP 200, `inviteRequired`의 Boolean 타입, 비인증 `/api/v1/info`의 HTTP 401을 확인하며, 하나라도 다르면 실패합니다.
 
 ## worker
 

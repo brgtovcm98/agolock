@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.server.LocalManagementPort
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -22,7 +21,6 @@ class SecurityConfigTest
     @Autowired
     constructor(
         private val restTemplate: TestRestTemplate,
-        @LocalManagementPort private val managementPort: Int,
         private val jdbcTemplate: JdbcTemplate,
     ) {
         @Test
@@ -49,25 +47,6 @@ class SecurityConfigTest
 
             assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
             assertThat(response.body).contains("inviteRequired")
-        }
-
-        @Test
-        fun `인증 없이 rooms API를 호출하면 401이다`() {
-            val response = restTemplate.getForEntity("/api/v1/rooms", String::class.java)
-
-            assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
-        }
-
-        @Test
-        fun `liveness는 관리 포트에서 200이다`() {
-            val response =
-                restTemplate.getForEntity(
-                    "http://127.0.0.1:$managementPort/actuator/health/liveness",
-                    String::class.java,
-                )
-
-            assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-            assertThat(response.body).contains("\"status\":\"UP\"")
         }
 
         @Test
