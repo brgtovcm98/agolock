@@ -14,7 +14,7 @@
 | 착수 기준 | main `f27f0f7` |
 | 구현 | `447c97178a8cb966c83a9b6c67a805c727b48906` |
 | 검증 기록 | `7c42304` |
-| 작업 브랜치 | `fix/inventory-hardening`, main 미병합·remote 미설정·push/배포 미실시 |
+| 작업 브랜치 | `fix/inventory-hardening`에서 작업해 main에 반영됨(`447c971`). `origin/main` 동일, 실제 VPS 배포 미실시 |
 
 ## 2. 반영 결과
 

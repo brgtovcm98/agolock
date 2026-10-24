@@ -6,7 +6,7 @@
 > 관련 문서: [M5 계획](PLAN-006-media-messaging.md), [M6 계획](PLAN-007-search.md), [M8 계획](PLAN-009-release-hardening.md), [등록 UX P0/P1](PLAN-010-registration-ux.md), [화면과 흐름](../frontend.md), [아키텍처](../architecture.md)
 > 전제: M0~M4 핵심 구현, M5.5 P0와 배포 골격 및 M6 검색 MVP·보완 구현. M7은 2차이며 출시·운영 gate는 별도 검증
 
-> 현재 완료/미완료 판정은 [PLAN-015](PLAN-015-current-status-and-followups.md)를 따릅니다. 아래 작업 표는 원래 실행 계획이며, 이미 구현된 Dockerfile·Box 이동·검색 보완을 미구현으로 해석하지 않습니다. 물건·재고 후속 커밋은 main 통합 전입니다.
+> 현재 완료/미완료 판정은 [PLAN-015](PLAN-015-current-status-and-followups.md)를 따릅니다. 아래 작업 표는 원래 실행 계획이며, 이미 구현된 Dockerfile·Box 이동·검색 보완을 미구현으로 해석하지 않습니다. 물건·재고 후속 커밋(`447c971`·`7c42304`)은 main에 통합됐습니다.
 
 ## 1. 목표와 비목표
 

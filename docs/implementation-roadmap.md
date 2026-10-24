@@ -16,7 +16,7 @@
 
 ### 현재 구현과 후속 작업 (2026-10-24)
 
-현재 브랜치별 반영 상태·검증 결과·남은 작업의 통합 입구는 [PLAN-015](implementation/PLAN-015-current-status-and-followups.md)입니다. 이 문서의 마일스톤 표는 원래 작업 순서와 종료 조건이며 모든 조건의 현재 완료를 뜻하지 않습니다. 물건·재고 변경은 [PLAN-014](implementation/PLAN-014-inventory-hardening.md)에 반영됐고 실제 API 검증·일부 구조 정리·main 통합이 남아 있습니다.
+현재 완료 작업·검증 결과·남은 작업의 통합 입구는 [PLAN-015](implementation/PLAN-015-current-status-and-followups.md)입니다. 이 문서의 마일스톤 표는 원래 작업 순서와 종료 조건이며 모든 조건의 현재 완료를 뜻하지 않습니다. 물건·재고 변경은 [PLAN-014](implementation/PLAN-014-inventory-hardening.md) 결과대로 `447c971`과 `7c42304`가 `main`에 병합됐고 브랜치는 `main` 하나이며, 남은 것은 실제 API 브라우저 검증과 일부 구조 정리입니다. 남은 항목의 실행·검증·리뷰·병합은 [PLAN-016](implementation/PLAN-016-item-workflow-and-queue.md) 루프를 따릅니다.
 
 ## 2. 전제
 

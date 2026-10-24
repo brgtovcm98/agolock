@@ -220,6 +220,7 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 | [PLAN-013](docs/implementation/PLAN-013-ui-review-followups.md) | UI·공유 소유자 표시 후속 |
 | [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md) | 물건·재고 개선 결과와 검증 |
 | [PLAN-015](docs/implementation/PLAN-015-current-status-and-followups.md) | 현재 브랜치·완료 작업·남은 개선 전체 목록 |
+| [PLAN-016](docs/implementation/PLAN-016-item-workflow-and-queue.md) | 항목 단위 워크트리·검증·리뷰·병합 루프와 17건 대기열(이번 배치 개선 15건) |
 | [docs/generated/data-dictionary.md](docs/generated/data-dictionary.md) | 테이블·컬럼·인덱스·제약 (설계 초안) |
 | [docs/generated/openapi.yaml](docs/generated/openapi.yaml) | HTTP API 계약 (설계 초안) |
 | [docs/generated/events.yaml](docs/generated/events.yaml) | 비동기 이벤트 계약 (설계 초안) |
@@ -248,6 +249,6 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 
 ## 현재 작업과 다음 단계
 
-2026-10-24 기준 기존 릴리스·검색 보완은 로컬 main에 통합됐고, 물건·재고 개선은 `fix/inventory-hardening`의 `447c971`·`7c42304`에 있습니다. 실제 API 브라우저 검증과 main 통합은 아직 남아 있습니다.
+2026-10-24 기준 기존 릴리스·검색 보완과 물건·재고 개선(`447c971`·`7c42304`)은 로컬 `main`과 `origin/main`에 반영됐습니다. 백엔드 전체 테스트는 175개 중 169개가 통과했고 `HierarchyIntegrationTest` 6개는 분리 재실행에서만 통과했으며, 실제 API 브라우저 시나리오는 편집 화면에서 시간 초과가 남아 있습니다. 같은 커밋의 전체 검증 단일 실행과 실제 API 성공 증거는 아직 없습니다.
 
-완료 작업·검증 근거·남은 기능/구조/출시 작업·실행 순서는 [현재 현황과 후속 개선 목록](docs/implementation/PLAN-015-current-status-and-followups.md)을 먼저 읽습니다. 물건·재고의 상세 결과는 [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md), 제품 단계와 배포 기준은 [운영](docs/operations.md)과 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.
+이후 작업은 항목마다 독립 워크트리와 `item/<slug>` 브랜치를 만들어 검증·리뷰·승인 후 `--no-ff`로 병합하는 [PLAN-016 루프](docs/implementation/PLAN-016-item-workflow-and-queue.md)를 따르며, 이번 배치는 INV-02 → INV-01 순서입니다. 완료 작업·검증 근거·남은 기능/구조/출시 작업은 [현재 현황과 후속 개선 목록](docs/implementation/PLAN-015-current-status-and-followups.md)을 먼저 읽습니다. 물건·재고의 상세 결과는 [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md), 제품 단계와 배포 기준은 [운영](docs/operations.md)과 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.

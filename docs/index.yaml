@@ -801,3 +801,17 @@ docs:
     generated: false
     related_adrs: [ADR-023]
     last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
+
+  - id: PLAN_016_ITEM_WORKFLOW
+    path: docs/implementation/PLAN-016-item-workflow-and-queue.md
+    title: 항목 단위 작업 루프와 대기열
+    summary: 워크트리·브랜치·검증·리뷰·승인·병합 8단계 규약, 17건 대기열(이번 배치 개선 15건), 항목별 검증·리뷰 기록
+    read_when:
+      - 항목 단위로 물건·재고·출시 후속 작업을 시작하거나 병합할 때
+      - 워크트리·검증 로그·리뷰 보고·병합 게이트 규약을 확인할 때
+    code_paths:
+      - scripts/item_flow.sh
+      - docs/implementation/PLAN-016-item-workflow-and-queue.md
+    generated: false
+    related_adrs: []
+    last_verified_commit: pending
