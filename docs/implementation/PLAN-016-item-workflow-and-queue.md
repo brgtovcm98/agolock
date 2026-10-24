@@ -1,6 +1,6 @@
 # PLAN-016: 항목 단위 작업 루프와 대기열
 
-> 상태: 규약 확정, INV-02 리뷰 대기·INV-01 실행 대기 (2026-10-24)
+> 상태: 규약 확정, INV-02 리뷰 대기(기존 프론트·브라우저 실패로 병합 보류)·INV-01 실행 대기 (2026-10-24)
 > 역할: 항목 1건을 독립 워크트리에서 수정·검증·리뷰·병합하는 8단계 루프와 17건 대기열(그중 이번 배치 개선 항목 15건)의 단일 기준
 > 상위 문서: [PLAN-015](PLAN-015-current-status-and-followups.md), [구현 로드맵](../implementation-roadmap.md)
 > 검증 기준: [CI](../../.github/workflows/ci.yml), [운영](../operations.md), [AGENTS.md 3번 항목](../../AGENTS.md)
@@ -241,7 +241,7 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | 기준 SHA | `2e1a55b1240dcda004252ab2e9299ac3124cae93`(`main`) |
 | 실행 환경 | `source scripts/env.sh`(메인 체크아웃 기준), JDK 21 `temurin-21.0.12+101.0.LTS`, Gradle 8.14.3, Docker 29.7.2 |
 | 변경 요약 | 테스트 인프라 1개 파일 `backend/src/test/kotlin/com/agolock/support/TestcontainersConfiguration.kt`(+82/−5). 제품 코드(`backend/src/main/kotlin`), 프론트엔드, 기존 테스트, `backend/build.gradle.kts`, `application-test.yml`은 바꾸지 않았습니다 |
-| 검증 | 6.1.3. 이번 기록은 `docs`·`backend`·`contract` 스코프이며, 현재 HEAD의 `full`은 리뷰 승인 뒤 병합 전에 실행합니다 |
+| 검증 | 6.1.3. 현재 HEAD `b2677da`에서 `docs`·`backend`는 pass, `frontend`·`e2e`·`full`은 이 항목과 무관한 기존 실패로 fail입니다(6.1.6). 병합 전 `full` pass가 필요합니다 |
 | 영향 문서 | `docs/operations.md` 6.5, 이 문서 6.1, [PLAN-015](PLAN-015-current-status-and-followups.md) 2·3번 항목 |
 | 리뷰 | 6.1.5의 위험 항목. 차단 0건, 참고·권장만 있습니다 |
 | 승인 | 대기 |
@@ -277,6 +277,13 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | `docs` | `python3 scripts/docs_check.py` | pass, 51개 인덱스 문서·53개 Markdown | `.state/logs/inv-02-test-suite-green-20261024T200500-321567.log` | `d853143` |
 | `backend` | `./gradlew :backend:cleanTest` 뒤 `./gradlew :backend:ktlintCheck :backend:detekt :backend:test` | pass, 46클래스·175테스트·실패 0·오류 0·스킵 0, 46초 | `.state/logs/inv-02-test-suite-green-20261024T200523-322984.log` | `d853143` |
 | `contract` | `./gradlew :backend:generateOpenApiPreview` → `python3 scripts/normalize_openapi.py` → `python3 scripts/export_events.py` → `python3 scripts/docs_check.py` | pass, OpenAPI 60 path·이벤트 0채널(기존 생성기 한계), 19초 | `.state/logs/inv-02-test-suite-green-20261024T200620-325639.log` | `d853143` |
+| `docs` | `python3 scripts/docs_check.py` | pass, 51개 인덱스 문서·53개 Markdown, 0.7초 | `.state/logs/inv-02-test-suite-green-20261024T201113-336024.log` | `b2677da` |
+| `backend` | `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test` | pass, 46클래스·175테스트·실패 0·오류 0·스킵 0, 51초(`:backend:cleanTest` 실행으로 실제 테스트 실행 확인) | `.state/logs/inv-02-test-suite-green-20261024T201116-336243.log` | `b2677da` |
+| `frontend` | `pnpm install --frozen-lockfile` → `pnpm generate:api` → `git diff --exit-code frontend/src/shared/api/schema.d.ts` → `pnpm lint` → `pnpm format:check` → `pnpm test` | fail: 앞 단계는 모두 통과, `pnpm test`에서 50개 중 1개 실패(`inventory-edit-page.test.tsx` "재고값을 직접 입력해 오버라이드를 저장한다"), 29초 | `.state/logs/inv-02-test-suite-green-20261024T201214-338518.log` | `b2677da` |
+| `e2e` | `pnpm --filter @agolock/frontend exec playwright install chromium` → `pnpm test:e2e` | fail: 28개 통과·2개 스킵·4개 실패(`registration.spec.ts:117` "등록했어요." 미표시, `inventory-images.spec.ts:141` "준비됨" 미표시가 데스크톱·모바일 각각), 2분 48초 | `.state/logs/inv-02-test-suite-green-20261024T201246-340277.log` | `b2677da` |
+| `full` | 위 5개 순서 | fail: `docs`·`backend` 통과 뒤 `frontend`의 `pnpm test`에서 중단되어 `contract`·`e2e`는 실행하지 않음, 1분 22초 | `.state/logs/inv-02-test-suite-green-20261024T201541-346619.log` | `b2677da` |
+
+`frontend`·`e2e`·`full`의 실패는 이 항목이 바꾼 파일과 무관합니다. 이 항목의 diff는 테스트 인프라 파일 1개뿐이고 `frontend/`는 `main`과 동일하므로, 네 건은 모두 `main`에도 그대로 있는 기존 실패입니다. 자세한 내용은 6.1.6번 항목에 적었습니다.
 
 로그 경로는 `../agolock-worktrees/.state/logs/` 아래이며 상태 파일 `inv-02-test-suite-green.json`의 `verifications[]`에 같은 값이 기록됩니다. `backend` 로그의 `grep -c ERROR`는 0이고 `HierarchyIntegrationTest`는 6건 모두 통과했습니다(1.271초). 커밋 전 같은 코드로 `./gradlew :backend:cleanTest :backend:test`를 두 번 연속 실행해 46클래스·175테스트·실패 0을 확인했고 로그는 `/tmp/inv02-fix-run1.log`·`/tmp/inv02-fix-run2.log`에 남겼습니다(세션 임시 경로). `./gradlew :backend:ktlintCheck :backend:detekt --rerun-tasks`도 통과했습니다.
 
@@ -302,6 +309,25 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 | 참고 | `test_<uuid>` 데이터베이스는 지우지 않습니다. 컨테이너가 사라지면 함께 사라져 실행 간 상태가 남지 않고, 정리 코드를 넣으면 살아 있는 context와 경쟁할 수 있습니다 | 삭제 로직을 추가하지 않습니다 |
 | 권장 | 로그 판정 기준: 공유 컨테이너를 빈으로 두던 중간 형태는 종료 시 ERROR를 남겼고 지금은 0줄입니다. 이후 테스트 로그는 `BUILD SUCCESSFUL`과 `backend/build/test-results/test/TEST-*.xml` 카운트로 판정합니다 | `docs/operations.md` 6.5에 같은 기준을 적었습니다 |
 | 권장 | `verify --scope backend`는 Gradle 증분 판정을 그대로 따르므로 `:backend:test`가 `UP-TO-DATE`이면 테스트를 다시 실행하지 않고도 `pass`를 기록했습니다. 이 구멍은 닫았습니다: 스크립트가 `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test`를 실행하고 테스트를 다시 실행한다는 줄을 출력합니다 | 3.3번 표와 `docs/operations.md` 6.4·6.5에 반영 |
+
+#### 6.1.6 병합을 막는 기존 프론트·브라우저 실패
+
+`frontend`·`e2e`·`full` 기록이 `fail`인 원인은 이 항목의 변경이 아니라 `main`에 이미 있는 실패입니다. 이 항목은 `frontend/`와 그 테스트를 건드리지 않았으므로 diff로 설명할 수 없고, 병합 게이트를 통과하려면 별도 수정이 필요합니다.
+
+| 실패 | 위치 | 증상 | 성격 |
+|---|---|---|---|
+| 프론트 단위 테스트 | `frontend/src/features/inventory/inventory-edit-page.test.tsx` | `pnpm test` 50개 중 1개 실패. "재고값을 직접 입력해 오버라이드를 저장한다"에서 `role="heading"`·`name="내 드릴"`을 찾지 못함 | 기존 실패. `frontend`의 다른 단계(generate:api·schema diff·lint·format:check)는 모두 통과 |
+| mock 모드 e2e | `frontend/e2e/registration.spec.ts:117` | 등록 다이얼로그의 "등록했어요."가 5초 안에 표시되지 않음(재시도 2회도 동일) | 기존 실패. 데스크톱·모바일 각각 발생 |
+| mock 모드 e2e | `frontend/e2e/inventory-images.spec.ts:141` | 업로드 뒤 "준비됨" 상태가 표시되지 않음(재시도 2회도 동일) | 기존 실패. 데스크톱·모바일 각각 발생 |
+
+`e2e` 전체는 34건 중 28건 통과·2건 스킵·4건 실패였습니다. 그래서 `full`은 `docs`·`backend`를 통과한 뒤 `frontend`의 `pnpm test`에서 중단되고 `contract`·`e2e`를 실행하지 못했습니다.
+
+이 실패는 코드·테스트 실패이므로 `blocked`도 `merge --partial` 대상도 아닙니다. 병합 게이트가 `full`의 `pass`를 요구하므로, INV-02를 병합하려면 다음 중 하나를 먼저 결정해야 합니다.
+
+1. 위 3개 실패를 별도 항목(대기열 신규 등록, 예: `rel-10-frontend-test-green`)으로 먼저 처리하고 그 항목을 병합한 뒤 INV-02의 `full`을 다시 실행합니다. 변경 성격이 다르므로 이 항목에 섞지 않는 편이 리뷰와 이력에 유리합니다.
+2. 사용자가 INV-02의 범위에 위 수정을 포함하기로 결정하면 이 항목에서 함께 고치고 `full`을 다시 실행합니다. 이 경우 `frontend/src/features/**`와 `frontend/e2e/**`까지 diff가 늘어나므로 6.1.2번 항목의 변경 요약도 함께 갱신합니다.
+
+어느 쪽이든 실패를 덮는 방식(테스트 약화·`skip`·게이트 우회)은 쓰지 않습니다.
 
 ### 6.2 INV-01 실제 API 브라우저 편집 화면 타임아웃
 
