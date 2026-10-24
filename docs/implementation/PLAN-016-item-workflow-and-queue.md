@@ -333,16 +333,110 @@ scripts/item_flow.sh merge [<slug>] [--keep] [--message "<text>"] [--partial "<�
 
 | 필드 | 기록 내용 |
 |---|---|
-| 상태 | 대기. 실행 시 `진행`·`리뷰`·`승인`·`병합`으로 갱신 |
+| 상태 | 리뷰 (2026-10-24). 다음 호출에서 `verify --scope full`과 5번 항목 리뷰 보고를 마친 뒤 `승인`·`병합`으로 갱신하고 병합 SHA를 채웁니다 |
 | 브랜치·워크트리 | `item/inv-01-live-inventory-e2e`, `../agolock-worktrees/inv-01-live-inventory-e2e` |
-| 기준 SHA | 항목 시작 시 `main` HEAD |
-| 변경 요약 | 실행 시 `git diff --stat main...HEAD` 결과 |
-| 실행 조건 | API 포트·독립 DB·Mailpit·가입 설정·`VITE_API_TARGET`·5173 서버 상태 |
-| 검증 | scope·명령·결과·로그 경로·HEAD SHA와 `desktop-chromium`·`mobile-chromium` trace 경로 |
-| 영향 문서 | `docs_impact.py` 결과와 실제 갱신 문서 |
-| 리뷰 | 심각도별 발견사항과 파일:줄, 조치안 |
-| 승인 | 승인 판정과 일시, 재계획 내역 |
-| 병합 SHA | `main` 병합 후 기록 |
+| 기준 SHA | `09121d0baf385bea7cb40096344e275261a9ed63`(`main`, INV-02 병합 커밋) |
+| 변경 요약 | `git diff --stat main...HEAD` 1개 파일 `frontend/e2e/inventory-live.spec.ts`(+7/−2). 제품 코드와 `frontend/playwright.config.ts`·`frontend/vite.config.ts`, 테스트 단계·단언, `test.setTimeout(120000)`은 바꾸지 않았습니다 |
+| 실행 조건 | 6.2.2번 항목 |
+| 검증 | 6.2.4번 항목. 데스크톱·모바일 각 2회, 총 4회 실행 모두 `pass`입니다. 병합 게이트용 `verify --scope full`은 다음 호출에서 기록합니다 |
+| 영향 문서 | 6.2.5번 항목 |
+| 리뷰 | 대기. 6.2.6번 항목의 사전 점검 항목을 5.1번 체크리스트로 확인해 다음 호출에서 보고서를 작성합니다 |
+| 승인 | 대기 |
+| 병합 SHA | — |
+
+#### 6.2.1 진단과 원인
+
+수정 전 기준 실행(로그 `/tmp/inv01-baseline.log`, 560초 캡)은 `desktop-chromium`과 `mobile-chromium`이 모두 `frontend/e2e/inventory-live.spec.ts:66`의 `page.getByRole('checkbox', { name: /설명/ }).check()`에서 `Test timeout of 120000ms exceeded`로 끝났습니다(2건 실패, 약 4분 30초). 페이지는 정상 렌더됐고 `GET /api/v1/inventories/{id}`, `GET /api/v1/categories?itemId=…`, `POST /api/v1/inventories`가 모두 200/201이었습니다.
+
+원인은 제품이 아니라 **테스트 로케이터**입니다. `frontend/src/shared/ui/choice.tsx:12-25`의 `Choice`는 `<label>` 안에 `<input type="checkbox" class="peer sr-only">`와 `<span aria-hidden="true" class="… size-[22px]">`를 두고, 1px로 클립된 입력 위를 22px 장식 `span`이 덮습니다. 이 사각 박스는 [디자인 시스템 3번 항목 R-15](../design-system.md)가 요구하는 규격입니다. Playwright의 `check()`는 입력 자체를 클릭하므로 `<span …> intercepts pointer events`로 229회 재시도한 뒤 테스트 시간 초과가 됩니다. 그 결과 `설명`·`가격` 오버라이드가 켜지지 않아 이어지는 `getByLabel('재고 설명')`·`getByLabel('재고 가격')`이 `disabled` 상태에서 대기했습니다. 실사용자는 `label`을 누르므로 제품 동작은 정상이고, 제품 코드는 고치지 않았습니다.
+
+| 후보 | 판정 | 근거 |
+|---|---|---|
+| 체크박스 `check()`가 `sr-only` 입력을 클릭하려다 장식 `span`에 가로막힘 | 원인 | `choice.tsx:12-25`의 `sr-only` + 22px `span`, `design-system.md:65` R-15, Playwright call log 229회 재시도 |
+| 페이지 미렌더·라우팅 실패 | 배제 | `error-context.md` 아리아 스냅숏에 `재고 편집` h1, 체크박스 4개, 설명·가격 필드가 모두 존재 |
+| 아이템 상세·카테고리 API 오류, 세션·CSRF 실패 | 배제 | 상세 200, 카테고리 200, `POST /inventories` 201, `PATCH /inventories/{id}` 200 |
+| 시드 데이터(방·선반·박스 체인) 부재 | 배제 | 스펙이 세 위치를 200/201로 만들고 `selectOption`이 성공한 뒤 66행에서 멈춤 |
+| 빈 설명·0원 케이스의 클라이언트 검증 차단 | 배제 | `inventory-edit-page.tsx:86-91`은 `descriptionOn`/`priceOn`일 때 빈 문자열·0을 그대로 전송하고, 검증은 이름·가격 문자열만 봅니다 |
+| `DirtyLeave`/`useBlocker`가 이동을 막음(INV-02 변경 영향) | 배제 | 저장 클릭 뒤 125ms 만에 URL이 바뀌었고 이동 차단 다이얼로그 0건 |
+| 5173 서버가 다른 API를 봄 | 배제 | 5173 프로세스의 `/proc/<pid>/cwd`가 이 워크트리이고 `VITE_API_TARGET=http://127.0.0.1:8087`이며 프록시 `GET /api/v1/auth/csrf`가 200 |
+| Mailpit·공유 플로우 문제 | 배제 | 초대 메일 3.9초 수신, 수락, 공유 `MANAGE` 재고 추가·이동까지 통과 |
+
+#### 6.2.2 실행 조건
+
+실제 API 시나리오는 `INVENTORY_LIVE=1`일 때만 실행되고 라우트를 가로채지 않습니다. 아래 순서로 준비합니다.
+
+1. 인프라: `docker compose -f infra/docker-compose.yml up -d`로 `postgres`(pgvector, 5432)·`rabbitmq`(5672·15672)·`minio`(9000·9001)·`mailpit`(1025·8025)를 올립니다.
+2. 독립 DB: 같은 Postgres 컨테이너에 `agolock_live` 데이터베이스를 만들고 `agolock` 데이터베이스는 쓰지 않습니다. API가 기동하며 Flyway 이력을 적용합니다.
+3. API(포트 8087, 워크트리 산출물): `./gradlew :backend:bootJar`(JDK 21, `source scripts/env.sh`, 컴파일이 멈추면 `-Pkotlin.compiler.execution.strategy=in-process`) 뒤 아래 환경으로 `java -jar backend/build/libs/backend-0.1.0.jar`를 실행합니다. 기동 로그의 `Started AgolockApplicationKt`와 `curl -o /dev/null -w '%{http_code}' http://127.0.0.1:8087/api/v1/auth/csrf` = 200으로 준비를 판정합니다(`/actuator/health`는 로컬 프로필에서도 401이라 판정에 쓰지 않습니다).
+
+   ```bash
+   SPRING_PROFILES_ACTIVE=local SERVER_PORT=8087 APP_ENVIRONMENT=local \
+   DATABASE_URL=jdbc:postgresql://localhost:5432/agolock_live DATABASE_USERNAME=agolock DATABASE_PASSWORD=agolock \
+   RABBITMQ_HOST=localhost RABBITMQ_PORT=5672 RABBITMQ_USERNAME=agolock RABBITMQ_PASSWORD=agolock \
+   MAIL_HOST=localhost MAIL_PORT=1025 MAIL_FROM=no-reply@agolock.local \
+   S3_ENDPOINT=http://localhost:9000 S3_PUBLIC_ENDPOINT=http://localhost:9000 S3_BUCKET=agolock-local \
+   S3_ACCESS_KEY=agolock S3_SECRET_KEY=agolock-local-secret \
+   AUTH_SIGNUP_INVITE_REQUIRED=false PUBLIC_BASE_URL=http://127.0.0.1:5173 \
+   java -jar backend/build/libs/backend-0.1.0.jar
+   ```
+
+4. 프론트엔드: 워크트리의 Vite를 **API 대상 고정**으로 직접 띄웁니다. `frontend/playwright.config.ts:14`의 `webServer.command`는 `VITE_API_TARGET`을 넘기지 않으므로 Playwright가 서버를 새로 띄우면 프록시가 `vite.config.ts:6`의 기본값 `http://localhost:8080`을 봅니다. 5173은 이 워크트리 서버가 단독으로 점유해야 하며 `/proc/<pid>/cwd`와 `VITE_API_TARGET`으로 확인합니다.
+
+   ```bash
+   VITE_API_TARGET=http://127.0.0.1:8087 node_modules/.bin/vite --host 127.0.0.1 --port 5173
+   ```
+
+5. 실행: 셸에 `CI=1`이 있으면 `reuseExistingServer: !process.env.CI`가 false가 되어 5173 점유만으로 실패합니다. `env -u CI`로 실행하고 `MAILPIT_URL`을 넘깁니다.
+
+   ```bash
+   env -u CI INVENTORY_LIVE=1 MAILPIT_URL=http://127.0.0.1:8025 \
+     pnpm exec playwright test e2e/inventory-live.spec.ts --workers=1 --trace on --reporter=line
+   ```
+
+이 환경 기준값은 JDK 21(`temurin-21.0.12+101.0.LTS`)·Node 24.20.0·pnpm 10.34.7·Playwright 1.64.1이고, jar 기동은 4.7초였습니다. 이번 실행은 진단 단계에서 같은 커밋으로 만든 jar(20:58)를 재사용했습니다.
+
+#### 6.2.3 수정 내용
+
+`check()`는 `sr-only` 입력을 직접 클릭하려 하므로, 사용자가 하는 동작(label 클릭)으로 바꾸고 체크 상태를 명시적으로 단언합니다. 단계·단언은 줄이지 않았고 `toBeChecked()`가 추가되어 이전보다 엄격합니다.
+
+```ts
+const toggleOverride = async (name: RegExp) => {
+  const box = page.getByRole('checkbox', { name })
+  await box.locator('xpath=ancestor::label').click()
+  await expect(box).toBeChecked()
+}
+await toggleOverride(/설명/)
+await page.getByLabel('재고 설명').fill('')
+await toggleOverride(/가격/)
+await page.getByLabel('재고 가격').fill('0')
+```
+
+#### 6.2.4 검증
+
+| 실행 | 명령 | 결과 | 로그·trace | HEAD SHA |
+|---|---|---|---|---|
+| 1회차 `desktop-chromium` | `env -u CI INVENTORY_LIVE=1 MAILPIT_URL=http://127.0.0.1:8025 pnpm exec playwright test e2e/inventory-live.spec.ts --project=desktop-chromium --workers=1 --trace on --reporter=line` | pass, 1건 통과, 7.3초(벽시계 8초). 수정 전에는 66행에서 120초 시간 초과 | `/tmp/inv01-fixed-desktop.log` | `09121d0` |
+| 1회차 `mobile-chromium` | 같은 명령에서 `--project=mobile-chromium` | pass, 1건 통과, 6.6초(벽시계 7초) | `/tmp/inv01-fixed-mobile.log` | `09121d0` |
+| 2회차 두 프로젝트 | 같은 명령에서 `--project` 없이 실행 | pass, 2건 통과, 16.8초(벽시계 17초) | `/tmp/inv01-fixed-run2.log` | `09121d0` |
+| trace | 2회차 산출물 | 두 프로젝트 모두 녹화 | `frontend/test-results/inventory-live-…-desktop-chromium/trace.zip`, `…-mobile-chromium/trace.zip`(gitignore 대상) | `09121d0` |
+
+네 번의 실행(데스크톱 2회, 모바일 2회)이 모두 통과해 일회성 통과가 아님을 확인했습니다. 시나리오는 그대로입니다: 가입 → 방·선반·박스 생성 → `/inventory` 등록 → `/inventory/{id}/edit` 빈 설명·0원 저장 → 위치 이동 → Mailpit 초대 수락 → 공유 `MANAGE` 재고 추가·이동. 모킹·`skip`·`--partial`·시간 초과 상향은 쓰지 않았습니다.
+
+`verify --scope full`(docs·backend·frontend·contract·e2e)은 다음 호출에서 커밋 뒤 HEAD로 실행해 이 표에 추가합니다.
+
+#### 6.2.5 영향 문서
+
+`python3 scripts/docs_impact.py`는 `frontend/e2e/inventory-live.spec.ts`를 [`PLAN-001`](PLAN-001-foundation.md)의 코드 경로에 매핑합니다. 그 문서의 `code_paths`가 `frontend/**`로 넓고 M0 부트스트랩 계획이라 이 파일 목록을 다루지 않으므로 내용은 고치지 않았습니다. 대신 실행자가 읽을 검증 절차를 [화면과 흐름 11번 항목](../frontend.md)에 넣고 이 문서 6.2를 갱신했습니다. 제품 동작·계약·스키마·디자인 규격 변경이 없어 `docs/generated/*`·`docs/contracts.md`·`docs/design-system.md`는 그대로입니다.
+
+#### 6.2.6 리뷰에서 확인할 점
+
+| 구분 | 내용 | 조치 |
+|---|---|---|
+| 참고 | 이 항목의 시간 초과는 제품 결함이 아니라 테스트 로케이터 결함이었습니다. 실제 사용자는 `label`을 눌러 정상 동작합니다 | 이후 `Choice`·`RadioCard`를 쓰는 스펙은 `check()` 대신 label 클릭 + `toBeChecked()`를 씁니다 |
+| 참고 | 헬퍼가 `xpath=ancestor::label`에 의존합니다. `Choice`의 마크업에서 `label` 조상이 사라지면 이 헬퍼가 깨집니다 | `choice.tsx`를 바꿀 때 이 스펙을 함께 실행합니다 |
+| 참고 | 실제 API 시나리오는 워크트리 Vite가 5173을 단독 점유해야 하고 `env -u CI`가 필요합니다. 그래서 `item_flow.sh verify --scope e2e`(모킹 스모크)와 동시에 돌릴 수 없습니다 | 실행 절차를 `docs/frontend.md` 11번 항목에 적었습니다 |
+| 참고 | `frontend/playwright.config.ts:14`의 `webServer.command`가 `VITE_API_TARGET`을 넘기지 않습니다. Playwright가 서버를 새로 띄우는 환경에서는 기본값 `http://localhost:8080`을 봅니다 | 이번 항목에서는 설정을 바꾸지 않았습니다. CI에서 실제 API를 돌릴 때 검토할 항목으로 남깁니다 |
+| 참고 | `docs/frontend.md`의 10번 항목 제목이 두 번 나옵니다(`구현 상태`, `물건·재고 변경과 충돌 복구`). 이번에 추가한 절은 다음 번호인 11번을 씁니다 | 번호 정리는 별도 문서 항목으로 미룹니다 |
 
 ## 7. 롤백과 충돌
 
