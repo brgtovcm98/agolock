@@ -63,9 +63,14 @@ test('실제 API에서 박스 등록, 빈 설명·0원 저장과 같은 Space �
   expect(response.request().postDataJSON()).not.toHaveProperty('shelfId')
   const inventory = await response.json()
   await page.goto(`/inventory/${inventory.id}/edit`)
-  await page.getByRole('checkbox', { name: /설명/ }).check()
+  const toggleOverride = async (name: RegExp) => {
+    const box = page.getByRole('checkbox', { name })
+    await box.locator('xpath=ancestor::label').click()
+    await expect(box).toBeChecked()
+  }
+  await toggleOverride(/설명/)
   await page.getByLabel('재고 설명').fill('')
-  await page.getByRole('checkbox', { name: /가격/ }).check()
+  await toggleOverride(/가격/)
   await page.getByLabel('재고 가격').fill('0')
   await page.getByRole('button', { name: '저장', exact: true }).click()
   await expect(page).toHaveURL(`/inventory/${inventory.id}`)
