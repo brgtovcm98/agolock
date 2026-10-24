@@ -189,6 +189,7 @@ INV-02·INV-01을 실행하며 남긴 개선 후보입니다. 4.1번 표에 새 
 | `docs/index.yaml`의 `FRONTEND` `code_paths`가 `frontend/e2e/**`를 매핑하지 않음 | `docs_impact.py`가 `frontend/e2e/inventory-live.spec.ts`를 `PLAN_001_FOUNDATION`(`frontend/**`)으로만 매핑해 실제 관련 문서가 나오지 않았습니다 | 이번 배치 마감에서 `frontend/e2e/**`를 추가했고, 같은 파일이 `FRONTEND`·`PLAN_001_FOUNDATION` 두 문서로 매핑되는 것을 확인했습니다 |
 | 저장 핸들러가 `await invalidateInventory()` 뒤에 `navigate()`를 호출 | INV-02 6.1.6번 항목의 ② 원인입니다. 재조회가 느리면 저장 뒤 화면 전환이 그만큼 늦어집니다 | 이동을 먼저 하고 재조회를 백그라운드로 돌리는 구조로 바꾸고, 늦은 재조회에서 입력이 덮이지 않는지 검증 |
 | 실제 API 실행의 trace·로그가 임시 경로 | `frontend/test-results/`는 gitignore 대상이고 `/tmp` 로그는 세션과 함께 사라집니다 | 실행 뒤 trace·로그를 `../agolock-worktrees/.state/artifacts/<slug>/`로 복사하는 단계를 3번 항목에 추가 |
+| `item_flow.sh status`가 대기열에 없는 `배제` 행을 추가 출력 | `scripts/item_flow.sh:419`의 `queue_slugs()`가 `awk`로 2번째 열이 `INV`·`REL` 접두 ID 패턴인 행을 모두 slug 후보로 뽑습니다. 필터가 4.1번 표 범위로 제한되지 않아, 첫 열에 `INV-02`가 들어간 6.2.1번 진단 표의 `DirtyLeave`/useBlocker 행까지 매칭되고 그 2번째 열 `배제`가 없는 항목으로 출력됩니다. `verify`·`merge`는 slug를 인자로 받아 이 경로를 쓰지 않으므로 영향은 `status` 표시뿐입니다 | `queue_slugs()`를 4.1번 표 범위(표 머리행 다음부터 다음 제목 전까지)로 제한하거나 첫 열이 `INV-xx-…`·`REL-xx-…` 모양인 행만 매칭해, `status` 출력이 4.1번 표의 17행과 정확히 일치하도록 정리 |
 
 ## 5. 리뷰와 승인
 
