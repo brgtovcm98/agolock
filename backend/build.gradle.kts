@@ -1,3 +1,4 @@
+import io.gitlab.arturbosch.detekt.getSupportedKotlinVersion
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -16,6 +17,17 @@ description = "AGO Lock backend bootstrap"
 // Spring Boot의 BOM이 Kotlin 표준 라이브러리를 낮은 버전으로 고정하지 않도록
 // 플러그인과 같은 버전을 명시합니다.
 extra["kotlin.version"] = libs.versions.kotlin.get()
+
+dependencyManagement {
+    // 애플리케이션 Kotlin 버전과 detekt 내부 컴파일러 버전을 분리합니다.
+    configurations.named("detekt") {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion(getSupportedKotlinVersion())
+            }
+        }
+    }
+}
 
 java {
     toolchain {

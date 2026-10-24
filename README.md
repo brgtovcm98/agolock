@@ -49,7 +49,7 @@ source scripts/env.sh
 - Python은 3.12 이상이면 됩니다. 로컬 검증은 3.14, CI는 3.12입니다.
 - `.tools/`, `.python-packages/`, `.gradle-user/`는 Git에 커밋하지 않습니다.
 
-`mise`를 사용하는 경우 루트의 `mise.toml`이 JDK 21을 선택합니다. `.tools/` 방식과 둘 중 하나만 사용합니다.
+`mise`를 사용하는 경우 루트의 `mise.toml`이 Temurin JDK 21을 선택합니다. `.tools/` 방식과 둘 중 하나만 사용합니다.
 
 ```bash
 mise trust mise.toml
@@ -57,7 +57,7 @@ mise install
 mise exec -- java -version
 ```
 
-`mise`는 현재 Java 21 계열을 설치하며, 정확한 21.0.12.1 고정이 필요하면 `.tools/` 방식을 사용합니다.
+`mise`는 `temurin-21` 배포판의 Java 21 계열을 선택합니다. 이미 설치된 Temurin 21을 재사용하며, 정확한 21.0.12.1 고정이 필요하면 `.tools/` 방식을 사용합니다.
 
 ### 2. 로컬 인프라
 

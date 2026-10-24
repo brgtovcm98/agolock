@@ -33,6 +33,8 @@ docker compose -f infra/docker-compose.yml up -d
 - RabbitMQ 관리 콘솔은 로컬에서만 노출합니다.
 - Mailpit으로 초대·비밀번호 재설정 메일을 확인합니다.
 - M0의 로컬 도구는 Java 21.0.12.1, Node 22.23.3, pnpm 10.34.7, Gradle 8.14.3입니다. `scripts/install-tools.sh`가 `.tools/`에 설치합니다.
+- 백엔드 Kotlin은 Gradle 8.14 계열과 호환되는 2.2.21을 사용하며 JVM 대상은 21로 유지합니다. mise에서는 배포판을 명시한 `java = "temurin-21"`로 Temurin JDK 21을 선택합니다.
+- detekt 1.23.8은 자체 Kotlin 2.0.21 컴파일러로 실행합니다. `backend/build.gradle.kts`에서 `detekt` 구성의 Kotlin 의존성만 detekt 지원 버전으로 지정해 애플리케이션 Kotlin 버전과 분리합니다.
 
 ## 2. 설정과 비밀
 
