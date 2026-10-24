@@ -1,5 +1,5 @@
 version: 1
-last_updated: "2026-10-23"
+last_updated: "2026-10-24"
 docs:
   - id: PRODUCT
     path: docs/product-spec.md
@@ -31,7 +31,7 @@ docs:
       - ADR-006
       - ADR-011
       - ADR-014
-    last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: DOMAIN
     path: docs/domain.md
@@ -49,7 +49,7 @@ docs:
       - ADR-003
       - ADR-010
       - ADR-011
-    last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: SHARING
     path: docs/sharing.md
@@ -67,7 +67,7 @@ docs:
       - ADR-003
       - ADR-010
       - ADR-013
-    last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: SEARCH
     path: docs/search.md
@@ -124,7 +124,7 @@ docs:
       - ADR-011
       - ADR-013
       - ADR-014
-    last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: FRONTEND
     path: docs/frontend.md
@@ -142,7 +142,7 @@ docs:
       - ADR-013
       - ADR-016
       - ADR-020
-    last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: DESIGN
     path: docs/design-system.md
@@ -296,7 +296,7 @@ docs:
       - ADR-004
       - ADR-010
       - ADR-011
-    last_verified_commit: "21dc35afd156c1deb7fe74fc218536e2137f3952"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: PLAN_005_SHARING
     path: docs/implementation/PLAN-005-sharing.md
@@ -473,7 +473,7 @@ docs:
       - ADR-011
       - ADR-012
       - ADR-014
-    last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: OPENAPI
     path: docs/generated/openapi.yaml
@@ -492,7 +492,7 @@ docs:
       - ADR-011
       - ADR-013
       - ADR-014
-    last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: EVENTS
     path: docs/generated/events.yaml
@@ -774,7 +774,7 @@ docs:
       - frontend/src/features/categories/**
     generated: false
     related_adrs: [ADR-023]
-    last_verified_commit: "f27f0f70d3ef7becee1e62f44e4e35b036beadde"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
 
   - id: ADR_023
     path: docs/decisions/ADR-023-inventory-write-consistency.md
@@ -788,4 +788,4 @@ docs:
       - frontend/src/features/inventory/**
     generated: false
     related_adrs: [ADR-015]
-    last_verified_commit: "f27f0f70d3ef7becee1e62f44e4e35b036beadde"
+    last_verified_commit: "447c97178a8cb966c83a9b6c67a805c727b48906"
