@@ -187,13 +187,24 @@ docs:
       - ADR-014
     last_verified_commit: "1eeeb700cfade701e906be441d8e717e60d27d68"
 
+  - id: TODO
+    path: docs/todo.md
+    title: 앞으로 할 일
+    summary: 기능·개선·배포·운영의 미완료 작업과 완료 기준, 결정·현황 확인 후보
+    read_when:
+      - 다음 작업을 선택하거나 남은 작업을 확인할 때
+      - 완료한 작업을 목록에서 정리할 때
+    code_paths: []
+    generated: false
+    related_adrs: []
+    last_verified_commit: "pending"
+
   - id: IMPLEMENTATION_ROADMAP
     path: docs/implementation-roadmap.md
-    title: 구현 로드맵
-    summary: 구현 마일스톤, 의존성, 완료 조건, 로드맵 검토
+    title: 보관 기록 - 구현 로드맵
+    summary: 보관 기록. 구현 마일스톤, 의존성, 완료 조건, 로드맵 검토
     read_when:
-      - 구현 순서나 마일스톤 범위를 확인할 때
-      - 다음 작업의 선행 조건과 완료 조건을 확인할 때
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
     code_paths: []
     generated: false
     related_adrs:
@@ -206,15 +217,11 @@ docs:
 
   - id: PLAN_001_FOUNDATION
     path: docs/implementation/PLAN-001-foundation.md
-    title: M0 기반 부트스트랩 상세 구현 계획
-    summary: 저장소, 인프라, 백엔드·프론트엔드 부트스트랩
+    title: 보관 기록 - M0 기반 부트스트랩 상세 구현 계획
+    summary: 보관 기록. 저장소, 인프라, 백엔드·프론트엔드 부트스트랩
     read_when:
-      - M0 기반 작업을 시작하거나 검토할 때
-      - 로컬 인프라나 빌드 구성을 변경할 때
-    code_paths:
-      - backend/**
-      - frontend/**
-      - infra/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-004
@@ -225,15 +232,11 @@ docs:
 
   - id: PLAN_001_DELIVERY
     path: docs/implementation/PLAN-001-foundation-delivery.md
-    title: M0 계약·CI·검증 계획
-    summary: 계약 생성기, CI, 데이터 기준선, 테스트, 완료 조건
+    title: 보관 기록 - M0 계약·CI·검증 계획
+    summary: 보관 기록. 계약 생성기, CI, 데이터 기준선, 테스트, 완료 조건
     read_when:
-      - M0의 계약 생성기, CI, 검증을 구현할 때
-      - M0 완료 조건을 확인할 때
-    code_paths:
-      - backend/**
-      - scripts/**
-      - .github/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-004
@@ -244,17 +247,11 @@ docs:
 
   - id: PLAN_002_IDENTITY
     path: docs/implementation/PLAN-002-identity-space.md
-    title: M1 Identity·Space 상세 구현 계획
-    summary: 가입·로그인·세션·CSRF·초대코드·비밀번호 재설정·Space 설정·인증 화면
+    title: 보관 기록 - M1 Identity·Space 상세 구현 계획
+    summary: 보관 기록. 가입·로그인·세션·CSRF·초대코드·비밀번호 재설정·Space 설정·인증 화면
     read_when:
-      - M1 인증·세션·초대코드·설정 작업을 시작하거나 검토할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/identity/**
-      - backend/src/main/kotlin/com/agolock/tenancy/**
-      - backend/src/main/resources/db/migration/**
-      - frontend/src/features/auth/**
-      - frontend/src/features/settings/**
-      - frontend/src/app/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-006
@@ -265,14 +262,11 @@ docs:
 
   - id: PLAN_003_HIERARCHY
     path: docs/implementation/PLAN-003-hierarchy-permissions.md
-    title: M2 계층·권한 상세 구현 계획
-    summary: Room·Shelf·Box, AccessService, effectivePermission, 이동·삭제 차단, 계층 화면
+    title: 보관 기록 - M2 계층·권한 상세 구현 계획
+    summary: 보관 기록. Room·Shelf·Box, AccessService, effectivePermission, 이동·삭제 차단, 계층 화면
     read_when:
-      - M2 계층·권한 작업을 시작하거나 검토할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/hierarchy/**
-      - backend/src/main/kotlin/com/agolock/sharing/**
-      - frontend/src/features/hierarchy/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-001
@@ -283,13 +277,11 @@ docs:
 
   - id: PLAN_004_INVENTORY
     path: docs/implementation/PLAN-004-inventory.md
-    title: M3 Category·Item·Inventory 상세 구현 계획
-    summary: 카테고리·마스터·재고, 오버라이드, 상태·폐기, 이동 이력, 버전·멱등성, 재고 화면
+    title: 보관 기록 - M3 Category·Item·Inventory 상세 구현 계획
+    summary: 보관 기록. 카테고리·마스터·재고, 오버라이드, 상태·폐기, 이동 이력, 버전·멱등성, 재고 화면
     read_when:
-      - M3 물품·재고 작업을 시작하거나 검토할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/inventory/**
-      - frontend/src/features/inventory/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-002
@@ -301,13 +293,11 @@ docs:
 
   - id: PLAN_005_SHARING
     path: docs/implementation/PLAN-005-sharing.md
-    title: M4 공유·초대 상세 구현 계획
-    summary: 초대 전용 공유, Grant 상속, ACL, 감사 로그, 공유 MANAGE, 공유 화면
+    title: 보관 기록 - M4 공유·초대 상세 구현 계획
+    summary: 보관 기록. 초대 전용 공유, Grant 상속, ACL, 감사 로그, 공유 MANAGE, 공유 화면
     read_when:
-      - M4 공유·초대 작업을 시작하거나 검토할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/sharing/**
-      - frontend/src/features/sharing/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-001
@@ -318,14 +308,11 @@ docs:
 
   - id: PLAN_006_MEDIA
     path: docs/implementation/PLAN-006-media-messaging.md
-    title: M5 이미지·MQ 상세 구현 계획
-    summary: presign·후처리 worker, 이미지 수명주기, Outbox·RabbitMQ, 정리 job, 업로드 UI
+    title: 보관 기록 - M5 이미지·MQ 상세 구현 계획
+    summary: 보관 기록. presign·후처리 worker, 이미지 수명주기, Outbox·RabbitMQ, 정리 job, 업로드 UI
     read_when:
-      - M5 이미지·비동기 작업을 시작하거나 검토할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/media/**
-      - backend/src/main/kotlin/com/agolock/messaging/**
-      - frontend/src/features/media/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-005
@@ -335,13 +322,11 @@ docs:
 
   - id: PLAN_007_SEARCH
     path: docs/implementation/PLAN-007-search.md
-    title: M6 검색·추천 상세 구현 계획
-    summary: pg_trgm 검색, 그룹 커서, 필터·정렬, 최근 검색, 자주 본 물건, 검색 UI
+    title: 보관 기록 - M6 검색·추천 상세 구현 계획
+    summary: 보관 기록. pg_trgm 검색, 그룹 커서, 필터·정렬, 최근 검색, 자주 본 물건, 검색 UI
     read_when:
-      - M6 검색·추천 작업을 시작하거나 검토할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/search/**
-      - frontend/src/features/search/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-003
@@ -351,13 +336,11 @@ docs:
 
   - id: PLAN_008_AI
     path: docs/implementation/PLAN-008-ai-image-search.md
-    title: M7 AI·이미지 검색 상세 구현 계획
-    summary: AI job, 인식·임베딩, 모델 버전, 이미지 검색 5초, AI 확인 UI, 비용·캐시
+    title: 보관 기록 - M7 AI·이미지 검색 상세 구현 계획
+    summary: 보관 기록. AI job, 인식·임베딩, 모델 버전, 이미지 검색 5초, AI 확인 UI, 비용·캐시
     read_when:
-      - M7 AI·이미지 검색 작업을 시작하거나 검토할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/ai/**
-      - frontend/src/features/ai/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-007
@@ -367,14 +350,11 @@ docs:
 
   - id: PLAN_009_HARDENING
     path: docs/implementation/PLAN-009-release-hardening.md
-    title: M8 출시 경화 상세 구현 계획
-    summary: E2E·접근성·PWA, 성능·백업·배포·관측, 보안·계약 gate, 출시 체크리스트
+    title: 보관 기록 - M8 출시 경화 상세 구현 계획
+    summary: 보관 기록. E2E·접근성·PWA, 성능·백업·배포·관측, 보안·계약 gate, 출시 체크리스트
     read_when:
-      - M8 출시 경화와 운영 작업을 시작하거나 검토할 때
-    code_paths:
-      - .github/**
-      - infra/**
-      - scripts/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-014
@@ -383,16 +363,11 @@ docs:
 
   - id: PLAN_010_REGISTRATION_UX
     path: docs/implementation/PLAN-010-registration-ux.md
-    title: 등록 행동 중심 UX P0
-    summary: 전역 등록 시트, 재고 목록·상세, 물건 상세, 위치 상세 재고, 홈 검색·최근 추가
+    title: 보관 기록 - 등록 행동 중심 UX P0
+    summary: 보관 기록. 전역 등록 시트, 재고 목록·상세, 물건 상세, 위치 상세 재고, 홈 검색·최근 추가
     read_when:
-      - 등록 흐름이나 재고 목록·상세 화면을 구현할 때
-      - P0 UX 개선 범위와 검증을 확인할 때
-    code_paths:
-      - frontend/src/features/inventory/**
-      - frontend/src/features/hierarchy/**
-      - frontend/src/features/home/**
-      - frontend/src/app/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-010
@@ -402,17 +377,11 @@ docs:
 
   - id: PLAN_011_FIRST_RELEASE
     path: docs/implementation/PLAN-011-first-release-delivery.md
-    title: 1차 릴리스 완료와 배포 구성
-    summary: M5.5 close-out, M6 검색, 1차 프리즈, staging·production 배포, M8 최소 gate
+    title: 보관 기록 - 1차 릴리스 완료와 배포 구성
+    summary: 보관 기록. M5.5 close-out, M6 검색, 1차 프리즈, staging·production 배포, M8 최소 gate
     read_when:
-      - 1차 릴리스 범위·일정·완료 조건을 확인할 때
-      - staging·production 배포 구성을 구현할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/search/**
-      - backend/src/main/kotlin/com/agolock/media/**
-      - frontend/src/features/search/**
-      - deploy/**
-      - .github/workflows/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-008
@@ -422,15 +391,11 @@ docs:
 
   - id: PLAN_012_MICROINTERACTIONS
     path: docs/implementation/PLAN-012-microinteractions.md
-    title: 레이아웃 일관성과 마이크로인터랙션
-    summary: 컨트롤 44/48/56px, 24px 페이지 간격, 버튼·토스트·대화상자 모션
+    title: 보관 기록 - 레이아웃 일관성과 마이크로인터랙션
+    summary: 보관 기록. 컨트롤 44/48/56px, 24px 페이지 간격, 버튼·토스트·대화상자 모션
     read_when:
-      - 화면 간격·컨트롤 크기·버튼 상태를 변경할 때
-      - 토스트·모션·reduced motion 동작을 확인할 때
-    code_paths:
-      - frontend/src/styles/**
-      - frontend/src/shared/ui/**
-      - frontend/src/features/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-016
@@ -439,16 +404,11 @@ docs:
 
   - id: PLAN_013_UI_REVIEW_FOLLOWUPS
     path: docs/implementation/PLAN-013-ui-review-followups.md
-    title: UI 점검 반영과 후속 작업 인계
-    summary: 2026-10-23 UI 점검 반영 결과, 소유자 이름 노출 결정, 스크린리더·시각 확인 후속 작업, 작업 환경 주의사항
+    title: 보관 기록 - UI 점검 반영과 후속 작업 인계
+    summary: 보관 기록. 2026-10-23 UI 점검 반영 결과, 소유자 이름 노출 결정, 스크린리더·시각 확인 후속 작업, 작업 환경 주의사항
     read_when:
-      - 소유자 이름(ownerName) 노출이나 공유받은 리소스 표시를 변경할 때
-      - UI 점검 후속 작업을 이어받을 때
-      - 새 컴포넌트(Select, Choice, PageHeader)나 R-08 린트 규칙을 확인할 때
-    code_paths:
-      - frontend/src/shared/ui/**
-      - frontend/src/shared/lib/**
-      - frontend/eslint.config.js
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs:
       - ADR-003
@@ -765,14 +725,11 @@ docs:
 
   - id: PLAN_014_INVENTORY_HARDENING
     path: docs/implementation/PLAN-014-inventory-hardening.md
-    title: 물건·재고 관리 개선
-    summary: 위치 계약, PATCH·폐기·상속, 동시성, 공유 조회, 페이지, 영향 미리보기, 편집 충돌
+    title: 보관 기록 - 물건·재고 관리 개선
+    summary: 보관 기록. 위치 계약, PATCH·폐기·상속, 동시성, 공유 조회, 페이지, 영향 미리보기, 편집 충돌
     read_when:
-      - 물건·재고 변경과 개선 검증을 수행할 때
-    code_paths:
-      - backend/src/main/kotlin/com/agolock/inventory/**
-      - frontend/src/features/inventory/**
-      - frontend/src/features/categories/**
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs: [ADR-023]
     last_verified_commit: "7c42304e55aa8c620704cf6eff66d142d3b73e96"
@@ -793,11 +750,10 @@ docs:
 
   - id: PLAN_015_CURRENT_STATUS
     path: docs/implementation/PLAN-015-current-status-and-followups.md
-    title: 현재 구현 현황과 후속 개선 목록
-    summary: main·작업 브랜치 반영 상태, 완료·검증 근거, 물건·재고 구조 개선과 검색·공유·계약·배포 잔여 작업
+    title: 보관 기록 - 현재 구현 현황과 후속 개선 목록
+    summary: 보관 기록. main·작업 브랜치 반영 상태, 완료·검증 근거, 물건·재고 구조 개선과 검색·공유·계약·배포 잔여 작업
     read_when:
-      - 현재 완료 작업과 남은 개선 전체를 확인할 때
-      - 물건·재고 개선을 인계받거나 출시 후속의 우선순위를 정할 때
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
     code_paths: []
     generated: false
     related_adrs: [ADR-023]
@@ -805,14 +761,11 @@ docs:
 
   - id: PLAN_016_ITEM_WORKFLOW
     path: docs/implementation/PLAN-016-item-workflow-and-queue.md
-    title: 항목 단위 작업 루프와 대기열
-    summary: 워크트리·브랜치·검증·리뷰·승인·병합 8단계 규약, 17건 대기열(이번 배치 개선 15건), 항목별 검증·리뷰 기록
+    title: 보관 기록 - 선택형 항목 작업 루프와 후속 대기열
+    summary: 보관 기록. 복잡한 작업·릴리스에 선택 적용하는 워크트리·검증·리뷰·병합 절차와 후속 작업 대기열
     read_when:
-      - 항목 단위로 물건·재고·출시 후속 작업을 시작하거나 병합할 때
-      - 워크트리·검증 로그·리뷰 보고·병합 게이트 규약을 확인할 때
-    code_paths:
-      - scripts/item_flow.sh
-      - docs/implementation/PLAN-016-item-workflow-and-queue.md
+      - 작성 당시의 설계 제안이나 구현·검증 이력을 확인할 때
+    code_paths: []
     generated: false
     related_adrs: []
     last_verified_commit: "0c57f8dd8ba8006026e56b3f3683921a04076054"

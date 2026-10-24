@@ -10,7 +10,7 @@
 4. 변경할 코드 경로에 매핑된 문서를 읽습니다.
 5. 화면 작업이면 `docs/frontend.md`와 `docs/design-system.md`를 함께 읽습니다.
 6. 설계 결정이 걸린 작업이면 `docs/decisions/README.md`와 관련 ADR을 읽습니다.
-7. 구현 작업이면 `docs/implementation-roadmap.md`에서 현재 마일스톤과 선행 조건을 확인합니다.
+7. 다음 작업을 선택하거나 남은 일을 확인할 때는 `docs/todo.md`를 참고합니다.
 
 문서 전체를 무조건 읽지 않습니다. `docs/index.yaml`의 `summary`, `code_paths`, `read_when`을 사용해 필요한 문서만 선택합니다.
 
@@ -30,33 +30,21 @@
 | 화면·흐름 | `docs/frontend.md` | 링크만 사용 |
 | 시각 디자인·토큰 | `docs/design-system.md` | 링크만 사용 |
 | 운영·테스트·제품 단계 로드맵 | `docs/operations.md` | 링크만 사용 |
-| 구현 마일스톤·작업 계획 | `docs/implementation-roadmap.md` | 제품 단계 범위는 `docs/operations.md`를 링크 |
+| 앞으로 할 일 | `docs/todo.md` | 제품 단계 범위는 `docs/operations.md`를 링크 |
 | 설계 결정 | `docs/decisions/ADR-*.md` | 설계 문서는 결정을 링크 |
 
 `docs/generated/` 아래 파일은 생성물입니다. 직접 수정하지 않고 생성 스크립트를 실행합니다. 구현 착수 전에는 [ADR-014](docs/decisions/ADR-014-generated-docs-draft.md)에 따라 세 문서를 설계 초안으로 수동 갱신할 수 있으며, 각 파일 머리말의 설계 초안 표시를 유지합니다.
 
-## 3. 코드 변경 후 문서 갱신 절차
+## 3. 기본 개발 흐름과 문서 갱신
 
-1. 변경 파일 목록을 확인합니다.
-   ```bash
-   git diff --name-only
-   ```
-2. `docs/index.yaml`의 `code_paths`와 대조해 영향을 받는 문서를 찾습니다.
-   ```bash
-   python3 scripts/docs_impact.py
-   ```
-3. 해당 문서의 동작·불변식·예시를 갱신합니다.
-4. 결정이 바뀌었으면 새 ADR을 추가하거나 기존 ADR을 `Superseded`로 표시합니다.
-5. OpenAPI, 이벤트, 데이터 사전을 재생성합니다.
-6. `docs/index.yaml`의 `last_verified_commit`을 현재 커밋 SHA로 갱신합니다.
-7. 문서 검사를 실행합니다.
-   ```bash
-   python3 scripts/docs_check.py
-   ```
-8. 코드와 문서가 어긋난 부분이 남아 있으면 작업을 완료하지 않습니다.
-
-항목 단위 작업은 [PLAN-016](docs/implementation/PLAN-016-item-workflow-and-queue.md)의 워크트리·검증·리뷰·승인·병합 루프를 따릅니다.
-`main`에서 직접 고치는 것은 초기 부트스트랩과 긴급 수정뿐이며, 항목 작업은 `item/<slug>` 브랜치 워크트리에서 수행합니다.
+- 일반 기능·수정 작업은 현재 작업 브랜치나 워크트리에서 바로 진행합니다. 별도 워크트리, `item/<slug>` 브랜치, 작업 대기열 등록, 전체 검증, 리뷰 보고서, 로컬 병합 전 승인은 기본 요건이 아닙니다.
+- 작업 전 기존 변경을 확인하고 사용자 작업을 보존합니다. 무관한 변경을 되돌리거나 작업 커밋에 포함하지 않습니다.
+- 요구사항이나 동작·도메인·API 계약이 바뀌면 해당 단일 원본 문서를 갱신합니다. 내부 리팩터링처럼 문서화된 동작에 영향이 없으면 문서 변경을 요구하지 않습니다.
+- API·이벤트·스키마 계약이 바뀌면 생성 문서는 직접 편집하지 않고 생성 스크립트로 갱신합니다.
+- 문서나 `docs/index.yaml`을 바꿨다면 `python3 scripts/docs_check.py`를 실행합니다. `scripts/docs_impact.py`는 영향 문서를 찾는 데 필요할 때 사용합니다.
+- 설계 결정을 바꿀 때는 관련 ADR을 갱신합니다. 문서와 구현이 실제로 어긋난 채로 남지 않도록 합니다.
+- 남은 작업은 [TODO](docs/todo.md)에 관리합니다. `docs/implementation/PLAN-*.md`와 기존 구현 로드맵은 보관 기록이며, 여기에 남은 순서·승인·착수 조건을 현재 개발 절차로 적용하지 않습니다. 개별 기능의 실제 기술 의존성과 제품 출시 조건은 해당 기능·운영 문서를 확인합니다.
+- 작업 지시 범위 안에서는 로컬 수정·검증·커밋·병합을 승인 대기로 중단하지 않습니다. push·배포처럼 외부에 반영하기 전에는 사용자 확인을 받습니다.
 
 ## 4. 불변식
 

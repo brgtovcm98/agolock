@@ -27,7 +27,7 @@
 | [ADR-020](ADR-020-registration-action-ia.md) | 등록 행동 중심 정보 구조 | 승인됨 | [화면과 흐름](../frontend.md), [디자인 시스템](../design-system.md) |
 | [ADR-021](ADR-021-microinteractions.md) | 레이아웃 일관성과 마이크로인터랙션 | 승인됨 | [디자인 시스템](../design-system.md), [PLAN-012](../implementation/PLAN-012-microinteractions.md) |
 
-ADR-017·018은 [PLAN-006](../implementation/PLAN-006-media-messaging.md)의 이미지 후처리·보관 정책용으로 예약된 번호이며 아직 작성 전입니다.
+ADR-017·018은 과거 [이미지 설계 기록](../implementation/PLAN-006-media-messaging.md)에서 이미지 후처리·보관 정책용으로 예약한 번호이며 아직 작성 전입니다. 작성 필요 여부는 [TODO의 DOC-01](../todo.md)에서 확인합니다.
 
 | [ADR-023](ADR-023-inventory-write-consistency.md) | 물건·재고 변경 일관성과 편집 계약 | 승인됨 | [도메인](../domain.md), [PLAN-014](../implementation/PLAN-014-inventory-hardening.md) |
 

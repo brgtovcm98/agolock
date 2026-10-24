@@ -20,7 +20,7 @@
 - 초대 메일은 Outbox 릴레이로 발송되며 `/invitations#token=...` 링크에서 수락·거절합니다.
 - staging 배포 골격(Dockerfile·nginx·Compose·프로필·GHCR workflow)을 추가했습니다.
 - M6 검색의 SQL 그룹 집계·keyset cursor·복수 토큰·trigram 검색·추천 ACL·검색어 없는 필터를 구현했습니다. 로컬 검색 성능 gate를 통과했으며 릴리스 운영 검증이 남아 있습니다.
-- Box 이동 UI를 구현했습니다. 다음 1차 작업은 M6 잔여 검증과 1차 프리즈, VPS staging 배포입니다. M7 AI는 2차입니다.
+- Box 이동 UI를 구현했습니다. 앞으로 할 일은 [TODO](docs/todo.md)에서 관리합니다. AI 기능은 제품의 2차 범위입니다.
 - 제품 기준 문서는 [docs/product-spec.md](docs/product-spec.md)입니다.
 - AI 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다.
 
@@ -205,22 +205,9 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 | [docs/frontend.md](docs/frontend.md) | 화면, 내비게이션, 사용자 흐름, UI 상태 |
 | [docs/design-system.md](docs/design-system.md) | E안 토큰, 컴포넌트, 반응형, 다크 모드, 접근성 |
 | [docs/operations.md](docs/operations.md) | 인프라, 배포, 보안, 테스트, 관측, 제품 단계 로드맵 |
-| [docs/implementation-roadmap.md](docs/implementation-roadmap.md) | 구현 마일스톤, 의존성, 완료 조건 |
-| [docs/implementation/PLAN-001-foundation.md](docs/implementation/PLAN-001-foundation.md) | M0 기반 부트스트랩 상세 구현 계획 |
-| [docs/implementation/PLAN-001-foundation-delivery.md](docs/implementation/PLAN-001-foundation-delivery.md) | M0 계약·CI·검증 계획 |
-| [PLAN-002](docs/implementation/PLAN-002-identity-space.md) | M1 Identity·Space 상세 계획 |
-| [PLAN-003](docs/implementation/PLAN-003-hierarchy-permissions.md) | M2 계층·권한 상세 계획 |
-| [PLAN-004](docs/implementation/PLAN-004-inventory.md) | M3 Category·Item·Inventory 상세 계획 |
-| [PLAN-005](docs/implementation/PLAN-005-sharing.md) | M4 공유·초대 상세 계획 |
-| [PLAN-006](docs/implementation/PLAN-006-media-messaging.md) | M5 이미지·MQ 상세 계획 |
-| [PLAN-007](docs/implementation/PLAN-007-search.md) | M6 검색·추천 상세 계획 |
-| [PLAN-008](docs/implementation/PLAN-008-ai-image-search.md) | M7 AI·이미지 검색 상세 계획 |
-| [PLAN-009](docs/implementation/PLAN-009-release-hardening.md) | M8 출시 경화 상세 계획 |
-| [PLAN-011](docs/implementation/PLAN-011-first-release-delivery.md) | 1차 릴리스·VPS 배포 계획 |
-| [PLAN-013](docs/implementation/PLAN-013-ui-review-followups.md) | UI·공유 소유자 표시 후속 |
-| [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md) | 물건·재고 개선 결과와 검증 |
-| [PLAN-015](docs/implementation/PLAN-015-current-status-and-followups.md) | 현재 브랜치·완료 작업·남은 개선 전체 목록 |
-| [PLAN-016](docs/implementation/PLAN-016-item-workflow-and-queue.md) | 항목 단위 워크트리·검증·리뷰·병합 루프와 17건 대기열(이번 배치 개선 15건) |
+| [docs/todo.md](docs/todo.md) | 앞으로 할 기능·개선·배포·운영 작업과 완료 기준 |
+| [기존 구현 로드맵](docs/implementation-roadmap.md) | 보관된 초기 마일스톤 검토 기록 |
+| [과거 PLAN 문서](docs/implementation/) | 당시 설계·제안·구현·검증 기록. 현재 개발 절차에는 적용하지 않음 |
 | [docs/generated/data-dictionary.md](docs/generated/data-dictionary.md) | 테이블·컬럼·인덱스·제약 (설계 초안) |
 | [docs/generated/openapi.yaml](docs/generated/openapi.yaml) | HTTP API 계약 (설계 초안) |
 | [docs/generated/events.yaml](docs/generated/events.yaml) | 비동기 이벤트 계약 (설계 초안) |
@@ -230,11 +217,11 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 
 ## 읽는 순서
 
-- 제품·기획: 제품 사양 → 화면·흐름 → 디자인 시스템 → 로드맵
+- 제품·기획: 제품 사양 → 화면·흐름 → 디자인 시스템 → 운영의 제품 단계
 - 백엔드: 아키텍처 → 도메인 → 데이터 사전 → 기능 문서 → API·이벤트 계약
 - 프론트엔드: 화면·흐름 → 디자인 시스템 → API 계약 → 검색·공유·미디어 문서
 - 인프라·운영: 아키텍처 → 운영 → 보안 → 테스트
-- 구현: 구현 로드맵 → 첫 마일스톤 상세 계획 → 운영·계약
+- 구현: TODO에서 작업 선택 → 해당 기능의 요구사항·계약 확인
 
 ## 문서 갱신 원칙
 
@@ -247,7 +234,7 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 - M0에서는 [ADR-015](docs/decisions/ADR-015-contract-preview-mode.md)에 따라 미리보기를 `build/contracts/`에만 생성합니다.
 - 코드 변경 후 [AGENTS.md](AGENTS.md)의 문서 갱신 절차를 따릅니다.
 
-## 현재 작업과 다음 단계
+## 구현·검증 기록
 
 2026-10-24 기준 기존 릴리스·검색 보완과 물건·재고 개선(`447c971`·`7c42304`)은 로컬 `main`(`298a2cb`)에 반영됐습니다. push하지 않았으므로 로컬 `origin/main` 추적 ref(`9e1f066`)보다 `main`이 앞서 있습니다.
 
@@ -255,4 +242,4 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 - 실제 API 브라우저 시나리오는 모킹 없이 데스크톱·모바일에서 통과합니다. INV-01에서 편집 화면 시간 초과 원인을 체크박스 로케이터 결함으로 확정해 고쳤고, Mailpit 초대 수락과 공유 `MANAGE` 재고 추가·이동까지 확인했습니다(`298a2cb` 병합).
 - 같은 커밋에서 `verify --scope full`(docs·backend·frontend·contract·e2e)이 통과한 기록을 남겼습니다.
 
-이후 작업은 항목마다 독립 워크트리와 `item/<slug>` 브랜치를 만들어 검증·리뷰·승인 후 `--no-ff`로 병합하는 [PLAN-016 루프](docs/implementation/PLAN-016-item-workflow-and-queue.md)를 따릅니다. 이번 배치는 INV-02 → INV-01 순서로 완료했고 다음 항목은 INV-03(`item/inv-03-inventory-command-types`)입니다. 완료 작업·검증 근거·남은 기능/구조/출시 작업은 [현재 현황과 후속 개선 목록](docs/implementation/PLAN-015-current-status-and-followups.md)을 먼저 읽습니다. 물건·재고의 상세 결과는 [PLAN-014](docs/implementation/PLAN-014-inventory-hardening.md), 제품 단계와 배포 기준은 [운영](docs/operations.md)과 [1차 릴리스 계획](docs/implementation/PLAN-011-first-release-delivery.md)을 따릅니다.
+현재 할 일은 [TODO](docs/todo.md)를 확인합니다. 제품 단계와 출시 조건은 [운영](docs/operations.md)이 기준입니다. 과거 완료 작업과 검증 근거는 [PLAN-015 보관 기록](docs/implementation/PLAN-015-current-status-and-followups.md), 물건·재고의 상세 결과는 [PLAN-014 보관 기록](docs/implementation/PLAN-014-inventory-hardening.md)에 남아 있습니다. 보관된 작업 순서·워크트리·승인 절차는 현재 기능 개발의 선행 조건이 아닙니다.

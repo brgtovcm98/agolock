@@ -325,15 +325,10 @@ scripts/staging_runbook.sh smoke
 
 ### 6.4 항목 단위 작업과 검증
 
-- 항목 1건은 독립 워크트리 `../agolock-worktrees/<slug>`와 브랜치 `item/<slug>`에서 작업하고, 워크트리 생성·검증 기록·병합은 `scripts/item_flow.sh`가 강제합니다. 규약과 대기열은 [PLAN-016](implementation/PLAN-016-item-workflow-and-queue.md)이 단일 기준입니다.
-- `scripts/item_flow.sh start <slug>`는 `main`이 clean일 때만 워크트리와 브랜치를 만들고 `../agolock-worktrees/.state/<slug>.json`을 초기화합니다.
-- `scripts/item_flow.sh verify --scope docs|backend|frontend|contract|e2e|full`은 CI와 같은 명령을 실행하고 로그 경로·종료 코드·HEAD SHA를 상태 파일에 남깁니다. 결과는 `pass`, `fail`(코드·테스트 실패), `blocked`(환경 실패 보류) 중 하나입니다. 병합 전에는 `full`의 `pass`가 필수입니다.
-- `verify --scope backend`는 `./gradlew :backend:ktlintCheck :backend:detekt :backend:cleanTest :backend:test`를 실행합니다. 직전 결과가 남아 있어 Gradle이 `:backend:test`를 `UP-TO-DATE`로 건너뛰면 테스트를 실행하지 않은 `pass` 기록이 생기므로, `:backend:cleanTest`로 결과를 지워 항상 실제 실행을 근거로 남깁니다.
-- `scripts/item_flow.sh merge`는 항목 워크트리 clean, 현재 HEAD의 `scope full` + `pass` 검증 기록, `main` clean, 현재 `main` 이후 커밋 존재를 모두 확인할 때만 `--no-ff`로 병합하고 워크트리와 `item/` 브랜치를 정리합니다. `blocked` 기록은 병합 근거가 되지 않습니다.
-- `merge --partial "<이유>"`는 도구·컨테이너·메일 서버처럼 환경 때문에 `full`을 실행할 수 없을 때만 쓰는 예외입니다. 이유가 비어 있으면 거부하며, 쓰면 `partial_reason`을 상태 파일과 PLAN-016 항목 기록에 남깁니다. `--partial`이 아닌 병합은 `--keep`을 쓰더라도 이전 `partial_reason`·`partial_head`를 지우고, `cleanup_pending`만 실제 정리 성공 여부에 따라 지웁니다.
-- `verify --scope e2e`는 `127.0.0.1:5173`이 점유되어 있으면 다른 서버를 재사용하지 않고 `blocked`(보류)로 기록합니다. 점유 확인은 `ss`를 우선 쓰고 없으면 2초 제한으로 수행해 확인이 멈추지 않게 하며 `5173 포트 확인: <결과> (<경과>)`를 출력합니다. `node_modules`가 없으면 `pnpm install --frozen-lockfile`을 먼저 실행하고, 브라우저가 없으면 `pnpm --filter @agolock/frontend exec playwright install chromium`으로 받습니다(`playwright`는 `frontend` 패키지 의존이라 루트 `pnpm exec`로는 찾지 못함).
-- 도구 부재(`pnpm`·`java`·`python3`·`./gradlew`, `python3`의 `yaml` 모듈 포함)·의존성 설치 실패·Docker 사용 불가·5173 점유처럼 스크립트가 확인하는 사전 조건(PLAN-016 3.3 목록)만 `blocked`로 남기고 코드 수정으로 덮지 않습니다. 그 밖의 환경 문제는 `fail`로 기록되므로 로그를 근거로 판단합니다.
-- 검증 로그와 상태 파일은 저장소 밖 `../agolock-worktrees/.state/`에 두며 커밋하지 않습니다.
+- 일반 기능 작업은 현재 작업 브랜치나 워크트리에서 바로 진행합니다. 전용 워크트리·`item/<slug>` 브랜치·`scripts/item_flow.sh` 사용·작업 대기열 등록은 요구하지 않습니다.
+- 변경에 맞는 검증을 선택하고 실행 결과를 기록합니다. 전체 검증은 여러 영역을 함께 바꾸거나 릴리스 준비를 할 때 사용하며, 모든 기능 작업의 병합 전 게이트로 요구하지 않습니다.
+- 남은 작업은 [TODO](todo.md)에서 관리합니다. 기존 PLAN과 `scripts/item_flow.sh`는 과거 실행 기록·도구이며, 기능 작업의 시작이나 로컬 병합을 위한 필수 절차로 적용하지 않습니다.
+- push·배포 등 외부 시스템이나 사용자에게 영향을 주는 반영은 실행 전에 사용자 확인을 받습니다.
 
 ### 6.5 테스트 컨테이너 수명과 실행 환경
 
@@ -431,7 +426,7 @@ scripts/staging_runbook.sh smoke
 - 감사 로그 UI와 데이터 내보내기
 - OAuth
 
-구현 순서, 마일스톤 의존성, 상세 작업 계획은 [구현 로드맵](implementation-roadmap.md)을 따릅니다.
+현재 할 일과 개별 작업의 기술 의존성은 [TODO](todo.md)를 참고합니다. [기존 구현 로드맵](implementation-roadmap.md)은 초기 마일스톤 검토 기록으로 보관합니다. 제품 단계별 출시 조건은 위 종료 조건을 따릅니다.
 
 ## 10. 위험과 대응
 

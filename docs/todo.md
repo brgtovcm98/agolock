@@ -1,0 +1,77 @@
+# TODO
+
+> 역할: 앞으로 할 일의 단일 목록
+> 정리 기준: 2026-10-24의 기존 구현·검증 기록. 현재 코드를 새로 검증한 결과는 아닙니다.
+
+작업은 제품 우선순위에 따라 선택합니다. 표 순서는 실행 순서가 아닙니다. 완료 기준은 해당 작업을 끝냈다고 판단하는 기준이며, 다른 기능의 착수를 막는 절차가 아닙니다. 실제 기술 의존성은 각 항목에 적습니다.
+
+요구사항·범위는 [제품 사양](product-spec.md)과 [운영의 제품 단계](operations.md#9-로드맵), 동작은 기능별 문서가 기준입니다. 기존 PLAN은 과거 설계·제안·실행 기록이며 현재 작업 지침으로 사용하지 않습니다.
+
+## 1. 기능
+
+| ID | 할 일과 완료 기준 | 참고 |
+|---|---|---|
+| REL-01 | 최근 검색의 30일 보관·만료 조회 제외·정리를 구현하고 경계 시각·사용자 격리를 확인합니다. | [검색](search.md), [기존 검색 기록](implementation/PLAN-007-search.md) |
+| REL-02 | 검색 제안의 최근 추가·최근 공유 목록을 실제 데이터로 연결합니다. | [검색](search.md), [후속 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| REL-03 | 공유 리소스의 소유자 이름과 내/공유 표시 규칙을 정하고 응답·화면·계약을 맞춥니다. 표시 방식은 결정이 필요합니다. | [공유](sharing.md), [UI 검토 기록](implementation/PLAN-013-ui-review-followups.md) |
+| AI-01 | AI 인식 job의 요청·조회·취소·재시도와 멱등 처리를 구현합니다. AI 장애가 수동 등록을 막지 않게 합니다. | [미디어·AI](media-ai.md), [미구현 설계 참고](implementation/PLAN-008-ai-image-search.md) |
+| AI-02 | 등록 전 사진을 DRAFT로 업로드하고 저장 시 Item·Inventory에 연결합니다. 만료·취소·부분 실패를 처리합니다. 실제 업로드·후처리 상태와 저장 트랜잭션에 의존합니다. | [미디어·AI](media-ai.md), [등록 UX 기록](implementation/PLAN-010-registration-ux.md) |
+| AI-03 | 이미지 임베딩 생성·갱신과 모델·버전 필터를 구현하고 백필·인덱스 교체 절차를 마련합니다. 모델 간 fallback은 하지 않습니다. | [미디어·AI](media-ai.md), [미구현 설계 참고](implementation/PLAN-008-ai-image-search.md) |
+| AI-04 | 이미지 유사 검색을 API·화면에 연결하고 ACL·폐기 제외·5초 타임아웃·장애 안내를 확인합니다. 이미지 입력과 임베딩에 의존합니다. | [검색](search.md), [미구현 설계 참고](implementation/PLAN-008-ai-image-search.md) |
+| AI-05 | 인식 결과의 폼 제안·분석 상태·취소·재시도 UI를 구현합니다. AI job 결과를 사용하며 사용자 확인 없이 저장하지 않습니다. | [화면](frontend.md), [미구현 설계 참고](implementation/PLAN-008-ai-image-search.md) |
+| AI-06 | AI 캐시·Space별 사용량·비용 제한·품질 벤치마크를 구현하고 provider fake와 실제 호출 평가를 구분합니다. | [미디어·AI](media-ai.md), [미구현 설계 참고](implementation/PLAN-008-ai-image-search.md) |
+
+## 2. 개선과 검증
+
+INV-01·INV-02는 완료 기록이 있어 제외했습니다. 오래된 체크박스보다 이후 구현·검증 기록을 우선합니다.
+
+| ID | 할 일과 완료 기준 | 참고 |
+|---|---|---|
+| INV-03 | 내부 PATCH 명령의 값·Boolean presence flag를 명시적 타입으로 정리하고 HTTP의 생략·null 의미를 보존합니다. | [재고 후속 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| INV-04 | 프론트 Item 권한·공유 필드를 실제 계약에 맞는 필수 타입으로 정리하고 소유자 추측 fallback을 제거합니다. 누락 응답과 권한 UI를 확인합니다. | [재고 후속 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| INV-05 | InventoryResponseAssembler의 조회와 순수 응답 계산을 분리하고 단건·목록의 상속·null·빈 문자열·위치 의미를 맞춥니다. | [재고 후속 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| INV-06 | 재고·위치·카테고리 규모별 SQL 횟수·메모리·초기 화면 지연과 모든 페이지 수집 비용을 측정하고 필요한 곳만 개선합니다. | [재고 후속 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| INV-07 | 기존 데이터 복사본에서 V25 충돌 ID 보고·무변경 중단·명시적 병합 후 재실행을 검증합니다. 기존 데이터에 배포할 때 필요한 확인이며 자동 병합하지 않습니다. | [재고 후속 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| INV-08 | 번들 크기의 실제 로딩 영향을 측정하고 필요하면 화면별 코드를 분할합니다. 경고 임계값 상향으로 대체하지 않습니다. | [재고 후속 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| REL-04 | 생성 계약의 기록 모드 전환, 이벤트 exporter의 0채널 문제, 전체 스키마·계약 호환성을 정리합니다. 구현 스냅샷 기반 타입 생성과 물건·재고 부분 동기화는 완료 기록을 유지합니다. | [계약](contracts.md), [계약 자동화 제안](implementation/PLAN-009-release-hardening.md) |
+| REL-05 | 실제 저장소·MQ에서 이미지 실패·만료·재시도·중단 복구·중복 전달·대표 이미지·접근권한을 검증합니다. | [미디어·AI](media-ai.md), [이미지 구현 기록](implementation/PLAN-006-media-messaging.md) |
+| REL-06 | 403·404·409·offline·이미지 상태·다크 모드를 시각 확인하고, 실기기 스크린리더·모바일 키보드·200% 확대·검색 읽기 순서를 확인합니다. 자동 axe 통과를 수동 확인으로 대신하지 않습니다. | [화면](frontend.md), [UI 검토 기록](implementation/PLAN-013-ui-review-followups.md), [사용성 후보](implementation/PLAN-012-microinteractions.md) |
+| CHECK-01 | 초기 계층·재고 기록에 남은 삭제 차단 오류 metadata, 구조화 로그 필드와 메트릭의 실제 반영 상태를 확인하고 필요한 누락만 보완합니다. Box 이동·재고 개수·삭제 version은 이후 완료 기록과 대조합니다. | [계층 기록](implementation/PLAN-003-hierarchy-permissions.md), [재고 기록](implementation/PLAN-004-inventory.md) |
+| CHECK-02 | 초기 공유 기록의 화면 E2E·초대 멱등성 보완 항목을 최신 구현과 대조합니다. 공유 목록·재발송·deliveryStatus·필터·cursor는 완료 기록이 있으므로 다시 미구현으로 취급하지 않습니다. | [공유 기록](implementation/PLAN-005-sharing.md), [최신 검증 기록](implementation/PLAN-016-item-workflow-and-queue.md) |
+| CHECK-03 | 등록·시각 효과 기록에 남은 Item 수정 화면 갤러리와 토스트 퇴장 항목의 실제 반영 상태를 확인합니다. 이후 Item 갤러리·토스트 구현 기록과 겹치는 작업은 제외합니다. | [등록 기록](implementation/PLAN-010-registration-ux.md), [시각 효과 기록](implementation/PLAN-012-microinteractions.md) |
+| FIX-01 | DirtyLeave의 이탈 차단과 dirty 해제 후 이동 진행을 직접 확인하는 회귀 검증을 보완합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
+| FIX-02 | 운영·테스트 프로필의 Hikari 초기 연결 실패 기준을 정하고 근거를 기록합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
+| FIX-03 | 저장 후 재조회가 느려도 화면 이동이 지연되지 않도록 개선하고 입력 보존을 확인합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
+| DOC-01 | 이미지 후처리·보관 정책이 현재 기능 문서에 충분히 기록됐는지 확인하고, 예약만 된 ADR-017·018의 작성 필요 여부를 정리합니다. | [ADR 목록](decisions/README.md), [이미지 기록](implementation/PLAN-006-media-messaging.md) |
+
+## 3. 배포와 운영
+
+| ID | 할 일과 완료 기준 | 참고 |
+|---|---|---|
+| REL-07 | VPS·도메인·TLS·시크릿·서비스와 remote/CI 환경을 연결하고 staging에 배포합니다. 서버 접근 권한과 환경 정보가 필요합니다. Dockerfile·Compose·nginx·GHCR 골격은 기존 구현을 사용합니다. | [운영](operations.md), [기존 배포 제안](implementation/PLAN-011-first-release-delivery.md) |
+| REL-08 | 운영 준비의 상위 항목입니다. 세부 작업은 OPS-01~06과 REL-05·06에서 추적하고, 배포된 환경에서 실제 등록·검색·이미지·공유 smoke 결과를 확인합니다. | [운영](operations.md), [기존 운영 제안](implementation/PLAN-009-release-hardening.md) |
+| REL-09 | 통합 상태·검증 근거·원격 반영 여부를 실제 커밋 기준으로 정리하고 필요한 push·CI·릴리스를 진행합니다. 모든 INV 개선을 일괄 선행 조건으로 두지 않습니다. | [통합 기록](implementation/PLAN-015-current-status-and-followups.md) |
+| OPS-01 | staging에서 백업을 복구하고 데이터 정합성을 확인합니다. 이전 이미지 롤백도 실제로 재현해 로그를 남깁니다. backup 구현만으로 복구 완료로 표시하지 않습니다. | [운영](operations.md), [배포 기록](implementation/PLAN-011-first-release-delivery.md) |
+| OPS-02 | 대시보드·Sentry·알림 채널을 실제 환경에 연결하고 오류·큐 적체·복구 알림 수신을 확인합니다. | [운영](operations.md), [운영 제안](implementation/PLAN-009-release-hardening.md) |
+| OPS-03 | 실제 서버에서 동시 부하·검색 지연·슬로우 쿼리·이미지 처리량을 측정합니다. 로컬 성능 통과를 서버 부하 결과로 대신하지 않습니다. | [운영](operations.md), [검색 측정 기록](implementation/PLAN-007-search.md) |
+| OPS-04 | 원격 CI의 핵심 E2E·회귀·브라우저·접근성·PWA 검사와 실행 이력을 확인합니다. 실제 기능·출시 범위에 맞는 검증을 선택합니다. | [운영](operations.md), [초기 CI 기록](implementation/PLAN-001-foundation-delivery.md) |
+| OPS-05 | 비밀·의존성·컨테이너 취약점 검사, Gradle 의존성 검증·잠금 정책, SBOM·이미지 서명의 적용 상태를 확인하고 필요한 보호를 구성합니다. | [운영](operations.md), [공급망 제안](implementation/PLAN-009-release-hardening.md) |
+| OPS-06 | 제품 단계별 실제 종료 조건과 운영 안내·개인정보 고지·파일럿·릴리스 태그를 확인합니다. AI 출시는 비용·품질·오류 복구도 확인합니다. | [운영의 제품 단계](operations.md#9-로드맵), [출시 체크리스트 참고](implementation/PLAN-009-release-hardening.md) |
+
+## 4. 기존 도구의 개선 후보
+
+`scripts/item_flow.sh`는 보관된 절차를 지원하는 기존 도구입니다. 이 도구의 개선은 기능 작업의 선행 조건이 아니며, 다시 사용할 필요가 있을 때 선택합니다.
+
+| ID | 할 일과 완료 기준 | 참고 |
+|---|---|---|
+| TOOL-01 | 검증 시 미커밋 변경을 거부하거나 dirty 상태를 기록해 다른 내용의 HEAD에 pass가 붙지 않게 합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
+| TOOL-02 | 필요하면 main에서도 같은 검증 스코프와 결과 기록을 사용할 수 있게 합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
+| TOOL-03 | 대기열 파싱 범위를 제한해 status에 잘못된 `배제` 항목이 나타나지 않게 합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
+| TOOL-04 | 실제 API 검증의 trace·로그를 임시 디렉터리 밖에 보관하도록 지원합니다. | [발견 기록](implementation/PLAN-016-item-workflow-and-queue.md#43-후속-항목) |
+
+## 5. 제품 결정이 필요한 후보
+
+- Undo·햅틱·사운드는 필요성과 지원 범위를 먼저 결정합니다. [기존 사용성 제안](implementation/PLAN-012-microinteractions.md)을 참고합니다.
+- 그룹·링크·직접 공유, 인앱 알림, 사진별 임베딩, Space 간 복사, 감사 로그 UI·내보내기, OAuth와 선반별 비공개 예외는 [3차 확장 후보](operations.md#3차-확장)입니다. 현재 MVP의 미완료 결함으로 취급하지 않습니다.
+
+완료한 작업은 이 목록에서 제거합니다. 구현 결과는 해당 기능 문서에 반영하고, 필요한 근거는 커밋이나 검증 기록으로 남깁니다.

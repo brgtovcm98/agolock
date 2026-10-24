@@ -1,5 +1,7 @@
 # 구현 로드맵
 
+> 보관 문서 (2026-10-24): 초기 마일스톤과 구현 순서의 검토 기록입니다. 본문의 상태·일정·착수 게이트는 당시 계획이며 현재 개발 절차를 정하지 않습니다. 현재 할 일은 [TODO](todo.md), 제품 단계와 출시 조건은 [운영](operations.md#9-로드맵)을 확인합니다.
+
 > 상태: 검토 완료
 > 역할: 1차·2차 MVP를 구현 마일스톤과 완료 조건으로 나눈 실행 로드맵
 > 범위 원본: 제품 단계와 기능 범위는 [운영](operations.md)의 로드맵을 따릅니다. 이 문서는 구현 순서, 의존성, 완료 조건만 정의합니다.
@@ -16,7 +18,7 @@
 
 ### 현재 구현과 후속 작업 (2026-10-24)
 
-현재 완료 작업·검증 결과·남은 작업의 통합 입구는 [PLAN-015](implementation/PLAN-015-current-status-and-followups.md)입니다. 이 문서의 마일스톤 표는 원래 작업 순서와 종료 조건이며 모든 조건의 현재 완료를 뜻하지 않습니다. 물건·재고 변경은 [PLAN-014](implementation/PLAN-014-inventory-hardening.md) 결과대로 `447c971`과 `7c42304`가 `main`에 병합됐고 브랜치는 `main` 하나이며, 남은 것은 실제 API 브라우저 검증과 일부 구조 정리입니다. 남은 항목의 실행·검증·리뷰·병합은 [PLAN-016](implementation/PLAN-016-item-workflow-and-queue.md) 루프를 따릅니다.
+현재 완료 작업·검증 결과·후속 후보의 통합 입구는 [PLAN-015](implementation/PLAN-015-current-status-and-followups.md)입니다. 이 문서의 마일스톤 표는 원래 작업 순서와 종료 조건이며 모든 조건의 현재 완료를 뜻하지 않습니다. 물건·재고 변경은 [PLAN-014](implementation/PLAN-014-inventory-hardening.md) 결과대로 `447c971`과 `7c42304`가 `main`에 병합됐고, 남은 검증·개선은 제품 기능 작업을 막는 선행 절차가 아닙니다. [PLAN-016](implementation/PLAN-016-item-workflow-and-queue.md)은 복잡한 작업이나 릴리스에 선택적으로 적용합니다.
 
 ## 2. 전제
 
