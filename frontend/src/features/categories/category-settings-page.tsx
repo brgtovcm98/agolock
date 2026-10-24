@@ -1,3 +1,5 @@
+import { invalidateInventory } from '@/features/inventory/edit-state'
+import { collectPages } from '@/features/inventory/api'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { GitMerge, Pencil, Plus, Trash2, X } from 'lucide-react'
@@ -187,18 +189,11 @@ export function CategorySettingsPage() {
 
   const categoriesQuery = useQuery({
     queryKey: ['category', 'list'],
-    queryFn: inventoryApi.categories,
+    queryFn: () => collectPages((cursor) => inventoryApi.categories({ limit: 100, cursor })),
   })
   const categories = categoriesQuery.data?.items ?? []
 
-  const invalidate = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['category', 'list'] }),
-      queryClient.invalidateQueries({ queryKey: ['inventory', 'categories'] }),
-      queryClient.invalidateQueries({ queryKey: ['inventory'] }),
-      queryClient.invalidateQueries({ queryKey: ['item'] }),
-    ])
-  }
+  const invalidate = () => invalidateInventory(queryClient)
 
   const createMutation = useMutation({
     mutationFn: () => inventoryApi.createCategory(name.trim()),

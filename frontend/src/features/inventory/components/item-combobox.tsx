@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { inventoryApi, type Item } from '../api'
+import { inventoryApi, type Item, type LocationInput } from '../api'
 import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { formatPrice } from '@/shared/lib/format'
@@ -10,10 +10,12 @@ export function ItemCombobox({
   value,
   onChange,
   disabled = false,
+  location = {},
 }: {
   value: Item | null
   onChange: (item: Item | null) => void
   disabled?: boolean
+  location?: LocationInput
 }) {
   const [query, setQuery] = useState('')
   const [debounced, setDebounced] = useState('')
@@ -23,20 +25,23 @@ export function ItemCombobox({
     return () => window.clearTimeout(timer)
   }, [query])
 
-  const recentQuery = useQuery({
-    queryKey: ['item', 'search', 'recent'],
-    queryFn: () => inventoryApi.items({ limit: 6, scope: 'ALL' }),
-    enabled: !value && !debounced,
+  const resultsQuery = useInfiniteQuery({
+    queryKey: ['item', 'search', debounced, location],
+    queryFn: ({ pageParam }) =>
+      inventoryApi.items({
+        q: debounced || undefined,
+        scope: 'ALL',
+        ...location,
+        limit: 20,
+        cursor: pageParam,
+      }),
+    enabled: !value,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
   })
-  const searchQuery = useQuery({
-    queryKey: ['item', 'search', debounced],
-    queryFn: () => inventoryApi.items({ q: debounced, limit: 12, scope: 'ALL' }),
-    enabled: !value && debounced.length > 0,
-  })
-
-  const results = debounced ? (searchQuery.data?.items ?? []) : (recentQuery.data?.items ?? [])
-  const isLoading = debounced ? searchQuery.isLoading : recentQuery.isLoading
-  const isError = debounced ? searchQuery.isError : recentQuery.isError
+  const results = resultsQuery.data?.pages.flatMap((page) => page.items) ?? []
+  const isLoading = resultsQuery.isLoading
+  const isError = resultsQuery.isError
 
   if (value) {
     return (
@@ -79,6 +84,16 @@ export function ItemCombobox({
         <p className="text-foreground/60 text-xs">
           {debounced ? '검색 결과가 없습니다.' : '아직 등록된 물건이 없습니다.'}
         </p>
+      ) : null}
+      {resultsQuery.hasNextPage ? (
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={resultsQuery.isFetchingNextPage}
+          onClick={() => void resultsQuery.fetchNextPage()}
+        >
+          물건 더 보기
+        </Button>
       ) : null}
       {results.length > 0 ? (
         <div className="flex flex-col gap-2">

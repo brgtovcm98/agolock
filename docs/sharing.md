@@ -247,3 +247,9 @@ sequenceDiagram
 - 초대 메일의 원문 토큰은 `notification_secret`에 AES-GCM으로 암호화해 저장하고, outbox에는 `secretId`만 기록합니다.
 - 키는 `NOTIFICATION_SECRET_KEY`로 주입하며 저장소에 커밋하지 않습니다.
 - 초대 만료 후 secret은 worker cleanup job이 삭제합니다.
+
+## 12. 재고 편집 문맥의 카테고리와 위치
+
+- 카테고리 목록은 선택적 Item 문맥으로 대상 Space를 결정합니다. 공유 사용자는 현재 접근 가능한 Item·Inventory가 참조하는 카테고리만 조회·선택합니다. 저장 시에도 같은 접근 규칙을 확인합니다.
+- 기존 Item의 재고 등록 대상은 같은 Space에서 MANAGE 이상인 위치만 반환합니다. 이동 대상도 원본 MANAGE를 검사한 뒤 같은 기준으로 조회합니다.
+- Item 읽기 권한은 접근 가능한 재고의 최대 grant로 집계하며 연결 재고 조회에도 같은 접근 검사를 적용합니다. 접근 불가능한 Item은 404로 처리합니다.

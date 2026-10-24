@@ -133,7 +133,7 @@ interface ItemMapper {
     ): Int
 
     @Update(
-        "UPDATE item SET category_id = #{targetId}, updated_at = #{now} WHERE category_id = #{sourceId} AND space_id = #{spaceId} AND deleted_at IS NULL",
+        "UPDATE item SET category_id = #{targetId}, version = version + 1, updated_at = #{now} WHERE category_id = #{sourceId} AND space_id = #{spaceId} AND deleted_at IS NULL",
     )
     fun reassignCategory(
         @Param("spaceId") spaceId: UUID,
@@ -142,10 +142,13 @@ interface ItemMapper {
         @Param("now") now: OffsetDateTime,
     ): Int
 
-    @Update("UPDATE item SET deleted_at = #{now}, updated_at = #{now} WHERE id = #{id} AND space_id = #{spaceId} AND deleted_at IS NULL")
+    @Update(
+        "UPDATE item SET deleted_at = #{now}, updated_at = #{now}, version = version + 1 WHERE id = #{id} AND space_id = #{spaceId} AND version = #{version} AND deleted_at IS NULL",
+    )
     fun softDelete(
         @Param("spaceId") spaceId: UUID,
         @Param("id") id: UUID,
+        @Param("version") version: Long,
         @Param("now") now: OffsetDateTime,
     ): Int
 }

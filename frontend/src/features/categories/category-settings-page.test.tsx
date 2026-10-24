@@ -45,6 +45,7 @@ describe('카테고리 관리', () => {
     })
     vi.spyOn(inventoryApi, 'categories').mockResolvedValue({
       items: [testCategory, { id: 'c2', name: '캠핑', color: null, sortOrder: 1 }],
+      nextCursor: null,
     })
     renderApp(['/settings/categories'], {
       seeds: [
@@ -52,6 +53,7 @@ describe('카테고리 관리', () => {
           ['category', 'list'],
           {
             items: [testCategory, { id: 'c2', name: '캠핑', color: null, sortOrder: 1 }],
+            nextCursor: null,
           },
         ],
       ],

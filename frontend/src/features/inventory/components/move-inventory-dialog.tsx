@@ -2,8 +2,9 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { useState } from 'react'
-import { inventoryApi, type Inventory, type LocationInput } from '../api'
-import { LocationPicker } from './location-picker'
+import { inventoryApi, type Inventory, type LocationInput, wireLocation } from '../api'
+import { TargetPicker } from './target-picker'
+import { invalidateInventory } from '../edit-state'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
@@ -34,10 +35,7 @@ export function MoveInventoryDialog({
         boxId: location.boxId ?? null,
       }),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventory'] }),
-        queryClient.invalidateQueries({ queryKey: ['hierarchy'] }),
-      ])
+      await invalidateInventory(queryClient)
       onClose()
       onMoved?.()
     },
@@ -51,9 +49,7 @@ export function MoveInventoryDialog({
   })
 
   const sameLocation =
-    (inventory.location.roomId ?? '') === (location.roomId ?? '') &&
-    (inventory.location.shelfId ?? '') === (location.shelfId ?? '') &&
-    (inventory.location.boxId ?? '') === (location.boxId ?? '')
+    JSON.stringify(wireLocation(inventory.location)) === JSON.stringify(wireLocation(location))
 
   return (
     <Dialog.Root open onOpenChange={(next) => !next && onClose()}>
@@ -80,9 +76,9 @@ export function MoveInventoryDialog({
 
           <div className="flex flex-col gap-4">
             {error ? <Alert variant="error">{error}</Alert> : null}
-            <LocationPicker
+            <TargetPicker
+              inventoryId={inventory.id}
               value={location}
-              defaultSource={inventory.isShared ? 'shared' : 'owned'}
               onChange={(next) => {
                 setLocation(next)
                 setError(null)
@@ -94,7 +90,11 @@ export function MoveInventoryDialog({
               </Button>
               <Button
                 type="button"
-                disabled={mutation.isPending || sameLocation || !location.roomId}
+                disabled={
+                  mutation.isPending ||
+                  sameLocation ||
+                  !Object.values(wireLocation(location)).some(Boolean)
+                }
                 onClick={() => {
                   if (sameLocation) {
                     onClose()

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, X } from 'lucide-react'
 import { useState } from 'react'
+import { invalidateInventory } from '../edit-state'
 import { inventoryApi, type Category } from '../api'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
@@ -30,10 +31,7 @@ export function CategoryCombobox({
       setCreating(false)
       setError(null)
       onChange(category.id)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['category', 'list'] }),
-        queryClient.invalidateQueries({ queryKey: ['inventory', 'categories'] }),
-      ])
+      await invalidateInventory(queryClient)
     },
     onError: (cause) =>
       setError(cause instanceof ApiError ? cause.message : '카테고리를 만들지 못했습니다.'),

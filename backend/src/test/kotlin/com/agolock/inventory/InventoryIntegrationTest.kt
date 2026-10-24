@@ -83,7 +83,14 @@ class InventoryIntegrationTest
                         ).body,
                 )
             val inventoryId = createdInventory["id"].asText()
-            val impact = json(client.get("/api/v1/items/${item["id"].asText()}/update-impact").body)
+            val impact =
+                json(
+                    client
+                        .post(
+                            "/api/v1/items/${item["id"].asText()}/update-impact",
+                            mapOf("name" to "수정 이름", "version" to 0),
+                        ).body,
+                )
             assertThat(impact["affectedInventoryCount"].asInt()).isEqualTo(1)
             val targets = json(client.get("/api/v1/inventories/$inventoryId/move-targets").body)
             assertThat(targets["items"].size()).isGreaterThanOrEqualTo(2)
@@ -146,7 +153,7 @@ class InventoryIntegrationTest
                 .isEqualTo(HttpStatus.CONFLICT)
             assertThat(client.delete("/api/v1/shelves/${shelf["id"].asText()}").statusCode)
                 .isEqualTo(HttpStatus.CONFLICT)
-            assertThat(client.delete("/api/v1/inventories/$inventoryId").statusCode)
+            assertThat(client.delete("/api/v1/inventories/$inventoryId?version=3").statusCode)
                 .isEqualTo(HttpStatus.NO_CONTENT)
         }
 
@@ -169,9 +176,16 @@ class InventoryIntegrationTest
                 )
             assertThat(disposed.statusCode).isEqualTo(HttpStatus.OK)
 
-            val impact = json(client.get("/api/v1/items/${item["id"].asText()}/update-impact").body)
+            val impact =
+                json(
+                    client
+                        .post(
+                            "/api/v1/items/${item["id"].asText()}/update-impact",
+                            mapOf("name" to "수정 이름", "version" to 0),
+                        ).body,
+                )
             assertThat(impact["affectedInventoryCount"].asInt()).isEqualTo(1)
-            val deleted = client.delete("/api/v1/items/${item["id"].asText()}")
+            val deleted = client.delete("/api/v1/items/${item["id"].asText()}?version=0")
             assertThat(deleted.statusCode).isEqualTo(HttpStatus.CONFLICT)
             assertThat(client.get("/api/v1/items/${item["id"].asText()}").statusCode).isEqualTo(HttpStatus.OK)
         }

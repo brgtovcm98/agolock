@@ -14,6 +14,8 @@ import com.agolock.inventory.service.MoveInventoryCommand
 import com.agolock.inventory.service.NewItemCommand
 import com.agolock.inventory.service.UpdateInventoryCommand
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -166,8 +168,9 @@ class InventoryController(
     fun delete(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
+        @RequestParam version: Long,
     ): ResponseEntity<Void> {
-        command.delete(Actor.from(principal), inventoryId)
+        command.delete(Actor.from(principal), inventoryId, version)
         return ResponseEntity.noContent().build()
     }
 
@@ -176,7 +179,14 @@ class InventoryController(
     fun moveTargets(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable inventoryId: UUID,
-    ): LocationListResponse = LocationListResponse(moveTargetService.moveTargets(Actor.from(principal), inventoryId))
+        @Parameter(schema = Schema(maxLength = 200))
+        @RequestParam(required = false) q: String?,
+        @RequestParam(required = false) limit: Int?,
+        @RequestParam(required = false) cursor: String?,
+    ): LocationListResponse {
+        val page = moveTargetService.moveTargets(Actor.from(principal), inventoryId, q, limit, cursor)
+        return LocationListResponse(page.items, page.nextCursor)
+    }
 
     @GetMapping("/{inventoryId}/movements")
     @Operation(operationId = "listInventoryMovements", summary = "Inventory 이동 이력")

@@ -28,7 +28,10 @@ describe('Room 상세', () => {
       seeds: [
         [['hierarchy', 'room', 'r1'], testRoom()],
         [['hierarchy', 'shelves', 'r1'], { items: [testShelf()], nextCursor: null }],
-        [['inventory', 'location', 'r1', '', ''], { items: [testInventory()], nextCursor: null }],
+        [
+          ['inventory', 'location', 'r1', '', ''],
+          { pages: [{ items: [testInventory()], nextCursor: null }], pageParams: [undefined] },
+        ],
         [['sharing', 'shared'], { items: [] }],
       ],
     })

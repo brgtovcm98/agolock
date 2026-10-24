@@ -1,3 +1,5 @@
+import { invalidateInventory } from './edit-state'
+import { collectPages } from '@/features/inventory/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MapPin, Package, Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
@@ -65,8 +67,11 @@ export function InventoryDetailPage() {
     enabled: Boolean(inventoryId),
   })
   const categoriesQuery = useQuery({
-    queryKey: ['category', 'list'],
-    queryFn: inventoryApi.categories,
+    queryKey: ['category', 'list', inventoryQuery.data?.itemId],
+    queryFn: () =>
+      collectPages((cursor) =>
+        inventoryApi.categories({ itemId: inventoryQuery.data?.itemId, limit: 100, cursor }),
+      ),
   })
 
   const inventory = inventoryQuery.data
@@ -89,13 +94,10 @@ export function InventoryDetailPage() {
         description: `${inventory?.displayName ?? '재고'} · ${statusOptions.find((option) => option.value === status)?.label ?? ''}`,
         variant: 'success',
       })
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventory'] }),
-        queryClient.invalidateQueries({ queryKey: ['hierarchy'] }),
-      ])
+      await invalidateInventory(queryClient)
     },
     onError: async (cause) => {
-      if (cause instanceof ApiError && cause.status === 409) {
+      if (cause instanceof ApiError && cause.code === 'VERSION_CONFLICT') {
         setError('다른 곳에서 먼저 수정했어요. 최신 정보를 다시 불러왔습니다.')
         setStatusDraftOverride(null)
         await inventoryQuery.refetch()
@@ -106,17 +108,14 @@ export function InventoryDetailPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: () => inventoryApi.deleteInventory(inventoryId),
+    mutationFn: () => inventoryApi.deleteInventory(inventoryId, inventoryQuery.data!.version),
     onSuccess: async () => {
       show({
         id: `inventory:${inventoryId}:delete`,
         title: '재고를 삭제했어요.',
         variant: 'success',
       })
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventory'] }),
-        queryClient.invalidateQueries({ queryKey: ['hierarchy'] }),
-      ])
+      await invalidateInventory(queryClient)
       navigate('/inventory', { replace: true })
     },
     onError: (cause) =>

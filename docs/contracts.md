@@ -327,3 +327,10 @@ Outbox 기준 주요 이벤트 타입:
 - `python3 scripts/openapi_snapshot.py`는 `build/contracts/openapi.json`과 `contracts/openapi.snapshot.json`의 request/response schema, required, enum을 비교합니다.
 - 의도한 계약 변경이면 `python3 scripts/openapi_snapshot.py --update`로 snapshot을 갱신하고 review에 포함합니다.
 - `docs_check.py`는 preview와 snapshot이 모두 있을 때 이 검사를 실행합니다.
+
+## 물건·재고 구현 계약 갱신
+
+- 실제 구현 OpenAPI는 기존 preview 생성기로 만든 뒤 승인 스냅샷을 갱신합니다. 프론트엔드 `generate:api`는 `contracts/openapi.snapshot.json`을 입력으로 사용하며 CI에서 구현과 스냅샷의 일치를 검사합니다. `docs/generated/`는 설계 초안을 유지합니다.
+- 삭제 version, 변경분 기반 영향 미리보기와 문맥별 페이지 조회의 결정은 [ADR-023](decisions/ADR-023-inventory-write-consistency.md)을 따릅니다.
+
+물건·재고 범위의 설계 초안 동기화는 `python3 scripts/sync_inventory_contracts.py`로 수행합니다. 구현 preview에서 해당 path와 참조 스키마만 갱신하며 다른 설계 범위와 초안 표시는 보존합니다.

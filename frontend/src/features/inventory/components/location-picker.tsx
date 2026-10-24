@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { LocationInput } from '../api'
+import { collectPages, type LocationInput } from '../api'
 import { hierarchyApi } from '@/features/hierarchy/api'
 import { sharingApi } from '@/features/sharing/api'
 import { Alert } from '@/shared/ui/alert'
@@ -21,11 +21,13 @@ export function LocationPicker({
   onChange,
   disabled = false,
   defaultSource = 'owned',
+  ownedOnly = false,
 }: {
   value: LocationInput
   onChange: (value: LocationInput) => void
   disabled?: boolean
   defaultSource?: Source
+  ownedOnly?: boolean
 }) {
   const [source, setSource] = useState<Source>(defaultSource)
   const [sharedKey, setSharedKey] = useState('')
@@ -37,12 +39,13 @@ export function LocationPicker({
 
   const roomsQuery = useQuery({
     queryKey: ['hierarchy', 'rooms', 'picker'],
-    queryFn: () => hierarchyApi.listRooms(undefined, 100),
+    queryFn: () => collectPages((cursor) => hierarchyApi.listRooms(cursor, 100)),
     enabled: source === 'owned',
   })
   const sharesQuery = useQuery({
     queryKey: ['sharing', 'shared'],
     queryFn: sharingApi.shared,
+    enabled: !ownedOnly,
   })
   const sharedOptions = (sharesQuery.data?.items ?? []).filter(
     (share) => share.permission === 'MANAGE',
@@ -74,12 +77,14 @@ export function LocationPicker({
 
   const shelvesQuery = useQuery({
     queryKey: ['hierarchy', 'shelves', 'picker', source, effectiveSharedRoomId],
-    queryFn: () => hierarchyApi.listShelves(effectiveSharedRoomId, undefined, 100),
+    queryFn: () =>
+      collectPages((cursor) => hierarchyApi.listShelves(effectiveSharedRoomId, cursor, 100)),
     enabled: Boolean(effectiveSharedRoomId) && (source === 'owned' || !sharedShelfId),
   })
   const boxesQuery = useQuery({
     queryKey: ['hierarchy', 'boxes', 'picker', source, shelfId || sharedShelfId],
-    queryFn: () => hierarchyApi.listBoxes(shelfId || sharedShelfId, undefined, 100),
+    queryFn: () =>
+      collectPages((cursor) => hierarchyApi.listBoxes(shelfId || sharedShelfId, cursor, 100)),
     enabled: Boolean(shelfId || sharedShelfId),
   })
 
@@ -138,7 +143,7 @@ export function LocationPicker({
     )
   }
 
-  if (source === 'owned' && (roomsQuery.isLoading || sharesQuery.isLoading)) {
+  if (source === 'owned' && (roomsQuery.isLoading || (!ownedOnly && sharesQuery.isLoading))) {
     return (
       <p role="status" className="text-xs font-bold">
         공간을 불러오는 중…
@@ -152,7 +157,7 @@ export function LocationPicker({
     <fieldset className="flex flex-col gap-3" disabled={disabled}>
       <legend className="text-xs font-black">위치</legend>
 
-      {sharedOptions.length > 0 || defaultSource === 'shared' ? (
+      {!ownedOnly && (sharedOptions.length > 0 || defaultSource === 'shared') ? (
         <div className="border-border grid grid-cols-2 border-[2.5px]">
           <button
             type="button"

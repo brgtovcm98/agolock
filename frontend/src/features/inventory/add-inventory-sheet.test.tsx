@@ -99,6 +99,9 @@ describe('등록 시트', () => {
     await user.click(within(dialog).getByRole('button', { name: '등록' }))
 
     await waitFor(() => expect(createInventorySpy).toHaveBeenCalledTimes(2))
+    expect(createInventorySpy.mock.calls[1][0].idempotencyKey).toBe(
+      createInventorySpy.mock.calls[0][0].idempotencyKey,
+    )
     expect(await within(dialog).findByText('등록했어요.')).toBeInTheDocument()
   }, 15000)
 })

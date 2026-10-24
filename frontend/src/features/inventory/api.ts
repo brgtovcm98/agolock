@@ -69,7 +69,15 @@ export type Movement = {
 
 export type ItemUpdateImpact = {
   affectedInventoryCount: number
-  protectedByOverrideCount: number
+  version: number
+  changedFields: string[]
+  totalInventoryCount: number
+  fullyProtectedInventoryCount: number
+  fieldImpacts: Array<{
+    field: string
+    affectedInventoryCount: number
+    protectedInventoryCount: number
+  }>
 }
 
 export type CategoryMergeResult = {
@@ -77,7 +85,7 @@ export type CategoryMergeResult = {
   mergedInventoryCount: number
 }
 
-export type ItemQuery = {
+export type ItemQuery = LocationInput & {
   q?: string
   limit?: number
   cursor?: string
@@ -138,10 +146,10 @@ export type MoveInventoryInput = LocationInput & {
 
 export type UpdateItemInput = {
   version: number
-  name: string
-  description: string | null
-  categoryId: string | null
-  priceAmount: number | null
+  name?: string
+  description?: string | null
+  categoryId?: string | null
+  priceAmount?: number | null
 }
 
 export type UpdateCategoryInput = {
@@ -150,17 +158,44 @@ export type UpdateCategoryInput = {
   sortOrder?: number
 }
 
-function queryString(params: Record<string, string | number | undefined>) {
+function queryString(params: Record<string, string | number | null | undefined>) {
   const search = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== '') search.set(key, String(value))
+    if (value !== undefined && value !== null && value !== '') search.set(key, String(value))
   })
   const suffix = search.toString()
   return suffix ? `?${suffix}` : ''
 }
 
+export function wireLocation(input: LocationInput): {
+  roomId?: string
+  shelfId?: string
+  boxId?: string
+} {
+  if (input.boxId) return { boxId: input.boxId }
+  if (input.shelfId) return { shelfId: input.shelfId }
+  if (input.roomId) return { roomId: input.roomId }
+  return {}
+}
+export type LocationTarget = { type: 'ROOM' | 'SHELF' | 'BOX'; id: string; path: string }
+export type PageQuery = { limit?: number; cursor?: string; q?: string }
+export async function collectPages<T>(
+  fetchPage: (cursor?: string) => Promise<Page<T>>,
+): Promise<Page<T>> {
+  const items: T[] = []
+  let cursor: string | undefined
+  do {
+    const page = await fetchPage(cursor)
+    items.push(...page.items)
+    cursor = page.nextCursor ?? undefined
+  } while (cursor)
+  return { items, nextCursor: null }
+}
 export const inventoryApi = {
-  categories: () => apiFetch<{ items: Category[] }>('/categories'),
+  categories: (params: PageQuery & { itemId?: string } = {}) =>
+    apiFetch<Page<Category>>(
+      `/categories${queryString({ itemId: params.itemId, limit: params.limit ?? 100, cursor: params.cursor })}`,
+    ),
   createCategory: (name: string) =>
     apiFetch<Category>('/categories', { method: 'POST', body: JSON.stringify({ name }) }),
   updateCategory: (categoryId: string, input: UpdateCategoryInput) =>
@@ -178,12 +213,26 @@ export const inventoryApi = {
 
   items: (params: ItemQuery = {}) =>
     apiFetch<Page<Item>>(
-      `/items${queryString({ q: params.q, limit: params.limit ?? 20, cursor: params.cursor, scope: params.scope })}`,
+      `/items${queryString({ q: params.q, limit: params.limit ?? 20, cursor: params.cursor, scope: params.scope, ...wireLocation(params) })}`,
     ),
   item: (itemId: string) => apiFetch<Item>(`/items/${itemId}`),
-  itemInventories: (itemId: string) => apiFetch<Page<Inventory>>(`/items/${itemId}/inventories`),
-  itemUpdateImpact: (itemId: string) =>
-    apiFetch<ItemUpdateImpact>(`/items/${itemId}/update-impact`),
+  itemInventories: (itemId: string, params: PageQuery & { status?: InventoryStatus } = {}) =>
+    apiFetch<Page<Inventory>>(
+      `/items/${itemId}/inventories${queryString({ status: params.status, limit: params.limit ?? 20, cursor: params.cursor })}`,
+    ),
+  inventoryTargets: (itemId: string, params: PageQuery = {}) =>
+    apiFetch<Page<LocationTarget>>(
+      `/items/${itemId}/inventory-targets${queryString({ q: params.q, limit: params.limit ?? 100, cursor: params.cursor })}`,
+    ),
+  moveTargets: (inventoryId: string, params: PageQuery = {}) =>
+    apiFetch<Page<LocationTarget>>(
+      `/inventories/${inventoryId}/move-targets${queryString({ q: params.q, limit: params.limit ?? 100, cursor: params.cursor })}`,
+    ),
+  itemUpdateImpact: (itemId: string, input: UpdateItemInput) =>
+    apiFetch<ItemUpdateImpact>(`/items/${itemId}/update-impact`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
   updateItem: (itemId: string, input: UpdateItemInput) =>
     apiFetch<Item>(`/items/${itemId}`, {
       method: 'PATCH',
@@ -205,9 +254,9 @@ export const inventoryApi = {
     const search = new URLSearchParams()
     params.statuses?.forEach((status) => search.append('status', status))
     if (params.scope) search.set('scope', params.scope)
-    if (params.roomId) search.set('roomId', params.roomId)
-    if (params.shelfId) search.set('shelfId', params.shelfId)
-    if (params.boxId) search.set('boxId', params.boxId)
+    Object.entries(wireLocation(params)).forEach(([key, value]) => {
+      if (value) search.set(key, value)
+    })
     search.set('limit', String(params.limit ?? 20))
     if (params.cursor) search.set('cursor', params.cursor)
     return apiFetch<Page<Inventory>>(`/inventories?${search.toString()}`)
@@ -221,9 +270,7 @@ export const inventoryApi = {
       body: JSON.stringify({
         itemId: input.itemId ?? null,
         newItem: input.newItem ?? null,
-        roomId: input.roomId ?? null,
-        shelfId: input.shelfId ?? null,
-        boxId: input.boxId ?? null,
+        ...wireLocation(input),
         status: input.status ?? 'STORED',
       }),
     }),
@@ -235,8 +282,8 @@ export const inventoryApi = {
   moveInventory: (inventoryId: string, input: MoveInventoryInput) =>
     apiFetch<Inventory>(`/inventories/${inventoryId}/location`, {
       method: 'PATCH',
-      body: JSON.stringify(input),
+      body: JSON.stringify({ version: input.version, ...wireLocation(input) }),
     }),
-  deleteInventory: (inventoryId: string) =>
-    apiFetch<void>(`/inventories/${inventoryId}`, { method: 'DELETE' }),
+  deleteInventory: (inventoryId: string, version: number) =>
+    apiFetch<void>(`/inventories/${inventoryId}?version=${version}`, { method: 'DELETE' }),
 }

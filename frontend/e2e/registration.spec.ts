@@ -79,7 +79,7 @@ test('위치를 골라 새 물건과 첫 재고를 등록한다', async ({ page 
       json: { inviteRequired: false, passwordMinLength: 10, passwordMaxLength: 128 },
     }),
   )
-  await page.route('**/api/v1/categories', (route) => route.fulfill({ json: { items: [] } }))
+  await page.route('**/api/v1/categories**', (route) => route.fulfill({ json: { items: [] } }))
   await page.route('**/api/v1/shared', (route) => route.fulfill({ json: { items: [] } }))
   await page.route('**/api/v1/inventories**', async (route) => {
     if (route.request().method() === 'POST') {

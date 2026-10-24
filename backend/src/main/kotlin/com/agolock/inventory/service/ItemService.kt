@@ -2,16 +2,17 @@
 
 package com.agolock.inventory.service
 
-import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
+import com.agolock.common.persistence.InventoryWriteLocks
 import com.agolock.hierarchy.domain.Actor
-import com.agolock.hierarchy.domain.EffectivePermission
-import com.agolock.hierarchy.domain.GrantLevel
-import com.agolock.hierarchy.domain.PageResult
 import com.agolock.hierarchy.service.AccessService
+import com.agolock.inventory.api.ItemFieldImpactResponse
+import com.agolock.inventory.api.ItemUpdateImpactPreviewResponse
 import com.agolock.inventory.domain.Item
+import com.agolock.inventory.domain.ItemFieldPolicy
 import com.agolock.inventory.persistence.CategoryMapper
+import com.agolock.inventory.persistence.InventoryContextQueryMapper
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.ItemMapper
 import org.springframework.http.HttpStatus
@@ -26,141 +27,64 @@ class ItemService(
     private val itemMapper: ItemMapper,
     private val categoryMapper: CategoryMapper,
     private val inventoryMapper: InventoryMapper,
-    private val locationResolver: InventoryLocationResolver,
     private val accessService: AccessService,
     private val clock: Clock,
+    private val contextMapper: InventoryContextQueryMapper,
+    private val queries: ItemQueryService,
+    private val locks: InventoryWriteLocks,
 ) {
-    fun list(
-        actor: Actor,
-        categoryId: UUID?,
-        q: String?,
-        limit: Int?,
-        cursorRaw: String?,
-        scope: String = "ALL",
-    ): PageResult<Item> {
-        val normalizedScope = scope.uppercase()
-        if (normalizedScope !in setOf("OWNED", "SHARED", "ALL")) {
-            throw validation("scope는 OWNED, SHARED, ALL 중 하나여야 합니다.")
-        }
-        val query = q?.trim()?.take(200)?.takeIf(String::isNotEmpty)
-        val cursor = TimeCursorCodec.decode(cursorRaw)
-        val effectiveLimit = TimeCursorCodec.limit(limit)
-        val owned =
-            if (normalizedScope == "SHARED") {
-                emptyList()
-            } else {
-                accessService.requireOwner(actor, actor.spaceId)
-                itemMapper.list(actor.spaceId, categoryId, query, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
-            }
-        val shared =
-            if (normalizedScope == "OWNED") {
-                emptyList()
-            } else {
-                itemMapper
-                    .listShared(actor.userId, categoryId, query, cursor?.updatedAt, cursor?.id, effectiveLimit + 1)
-                    .filter { it.spaceId != actor.spaceId }
-            }
-        val combined =
-            (owned + shared)
-                .distinctBy { it.id }
-                .sortedWith(compareByDescending<Item> { it.updatedAt }.thenByDescending { it.id })
-        val page = combined.take(effectiveLimit)
-        val next =
-            if (combined.size > effectiveLimit) {
-                page.lastOrNull()?.let { TimeCursorCodec.encode(it.updatedAt, it.id) }
-            } else {
-                null
-            }
-        return PageResult(page, next)
-    }
-
-    fun get(
-        actor: Actor,
-        itemId: UUID,
-    ): Item {
-        accessService.requireOwner(actor, actor.spaceId)
-        return requireItem(actor, itemId)
-    }
-
-    fun getReadableWithPermission(
-        actor: Actor,
-        itemId: UUID,
-    ): Pair<Item, EffectivePermission> {
-        val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        val permission = permission(actor, item)
-        if (!permission.atLeast(GrantLevel.VIEW)) {
-            throw notFound("Item을 찾을 수 없습니다.")
-        }
-        return item to permission
-    }
-
     fun getReadable(
         actor: Actor,
         itemId: UUID,
-    ): Item = getReadableWithPermission(actor, itemId).first
-
-    fun permissions(
-        actor: Actor,
-        items: List<Item>,
-    ): Map<UUID, EffectivePermission> {
-        val own = items.filter { it.spaceId == actor.spaceId }.associate { it.id to EffectivePermission.Owner }
-        val shared = items.filter { it.spaceId != actor.spaceId }
-        if (shared.isEmpty()) return own
-        val ranks =
-            inventoryMapper
-                .maxGrantRankByItemIds(actor.spaceId, actor.userId, shared.map { it.id })
-                .associate { it.itemId to it.grantRank }
-        return own +
-            shared.associate {
-                it.id to
-                    when (ranks[it.id]) {
-                        3 -> EffectivePermission.Granted(GrantLevel.MANAGE)
-                        2 -> EffectivePermission.Granted(GrantLevel.EDIT)
-                        1 -> EffectivePermission.Granted(GrantLevel.VIEW)
-                        else -> EffectivePermission.None
-                    }
-            }
-    }
-
-    fun permission(
-        actor: Actor,
-        item: Item,
-    ): EffectivePermission {
-        if (item.spaceId == actor.spaceId) {
-            return accessService.effectivePermission(actor, accessService.target(item.spaceId))
-        }
-        return inventoryMapper
-            .listAllByItem(item.spaceId, item.id)
-            .mapNotNull { inventory ->
-                val location = locationResolver.resolve(inventory.id) ?: return@mapNotNull null
-                accessService.effectivePermission(
-                    actor,
-                    accessService.target(
-                        location.spaceId,
-                        location.effectiveRoomId,
-                        location.effectiveShelfId,
-                        location.boxId,
-                    ),
-                )
-            }.reduceOrNull { max, next -> max.max(next) }
-            ?: EffectivePermission.None
-    }
+    ): Item = queries.getReadable(actor, itemId)
 
     fun updateImpact(
         actor: Actor,
         itemId: UUID,
-    ): Pair<Int, Int> {
+        command: UpdateItemCommand,
+    ): ItemUpdateImpactPreviewResponse {
         accessService.requireOwner(actor, actor.spaceId)
-        requireItem(actor, itemId)
-        val inventories = inventoryMapper.listAllByItem(actor.spaceId, itemId)
-        val protectedCount =
-            inventories.count {
-                it.nameOverride != null ||
-                    it.descriptionOverride != null ||
-                    it.categoryIdOverride != null ||
-                    it.priceAmountOverride != null
+        val current = requireItem(actor, itemId)
+        val proposal = proposal(actor, current, command)
+        val fields =
+            listOf("name", "description", "categoryId", "priceAmount").filter {
+                when (it) {
+                    "name" -> current.name != proposal.name
+                    "description" -> current.description != proposal.description
+                    "categoryId" -> current.categoryId != proposal.categoryId
+                    else -> current.priceAmount != proposal.priceAmount
+                }
             }
-        return inventories.size to protectedCount
+        val counts =
+            contextMapper.impact(
+                current.spaceId,
+                itemId,
+                "name" in fields,
+                "description" in fields,
+                "categoryId" in fields,
+                "priceAmount" in fields,
+            )
+        val fieldCounts =
+            mapOf(
+                "name" to counts.nameAffected,
+                "description" to counts.descriptionAffected,
+                "categoryId" to counts.categoryAffected,
+                "priceAmount" to counts.priceAffected,
+            )
+        return ItemUpdateImpactPreviewResponse(
+            current.version,
+            fields,
+            counts.total,
+            counts.affected,
+            counts.total - counts.affected,
+            fields.map {
+                ItemFieldImpactResponse(
+                    it,
+                    fieldCounts.getValue(it),
+                    counts.total - fieldCounts.getValue(it),
+                )
+            },
+        )
     }
 
     @Transactional
@@ -169,16 +93,18 @@ class ItemService(
         command: CreateItemCommand,
     ): Item {
         accessService.requireOwner(actor, actor.spaceId)
+        locks.lockCategories(actor.spaceId, listOfNotNull(command.categoryId))
         validateCategory(actor, command.categoryId)
-        val name = command.name.trim()
-        if (name.isEmpty() || name.length > 120) throw validation("Item 이름은 1~120자여야 합니다.")
+        val name = ItemFieldPolicy.name(command.name)
+        ItemFieldPolicy.description(command.description)
+        ItemFieldPolicy.price(command.priceAmount)
         val now = OffsetDateTime.now(clock)
         val item =
             Item(
                 id = UuidV7.generate(clock),
                 spaceId = actor.spaceId,
                 name = name,
-                description = command.description?.trim()?.takeIf(String::isNotEmpty),
+                description = ItemFieldPolicy.description(command.description),
                 categoryId = command.categoryId,
                 priceAmount = command.priceAmount,
                 version = 0,
@@ -196,19 +122,16 @@ class ItemService(
         command: UpdateItemCommand,
     ): Item {
         accessService.requireOwner(actor, actor.spaceId)
+        val snapshot = requireItem(actor, itemId)
+        locks.lockCategories(actor.spaceId, listOfNotNull(snapshot.categoryId, command.categoryId))
+        locks.lockItems(actor.spaceId, listOf(itemId))
         val current = requireItem(actor, itemId)
-        if (current.version != command.version) throw versionConflict()
-        validateCategory(actor, command.categoryId)
-        val name = command.name?.trim() ?: current.name
-        if (name.isEmpty() || name.length > 120) throw validation("Item 이름은 1~120자여야 합니다.")
-        val description =
-            if (command.descriptionPresent) {
-                command.description?.trim()?.takeIf(String::isNotEmpty)
-            } else {
-                current.description
-            }
-        val categoryId = if (command.categoryIdPresent) command.categoryId else current.categoryId
-        val priceAmount = if (command.priceAmountPresent) command.priceAmount else current.priceAmount
+        if (snapshot.categoryId != current.categoryId) throw conflict("RESOURCE_CONTEXT_CHANGED", "카테고리가 변경되었습니다.")
+        val proposed = proposal(actor, current, command)
+        val name = proposed.name
+        val description = proposed.description
+        val categoryId = proposed.categoryId
+        val priceAmount = proposed.priceAmount
         if (name == current.name &&
             description == current.description &&
             categoryId == current.categoryId &&
@@ -235,13 +158,19 @@ class ItemService(
     fun delete(
         actor: Actor,
         itemId: UUID,
+        version: Long,
     ) {
+        ItemFieldPolicy.version(version)
         accessService.requireOwner(actor, actor.spaceId)
-        requireItem(actor, itemId)
+        val snapshot = requireItem(actor, itemId)
+        locks.lockCategories(actor.spaceId, listOfNotNull(snapshot.categoryId))
+        locks.lockItems(actor.spaceId, listOf(itemId))
+        val current = requireItem(actor, itemId)
+        if (current.version != version) throw versionConflict()
         if (inventoryMapper.countByItem(actor.spaceId, itemId) > 0) {
             throw conflict("ITEM_HAS_INVENTORIES", "Inventory가 있는 Item은 삭제할 수 없습니다.")
         }
-        itemMapper.softDelete(actor.spaceId, itemId, OffsetDateTime.now(clock))
+        if (itemMapper.softDelete(actor.spaceId, itemId, version, OffsetDateTime.now(clock)) == 0) throw versionConflict()
     }
 
     fun requireItem(
@@ -251,6 +180,22 @@ class ItemService(
         itemMapper.findById(actor.spaceId, itemId)
             ?: throw ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, "Item을 찾을 수 없습니다.")
 
+    private fun proposal(
+        actor: Actor,
+        current: Item,
+        command: UpdateItemCommand,
+    ): Item {
+        ItemFieldPolicy.version(command.version)
+        if (current.version != command.version) throw versionConflict()
+        if (command.namePresent && command.name == null) throw validation("Item 이름은 null일 수 없습니다.")
+        val name = command.name?.let(ItemFieldPolicy::name) ?: current.name
+        val description = if (command.descriptionPresent) ItemFieldPolicy.description(command.description) else current.description
+        val categoryId = if (command.categoryIdPresent) command.categoryId else current.categoryId
+        val price = if (command.priceAmountPresent) ItemFieldPolicy.price(command.priceAmount) else current.priceAmount
+        validateCategory(actor, categoryId)
+        return current.copy(name = name, description = description, categoryId = categoryId, priceAmount = price)
+    }
+
     private fun validateCategory(
         actor: Actor,
         categoryId: UUID?,
@@ -259,8 +204,6 @@ class ItemService(
             throw ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다.")
         }
     }
-
-    private fun notFound(message: String) = ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, message)
 
     private fun validation(message: String) = ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, message)
 

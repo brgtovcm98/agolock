@@ -17,7 +17,7 @@ function renderDetail() {
   return renderApp(['/inventory/v1'], {
     seeds: [
       [['inventory', 'detail', 'v1'], inventory],
-      [['category', 'list'], { items: [testCategory] }],
+      [['category', 'list', 'i1'], { items: [testCategory] }],
       [['hierarchy', 'room', 'r1'], testRoom()],
       [['hierarchy', 'shelf', 's1'], testShelf()],
       [['hierarchy', 'box', 'b1'], testBox()],
@@ -101,6 +101,6 @@ describe('재고 상세', () => {
     await user.click(screen.getByRole('button', { name: '위치 이동' }))
 
     expect(screen.getByRole('heading', { name: '위치 이동' })).toBeInTheDocument()
-    expect(screen.getAllByText('거실').length).toBeGreaterThan(0)
+    expect(screen.getByRole('combobox', { name: '대상 위치' })).toBeInTheDocument()
   })
 })

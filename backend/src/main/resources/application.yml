@@ -55,6 +55,8 @@ spring:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+    # JDBC 행 잠금 뒤 재조회가 트랜잭션 로컬 캐시의 이전 값을 사용하지 않게 합니다.
+    local-cache-scope: STATEMENT
     default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
   type-handlers-package: com.agolock.common.mybatis.handler
 server:

@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { collectPages } from '@/features/inventory/api'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { PackagePlus } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { inventoryApi } from './api'
@@ -25,14 +26,18 @@ export function ItemDetailPage() {
     queryFn: () => inventoryApi.item(itemId),
     enabled: Boolean(itemId),
   })
-  const inventoriesQuery = useQuery({
+  const inventoriesQuery = useInfiniteQuery({
     queryKey: ['item', 'inventories', itemId],
-    queryFn: () => inventoryApi.itemInventories(itemId),
+    queryFn: ({ pageParam }) =>
+      inventoryApi.itemInventories(itemId, { cursor: pageParam, limit: 20 }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
     enabled: Boolean(itemId),
   })
   const categoriesQuery = useQuery({
-    queryKey: ['category', 'list'],
-    queryFn: inventoryApi.categories,
+    queryKey: ['category', 'list', itemId],
+    queryFn: () =>
+      collectPages((cursor) => inventoryApi.categories({ itemId, limit: 100, cursor })),
   })
 
   if (itemQuery.isLoading) {
@@ -54,7 +59,7 @@ export function ItemDetailPage() {
   }
 
   const item = itemQuery.data
-  const inventories = inventoriesQuery.data?.items ?? []
+  const inventories = inventoriesQuery.data?.pages.flatMap((page) => page.items) ?? []
   const categoryName =
     categoriesQuery.data?.items.find((category) => category.id === item.categoryId)?.name ??
     '미분류'
@@ -75,7 +80,7 @@ export function ItemDetailPage() {
           ) : null}
         </div>
         <MetaText>
-          같은 물건의 재고 {inventories.length}개 · {formatPrice(item.priceAmount)}
+          불러온 재고 {inventories.length}개 · {formatPrice(item.priceAmount)}
         </MetaText>
       </div>
 
@@ -142,7 +147,9 @@ export function ItemDetailPage() {
       </div>
 
       <section className="flex flex-col gap-3">
-        <SectionTitle aside={<span>{inventories.length}개</span>}>연결된 재고</SectionTitle>
+        <SectionTitle aside={<span>불러온 재고 {inventories.length}개</span>}>
+          연결된 재고
+        </SectionTitle>
         {inventoriesQuery.isLoading ? (
           <p role="status" className="text-xs">
             재고를 불러오는 중…
@@ -173,6 +180,16 @@ export function ItemDetailPage() {
             ))}
           </div>
         )}
+        {inventoriesQuery.hasNextPage ? (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={inventoriesQuery.isFetchingNextPage}
+            onClick={() => void inventoriesQuery.fetchNextPage()}
+          >
+            재고 더 보기
+          </Button>
+        ) : null}
       </section>
     </div>
   )

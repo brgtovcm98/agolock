@@ -29,6 +29,8 @@
 
 ADR-017·018은 [PLAN-006](../implementation/PLAN-006-media-messaging.md)의 이미지 후처리·보관 정책용으로 예약된 번호이며 아직 작성 전입니다.
 
+| [ADR-023](ADR-023-inventory-write-consistency.md) | 물건·재고 변경 일관성과 편집 계약 | 승인됨 | [도메인](../domain.md), [PLAN-014](../implementation/PLAN-014-inventory-hardening.md) |
+
 ## 작성 규칙
 
 - 결정을 뒤집으면 기존 ADR을 `Superseded`로 표시하고 새 ADR을 링크합니다.

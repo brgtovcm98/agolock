@@ -5,6 +5,7 @@ package com.agolock.common.cursor
 import com.agolock.common.error.ApiException
 import org.springframework.http.HttpStatus
 import java.nio.charset.StandardCharsets
+import java.time.DateTimeException
 import java.time.OffsetDateTime
 import java.util.Base64
 import java.util.UUID
@@ -33,15 +34,15 @@ object TimeCursorCodec {
                 OffsetDateTime.parse(decoded.substring(0, separator)),
                 UUID.fromString(decoded.substring(separator + 1)),
             )
+        } catch (exception: DateTimeException) {
+            throw invalidCursor(exception)
         } catch (exception: IllegalArgumentException) {
-            throw ApiException(
-                "INVALID_CURSOR",
-                HttpStatus.BAD_REQUEST,
-                "커서가 올바르지 않습니다.",
-                cause = exception,
-            )
+            throw invalidCursor(exception)
         }
     }
+
+    private fun invalidCursor(exception: Exception) =
+        ApiException("INVALID_CURSOR", HttpStatus.BAD_REQUEST, "커서가 올바르지 않습니다.", cause = exception)
 
     fun limit(raw: Int?): Int = (raw ?: 20).coerceIn(1, 100)
 }

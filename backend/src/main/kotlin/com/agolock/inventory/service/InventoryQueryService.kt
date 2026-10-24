@@ -12,7 +12,6 @@ import com.agolock.inventory.api.toResponse
 import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.InventoryMovementMapper
-import com.agolock.inventory.persistence.ItemMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,7 +21,7 @@ import java.util.UUID
 class InventoryQueryService(
     private val inventoryMapper: InventoryMapper,
     private val movementMapper: InventoryMovementMapper,
-    private val itemMapper: ItemMapper,
+    private val itemService: ItemQueryService,
     private val accessService: AccessService,
     private val assembler: InventoryResponseAssembler,
     private val support: InventoryAccessSupport,
@@ -82,32 +81,42 @@ class InventoryQueryService(
     fun listByItem(
         actor: Actor,
         itemId: UUID,
-    ): List<InventoryResponse> {
-        val item = itemMapper.findByIdAny(itemId) ?: throw notFound("Item을 찾을 수 없습니다.")
-        val owner = item.spaceId == actor.spaceId
-        if (owner) {
-            accessService.requireOwner(actor, actor.spaceId)
-        }
-        val statuses =
-            if (owner) {
-                InventoryStatus.entries.filter { it != InventoryStatus.DISPOSED }
-            } else {
-                InventoryStatus.entries
-            }
-        return inventoryMapper
-            .listAccessible(
+        statuses: List<InventoryStatus>? = null,
+        limit: Int? = null,
+        cursorRaw: String? = null,
+    ): PageResult<InventoryResponse> {
+        itemService.getReadable(actor, itemId)
+        val effectiveStatuses =
+            statuses?.distinct()?.takeIf { it.isNotEmpty() }
+                ?: listOf(InventoryStatus.IN_USE, InventoryStatus.STORED)
+        val context = "item-inventories:${actor.userId}:$itemId:${effectiveStatuses.sortedBy { it.name }}"
+        val cursor = ContextCursor.decode(cursorRaw, context, 2)
+        val size = TimeCursorCodec.limit(limit)
+        val rows =
+            inventoryMapper.listAccessible(
                 actor.spaceId,
                 actor.userId,
-                if (owner) "OWNED" else "SHARED",
-                statuses,
+                "ALL",
+                effectiveStatuses,
                 itemId,
                 null,
                 null,
                 null,
-                null,
-                null,
-                Int.MAX_VALUE,
-            ).map { assembler.toResponse(it) }
+                cursor?.get(0)?.let(ContextCursor::time),
+                cursor?.get(1)?.let(ContextCursor::uuid),
+                size + 1,
+            )
+        val page = rows.take(size)
+        return PageResult(
+            page.map { assembler.toResponse(it) },
+            if (rows.size > size) {
+                page.last().let {
+                    ContextCursor.encode(context, listOf(it.updatedAt.toString(), it.id.toString()))
+                }
+            } else {
+                null
+            },
+        )
     }
 
     fun get(

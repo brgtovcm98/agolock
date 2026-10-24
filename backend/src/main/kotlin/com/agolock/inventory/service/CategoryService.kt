@@ -4,9 +4,11 @@ package com.agolock.inventory.service
 
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
+import com.agolock.common.persistence.InventoryWriteLocks
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.service.AccessService
 import com.agolock.inventory.domain.Category
+import com.agolock.inventory.domain.CategoryNamePolicy
 import com.agolock.inventory.persistence.CategoryMapper
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.ItemMapper
@@ -15,7 +17,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.OffsetDateTime
-import java.util.Locale
 import java.util.UUID
 
 @Service
@@ -25,6 +26,7 @@ class CategoryService(
     private val inventoryMapper: InventoryMapper,
     private val accessService: AccessService,
     private val clock: Clock,
+    private val locks: InventoryWriteLocks,
 ) {
     fun list(actor: Actor): List<Category> {
         accessService.requireOwner(actor, actor.spaceId)
@@ -39,7 +41,7 @@ class CategoryService(
         accessService.requireOwner(actor, actor.spaceId)
         val name = command.name.trim()
         if (name.isEmpty() || name.length > 80) throw validation("카테고리 이름은 1~80자여야 합니다.")
-        val normalized = normalize(name)
+        val normalized = CategoryNamePolicy.normalize(name)
         if (categoryMapper.findActiveByNormalizedName(actor.spaceId, normalized) != null) {
             throw conflict("CATEGORY_ALREADY_EXISTS", "같은 이름의 카테고리가 이미 있습니다.")
         }
@@ -66,10 +68,11 @@ class CategoryService(
         command: UpdateCategoryCommand,
     ): Category {
         accessService.requireOwner(actor, actor.spaceId)
+        locks.lockCategories(actor.spaceId, listOf(categoryId))
         val current = requireCategory(actor, categoryId)
         val name = command.name?.trim() ?: current.name
         if (name.isEmpty() || name.length > 80) throw validation("카테고리 이름은 1~80자여야 합니다.")
-        val normalized = normalize(name)
+        val normalized = CategoryNamePolicy.normalize(name)
         val duplicate = categoryMapper.findActiveByNormalizedName(actor.spaceId, normalized)
         if (duplicate != null && duplicate.id != categoryId) {
             throw conflict("CATEGORY_ALREADY_EXISTS", "같은 이름의 카테고리가 이미 있습니다.")
@@ -80,7 +83,7 @@ class CategoryService(
                 categoryId,
                 name,
                 normalized,
-                command.color?.trim()?.takeIf(String::isNotEmpty) ?: current.color,
+                if (command.colorPresent) command.color?.trim()?.takeIf(String::isNotEmpty) else current.color,
                 command.sortOrder ?: current.sortOrder,
                 OffsetDateTime.now(clock),
             )
@@ -98,8 +101,10 @@ class CategoryService(
     ): Pair<Int, Int> {
         accessService.requireOwner(actor, actor.spaceId)
         if (sourceId == targetId) throw validation("같은 카테고리로 병합할 수 없습니다.")
+        locks.lockCategories(actor.spaceId, listOf(sourceId, targetId))
         requireCategory(actor, sourceId)
         requireCategory(actor, targetId)
+        locks.lockCategoryReferences(actor.spaceId, sourceId)
         val now = OffsetDateTime.now(clock)
         val items = itemMapper.reassignCategory(actor.spaceId, sourceId, targetId, now)
         val inventories = inventoryMapper.reassignCategoryOverride(actor.spaceId, sourceId, targetId, now)
@@ -113,6 +118,7 @@ class CategoryService(
         categoryId: UUID,
     ) {
         accessService.requireOwner(actor, actor.spaceId)
+        locks.lockCategories(actor.spaceId, listOf(categoryId))
         requireCategory(actor, categoryId)
         if (itemMapper.listByCategory(actor.spaceId, categoryId).isNotEmpty() ||
             inventoryMapper.countByCategoryOverride(actor.spaceId, categoryId) > 0
@@ -128,8 +134,6 @@ class CategoryService(
     ): Category =
         categoryMapper.findById(actor.spaceId, id)
             ?: throw ApiException("RESOURCE_NOT_FOUND", HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다.")
-
-    private fun normalize(name: String): String = name.trim().lowercase(Locale.ROOT).replace(Regex("\\s+"), " ")
 
     private fun validation(message: String) = ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, message)
 

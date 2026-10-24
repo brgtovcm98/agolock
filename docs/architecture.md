@@ -175,3 +175,7 @@ sequenceDiagram
 - Sentry로 프론트엔드와 백엔드 예외를 수집합니다.
 - 헬스 체크는 API, DB, RabbitMQ, S3, AI provider 설정을 확인합니다.
 - 배포와 백업은 [운영](operations.md)을 따릅니다.
+
+## 9. 변경 중 조회 일관성
+
+MyBatis의 로컬 캐시는 STATEMENT 범위를 사용합니다. JDBC 행 잠금 대기 후 같은 mapper를 호출해도 잠금 이전의 SESSION 캐시를 재사용하지 않습니다. 자원 변경의 잠금 순서·참조 재검증은 [ADR-023](decisions/ADR-023-inventory-write-consistency.md)을 따릅니다.

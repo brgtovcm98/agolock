@@ -13,7 +13,7 @@ describe('Box 상세', () => {
         [['hierarchy', 'shelf', 's1'], testShelf()],
         [
           ['inventory', 'location', 'r1', 's1', 'b1'],
-          { items: [testInventory()], nextCursor: null },
+          { pages: [{ items: [testInventory()], nextCursor: null }], pageParams: [undefined] },
         ],
         [['hierarchy', 'rooms', 'picker'], { items: [testRoom()] }],
         [['hierarchy', 'shelves', 'picker', 'owned', 'r1'], { items: [testShelf()] }],
@@ -46,7 +46,10 @@ describe('공유 Box 상세', () => {
           ['hierarchy', 'shelf', 's1'],
           testShelf({ isShared: true, effectivePermission: 'MANAGE' }),
         ],
-        [['inventory', 'location', 'r1', 's1', 'b1'], { items: [], nextCursor: null }],
+        [
+          ['inventory', 'location', 'r1', 's1', 'b1'],
+          { pages: [{ items: [], nextCursor: null }], pageParams: [undefined] },
+        ],
         [
           ['sharing', 'shared'],
           {
@@ -73,10 +76,7 @@ describe('공유 Box 상세', () => {
     await user.click(screen.getByRole('button', { name: /이 위치에 등록/ }))
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getByRole('tab', { name: '새 물건' })).toBeDisabled()
-    expect(within(dialog).getByRole('button', { name: '공유받은 공간' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
-    expect(within(dialog).getByRole('combobox', { name: '공유받은 위치' })).toHaveValue('ROOM:r1')
+    expect(within(dialog).getByRole('combobox', { name: '대상 위치' })).toBeDisabled()
+    expect(within(dialog).getByLabelText('물건 검색')).toBeInTheDocument()
   })
 })

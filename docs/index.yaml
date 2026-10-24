@@ -761,3 +761,31 @@ docs:
     generated: false
     related_adrs: []
     last_verified_commit: "246291c52d0d7c06c756dae2567f17c5d365199d"
+
+  - id: PLAN_014_INVENTORY_HARDENING
+    path: docs/implementation/PLAN-014-inventory-hardening.md
+    title: 물건·재고 관리 개선
+    summary: 위치 계약, PATCH·폐기·상속, 동시성, 공유 조회, 페이지, 영향 미리보기, 편집 충돌
+    read_when:
+      - 물건·재고 변경과 개선 검증을 수행할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/inventory/**
+      - frontend/src/features/inventory/**
+      - frontend/src/features/categories/**
+    generated: false
+    related_adrs: [ADR-023]
+    last_verified_commit: "f27f0f70d3ef7becee1e62f44e4e35b036beadde"
+
+  - id: ADR_023
+    path: docs/decisions/ADR-023-inventory-write-consistency.md
+    title: 물건·재고 변경 일관성과 편집 계약
+    summary: 행 잠금·버전 삭제·변경 영향·원본 필드 충돌과 구현 계약 타입 생성
+    read_when:
+      - 물건·재고의 동시성이나 계약을 변경할 때
+    code_paths:
+      - backend/src/main/kotlin/com/agolock/common/persistence/InventoryWriteLocks.kt
+      - backend/src/main/kotlin/db/migration/**
+      - frontend/src/features/inventory/**
+    generated: false
+    related_adrs: [ADR-015]
+    last_verified_commit: "f27f0f70d3ef7becee1e62f44e4e35b036beadde"

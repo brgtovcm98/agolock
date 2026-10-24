@@ -4,29 +4,14 @@
  */
 
 export interface paths {
-    "/info": {
+    "/api/v1/auth/config": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["info"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
+        /** 가입·로그인 설정 */
         get: operations["getAuthConfig"];
         put?: never;
         post?: never;
@@ -36,13 +21,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/csrf": {
+    "/api/v1/auth/csrf": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        /** CSRF 토큰 발급 */
         get: operations["getCsrfToken"];
         put?: never;
         post?: never;
@@ -52,7 +38,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/signup": {
+    "/api/v1/auth/email-verification/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -61,86 +47,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["signup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getMe"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["updateMe"];
-        trace?: never;
-    };
-    "/auth/email-verification/request": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["requestEmailVerification"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/email-verification/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
+        /** 이메일 인증 확인 */
         post: operations["confirmEmailVerification"];
         delete?: never;
         options?: never;
@@ -148,7 +55,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/password-reset/request": {
+    "/api/v1/auth/email-verification/request": {
         parameters: {
             query?: never;
             header?: never;
@@ -157,14 +64,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["requestPasswordReset"];
+        /** 이메일 인증 요청 */
+        post: operations["requestEmailVerification"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/auth/password-reset/confirm": {
+    "/api/v1/auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -173,6 +81,59 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** 로그인 */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 로그아웃 */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 현재 사용자와 Space */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** 표시 이름 수정 */
+        patch: operations["updateMe"];
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 비밀번호 재설정 확인 */
         post: operations["confirmPasswordReset"];
         delete?: never;
         options?: never;
@@ -180,243 +141,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/spaces/{spaceId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                spaceId: components["parameters"]["SpaceId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["updateSpace"];
-        trace?: never;
-    };
-    "/rooms": {
+    "/api/v1/auth/password-reset/request": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listRooms"];
+        get?: never;
         put?: never;
-        post: operations["createRoom"];
+        /** 비밀번호 재설정 요청 */
+        post: operations["requestPasswordReset"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/shared/rooms/{roomId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getSharedRoom"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shared/shelves/{shelfId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getSharedShelf"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shared/boxes/{boxId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                boxId: components["parameters"]["BoxId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getSharedBox"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shared/inventories/{inventoryId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getSharedInventory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shared": {
+    "/api/v1/auth/signup": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listSharedResources"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/rooms/{roomId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getRoom"];
-        put?: never;
-        post?: never;
-        delete: operations["deleteRoom"];
-        options?: never;
-        head?: never;
-        patch: operations["updateRoom"];
-        trace?: never;
-    };
-    "/rooms/{roomId}/shelves": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        get: operations["listShelves"];
-        put?: never;
-        post: operations["createShelf"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shelves/{shelfId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getShelf"];
-        put?: never;
-        post?: never;
-        delete: operations["deleteShelf"];
-        options?: never;
-        head?: never;
-        patch: operations["updateShelf"];
-        trace?: never;
-    };
-    "/shelves/{shelfId}/parent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
         get?: never;
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["moveShelf"];
-        trace?: never;
-    };
-    "/shelves/{shelfId}/boxes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        get: operations["listBoxes"];
-        put?: never;
-        post: operations["createBox"];
+        /** 회원가입 */
+        post: operations["signup"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/boxes/{boxId}": {
+    "/api/v1/boxes/{boxId}": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                boxId: components["parameters"]["BoxId"];
-            };
+            path?: never;
             cookie?: never;
         };
+        /** Box 상세 */
         get: operations["getBox"];
         put?: never;
         post?: never;
+        /** Box 삭제 */
         delete: operations["deleteBox"];
         options?: never;
         head?: never;
+        /** Box 수정 */
         patch: operations["updateBox"];
         trace?: never;
     };
-    "/boxes/{boxId}/parent": {
+    "/api/v1/boxes/{boxId}/parent": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                boxId: components["parameters"]["BoxId"];
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -425,232 +207,21 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** Box의 Shelf 이동 */
         patch: operations["moveBox"];
         trace?: never;
     };
-    "/items": {
+    "/api/v1/categories": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listItems"];
-        put?: never;
-        /** @description Space 소유자만 신규 Item을 생성할 수 있습니다. */
-        post: operations["createItem"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/items/{itemId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getItem"];
-        put?: never;
-        post?: never;
-        delete: operations["deleteItem"];
-        options?: never;
-        head?: never;
-        patch: operations["updateItem"];
-        trace?: never;
-    };
-    "/items/{itemId}/view": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["recordItemView"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/items/{itemId}/inventories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
-            cookie?: never;
-        };
-        get: operations["listItemInventories"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/items/{itemId}/images": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
-            cookie?: never;
-        };
-        get: operations["listItemImages"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/items/{itemId}/update-impact": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getItemUpdateImpact"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/inventories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listInventories"];
-        put?: never;
-        /** @description 기존 Item에 Inventory를 추가하거나 소유자가 신규 Item과 첫 Inventory를 함께 생성합니다. */
-        post: operations["createInventory"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/inventories/{inventoryId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getInventory"];
-        put?: never;
-        post?: never;
-        delete: operations["deleteInventory"];
-        options?: never;
-        head?: never;
-        patch: operations["updateInventory"];
-        trace?: never;
-    };
-    "/inventories/{inventoryId}/location": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["moveInventory"];
-        trace?: never;
-    };
-    "/inventories/{inventoryId}/move-targets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        get: operations["listMoveTargets"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/inventories/{inventoryId}/movements": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        get: operations["listInventoryMovements"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/inventories/{inventoryId}/images": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        get: operations["listInventoryImages"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
+        /** Category 목록 */
         get: operations["listCategories"];
         put?: never;
+        /** Category 생성 */
         post: operations["createCategory"];
         delete?: never;
         options?: never;
@@ -658,35 +229,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/categories/{categoryId}": {
+    "/api/v1/categories/{categoryId}": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                categoryId: components["parameters"]["CategoryId"];
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
         put?: never;
         post?: never;
+        /** Category 삭제 */
         delete: operations["deleteCategory"];
         options?: never;
         head?: never;
+        /** Category 수정 */
         patch: operations["updateCategory"];
         trace?: never;
     };
-    "/categories/{categoryId}/merge": {
+    "/api/v1/categories/{categoryId}/merge": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                categoryId: components["parameters"]["CategoryId"];
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /** Category 병합 */
         post: operations["mergeCategory"];
         delete?: never;
         options?: never;
@@ -694,71 +264,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["search"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/recent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listRecentSearches"];
-        put?: never;
-        post?: never;
-        delete: operations["clearRecentSearches"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/frequent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listFrequentItems"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/suggestions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listSearchSuggestions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/image": {
+    "/api/v1/images/presign": {
         parameters: {
             query?: never;
             header?: never;
@@ -767,23 +273,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["searchByImage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/images/presign": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description ITEM은 OWNER, INVENTORY는 EDIT 이상, DRAFT는 인증된 사용자 본인의 Space만 허용합니다. */
+        /** 이미지 업로드 URL 발급 */
         post: operations["presignImage"];
         delete?: never;
         options?: never;
@@ -791,33 +281,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/images/{imageId}/complete": {
+    "/api/v1/images/{imageId}": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
         put?: never;
-        post: operations["completeImageUpload"];
+        post?: never;
+        /** 이미지 삭제 */
+        delete: operations["deleteImage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/{imageId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 이미지 업로드 완료 */
+        post: operations["completeImage"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/images/{imageId}/url": {
+    "/api/v1/images/{imageId}/primary": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
+            path?: never;
             cookie?: never;
         };
+        get?: never;
+        put?: never;
+        /** 대표 이미지 지정 */
+        post: operations["setPrimaryImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/{imageId}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 이미지 다운로드 URL */
         get: operations["getImageUrl"];
         put?: never;
         post?: never;
@@ -827,84 +349,18 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/images/urls": {
+    "/api/v1/info": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["getImageUrls"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/images/{imageId}/primary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["setPrimaryImage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/images/{imageId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["deleteImage"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ai/recognitions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["createRecognition"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ai/jobs/{jobId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: components["parameters"]["JobId"];
-            };
-            cookie?: never;
-        };
-        get: operations["getAiJob"];
+        /**
+         * 애플리케이션 정보
+         * @description M0 부트스트랩의 이름, 버전, 실행 환경을 반환합니다.
+         */
+        get: operations["info"];
         put?: never;
         post?: never;
         delete?: never;
@@ -913,50 +369,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/ai/jobs/{jobId}/retry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: components["parameters"]["JobId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["retryAiJob"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ai/jobs/{jobId}/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: components["parameters"]["JobId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["cancelAiJob"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/shares": {
+    "/api/v1/inventories": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listShares"];
+        /** Inventory 목록 */
+        get: operations["listInventories"];
+        put?: never;
+        /** Inventory 생성 */
+        post: operations["createInventory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventories/{inventoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inventory 상세 */
+        get: operations["getInventory"];
+        put?: never;
+        post?: never;
+        /** Inventory 삭제 */
+        delete: operations["deleteInventory"];
+        options?: never;
+        head?: never;
+        /** Inventory 수정 */
+        patch: operations["updateInventory"];
+        trace?: never;
+    };
+    "/api/v1/inventories/{inventoryId}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inventory 이미지 목록 */
+        get: operations["listInventoryImages"];
         put?: never;
         post?: never;
         delete?: never;
@@ -965,33 +423,314 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/shares/{shareId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shareId: components["parameters"]["ShareId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["revokeShare"];
-        options?: never;
-        head?: never;
-        patch: operations["updateShare"];
-        trace?: never;
-    };
-    "/share-invitations": {
+    "/api/v1/inventories/{inventoryId}/location": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Inventory 위치 이동 */
+        patch: operations["moveInventory"];
+        trace?: never;
+    };
+    "/api/v1/inventories/{inventoryId}/move-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 이동 가능한 위치 */
+        get: operations["listMoveTargets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventories/{inventoryId}/movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inventory 이동 이력 */
+        get: operations["listInventoryMovements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Item 목록 */
+        get: operations["listItems"];
+        put?: never;
+        /** Item 생성 */
+        post: operations["createItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Item 상세 */
+        get: operations["getItem"];
+        put?: never;
+        post?: never;
+        /** Item 삭제 */
+        delete: operations["deleteItem"];
+        options?: never;
+        head?: never;
+        /** Item 수정 */
+        patch: operations["updateItem"];
+        trace?: never;
+    };
+    "/api/v1/items/{itemId}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Item 이미지 목록 */
+        get: operations["listItemImages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{itemId}/inventories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Item의 Inventory 목록 */
+        get: operations["listItemInventories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{itemId}/inventory-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 재고 등록 가능한 위치 */
+        get: operations["listInventoryTargets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{itemId}/update-impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Item 수정 영향 범위 */
+        post: operations["getItemUpdateImpact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{itemId}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 물건 조회 기록 */
+        post: operations["recordItemView"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Room 목록 */
+        get: operations["listRooms"];
+        put?: never;
+        /** Room 생성 */
+        post: operations["createRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rooms/{roomId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Room 상세 */
+        get: operations["getRoom"];
+        put?: never;
+        post?: never;
+        /** Room 삭제 */
+        delete: operations["deleteRoom"];
+        options?: never;
+        head?: never;
+        /** Room 수정 */
+        patch: operations["updateRoom"];
+        trace?: never;
+    };
+    "/api/v1/rooms/{roomId}/shelves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Room의 Shelf 목록 */
+        get: operations["listShelves"];
+        put?: never;
+        /** Shelf 생성 */
+        post: operations["createShelf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 재고 검색 */
+        get: operations["search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/frequent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 자주 본 물건 */
+        get: operations["listFrequentItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 최근 검색어 */
+        get: operations["listRecentSearches"];
+        put?: never;
+        post?: never;
+        /** 최근 검색어 전체 삭제 */
+        delete: operations["clearRecentSearches"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 검색 추천 */
+        get: operations["listSearchSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/share-invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 보낸 초대 목록 */
         get: operations["listShareInvitations"];
         put?: never;
+        /** 공유 초대 생성 */
         post: operations["createShareInvitation"];
         delete?: never;
         options?: never;
@@ -999,7 +738,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/share-invitations/accept": {
+    "/api/v1/share-invitations/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -1008,6 +747,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** 토큰으로 초대 수락 */
         post: operations["acceptInvitationByToken"];
         delete?: never;
         options?: never;
@@ -1015,7 +755,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/share-invitations/decline": {
+    "/api/v1/share-invitations/decline": {
         parameters: {
             query?: never;
             header?: never;
@@ -1024,6 +764,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** 토큰으로 초대 거절 */
         post: operations["declineInvitationByToken"];
         delete?: never;
         options?: never;
@@ -1031,31 +772,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/share-invitations/{invitationId}/resend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                invitationId: components["parameters"]["InvitationId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["resendShareInvitation"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/share-invitations/received": {
+    "/api/v1/share-invitations/received": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        /** 받은 초대 목록 */
         get: operations["listReceivedShareInvitations"];
         put?: never;
         post?: never;
@@ -1065,35 +789,16 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/share-invitations/{invitationId}": {
+    "/api/v1/share-invitations/received/{invitationId}/accept": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                invitationId: components["parameters"]["InvitationId"];
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
         put?: never;
-        post?: never;
-        delete: operations["revokeShareInvitation"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/share-invitations/received/{invitationId}/accept": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                invitationId: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
+        /** 초대 수락 */
         post: operations["acceptShareInvitation"];
         delete?: never;
         options?: never;
@@ -1101,17 +806,16 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/share-invitations/received/{invitationId}/decline": {
+    "/api/v1/share-invitations/received/{invitationId}/decline": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                invitationId: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /** 초대 거절 */
         post: operations["declineShareInvitation"];
         delete?: never;
         options?: never;
@@ -1119,186 +823,495 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/share-invitations/{invitationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 초대 철회 */
+        delete: operations["revokeShareInvitation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/share-invitations/{invitationId}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 초대 재발송 */
+        post: operations["resendShareInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 공유받은 리소스 */
+        get: operations["listSharedResources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared/boxes/{boxId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 공유받은 Box 상세 */
+        get: operations["getSharedBox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared/inventories/{inventoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 공유받은 Inventory 상세 */
+        get: operations["getSharedInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared/rooms/{roomId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 공유받은 Room 상세 */
+        get: operations["getSharedRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared/shelves/{shelfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 공유받은 Shelf 상세 */
+        get: operations["getSharedShelf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 보낸 공유 목록 */
+        get: operations["listShares"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shares/{shareId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 공유 철회 */
+        delete: operations["revokeShare"];
+        options?: never;
+        head?: never;
+        /** 공유 권한 변경 */
+        patch: operations["updateShare"];
+        trace?: never;
+    };
+    "/api/v1/shelves/{shelfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shelf 상세 */
+        get: operations["getShelf"];
+        put?: never;
+        post?: never;
+        /** Shelf 삭제 */
+        delete: operations["deleteShelf"];
+        options?: never;
+        head?: never;
+        /** Shelf 수정 */
+        patch: operations["updateShelf"];
+        trace?: never;
+    };
+    "/api/v1/shelves/{shelfId}/boxes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shelf의 Box 목록 */
+        get: operations["listBoxes"];
+        put?: never;
+        /** Box 생성 */
+        post: operations["createBox"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shelves/{shelfId}/parent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Shelf의 Room 이동 */
+        patch: operations["moveShelf"];
+        trace?: never;
+    };
+    "/api/v1/spaces/{spaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Space 이름 수정 */
+        patch: operations["updateSpace"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Problem: {
-            type: string;
-            title: string;
-            status: number;
-            detail?: string;
-            instance?: string;
-            code: string;
-            fieldErrors?: {
-                field?: string;
-                message?: string;
-            }[];
+        AuthConfigResponse: {
+            invitationEmailDiscoveryEnabled: boolean;
+            inviteRequired: boolean;
+            /** Format: int32 */
+            passwordMaxLength: number;
+            /** Format: int32 */
+            passwordMinLength: number;
         };
-        User: {
-            emailVerified: boolean;
+        AuthMeResponse: {
+            space: components["schemas"]["SpaceResponse"];
+            user: components["schemas"]["UserResponse"];
+        };
+        BoxListResponse: {
+            items: components["schemas"]["BoxResponse"][];
+            nextCursor?: string | null;
+        };
+        BoxResponse: {
+            /** Format: date-time */
+            createdAt: string;
+            description?: string | null;
+            /** @enum {string} */
+            effectivePermission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
             /** Format: uuid */
             id: string;
-            /** Format: email */
-            email: string;
-            displayName: string;
-            /** @enum {string} */
-            status: "ACTIVE" | "LOCKED" | "DELETED";
+            /** Format: int32 */
+            inventoryCount: number;
+            isShared: boolean;
+            name: string;
+            /** Format: uuid */
+            shelfId: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number;
         };
-        Space: {
+        CategoryListResponse: {
+            items: components["schemas"]["CategoryResponse"][];
+            nextCursor?: string | null;
+        };
+        CategoryMergeResponse: {
+            /** Format: int32 */
+            mergedInventoryCount: number;
+            /** Format: int32 */
+            mergedItemCount: number;
+        };
+        CategoryResponse: {
+            color?: string | null;
             /** Format: uuid */
             id: string;
             name: string;
+            /** Format: int32 */
+            sortOrder: number;
+        };
+        CompleteImageRequest: {
+            objectKey: string;
+        };
+        CreateCategoryRequest: {
+            color?: string | null;
+            name: string;
+            /** Format: int32 */
+            sortOrder: number;
+        };
+        CreateInventoryRequest: {
             /** Format: uuid */
-            ownerUserId: string;
+            boxId?: string | null;
+            /** Format: uuid */
+            itemId?: string | null;
+            newItem?: components["schemas"]["NewItemInput"] | null;
+            /** Format: uuid */
+            roomId?: string | null;
+            /** Format: uuid */
+            shelfId?: string | null;
+            /** @enum {string} */
+            status: "IN_USE" | "STORED" | "DISPOSED";
         };
-        AuthMe: {
-            user: components["schemas"]["User"];
-            space: components["schemas"]["Space"];
+        CreateInvitationRequest: {
+            /** Format: email */
+            invitedEmail: string;
+            /** @enum {string} */
+            permission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
+            /** Format: uuid */
+            roomId?: string | null;
+            /** Format: uuid */
+            shelfId?: string | null;
         };
-        AuthConfig: {
-            inviteRequired: boolean;
-            invitationEmailDiscoveryEnabled: boolean;
-            /** @default 10 */
-            passwordMinLength: number;
-            /** @default 128 */
-            passwordMaxLength: number;
+        CreateItemRequest: {
+            /** Format: uuid */
+            categoryId?: string | null;
+            description?: string | null;
+            name: string;
+            /** Format: int32 */
+            priceAmount?: number | null;
+        };
+        CreateNodeRequest: {
+            description?: string | null;
+            name: string;
+        };
+        CsrfToken: {
+            headerName?: string;
+            parameterName?: string;
+            token?: string;
         };
         CsrfTokenResponse: {
             token: string;
         };
-        UpdateMeRequest: {
-            displayName: string;
+        EmailVerificationConfirmRequest: {
+            token: string;
         };
-        UpdateSpaceRequest: {
+        FrequentItemList: {
+            items: components["schemas"]["FrequentItemResponse"][];
+        };
+        FrequentItemResponse: {
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            /** Format: date-time */
+            lastViewedAt: string;
+            /** Format: uuid */
+            primaryImageId?: string | null;
+            /** Format: int64 */
+            viewCount: number;
+        };
+        ImageListResponse: {
+            items: components["schemas"]["ImageResponse"][];
+        };
+        ImageResponse: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            inventoryId?: string | null;
+            isPrimary: boolean;
+            /** Format: uuid */
+            itemId?: string | null;
+            mimeType?: string | null;
+            /** Format: int64 */
+            sizeBytes?: number | null;
+            /** @enum {string} */
+            status: "UPLOADING" | "DRAFT" | "PENDING" | "PROCESSING" | "READY" | "FAILED" | "DELETED";
+        };
+        ImageUrlResponse: {
+            /** Format: date-time */
+            expiresAt: string;
+            url: string;
+        };
+        InfoResponse: {
+            environment: string;
             name: string;
+            version: string;
         };
-        SignupRequest: {
-            /** Format: email */
-            email: string;
-            password: string;
+        InventoryListResponse: {
+            items: components["schemas"]["InventoryResponse"][];
+            nextCursor?: string | null;
+        };
+        InventoryLocationResponse: {
+            /** Format: uuid */
+            boxId?: string | null;
+            name: string;
+            /** Format: uuid */
+            roomId?: string | null;
+            /** Format: uuid */
+            shelfId?: string | null;
+            type: string;
+        };
+        InventoryResponse: {
+            /** Format: uuid */
+            categoryId?: string | null;
+            /** Format: uuid */
+            categoryIdOverride?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            description?: string | null;
+            descriptionOverride?: string | null;
             displayName: string;
-            /** @description auth.signup.invite-required가 true인 환경에서 필수 */
-            inviteCode?: string;
+            /** @enum {string} */
+            effectivePermission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
+            /** Format: uuid */
+            id: string;
+            isShared: boolean;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            location: components["schemas"]["InventoryLocationResponse"];
+            nameOverride?: string | null;
+            /** Format: int32 */
+            priceAmount?: number | null;
+            /** Format: int32 */
+            priceAmountOverride?: number | null;
+            /** @enum {string} */
+            status: "IN_USE" | "STORED" | "DISPOSED";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number;
+        };
+        InvitationTokenRequest: {
+            token: string;
+        };
+        ItemFieldImpactResponse: {
+            /** Format: int32 */
+            affectedInventoryCount: number;
+            field: string;
+            /** Format: int32 */
+            protectedInventoryCount: number;
+        };
+        ItemListResponse: {
+            items: components["schemas"]["ItemResponse"][];
+            nextCursor?: string | null;
+        };
+        ItemResponse: {
+            /** Format: uuid */
+            categoryId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            description?: string | null;
+            /** @enum {string} */
+            effectivePermission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
+            /** Format: uuid */
+            id: string;
+            isShared: boolean;
+            name: string;
+            /** Format: int32 */
+            priceAmount?: number | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number;
+        };
+        ItemUpdateImpactPreviewResponse: {
+            /** Format: int32 */
+            affectedInventoryCount: number;
+            changedFields: string[];
+            fieldImpacts: components["schemas"]["ItemFieldImpactResponse"][];
+            /** Format: int32 */
+            fullyProtectedInventoryCount: number;
+            /** Format: int32 */
+            totalInventoryCount: number;
+            /** Format: int64 */
+            version: number;
+        };
+        LocationItemResponse: {
+            /** Format: uuid */
+            id: string;
+            path: string;
+            type: string;
+        };
+        LocationListResponse: {
+            items: components["schemas"]["LocationItemResponse"][];
+            nextCursor?: string | null;
         };
         LoginRequest: {
             /** Format: email */
             email: string;
             password: string;
         };
-        PasswordResetRequest: {
-            /** Format: email */
-            email: string;
-        };
-        PasswordResetConfirmRequest: {
-            token: string;
-            newPassword: string;
-        };
-        SharedResource: {
-            /** @enum {string} */
-            resourceType: "ROOM" | "SHELF";
+        MergeCategoryRequest: {
             /** Format: uuid */
-            resourceId: string;
-            name: string;
-            /** @description Room > Shelf 표시 경로 */
-            path?: string;
-            /** Format: uuid */
-            ownerUserId?: string;
-            ownerName: string;
-            permission: components["schemas"]["Permission"];
-            /** Format: date-time */
-            sharedAt: string;
-        };
-        SharedResourceList: {
-            items: components["schemas"]["SharedResource"][];
-        };
-        Room: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            description?: string | null;
-            shelfCount: number;
-            effectivePermission: components["schemas"]["Permission"];
-            isShared: boolean;
-            /** Format: int64 */
-            version: number;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-        };
-        RoomList: {
-            items: components["schemas"]["Room"][];
-            nextCursor?: string | null;
-        };
-        CreateRoomRequest: {
-            name: string;
-            description?: string | null;
-        };
-        UpdateRoomRequest: {
-            name?: string;
-            description?: string | null;
-            /** Format: int64 */
-            version: number;
-        };
-        Shelf: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            roomId: string;
-            name: string;
-            description?: string | null;
-            boxCount: number;
-            effectivePermission: components["schemas"]["Permission"];
-            isShared: boolean;
-            /** Format: int64 */
-            version: number;
-        };
-        ShelfList: {
-            items: components["schemas"]["Shelf"][];
-            nextCursor?: string | null;
-        };
-        CreateShelfRequest: {
-            name: string;
-            description?: string | null;
-        };
-        UpdateShelfRequest: {
-            name?: string;
-            description?: string | null;
-            /** Format: int64 */
-            version: number;
-        };
-        MoveShelfRequest: {
-            /** Format: uuid */
-            roomId: string;
-            /** Format: int64 */
-            version: number;
-        };
-        Box: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            shelfId: string;
-            name: string;
-            description?: string | null;
-            effectivePermission: components["schemas"]["Permission"];
-            isShared: boolean;
-            /** Format: int64 */
-            version: number;
-        };
-        BoxList: {
-            items: components["schemas"]["Box"][];
-            nextCursor?: string | null;
-        };
-        CreateBoxRequest: {
-            name: string;
-            description?: string | null;
-        };
-        UpdateBoxRequest: {
-            name?: string;
-            description?: string | null;
-            /** Format: int64 */
-            version: number;
+            targetCategoryId: string | null;
         };
         MoveBoxRequest: {
             /** Format: uuid */
@@ -1306,525 +1319,286 @@ export interface components {
             /** Format: int64 */
             version: number;
         };
-        /** @enum {string} */
-        InventoryStatus: "IN_USE" | "STORED" | "DISPOSED";
-        /** @enum {string} */
-        Permission: "VIEW" | "EDIT" | "MANAGE" | "OWNER";
-        Category: {
+        MoveInventoryRequest: {
             /** Format: uuid */
-            id: string;
-            name: string;
-            color?: string | null;
-            sortOrder?: number;
-        };
-        CategoryList: {
-            items: components["schemas"]["Category"][];
-        };
-        CreateCategoryRequest: {
-            name: string;
-            color?: string | null;
-            sortOrder?: number;
-        };
-        UpdateCategoryRequest: {
-            name?: string;
-            color?: string | null;
-            sortOrder?: number;
-        };
-        MergeCategoryRequest: {
+            boxId?: string | null;
             /** Format: uuid */
-            targetCategoryId: string;
-        };
-        Price: {
-            amount: number;
-            /**
-             * @default KRW
-             * @enum {string}
-             */
-            currency: "KRW";
-        };
-        Item: {
+            roomId?: string | null;
             /** Format: uuid */
-            id: string;
-            name: string;
-            description?: string | null;
-            category?: components["schemas"]["Category"];
-            price?: components["schemas"]["Price"];
-            /** Format: uuid */
-            primaryImageId?: string | null;
-            inventoryCount: number;
+            shelfId?: string | null;
             /** Format: int64 */
-            version?: number;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
+            version: number | null;
         };
-        ItemList: {
-            items: components["schemas"]["Item"][];
-            nextCursor?: string | null;
-        };
-        CreateItemRequest: {
-            name: string;
-            description?: string | null;
+        MoveShelfRequest: {
             /** Format: uuid */
-            categoryId?: string | null;
-            price?: components["schemas"]["Price"];
-        };
-        UpdateItemRequest: {
-            name?: string;
-            description?: string | null;
-            /** Format: uuid */
-            categoryId?: string | null;
-            price?: components["schemas"]["Price"];
+            roomId: string;
             /** Format: int64 */
             version: number;
         };
-        ItemUpdateImpact: {
-            affectedInventoryCount: number;
-            protectedByOverrideCount?: number;
+        MovementResponse: {
+            from: components["schemas"]["InventoryLocationResponse"];
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            inventoryId: string;
+            /** Format: date-time */
+            movedAt: string;
+            to: components["schemas"]["InventoryLocationResponse"];
         };
         NewItemInput: {
-            name: string;
-            description?: string | null;
             /** Format: uuid */
             categoryId?: string | null;
-            price?: components["schemas"]["Price"];
+            description?: string | null;
+            name: string;
+            /** Format: int32 */
+            priceAmount?: number | null;
         };
-        Location: {
-            /** @enum {string} */
-            type: "ROOM" | "SHELF" | "BOX";
+        PasswordResetConfirmRequest: {
+            newPassword: string;
+            token: string;
+        };
+        PasswordResetRequest: {
+            /** Format: email */
+            email: string;
+        };
+        PresignImageRequest: {
+            contentType: string;
+            /** Format: int32 */
+            sizeBytes: number;
+            /** Format: uuid */
+            targetId: string;
+            targetType: string;
+        };
+        PresignImageResponse: {
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            imageId: string;
+            objectKey: string;
+            /** Format: date-time */
+            uploadExpiresAt: string;
+            uploadUrl: string;
+        };
+        RecentSearchList: {
+            items: components["schemas"]["RecentSearchResponse"][];
+        };
+        RecentSearchResponse: {
             /** Format: uuid */
             id: string;
-            /** @description Room > Shelf > Box 표시 경로 */
-            path: string;
-        };
-        Inventory: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            itemId: string;
-            effectiveName?: string;
-            effectiveDescription?: string | null;
-            effectiveCategory?: components["schemas"]["Category"];
-            effectivePrice?: components["schemas"]["Price"];
-            status: components["schemas"]["InventoryStatus"];
-            location: components["schemas"]["Location"];
-            shared?: boolean;
-            ownerName?: string | null;
-            /** Format: int64 */
-            version?: number;
             /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
+            lastSearchedAt: string;
+            query: string;
         };
-        InventoryList: {
-            items: components["schemas"]["Inventory"][];
+        RoomListResponse: {
+            items: components["schemas"]["RoomResponse"][];
             nextCursor?: string | null;
         };
-        /** @description itemId 또는 newItem 중 정확히 하나를 보냅니다. newItem은 OWNER만 사용할 수 있습니다. */
-        CreateInventoryRequest: {
+        RoomResponse: {
+            /** Format: date-time */
+            createdAt: string;
+            description?: string | null;
+            /** @enum {string} */
+            effectivePermission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
             /** Format: uuid */
-            itemId?: string | null;
-            newItem?: components["schemas"]["NewItemInput"];
-            /**
-             * Format: uuid
-             * @description 저장 시 연결할 DRAFT 이미지 ID
-             */
-            imageId?: string | null;
-            location: {
-                /** @enum {string} */
-                type: "ROOM" | "SHELF" | "BOX";
-                /** Format: uuid */
-                id: string;
-            };
-            nameOverride?: string | null;
-            descriptionOverride?: string | null;
-            /** Format: uuid */
-            categoryIdOverride?: string | null;
-            priceAmountOverride?: number | null;
-            status?: components["schemas"]["InventoryStatus"];
-        };
-        UpdateInventoryRequest: {
-            nameOverride?: string | null;
-            descriptionOverride?: string | null;
-            /** Format: uuid */
-            categoryIdOverride?: string | null;
-            priceAmountOverride?: number | null;
-            status?: components["schemas"]["InventoryStatus"];
-            /**
-             * @description status를 DISPOSED로 바꿀 때 true여야 합니다.
-             * @default false
-             */
-            confirmDisposal: boolean;
+            id: string;
+            /** Format: int32 */
+            inventoryCount: number;
+            isShared: boolean;
+            name: string;
+            /** Format: int32 */
+            shelfCount: number;
+            /** Format: date-time */
+            updatedAt: string;
             /** Format: int64 */
             version: number;
         };
-        MoveInventoryRequest: {
-            location: {
-                /** @enum {string} */
-                type: "ROOM" | "SHELF" | "BOX";
-                /** Format: uuid */
-                id: string;
-            };
-            /** Format: int64 */
-            version: number;
+        SearchCategory: {
+            color?: string | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        SearchInventory: {
+            effectiveName: string;
+            /** Format: uuid */
+            inventoryId: string;
+            locationPath: string;
+            ownerName?: string | null;
+            shared: boolean;
+            /** @enum {string} */
+            status: "IN_USE" | "STORED" | "DISPOSED";
+        };
+        SearchItemGroup: {
+            effectiveCategory?: components["schemas"]["SearchCategory"] | null;
+            hasMoreInventories: boolean;
+            inventories: components["schemas"]["SearchInventory"][];
+            /** Format: int32 */
+            inventoryCount: number;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            /** Format: int32 */
+            matchedInventoryCount: number;
+            /** Format: uuid */
+            primaryImageId?: string | null;
         };
         SearchResponse: {
             items: components["schemas"]["SearchItemGroup"][];
             nextCursor?: string | null;
         };
-        SearchItemGroup: {
-            /** Format: uuid */
-            itemId: string;
-            itemName: string;
-            matchedInventoryCount: number;
-            /** @description 그룹의 전체 일치 Inventory 수 */
-            inventoryCount: number;
-            hasMoreInventories: boolean;
-            /** Format: uuid */
-            primaryImageId?: string | null;
-            effectiveCategory?: components["schemas"]["Category"];
-            inventories: components["schemas"]["Inventory"][];
-        };
         SearchSuggestions: {
-            recentSearches?: components["schemas"]["RecentSearchList"];
-            frequentItems?: components["schemas"]["FrequentItemList"];
-            recentlyAddedInventories?: components["schemas"]["Inventory"][];
-            recentlySharedResources?: components["schemas"]["SharedResource"][];
+            frequentItems: components["schemas"]["FrequentItemList"];
+            recentSearches: components["schemas"]["RecentSearchList"];
+            recentlyAddedInventories: components["schemas"]["SearchInventory"][];
+            recentlySharedResources: unknown[];
         };
-        RecentSearch: {
-            /** Format: uuid */
-            id?: string;
-            query: string;
-            /** Format: date-time */
-            lastSearchedAt: string;
-        };
-        RecentSearchList: {
-            items: components["schemas"]["RecentSearch"][];
-        };
-        FrequentItem: {
-            /** Format: uuid */
-            itemId: string;
-            itemName: string;
-            /** Format: uuid */
-            primaryImageId?: string | null;
-            viewCount: number;
-            /** Format: date-time */
-            lastViewedAt?: string;
-        };
-        FrequentItemList: {
-            items: components["schemas"]["FrequentItem"][];
-        };
-        Movement: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            inventoryId: string;
-            from: components["schemas"]["Location"];
-            to: components["schemas"]["Location"];
-            /** Format: uuid */
-            movedBy?: string;
-            /** Format: date-time */
-            movedAt: string;
-        };
-        MovementList: {
-            items: components["schemas"]["Movement"][];
+        ShareInvitationListResponse: {
+            items: components["schemas"]["ShareInvitationResponse"][];
             nextCursor?: string | null;
         };
-        LocationList: {
-            items: components["schemas"]["Location"][];
-        };
-        /** @description targetType이 DRAFT이면 targetId를 생략합니다. */
-        ImagePresignRequest: {
+        ShareInvitationResponse: {
+            /** Format: date-time */
+            createdAt: string;
             /** @enum {string} */
-            targetType: "ITEM" | "INVENTORY" | "DRAFT";
-            /** Format: uuid */
-            targetId?: string | null;
-            /** @enum {string} */
-            contentType: "image/webp";
-            sizeBytes: number;
-        };
-        ImagePresignResponse: {
-            /** Format: uuid */
-            imageId: string;
-            uploadUrl: string;
-            objectKey: string;
+            deliveryStatus: "PENDING" | "SENT" | "FAILED";
             /** Format: date-time */
             expiresAt: string;
-        };
-        ImageCompleteRequest: {
-            objectKey: string;
-            /** @default false */
-            isPrimary: boolean;
-        };
-        Image: {
             /** Format: uuid */
             id: string;
-            /** @enum {string} */
-            status: "UPLOADING" | "DRAFT" | "PENDING" | "PROCESSING" | "READY" | "FAILED" | "DELETED";
-            isPrimary: boolean;
-            width?: number | null;
-            height?: number | null;
-            mimeType?: string | null;
-            /** Format: date-time */
-            uploadExpiresAt?: string;
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        ImageList: {
-            items: components["schemas"]["Image"][];
-        };
-        ImageUrlResponse: {
-            url: string;
-            /** Format: date-time */
-            expiresAt: string;
-        };
-        ImageUrlBatchRequest: {
-            imageIds: string[];
-            /**
-             * @default THUMB
-             * @enum {string}
-             */
-            variant: "THUMB" | "ORIGINAL";
-        };
-        ImageUrlItem: {
-            /** Format: uuid */
-            imageId: string;
-            url: string;
-            /** Format: date-time */
-            expiresAt: string;
-        };
-        ImageUrlBatchResponse: {
-            items: components["schemas"]["ImageUrlItem"][];
-        };
-        AiRecognitionRequest: {
-            /** Format: uuid */
-            imageId: string;
-            /** @enum {string} */
-            mode: "NEW_ITEM" | "INVENTORY_OVERRIDE";
-            /**
-             * Format: uuid
-             * @description INVENTORY_OVERRIDE일 때 필수
-             */
-            inventoryId?: string | null;
-            /** @default ko */
-            language: string;
-        };
-        RecognitionResult: {
-            name: string;
-            description?: string | null;
-            categoryCandidate?: {
-                /** Format: uuid */
-                categoryId?: string | null;
-                name?: string;
-                isNew?: boolean;
-            } | null;
-            brand?: string | null;
-            modelName?: string | null;
-            color?: string | null;
-            material?: string | null;
-            confidence: number;
-        };
-        AiJob: {
-            /** Format: uuid */
-            id: string;
-            /** @enum {string} */
-            jobType: "RECOGNITION" | "EMBEDDING";
-            /** @enum {string} */
-            status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
-            provider?: string | null;
-            model?: string | null;
-            result?: {
-                recognition?: components["schemas"]["RecognitionResult"];
-                embeddingModel?: string;
-                embeddingVersion?: string;
-            } | null;
-            error?: string | null;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            completedAt?: string | null;
-        };
-        Share: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            roomId?: string | null;
-            /** Format: uuid */
-            shelfId?: string | null;
-            /** Format: uuid */
-            granteeUserId: string;
-            /** Format: email */
-            granteeEmail?: string;
-            permission: components["schemas"]["Permission"];
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        ShareList: {
-            items: components["schemas"]["Share"][];
-        };
-        UpdateShareRequest: {
-            permission: components["schemas"]["Permission"];
-        };
-        ShareInvitation: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            roomId?: string | null;
-            /** Format: uuid */
-            shelfId?: string | null;
-            /** Format: email */
             invitedEmail: string;
-            permission: components["schemas"]["Permission"];
+            /** @enum {string} */
+            permission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
+            resourceName: string;
+            resourceType: string;
+            /** Format: uuid */
+            roomId?: string | null;
+            /** Format: uuid */
+            shelfId?: string | null;
             /** @enum {string} */
             status: "PENDING" | "ACCEPTED" | "DECLINED" | "REVOKED" | "EXPIRED";
-            /** Format: date-time */
-            expiresAt: string;
-            /** Format: date-time */
-            acceptedAt?: string | null;
-            /** Format: date-time */
-            declinedAt?: string | null;
         };
-        ShareInvitationList: {
-            items: components["schemas"]["ShareInvitation"][];
-            nextCursor?: string | null;
+        ShareListResponse: {
+            items: components["schemas"]["ShareResponse"][];
         };
-        InvitationTokenRequest: {
-            token: string;
-        };
-        CreateShareInvitationRequest: {
+        ShareResponse: {
+            /** Format: date-time */
+            createdAt: string;
+            granteeDisplayName?: string | null;
+            /** Format: uuid */
+            granteeUserId: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            permission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
+            resourceName: string;
+            resourceType: string;
             /** Format: uuid */
             roomId?: string | null;
             /** Format: uuid */
             shelfId?: string | null;
+        };
+        ShelfListResponse: {
+            items: components["schemas"]["ShelfResponse"][];
+            nextCursor?: string | null;
+        };
+        ShelfResponse: {
+            /** Format: int32 */
+            boxCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            description?: string | null;
+            /** @enum {string} */
+            effectivePermission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            inventoryCount: number;
+            isShared: boolean;
+            name: string;
+            /** Format: uuid */
+            roomId: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number;
+        };
+        SignupRequest: {
+            displayName: string;
             /** Format: email */
-            invitedEmail: string;
-            permission: components["schemas"]["Permission"];
+            email: string;
+            inviteCode?: string | null;
+            password: string;
+        };
+        SpaceResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            ownerUserId: string;
+        };
+        UpdateCategoryRequest: {
+            color?: string | null;
+            name?: string | null;
+            /** Format: int32 */
+            sortOrder?: number | null;
+        };
+        UpdateInventoryRequest: {
+            /** Format: uuid */
+            categoryIdOverride?: string | null;
+            confirmDisposal: boolean;
+            descriptionOverride?: string | null;
+            nameOverride?: string | null;
+            /** Format: int32 */
+            priceAmountOverride?: number | null;
+            /** @enum {string|null} */
+            status?: "IN_USE" | "STORED" | "DISPOSED" | null;
+            /** Format: int64 */
+            version: number | null;
+        };
+        UpdateItemRequest: {
+            /** Format: uuid */
+            categoryId?: string | null;
+            description?: string | null;
+            name?: string | null;
+            /** Format: int32 */
+            priceAmount?: number | null;
+            /** Format: int64 */
+            version: number | null;
+        };
+        UpdateMeRequest: {
+            displayName: string;
+        };
+        UpdateNodeRequest: {
+            description?: string | null;
+            name?: string | null;
+            /** Format: int64 */
+            version: number | null;
+        };
+        UpdateShareRequest: {
+            /** @enum {string} */
+            permission: "NONE" | "VIEW" | "EDIT" | "MANAGE" | "OWNER";
+        };
+        UpdateSpaceRequest: {
+            name: string;
+        };
+        UserResponse: {
+            displayName: string;
+            email: string;
+            emailVerified: boolean;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DELETED";
         };
     };
-    responses: {
-        /** @description 잘못된 요청 */
-        BadRequest: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-        /** @description 인증 필요 */
-        Unauthorized: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-        /** @description 권한 없음 */
-        Forbidden: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-        /** @description 리소스 없음 */
-        NotFound: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-        /** @description 상태 충돌 */
-        Conflict: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-        /** @description 검증 실패 */
-        UnprocessableEntity: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-        /** @description 요청 한도 초과 */
-        TooManyRequests: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-        /** @description 외부 AI·이미지 검색 일시 장애 */
-        ServiceUnavailable: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-    };
-    parameters: {
-        Cursor: string;
-        Limit: number;
-        IdempotencyKey: string;
-        CsrfToken: string;
-        SpaceId: string;
-        RoomId: string;
-        ShelfId: string;
-        BoxId: string;
-        ItemId: string;
-        InventoryId: string;
-        CategoryId: string;
-        ImageId: string;
-        JobId: string;
-        ShareId: string;
-        InvitationId: string;
-    };
+    responses: never;
+    parameters: never;
     requestBodies: never;
     headers: never;
     pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    info: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 애플리케이션 정보 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        name: string;
-                        version: string;
-                        environment: string;
-                    };
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-        };
-    };
     getAuthConfig: {
         parameters: {
             query?: never;
@@ -1834,18 +1608,62 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 가입·로그인 설정 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthConfig"];
+                    "*/*": components["schemas"]["AuthConfigResponse"];
                 };
             };
         };
     };
     getCsrfToken: {
+        parameters: {
+            query: {
+                token: components["schemas"]["CsrfToken"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CsrfTokenResponse"];
+                };
+            };
+        };
+    };
+    confirmEmailVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailVerificationConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    requestEmailVerification: {
         parameters: {
             query?: never;
             header?: never;
@@ -1854,61 +1672,19 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description CSRF 토큰 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CsrfTokenResponse"];
-                };
+                content?: never;
             };
-        };
-    };
-    signup: {
-        parameters: {
-            query?: never;
-            header: {
-                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SignupRequest"];
-            };
-        };
-        responses: {
-            /** @description 가입 성공 */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthMe"];
-                };
-            };
-            400: components["responses"]["BadRequest"];
-            409: components["responses"]["Conflict"];
-            /** @description 초대코드가 필요하거나 유효하지 않음 */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["Problem"];
-                };
-            };
-            429: components["responses"]["TooManyRequests"];
         };
     };
     login: {
         parameters: {
             query?: never;
-            header: {
-                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -1918,17 +1694,15 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 로그인 성공 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthMe"];
+                    "*/*": components["schemas"]["AuthMeResponse"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            429: components["responses"]["TooManyRequests"];
         };
     };
     logout: {
@@ -1940,14 +1714,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 로그아웃 성공 */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            401: components["responses"]["Unauthorized"];
         };
     };
     getMe: {
@@ -1959,16 +1732,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 현재 사용자와 Space */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthMe"];
+                    "*/*": components["schemas"]["AuthMeResponse"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
         };
     };
     updateMe: {
@@ -1984,38 +1756,18 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 사용자 정보 수정 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["User"];
+                    "*/*": components["schemas"]["UserResponse"];
                 };
-            };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-        };
-    };
-    requestEmailVerification: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 인증 메일 요청 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
-    confirmEmailVerification: {
+    confirmPasswordReset: {
         parameters: {
             query?: never;
             header?: never;
@@ -2024,21 +1776,12 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    token: string;
-                };
+                "application/json": components["schemas"]["PasswordResetConfirmRequest"];
             };
         };
         responses: {
-            /** @description 이메일 인증 완료 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 인증 토큰 무효·만료 */
-            422: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2049,9 +1792,7 @@ export interface operations {
     requestPasswordReset: {
         parameters: {
             query?: never;
-            header: {
-                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2061,521 +1802,37 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 메일 발송 접수 */
-            202: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            429: components["responses"]["TooManyRequests"];
         };
     };
-    confirmPasswordReset: {
-        parameters: {
-            query?: never;
-            header: {
-                "X-XSRF-TOKEN": components["parameters"]["CsrfToken"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PasswordResetConfirmRequest"];
-            };
-        };
-        responses: {
-            /** @description 비밀번호 변경 완료 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: components["responses"]["BadRequest"];
-            /** @description 재설정 토큰이 만료되었거나 사용됨 */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["Problem"];
-                };
-            };
-        };
-    };
-    updateSpace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                spaceId: components["parameters"]["SpaceId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateSpaceRequest"];
-            };
-        };
-        responses: {
-            /** @description Space 수정 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Space"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    listRooms: {
-        parameters: {
-            query?: {
-                cursor?: components["parameters"]["Cursor"];
-                limit?: components["parameters"]["Limit"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Room 목록 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RoomList"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-        };
-    };
-    createRoom: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateRoomRequest"];
-            };
-        };
-        responses: {
-            /** @description Room 생성 */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Room"];
-                };
-            };
-            400: components["responses"]["BadRequest"];
-            403: components["responses"]["Forbidden"];
-        };
-    };
-    getSharedRoom: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 공유받은 Room 상세 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Room"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
-        };
-    };
-    getSharedShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 공유받은 Shelf 상세 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Shelf"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
-        };
-    };
-    getSharedBox: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                boxId: components["parameters"]["BoxId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 공유받은 Box 상세 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Box"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
-        };
-    };
-    getSharedInventory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 공유받은 Inventory 상세 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Inventory"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
-        };
-    };
-    listSharedResources: {
+    signup: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
-        responses: {
-            /** @description 공유받은 Room/Shelf 목록 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SharedResourceList"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-        };
-    };
-    getRoom: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Room 상세 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Room"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-        };
-    };
-    deleteRoom: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Room 삭제 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    updateRoom: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateRoomRequest"];
+                "application/json": components["schemas"]["SignupRequest"];
             };
         };
         responses: {
-            /** @description Room 수정 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Room"];
+                    "*/*": components["schemas"]["AuthMeResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    listShelves: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Shelf 목록 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShelfList"];
-                };
-            };
-        };
-    };
-    createShelf: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-            };
-            path: {
-                roomId: components["parameters"]["RoomId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateShelfRequest"];
-            };
-        };
-        responses: {
-            /** @description Shelf 생성 */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Shelf"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-        };
-    };
-    getShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Shelf 상세 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Shelf"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-        };
-    };
-    deleteShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Shelf 삭제 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    updateShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateShelfRequest"];
-            };
-        };
-        responses: {
-            /** @description Shelf 수정 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Shelf"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    moveShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MoveShelfRequest"];
-            };
-        };
-        responses: {
-            /** @description Shelf 이동 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Shelf"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    listBoxes: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Box 목록 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BoxList"];
-                };
-            };
-        };
-    };
-    createBox: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-            };
-            path: {
-                shelfId: components["parameters"]["ShelfId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateBoxRequest"];
-            };
-        };
-        responses: {
-            /** @description Box 생성 */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Box"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
         };
     };
     getBox: {
@@ -2583,22 +1840,21 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                boxId: components["parameters"]["BoxId"];
+                boxId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Box 상세 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Box"];
+                    "*/*": components["schemas"]["BoxResponse"];
                 };
             };
-            404: components["responses"]["NotFound"];
         };
     };
     deleteBox: {
@@ -2606,21 +1862,19 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                boxId: components["parameters"]["BoxId"];
+                boxId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Box 삭제 */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
         };
     };
     updateBox: {
@@ -2628,27 +1882,25 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                boxId: components["parameters"]["BoxId"];
+                boxId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateBoxRequest"];
+                "application/json": components["schemas"]["UpdateNodeRequest"];
             };
         };
         responses: {
-            /** @description Box 수정 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Box"];
+                    "*/*": components["schemas"]["BoxResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
         };
     };
     moveBox: {
@@ -2656,7 +1908,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                boxId: components["parameters"]["BoxId"];
+                boxId: string;
             };
             cookie?: never;
         };
@@ -2666,29 +1918,23 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Box 이동 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Box"];
+                    "*/*": components["schemas"]["BoxResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
         };
     };
-    listItems: {
+    listCategories: {
         parameters: {
             query?: {
-                q?: string;
-                cursor?: components["parameters"]["Cursor"];
-                limit?: components["parameters"]["Limit"];
-                categoryId?: string;
-                scope?: "ALL" | "OWNED" | "SHARED";
-                hasImage?: boolean;
-                sort?: "RELEVANCE" | "UPDATED_DESC" | "NAME_ASC" | "VIEWED_DESC";
+                itemId?: string;
+                limit?: number;
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -2696,228 +1942,259 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Item 목록 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemList"];
+                    "*/*": components["schemas"]["CategoryListResponse"];
                 };
             };
         };
     };
-    createItem: {
+    createCategory: {
         parameters: {
             query?: never;
             header?: {
-                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+                "Idempotency-Key"?: string;
             };
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateItemRequest"];
+                "application/json": components["schemas"]["CreateCategoryRequest"];
             };
         };
         responses: {
-            /** @description Item 생성 */
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+        };
+    };
+    deleteCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CategoryResponse"];
+                };
+            };
+        };
+    };
+    mergeCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                categoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CategoryMergeResponse"];
+                };
+            };
+        };
+    };
+    presignImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresignImageRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"];
+                    "*/*": components["schemas"]["PresignImageResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            422: components["responses"]["UnprocessableEntity"];
         };
     };
-    getItem: {
+    deleteImage: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemId"];
+                imageId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Item 상세 */
+            /** @description OK */
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Item"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-        };
-    };
-    deleteItem: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Item 삭제 */
-            204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
         };
     };
-    updateItem: {
+    completeImage: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemId"];
+                imageId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateItemRequest"];
+                "application/json": components["schemas"]["CompleteImageRequest"];
             };
         };
         responses: {
-            /** @description Item 수정 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"];
+                    "*/*": components["schemas"]["ImageResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
         };
     };
-    recordItemView: {
+    setPrimaryImage: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemId"];
+                imageId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description 조회 기록 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Unauthorized"];
-            404: components["responses"]["NotFound"];
-        };
-    };
-    listItemInventories: {
-        parameters: {
-            query?: {
-                cursor?: components["parameters"]["Cursor"];
-                limit?: components["parameters"]["Limit"];
-                status?: components["schemas"]["InventoryStatus"];
-            };
-            header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Item의 Inventory 목록 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InventoryList"];
+                    "*/*": components["schemas"]["ImageResponse"];
                 };
             };
-            404: components["responses"]["NotFound"];
         };
     };
-    listItemImages: {
+    getImageUrl: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemId"];
+                imageId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Item 이미지 목록 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ImageList"];
+                    "*/*": components["schemas"]["ImageUrlResponse"];
                 };
             };
-            404: components["responses"]["NotFound"];
         };
     };
-    getItemUpdateImpact: {
+    info: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                itemId: components["parameters"]["ItemId"];
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description 마스터 수정 영향 범위 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemUpdateImpact"];
+                    "*/*": components["schemas"]["InfoResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
         };
     };
     listInventories: {
         parameters: {
             query?: {
-                cursor?: components["parameters"]["Cursor"];
-                limit?: components["parameters"]["Limit"];
-                itemId?: string;
-                status?: components["schemas"]["InventoryStatus"];
-                categoryId?: string;
+                status?: ("IN_USE" | "STORED" | "DISPOSED")[];
+                limit?: number;
+                scope?: string;
+                cursor?: string;
                 roomId?: string;
                 shelfId?: string;
                 boxId?: string;
-                scope?: "ALL" | "OWNED" | "SHARED";
-                hasImage?: boolean;
-                sort?: "UPDATED_DESC" | "NAME_ASC" | "STATUS_ASC" | "VIEWED_DESC";
             };
             header?: never;
             path?: never;
@@ -2925,13 +2202,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Inventory 목록 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InventoryList"];
+                    "*/*": components["schemas"]["InventoryListResponse"];
                 };
             };
         };
@@ -2940,7 +2217,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+                "Idempotency-Key"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2951,18 +2228,15 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Inventory 생성 */
-            201: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inventory"];
+                    "*/*": Record<string, never>;
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-            422: components["responses"]["UnprocessableEntity"];
         };
     };
     getInventory: {
@@ -2970,43 +2244,43 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                inventoryId: components["parameters"]["InventoryId"];
+                inventoryId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Inventory 상세 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inventory"];
+                    "*/*": components["schemas"]["InventoryResponse"];
                 };
             };
-            404: components["responses"]["NotFound"];
         };
     };
     deleteInventory: {
         parameters: {
-            query?: never;
+            query: {
+                version: number;
+            };
             header?: never;
             path: {
-                inventoryId: components["parameters"]["InventoryId"];
+                inventoryId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Inventory 삭제 */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            403: components["responses"]["Forbidden"];
         };
     };
     updateInventory: {
@@ -3014,7 +2288,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                inventoryId: components["parameters"]["InventoryId"];
+                inventoryId: string;
             };
             cookie?: never;
         };
@@ -3024,17 +2298,37 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Inventory 수정 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inventory"];
+                    "*/*": components["schemas"]["InventoryResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
+        };
+    };
+    listInventoryImages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inventoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImageListResponse"];
+                };
+            };
         };
     };
     moveInventory: {
@@ -3042,7 +2336,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                inventoryId: components["parameters"]["InventoryId"];
+                inventoryId: string;
             };
             cookie?: never;
         };
@@ -3052,218 +2346,485 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 이동 완료 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inventory"];
+                    "*/*": components["schemas"]["InventoryResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
         };
     };
     listMoveTargets: {
         parameters: {
-            query?: never;
+            query?: {
+                q?: string;
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path: {
-                inventoryId: components["parameters"]["InventoryId"];
+                inventoryId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description 이동 가능한 위치 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LocationList"];
+                    "*/*": components["schemas"]["LocationListResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
         };
     };
     listInventoryMovements: {
         parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inventoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MovementResponse"][];
+                };
+            };
+        };
+    };
+    listItems: {
+        parameters: {
             query?: {
-                cursor?: components["parameters"]["Cursor"];
-                limit?: components["parameters"]["Limit"];
+                categoryId?: string;
+                q?: string;
+                limit?: number;
+                cursor?: string;
+                scope?: string;
+                roomId?: string;
+                shelfId?: string;
+                boxId?: string;
             };
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 이동 이력 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MovementList"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-        };
-    };
-    listInventoryImages: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                inventoryId: components["parameters"]["InventoryId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Inventory 이미지 목록 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImageList"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-        };
-    };
-    listCategories: {
-        parameters: {
-            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Category 목록 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryList"];
+                    "*/*": components["schemas"]["ItemListResponse"];
                 };
             };
         };
     };
-    createCategory: {
+    createItem: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateCategoryRequest"];
+                "application/json": components["schemas"]["CreateItemRequest"];
             };
         };
         responses: {
-            /** @description Category 생성 */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Category"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    deleteCategory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                categoryId: components["parameters"]["CategoryId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Category 삭제 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    updateCategory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                categoryId: components["parameters"]["CategoryId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateCategoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Category 수정 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Category"];
+                    "*/*": Record<string, never>;
                 };
             };
-            403: components["responses"]["Forbidden"];
         };
     };
-    mergeCategory: {
+    getItem: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                categoryId: components["parameters"]["CategoryId"];
+                itemId: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MergeCategoryRequest"];
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ItemResponse"];
+                };
             };
         };
+    };
+    deleteItem: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
-            /** @description Category 병합 완료 */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
+        };
+    };
+    updateItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ItemResponse"];
+                };
+            };
+        };
+    };
+    listItemImages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImageListResponse"];
+                };
+            };
+        };
+    };
+    listItemInventories: {
+        parameters: {
+            query?: {
+                status?: ("IN_USE" | "STORED" | "DISPOSED")[];
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InventoryListResponse"];
+                };
+            };
+        };
+    };
+    listInventoryTargets: {
+        parameters: {
+            query?: {
+                q?: string;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LocationListResponse"];
+                };
+            };
+        };
+    };
+    getItemUpdateImpact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ItemUpdateImpactPreviewResponse"];
+                };
+            };
+        };
+    };
+    recordItemView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listRooms: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RoomListResponse"];
+                };
+            };
+        };
+    };
+    createRoom: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+        };
+    };
+    getRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RoomResponse"];
+                };
+            };
+        };
+    };
+    deleteRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateNodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RoomResponse"];
+                };
+            };
+        };
+    };
+    listShelves: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShelfListResponse"];
+                };
+            };
+        };
+    };
+    createShelf: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
         };
     };
     search: {
         parameters: {
             query?: {
                 q?: string;
-                status?: components["schemas"]["InventoryStatus"][];
+                status?: ("IN_USE" | "STORED" | "DISPOSED")[];
                 roomId?: string;
                 shelfId?: string;
                 boxId?: string;
@@ -3272,8 +2833,8 @@ export interface operations {
                 ownerId?: string;
                 hasImage?: boolean;
                 sort?: "RELEVANCE" | "UPDATED_DESC" | "NAME_ASC" | "VIEWED_DESC" | "STATUS_ASC";
-                cursor?: components["parameters"]["Cursor"];
-                limit?: components["parameters"]["Limit"];
+                limit?: number;
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -3281,13 +2842,33 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 검색 결과 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SearchResponse"];
+                    "*/*": components["schemas"]["SearchResponse"];
+                };
+            };
+        };
+    };
+    listFrequentItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FrequentItemList"];
                 };
             };
         };
@@ -3301,13 +2882,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 최근 검색어 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecentSearchList"];
+                    "*/*": components["schemas"]["RecentSearchList"];
                 };
             };
         };
@@ -3321,32 +2902,12 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 최근 검색어 전체 삭제 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    listFrequentItems: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 자주 본 물건 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["FrequentItemList"];
-                };
+                content?: never;
             };
         };
     };
@@ -3359,375 +2920,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 검색 추천 토큰 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SearchSuggestions"];
+                    "*/*": components["schemas"]["SearchSuggestions"];
                 };
             };
-        };
-    };
-    searchByImage: {
-        parameters: {
-            query?: {
-                status?: components["schemas"]["InventoryStatus"][];
-                roomId?: string;
-                shelfId?: string;
-                boxId?: string;
-                categoryId?: string;
-                scope?: "ALL" | "OWNED" | "SHARED";
-                ownerId?: string;
-                hasImage?: boolean;
-                sort?: "RELEVANCE" | "UPDATED_DESC" | "NAME_ASC" | "VIEWED_DESC" | "STATUS_ASC";
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                };
-            };
-        };
-        responses: {
-            /** @description 이미지 검색 결과 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchResponse"];
-                };
-            };
-            422: components["responses"]["UnprocessableEntity"];
-            429: components["responses"]["TooManyRequests"];
-            503: components["responses"]["ServiceUnavailable"];
-        };
-    };
-    presignImage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ImagePresignRequest"];
-            };
-        };
-        responses: {
-            /** @description 업로드 URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImagePresignResponse"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            422: components["responses"]["UnprocessableEntity"];
-            429: components["responses"]["TooManyRequests"];
-        };
-    };
-    completeImageUpload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ImageCompleteRequest"];
-            };
-        };
-        responses: {
-            /** @description 후처리 접수 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Image"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    getImageUrl: {
-        parameters: {
-            query?: {
-                variant?: "THUMB" | "ORIGINAL";
-            };
-            header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 다운로드 URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImageUrlResponse"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-        };
-    };
-    getImageUrls: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ImageUrlBatchRequest"];
-            };
-        };
-        responses: {
-            /** @description 다운로드 URL 목록 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImageUrlBatchResponse"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-        };
-    };
-    setPrimaryImage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 대표 이미지 변경 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Image"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
-        };
-    };
-    deleteImage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                imageId: components["parameters"]["ImageId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 이미지 삭제 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Forbidden"];
-        };
-    };
-    createRecognition: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AiRecognitionRequest"];
-            };
-        };
-        responses: {
-            /** @description 인식 job 접수 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AiJob"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            429: components["responses"]["TooManyRequests"];
-        };
-    };
-    getAiJob: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: components["parameters"]["JobId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description AI job 상태 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AiJob"];
-                };
-            };
-            404: components["responses"]["NotFound"];
-        };
-    };
-    retryAiJob: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: components["parameters"]["JobId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 재시도 접수 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AiJob"];
-                };
-            };
-        };
-    };
-    cancelAiJob: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jobId: components["parameters"]["JobId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 취소 접수 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AiJob"];
-                };
-            };
-        };
-    };
-    listShares: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 공유 목록 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShareList"];
-                };
-            };
-        };
-    };
-    revokeShare: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shareId: components["parameters"]["ShareId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 공유 철회 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Forbidden"];
-        };
-    };
-    updateShare: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                shareId: components["parameters"]["ShareId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateShareRequest"];
-            };
-        };
-        responses: {
-            /** @description 권한 변경 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Share"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
         };
     };
     listShareInvitations: {
         parameters: {
             query?: {
-                status?: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "REVOKED";
+                status?: "PENDING" | "ACCEPTED" | "DECLINED" | "REVOKED" | "EXPIRED";
                 cursor?: string;
                 limit?: number;
             };
@@ -3737,13 +2944,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 보낸 초대 목록 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ShareInvitationList"];
+                    "*/*": components["schemas"]["ShareInvitationListResponse"];
                 };
             };
         };
@@ -3757,21 +2964,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateShareInvitationRequest"];
+                "application/json": components["schemas"]["CreateInvitationRequest"];
             };
         };
         responses: {
-            /** @description 초대 생성 */
-            201: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ShareInvitation"];
+                    "*/*": components["schemas"]["ShareInvitationResponse"];
                 };
             };
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
         };
     };
     acceptInvitationByToken: {
@@ -3787,22 +2992,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 초대 수락 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Share"];
+                    "*/*": components["schemas"]["ShareResponse"];
                 };
-            };
-            404: components["responses"]["NotFound"];
-            /** @description 토큰 무효 또는 이메일 불일치 */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -3819,39 +3016,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 초대 거절 */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            404: components["responses"]["NotFound"];
-        };
-    };
-    resendShareInvitation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                invitationId: components["parameters"]["InvitationId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 초대 재발송 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShareInvitation"];
-                };
-            };
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
         };
     };
     listReceivedShareInvitations: {
@@ -3866,36 +3037,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 받은 초대 목록 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ShareInvitationList"];
+                    "*/*": components["schemas"]["ShareInvitationListResponse"];
                 };
             };
-        };
-    };
-    revokeShareInvitation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                invitationId: components["parameters"]["InvitationId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 초대 철회 */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Forbidden"];
         };
     };
     acceptShareInvitation: {
@@ -3909,17 +3059,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 초대 수락 */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Share"];
+                    "*/*": components["schemas"]["ShareResponse"];
                 };
             };
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
         };
     };
     declineShareInvitation: {
@@ -3933,15 +3081,402 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 초대 거절 */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
+        };
+    };
+    revokeShareInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resendShareInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShareInvitationResponse"];
+                };
+            };
+        };
+    };
+    listSharedResources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShareListResponse"];
+                };
+            };
+        };
+    };
+    getSharedBox: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boxId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BoxResponse"];
+                };
+            };
+        };
+    };
+    getSharedInventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inventoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["InventoryResponse"];
+                };
+            };
+        };
+    };
+    getSharedRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RoomResponse"];
+                };
+            };
+        };
+    };
+    getSharedShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShelfResponse"];
+                };
+            };
+        };
+    };
+    listShares: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShareListResponse"];
+                };
+            };
+        };
+    };
+    revokeShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shareId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shareId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShareRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShareResponse"];
+                };
+            };
+        };
+    };
+    getShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShelfResponse"];
+                };
+            };
+        };
+    };
+    deleteShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateNodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShelfResponse"];
+                };
+            };
+        };
+    };
+    listBoxes: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BoxListResponse"];
+                };
+            };
+        };
+    };
+    createBox: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+        };
+    };
+    moveShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveShelfRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShelfResponse"];
+                };
+            };
+        };
+    };
+    updateSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSpaceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SpaceResponse"];
+                };
+            };
         };
     };
 }

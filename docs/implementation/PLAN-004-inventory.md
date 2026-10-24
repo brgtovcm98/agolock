@@ -471,3 +471,7 @@ M5는 `primaryImageId`·Inventory 이미지, M6은 M3 목록 필터를 검색 �
 | Item 수정 영향·삭제 차단 | 완료 | DISPOSED 포함 테스트 |
 | M2 재고 개수·삭제 차단 | 완료 | `HierarchyIntegrationTest` |
 | 전체 화면·관측 | 부분 | 현재 프론트엔드 등록 UX 변경 진행 중, 메트릭 미구현 |
+
+## 후속 개선
+
+위치 계약·삭제 version·공유 카테고리·페이지 처리·변경 영향·편집 충돌의 최신 구현과 검증은 [PLAN-014](PLAN-014-inventory-hardening.md)를 따릅니다.

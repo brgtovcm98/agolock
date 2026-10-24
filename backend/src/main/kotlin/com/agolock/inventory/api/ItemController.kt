@@ -9,11 +9,16 @@ import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.EffectivePermission
 import com.agolock.hierarchy.domain.toPermission
 import com.agolock.identity.security.AppUserPrincipal
+import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.service.CreateItemCommand
+import com.agolock.inventory.service.InventoryMoveTargetService
 import com.agolock.inventory.service.InventoryQueryService
+import com.agolock.inventory.service.ItemQueryService
 import com.agolock.inventory.service.ItemService
 import com.agolock.inventory.service.UpdateItemCommand
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -36,22 +41,28 @@ import java.util.UUID
 @Tag(name = "items")
 class ItemController(
     private val itemService: ItemService,
+    private val queries: ItemQueryService,
     private val inventoryQueryService: InventoryQueryService,
     private val idempotencyService: IdempotencyService,
+    private val targets: InventoryMoveTargetService,
 ) {
     @GetMapping
     @Operation(operationId = "listItems", summary = "Item 목록")
     fun list(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @RequestParam(required = false) categoryId: UUID?,
+        @Parameter(schema = Schema(maxLength = 200))
         @RequestParam(required = false) q: String?,
         @RequestParam(required = false) limit: Int?,
         @RequestParam(required = false) cursor: String?,
         @RequestParam(defaultValue = "ALL") scope: String,
+        @RequestParam(required = false) roomId: UUID?,
+        @RequestParam(required = false) shelfId: UUID?,
+        @RequestParam(required = false) boxId: UUID?,
     ): ItemListResponse {
         val actor = Actor.from(principal)
-        val page = itemService.list(actor, categoryId, q, limit, cursor, scope)
-        val permissions = itemService.permissions(actor, page.items)
+        val page = queries.list(actor, categoryId, q, limit, cursor, scope, roomId, shelfId, boxId)
+        val permissions = queries.permissions(actor, page.items)
         return ItemListResponse(
             page.items.map { item ->
                 val permission = permissions[item.id] ?: EffectivePermission.None
@@ -98,7 +109,7 @@ class ItemController(
         @PathVariable itemId: UUID,
     ): ItemResponse {
         val actor = Actor.from(principal)
-        val (item, permission) = itemService.getReadableWithPermission(actor, itemId)
+        val (item, permission) = queries.getReadableWithPermission(actor, itemId)
         return item.toResponse(
             permission.toPermission(),
             permission is EffectivePermission.Granted,
@@ -128,6 +139,7 @@ class ItemController(
                     request.categoryIdPresent,
                     request.priceAmountPresent,
                     version,
+                    request.namePresent,
                 ),
             )
         return item.toResponse()
@@ -138,25 +150,57 @@ class ItemController(
     fun delete(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable itemId: UUID,
+        @RequestParam version: Long,
     ): ResponseEntity<Void> {
-        itemService.delete(Actor.from(principal), itemId)
+        itemService.delete(Actor.from(principal), itemId, version)
         return ResponseEntity.noContent().build()
     }
 
-    @GetMapping("/{itemId}/update-impact")
+    @PostMapping("/{itemId}/update-impact")
     @Operation(operationId = "getItemUpdateImpact", summary = "Item 수정 영향 범위")
     fun updateImpact(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable itemId: UUID,
-    ): ItemUpdateImpactResponse {
-        val (affected, protectedCount) = itemService.updateImpact(Actor.from(principal), itemId)
-        return ItemUpdateImpactResponse(affected, protectedCount)
-    }
+        @Valid @RequestBody request: UpdateItemRequest,
+    ): ItemUpdateImpactPreviewResponse = itemService.updateImpact(Actor.from(principal), itemId, request.toCommand())
 
     @GetMapping("/{itemId}/inventories")
     @Operation(operationId = "listItemInventories", summary = "Item의 Inventory 목록")
     fun inventories(
         @AuthenticationPrincipal principal: AppUserPrincipal,
         @PathVariable itemId: UUID,
-    ): InventoryListResponse = InventoryListResponse(inventoryQueryService.listByItem(Actor.from(principal), itemId))
+        @RequestParam(required = false) status: List<InventoryStatus>?,
+        @RequestParam(required = false) limit: Int?,
+        @RequestParam(required = false) cursor: String?,
+    ): InventoryListResponse {
+        val page = inventoryQueryService.listByItem(Actor.from(principal), itemId, status, limit, cursor)
+        return InventoryListResponse(page.items, page.nextCursor)
+    }
+
+    @GetMapping("/{itemId}/inventory-targets")
+    @Operation(operationId = "listInventoryTargets", summary = "재고 등록 가능한 위치")
+    fun inventoryTargets(
+        @AuthenticationPrincipal principal: AppUserPrincipal,
+        @PathVariable itemId: UUID,
+        @Parameter(schema = Schema(maxLength = 200))
+        @RequestParam(required = false) q: String?,
+        @RequestParam(required = false) limit: Int?,
+        @RequestParam(required = false) cursor: String?,
+    ): LocationListResponse {
+        val page = targets.inventoryTargets(Actor.from(principal), itemId, q, limit, cursor)
+        return LocationListResponse(page.items, page.nextCursor)
+    }
 }
+
+private fun UpdateItemRequest.toCommand(): UpdateItemCommand =
+    UpdateItemCommand(
+        name,
+        description,
+        categoryId,
+        priceAmount,
+        descriptionPresent,
+        categoryIdPresent,
+        priceAmountPresent,
+        version ?: throw ApiException("VALIDATION_FAILED", HttpStatus.BAD_REQUEST, "version은 필수입니다."),
+        namePresent,
+    )

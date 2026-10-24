@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { inventoryApi, type Permission } from './api'
+import { inventoryApi, wireLocation, type Permission } from './api'
 import { useAddInventory } from './add-inventory-context'
 import { InventoryCard } from './components/inventory-card'
 import { Alert } from '@/shared/ui/alert'
@@ -24,16 +24,26 @@ export function LocationInventories({
   const { openAdd } = useAddInventory()
   const canAdd = canManage(permission)
 
-  const inventoriesQuery = useQuery({
+  const inventoriesQuery = useInfiniteQuery({
     queryKey: ['inventory', 'location', roomId ?? '', shelfId ?? '', boxId ?? ''],
-    queryFn: () => inventoryApi.inventories({ scope: 'ALL', limit: 100, roomId, shelfId, boxId }),
+    queryFn: ({ pageParam }) =>
+      inventoryApi.inventories({
+        scope: 'ALL',
+        limit: 20,
+        ...wireLocation({ roomId, shelfId, boxId }),
+        cursor: pageParam,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
   })
 
-  const inventories = inventoriesQuery.data?.items ?? []
+  const inventories = inventoriesQuery.data?.pages.flatMap((page) => page.items) ?? []
 
   return (
     <section className="flex flex-col gap-3">
-      <SectionTitle aside={<span>{inventories.length}개</span>}>직접 위치 재고</SectionTitle>
+      <SectionTitle aside={<span>불러온 재고 {inventories.length}개</span>}>
+        직접 위치 재고
+      </SectionTitle>
       {inventoriesQuery.isLoading ? (
         <p role="status" className="text-xs">
           재고를 불러오는 중…
@@ -89,6 +99,16 @@ export function LocationInventories({
           ) : null}
         </>
       )}
+      {inventoriesQuery.hasNextPage ? (
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={inventoriesQuery.isFetchingNextPage}
+          onClick={() => void inventoriesQuery.fetchNextPage()}
+        >
+          재고 더 보기
+        </Button>
+      ) : null}
     </section>
   )
 }

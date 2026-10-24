@@ -9,6 +9,7 @@ import com.agolock.inventory.domain.InventoryMovement
 import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.domain.Item
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonMappingException
@@ -30,12 +31,41 @@ data class CreateCategoryRequest(
     @field:Min(0) val sortOrder: Int = 0,
 )
 
-data class UpdateCategoryRequest(
-    @field:Size(min = 1, max = 80) val name: String? = null,
-    @field:Size(max = 32) val color: String? = null,
-    @field:Min(0) val sortOrder: Int? = null,
-)
+@JsonDeserialize(using = UpdateCategoryRequestDeserializer::class)
+class UpdateCategoryRequest {
+    @field:Size(min = 1, max = 80)
+    var name: String? = null
 
+    @field:Size(max = 32)
+    var color: String? = null
+
+    @field:Min(0)
+    var sortOrder: Int? = null
+
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var colorPresent: Boolean = false
+}
+
+class UpdateCategoryRequestDeserializer : StdDeserializer<UpdateCategoryRequest>(UpdateCategoryRequest::class.java) {
+    override fun deserialize(
+        parser: JsonParser,
+        context: DeserializationContext,
+    ): UpdateCategoryRequest {
+        val node = parser.readValueAsTree<JsonNode>()
+        if (!node.isObject) throw JsonMappingException.from(parser, "PATCH는 객체여야 합니다.")
+        return UpdateCategoryRequest().also { request ->
+            if (node.has("name")) request.name = JsonPatchReaders.text(parser, node.get("name"), "name")
+            if (node.has("color")) {
+                request.color = JsonPatchReaders.optionalText(parser, node.get("color"), "color")
+                request.colorPresent = true
+            }
+            if (node.has("sortOrder")) request.sortOrder = parseIntField(parser, node.get("sortOrder"), "sortOrder")
+        }
+    }
+}
+
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class CategoryResponse(
     val id: UUID,
     val name: String,
@@ -68,6 +98,7 @@ class UpdateItemRequest {
         private set
 
     @field:NotNull
+    @field:Min(0)
     var version: Long? = null
 
     @get:JsonIgnore
@@ -85,8 +116,14 @@ class UpdateItemRequest {
     var priceAmountPresent: Boolean = false
         private set
 
+    @get:JsonIgnore
+    @get:Schema(hidden = true)
+    var namePresent: Boolean = false
+        private set
+
     fun applyName(value: String?) {
         name = value
+        namePresent = true
     }
 
     fun applyDescription(value: String?) {
@@ -154,9 +191,10 @@ class UpdateItemRequestDeserializer : StdDeserializer<UpdateItemRequest>(UpdateI
         context: DeserializationContext,
     ): UpdateItemRequest {
         val node = parser.readValueAsTree<JsonNode>()
+        if (!node.isObject) throw JsonMappingException.from(parser, "PATCH는 객체여야 합니다.")
         val request = UpdateItemRequest()
         if (node.has("name")) {
-            request.applyName(JsonPatchReaders.optionalText(parser, node.get("name"), "name"))
+            request.applyName(JsonPatchReaders.text(parser, node.get("name"), "name"))
         }
         if (node.has("description")) {
             request.applyDescription(JsonPatchReaders.optionalText(parser, node.get("description"), "description"))
@@ -183,6 +221,7 @@ class UpdateItemRequestDeserializer : StdDeserializer<UpdateItemRequest>(UpdateI
     }
 }
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class ItemResponse(
     val id: UUID,
     val name: String,
@@ -197,6 +236,7 @@ data class ItemResponse(
     val isShared: Boolean = false,
 )
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class InventoryLocationResponse(
     val type: String,
     val roomId: UUID?,
@@ -205,6 +245,7 @@ data class InventoryLocationResponse(
     val name: String,
 )
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class InventoryResponse(
     val id: UUID,
     val itemId: UUID,
@@ -264,6 +305,7 @@ class UpdateInventoryRequest {
     var confirmDisposal: Boolean = false
 
     @field:NotNull
+    @field:Min(0)
     var version: Long? = null
 
     @get:JsonIgnore
@@ -323,6 +365,7 @@ class UpdateInventoryRequestDeserializer : StdDeserializer<UpdateInventoryReques
         context: DeserializationContext,
     ): UpdateInventoryRequest {
         val node = parser.readValueAsTree<JsonNode>()
+        if (!node.isObject) throw JsonMappingException.from(parser, "PATCH는 객체여야 합니다.")
         val request = UpdateInventoryRequest()
         if (node.has("nameOverride")) {
             request.applyNameOverride(JsonPatchReaders.optionalText(parser, node.get("nameOverride"), "nameOverride"))
@@ -370,7 +413,7 @@ data class MoveInventoryRequest(
     val roomId: UUID? = null,
     val shelfId: UUID? = null,
     val boxId: UUID? = null,
-    @field:NotNull val version: Long? = null,
+    @field:NotNull @field:Min(0) val version: Long? = null,
 )
 
 data class MovementResponse(
@@ -381,18 +424,22 @@ data class MovementResponse(
     val movedAt: OffsetDateTime,
 )
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class InventoryListResponse(
     val items: List<InventoryResponse>,
     val nextCursor: String? = null,
 )
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class ItemListResponse(
     val items: List<ItemResponse>,
     val nextCursor: String? = null,
 )
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class CategoryListResponse(
     val items: List<CategoryResponse>,
+    val nextCursor: String? = null,
 )
 
 fun Category.toResponse(): CategoryResponse = CategoryResponse(id, name, color, sortOrder)
@@ -418,8 +465,10 @@ data class LocationItemResponse(
     val path: String,
 )
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class LocationListResponse(
     val items: List<LocationItemResponse>,
+    val nextCursor: String? = null,
 )
 
 data class MergeCategoryRequest(

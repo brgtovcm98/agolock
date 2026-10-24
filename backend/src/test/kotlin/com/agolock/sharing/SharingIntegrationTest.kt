@@ -230,7 +230,7 @@ class SharingIntegrationTest
                 )
             assertThat(moved.statusCode).isEqualTo(HttpStatus.OK)
             assertThat(json(moved.body)["location"]["type"].asText()).isEqualTo("SHELF")
-            assertThat(guest.delete("/api/v1/inventories/$inventoryId").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            assertThat(guest.delete("/api/v1/inventories/$inventoryId?version=1").statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         }
 
         @Test

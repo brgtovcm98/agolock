@@ -6,6 +6,7 @@ import com.agolock.common.idempotency.IdempotencyService
 import com.agolock.hierarchy.api.toResponseEntity
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.identity.security.AppUserPrincipal
+import com.agolock.inventory.service.CategoryQueryService
 import com.agolock.inventory.service.CategoryService
 import com.agolock.inventory.service.CreateCategoryCommand
 import com.agolock.inventory.service.UpdateCategoryCommand
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -30,13 +32,20 @@ import java.util.UUID
 @Tag(name = "categories")
 class CategoryController(
     private val categoryService: CategoryService,
+    private val query: CategoryQueryService,
     private val idempotencyService: IdempotencyService,
 ) {
     @GetMapping
     @Operation(operationId = "listCategories", summary = "Category 목록")
     fun list(
         @AuthenticationPrincipal principal: AppUserPrincipal,
-    ): CategoryListResponse = CategoryListResponse(categoryService.list(Actor.from(principal)).map { it.toResponse() })
+        @RequestParam(required = false) itemId: UUID?,
+        @RequestParam(required = false) limit: Int?,
+        @RequestParam(required = false) cursor: String?,
+    ): CategoryListResponse {
+        val page = query.list(Actor.from(principal), itemId, limit, cursor)
+        return CategoryListResponse(page.items.map { it.toResponse() }, page.nextCursor)
+    }
 
     @PostMapping
     @Operation(operationId = "createCategory", summary = "Category 생성")
@@ -71,8 +80,11 @@ class CategoryController(
         @Valid @RequestBody request: UpdateCategoryRequest,
     ): CategoryResponse =
         categoryService
-            .update(Actor.from(principal), categoryId, UpdateCategoryCommand(request.name, request.color, request.sortOrder))
-            .toResponse()
+            .update(
+                Actor.from(principal),
+                categoryId,
+                UpdateCategoryCommand(request.name, request.color, request.sortOrder, request.colorPresent),
+            ).toResponse()
 
     @PostMapping("/{categoryId}/merge")
     @Operation(operationId = "mergeCategory", summary = "Category 병합")

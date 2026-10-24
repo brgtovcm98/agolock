@@ -5,32 +5,39 @@ openapi: 3.0.3
 info:
   title: AGO Lock API
   version: 0.3.0
-  description: |
-    개인 물품 관리 앱의 HTTP API 계약입니다.
+  description: '개인 물품 관리 앱의 HTTP API 계약입니다.
+
     인증은 HttpOnly 세션 쿠키를 사용하며, 상태 변경 요청은 X-XSRF-TOKEN 헤더가 필요합니다.
+
     CSRF 토큰은 GET /auth/csrf 또는 XSRF-TOKEN 쿠키로 획득합니다.
+
     PATCH는 JSON Merge Patch 의미를 사용하고 version이 필요한 리소스는 version을 필수로 보냅니다.
+
     생성 요청은 Idempotency-Key를 지원하며 24시간 동안 같은 응답을 재생합니다.
+
     오류 응답은 application/problem+json 형식을 사용합니다.
+
+    '
 servers:
-  - url: /api/v1
+- url: /api/v1
 security:
-  - cookieAuth: []
+- cookieAuth: []
 tags:
-  - name: auth
-  - name: hierarchy
-  - name: items
-  - name: inventories
-  - name: categories
-  - name: search
-  - name: images
-  - name: ai
-  - name: sharing
-  - name: system
+- name: auth
+- name: hierarchy
+- name: items
+- name: inventories
+- name: categories
+- name: search
+- name: images
+- name: ai
+- name: sharing
+- name: system
 paths:
   /info:
     get:
-      tags: [system]
+      tags:
+      - system
       operationId: info
       responses:
         '200':
@@ -39,7 +46,10 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [name, version, environment]
+                required:
+                - name
+                - version
+                - environment
                 properties:
                   name:
                     type: string
@@ -51,7 +61,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
   /auth/config:
     get:
-      tags: [auth]
+      tags:
+      - auth
       operationId: getAuthConfig
       security: []
       responses:
@@ -63,7 +74,8 @@ paths:
                 $ref: '#/components/schemas/AuthConfig'
   /auth/csrf:
     get:
-      tags: [auth]
+      tags:
+      - auth
       operationId: getCsrfToken
       security: []
       responses:
@@ -75,11 +87,12 @@ paths:
                 $ref: '#/components/schemas/CsrfTokenResponse'
   /auth/signup:
     post:
-      tags: [auth]
+      tags:
+      - auth
       operationId: signup
       security: []
       parameters:
-        - $ref: '#/components/parameters/CsrfToken'
+      - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -107,11 +120,12 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
   /auth/login:
     post:
-      tags: [auth]
+      tags:
+      - auth
       operationId: login
       security: []
       parameters:
-        - $ref: '#/components/parameters/CsrfToken'
+      - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -131,11 +145,12 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
   /auth/logout:
     post:
-      tags: [auth]
+      tags:
+      - auth
       operationId: logout
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: 로그아웃 성공
@@ -143,7 +158,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
   /auth/me:
     get:
-      tags: [auth]
+      tags:
+      - auth
       operationId: getMe
       responses:
         '200':
@@ -155,11 +171,12 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
     patch:
-      tags: [auth]
+      tags:
+      - auth
       operationId: updateMe
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -179,28 +196,31 @@ paths:
           $ref: '#/components/responses/Unauthorized'
   /auth/email-verification/request:
     post:
-      tags: [auth]
+      tags:
+      - auth
       operationId: requestEmailVerification
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '202':
           description: 인증 메일 요청
   /auth/email-verification/confirm:
     post:
-      tags: [auth]
+      tags:
+      - auth
       operationId: confirmEmailVerification
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [token]
+              required:
+              - token
               properties:
                 token:
                   type: string
@@ -211,11 +231,12 @@ paths:
           description: 인증 토큰 무효·만료
   /auth/password-reset/request:
     post:
-      tags: [auth]
+      tags:
+      - auth
       operationId: requestPasswordReset
       security: []
       parameters:
-        - $ref: '#/components/parameters/CsrfToken'
+      - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -229,11 +250,12 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
   /auth/password-reset/confirm:
     post:
-      tags: [auth]
+      tags:
+      - auth
       operationId: confirmPasswordReset
       security: []
       parameters:
-        - $ref: '#/components/parameters/CsrfToken'
+      - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -253,13 +275,14 @@ paths:
                 $ref: '#/components/schemas/Problem'
   /spaces/{spaceId}:
     parameters:
-      - $ref: '#/components/parameters/SpaceId'
+    - $ref: '#/components/parameters/SpaceId'
     patch:
-      tags: [auth]
+      tags:
+      - auth
       operationId: updateSpace
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -279,11 +302,12 @@ paths:
           $ref: '#/components/responses/Conflict'
   /rooms:
     get:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: listRooms
       parameters:
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
       responses:
         '200':
           description: Room 목록
@@ -294,13 +318,14 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: createRoom
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       parameters:
-        - $ref: '#/components/parameters/IdempotencyKey'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -320,9 +345,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /shared/rooms/{roomId}:
     parameters:
-      - $ref: '#/components/parameters/RoomId'
+    - $ref: '#/components/parameters/RoomId'
     get:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: getSharedRoom
       responses:
         '200':
@@ -337,9 +363,10 @@ paths:
           $ref: '#/components/responses/NotFound'
   /shared/shelves/{shelfId}:
     parameters:
-      - $ref: '#/components/parameters/ShelfId'
+    - $ref: '#/components/parameters/ShelfId'
     get:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: getSharedShelf
       responses:
         '200':
@@ -354,9 +381,10 @@ paths:
           $ref: '#/components/responses/NotFound'
   /shared/boxes/{boxId}:
     parameters:
-      - $ref: '#/components/parameters/BoxId'
+    - $ref: '#/components/parameters/BoxId'
     get:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: getSharedBox
       responses:
         '200':
@@ -371,9 +399,10 @@ paths:
           $ref: '#/components/responses/NotFound'
   /shared/inventories/{inventoryId}:
     parameters:
-      - $ref: '#/components/parameters/InventoryId'
+    - $ref: '#/components/parameters/InventoryId'
     get:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: getSharedInventory
       responses:
         '200':
@@ -388,7 +417,8 @@ paths:
           $ref: '#/components/responses/NotFound'
   /shared:
     get:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: listSharedResources
       responses:
         '200':
@@ -401,9 +431,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
   /rooms/{roomId}:
     parameters:
-      - $ref: '#/components/parameters/RoomId'
+    - $ref: '#/components/parameters/RoomId'
     get:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: getRoom
       responses:
         '200':
@@ -415,11 +446,12 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     patch:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: updateRoom
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -438,11 +470,12 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
     delete:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: deleteRoom
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: Room 삭제
@@ -452,9 +485,10 @@ paths:
           $ref: '#/components/responses/Conflict'
   /rooms/{roomId}/shelves:
     parameters:
-      - $ref: '#/components/parameters/RoomId'
+    - $ref: '#/components/parameters/RoomId'
     get:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: listShelves
       responses:
         '200':
@@ -464,13 +498,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ShelfList'
     post:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: createShelf
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       parameters:
-        - $ref: '#/components/parameters/IdempotencyKey'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -488,9 +523,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /shelves/{shelfId}:
     parameters:
-      - $ref: '#/components/parameters/ShelfId'
+    - $ref: '#/components/parameters/ShelfId'
     get:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: getShelf
       responses:
         '200':
@@ -502,11 +538,12 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     patch:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: updateShelf
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -525,11 +562,12 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
     delete:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: deleteShelf
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: Shelf 삭제
@@ -539,13 +577,14 @@ paths:
           $ref: '#/components/responses/Conflict'
   /shelves/{shelfId}/parent:
     parameters:
-      - $ref: '#/components/parameters/ShelfId'
+    - $ref: '#/components/parameters/ShelfId'
     patch:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: moveShelf
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -565,9 +604,10 @@ paths:
           $ref: '#/components/responses/Conflict'
   /shelves/{shelfId}/boxes:
     parameters:
-      - $ref: '#/components/parameters/ShelfId'
+    - $ref: '#/components/parameters/ShelfId'
     get:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: listBoxes
       responses:
         '200':
@@ -577,13 +617,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/BoxList'
     post:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: createBox
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       parameters:
-        - $ref: '#/components/parameters/IdempotencyKey'
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -601,9 +642,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /boxes/{boxId}:
     parameters:
-      - $ref: '#/components/parameters/BoxId'
+    - $ref: '#/components/parameters/BoxId'
     get:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: getBox
       responses:
         '200':
@@ -615,11 +657,12 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     patch:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: updateBox
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -638,11 +681,12 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
     delete:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: deleteBox
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: Box 삭제
@@ -652,13 +696,14 @@ paths:
           $ref: '#/components/responses/Conflict'
   /boxes/{boxId}/parent:
     parameters:
-      - $ref: '#/components/parameters/BoxId'
+    - $ref: '#/components/parameters/BoxId'
     patch:
-      tags: [hierarchy]
+      tags:
+      - hierarchy
       operationId: moveBox
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -678,164 +723,219 @@ paths:
           $ref: '#/components/responses/Conflict'
   /items:
     get:
-      tags: [items]
+      tags:
+      - items
+      summary: Item 목록
       operationId: listItems
       parameters:
-        - name: q
-          in: query
-          schema:
-            type: string
-            maxLength: 200
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
-        - name: categoryId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: scope
-          in: query
-          schema:
-            type: string
-            enum: [ALL, OWNED, SHARED]
-            default: ALL
-        - name: hasImage
-          in: query
-          schema:
-            type: boolean
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [RELEVANCE, UPDATED_DESC, NAME_ASC, VIEWED_DESC]
-            default: UPDATED_DESC
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 200
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: scope
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ALL
+      - name: roomId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: shelfId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: boxId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: Item 목록
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/ItemList'
+                $ref: '#/components/schemas/ItemListResponse'
     post:
-      tags: [items]
+      tags:
+      - items
+      summary: Item 생성
       operationId: createItem
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      description: Space 소유자만 신규 Item을 생성할 수 있습니다.
       parameters:
-        - $ref: '#/components/parameters/IdempotencyKey'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateItemRequest'
-      responses:
-        '201':
-          description: Item 생성
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Item'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-  /items/{itemId}:
-    parameters:
-      - $ref: '#/components/parameters/ItemId'
-    get:
-      tags: [items]
-      operationId: getItem
+        required: true
       responses:
         '200':
-          description: Item 상세
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/Item'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    patch:
-      tags: [items]
-      operationId: updateItem
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      requestBody:
+                type: object
+  /items/{itemId}:
+    get:
+      tags:
+      - items
+      summary: Item 상세
+      operationId: getItem
+      parameters:
+      - name: itemId
+        in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+    delete:
+      tags:
+      - items
+      summary: Item 삭제
+      operationId: deleteItem
+      parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: version
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+    patch:
+      tags:
+      - items
+      summary: Item 수정
+      operationId: updateItem
+      parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateItemRequest'
+        required: true
       responses:
         '200':
-          description: Item 수정
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/Item'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-    delete:
-      tags: [items]
-      operationId: deleteItem
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      responses:
-        '204':
-          description: Item 삭제
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
+                $ref: '#/components/schemas/ItemResponse'
   /items/{itemId}/view:
-    parameters:
-      - $ref: '#/components/parameters/ItemId'
     post:
-      tags: [search]
+      tags:
+      - search
+      summary: 물건 조회 기록
       operationId: recordItemView
-      security:
-        - cookieAuth: []
-          CsrfToken: []
+      parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
-        '204':
-          description: 조회 기록
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '200':
+          description: OK
   /items/{itemId}/inventories:
-    parameters:
-      - $ref: '#/components/parameters/ItemId'
     get:
-      tags: [items]
+      tags:
+      - items
+      summary: Item의 Inventory 목록
       operationId: listItemInventories
       parameters:
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
-        - name: status
-          in: query
-          schema:
-            $ref: '#/components/schemas/InventoryStatus'
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - IN_USE
+            - STORED
+            - DISPOSED
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
-          description: Item의 Inventory 목록
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/InventoryList'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: '#/components/schemas/InventoryListResponse'
   /items/{itemId}/images:
     parameters:
-      - $ref: '#/components/parameters/ItemId'
+    - $ref: '#/components/parameters/ItemId'
     get:
-      tags: [images]
+      tags:
+      - images
       operationId: listItemImages
       responses:
         '200':
@@ -847,224 +947,272 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   /items/{itemId}/update-impact:
-    parameters:
-      - $ref: '#/components/parameters/ItemId'
-    get:
-      tags: [items]
+    post:
+      tags:
+      - items
+      summary: Item 수정 영향 범위
       operationId: getItemUpdateImpact
+      parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemRequest'
+        required: true
       responses:
         '200':
-          description: 마스터 수정 영향 범위
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/ItemUpdateImpact'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: '#/components/schemas/ItemUpdateImpactPreviewResponse'
   /inventories:
     get:
-      tags: [inventories]
+      tags:
+      - inventories
+      summary: Inventory 목록
       operationId: listInventories
       parameters:
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
-        - name: itemId
-          in: query
-          schema:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
             type: string
-            format: uuid
-        - name: status
-          in: query
-          schema:
-            $ref: '#/components/schemas/InventoryStatus'
-        - name: categoryId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: roomId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: shelfId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: boxId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: scope
-          in: query
-          schema:
-            type: string
-            enum: [ALL, OWNED, SHARED]
-            default: ALL
-        - name: hasImage
-          in: query
-          schema:
-            type: boolean
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [UPDATED_DESC, NAME_ASC, STATUS_ASC, VIEWED_DESC]
-            default: UPDATED_DESC
+            enum:
+            - IN_USE
+            - STORED
+            - DISPOSED
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: scope
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ALL
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: roomId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: shelfId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: boxId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: Inventory 목록
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/InventoryList'
+                $ref: '#/components/schemas/InventoryListResponse'
     post:
-      tags: [inventories]
+      tags:
+      - inventories
+      summary: Inventory 생성
       operationId: createInventory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      description: 기존 Item에 Inventory를 추가하거나 소유자가 신규 Item과 첫 Inventory를 함께 생성합니다.
       parameters:
-        - $ref: '#/components/parameters/IdempotencyKey'
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateInventoryRequest'
-      responses:
-        '201':
-          description: Inventory 생성
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Inventory'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-  /inventories/{inventoryId}:
-    parameters:
-      - $ref: '#/components/parameters/InventoryId'
-    get:
-      tags: [inventories]
-      operationId: getInventory
+        required: true
       responses:
         '200':
-          description: Inventory 상세
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/Inventory'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    patch:
-      tags: [inventories]
-      operationId: updateInventory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      requestBody:
+                type: object
+  /inventories/{inventoryId}:
+    get:
+      tags:
+      - inventories
+      summary: Inventory 상세
+      operationId: getInventory
+      parameters:
+      - name: inventoryId
+        in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/InventoryResponse'
+    delete:
+      tags:
+      - inventories
+      summary: Inventory 삭제
+      operationId: deleteInventory
+      parameters:
+      - name: inventoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: version
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+    patch:
+      tags:
+      - inventories
+      summary: Inventory 수정
+      operationId: updateInventory
+      parameters:
+      - name: inventoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateInventoryRequest'
+        required: true
       responses:
         '200':
-          description: Inventory 수정
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/Inventory'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-    delete:
-      tags: [inventories]
-      operationId: deleteInventory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      responses:
-        '204':
-          description: Inventory 삭제
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                $ref: '#/components/schemas/InventoryResponse'
   /inventories/{inventoryId}/location:
-    parameters:
-      - $ref: '#/components/parameters/InventoryId'
     patch:
-      tags: [inventories]
+      tags:
+      - inventories
+      summary: Inventory 위치 이동
       operationId: moveInventory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      requestBody:
+      parameters:
+      - name: inventoryId
+        in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/MoveInventoryRequest'
+        required: true
       responses:
         '200':
-          description: 이동 완료
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/Inventory'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
+                $ref: '#/components/schemas/InventoryResponse'
   /inventories/{inventoryId}/move-targets:
-    parameters:
-      - $ref: '#/components/parameters/InventoryId'
     get:
-      tags: [inventories]
+      tags:
+      - inventories
+      summary: 이동 가능한 위치
       operationId: listMoveTargets
+      parameters:
+      - name: inventoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 200
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
-          description: 이동 가능한 위치
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/LocationList'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: '#/components/schemas/LocationListResponse'
   /inventories/{inventoryId}/movements:
-    parameters:
-      - $ref: '#/components/parameters/InventoryId'
     get:
-      tags: [inventories]
+      tags:
+      - inventories
+      summary: Inventory 이동 이력
       operationId: listInventoryMovements
       parameters:
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
+      - name: inventoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: 이동 이력
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/MovementList'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                type: array
+                items:
+                  $ref: '#/components/schemas/MovementResponse'
   /inventories/{inventoryId}/images:
     parameters:
-      - $ref: '#/components/parameters/InventoryId'
+    - $ref: '#/components/parameters/InventoryId'
     get:
-      tags: [images]
+      tags:
+      - images
       operationId: listInventoryImages
       responses:
         '200':
@@ -1077,158 +1225,196 @@ paths:
           $ref: '#/components/responses/NotFound'
   /categories:
     get:
-      tags: [categories]
+      tags:
+      - categories
+      summary: Category 목록
       operationId: listCategories
+      parameters:
+      - name: itemId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
-          description: Category 목록
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/CategoryList'
+                $ref: '#/components/schemas/CategoryListResponse'
     post:
-      tags: [categories]
+      tags:
+      - categories
+      summary: Category 생성
       operationId: createCategory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateCategoryRequest'
-      responses:
-        '201':
-          description: Category 생성
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Category'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-  /categories/{categoryId}:
-    parameters:
-      - $ref: '#/components/parameters/CategoryId'
-    patch:
-      tags: [categories]
-      operationId: updateCategory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      requestBody:
         required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /categories/{categoryId}:
+    delete:
+      tags:
+      - categories
+      summary: Category 삭제
+      operationId: deleteCategory
+      parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+    patch:
+      tags:
+      - categories
+      summary: Category 수정
+      operationId: updateCategory
+      parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateCategoryRequest'
+        required: true
       responses:
         '200':
-          description: Category 수정
+          description: OK
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/Category'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    delete:
-      tags: [categories]
-      operationId: deleteCategory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      responses:
-        '204':
-          description: Category 삭제
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
+                $ref: '#/components/schemas/CategoryResponse'
   /categories/{categoryId}/merge:
-    parameters:
-      - $ref: '#/components/parameters/CategoryId'
     post:
-      tags: [categories]
+      tags:
+      - categories
+      summary: Category 병합
       operationId: mergeCategory
-      security:
-        - cookieAuth: []
-          CsrfToken: []
-      requestBody:
+      parameters:
+      - name: categoryId
+        in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/MergeCategoryRequest'
+        required: true
       responses:
-        '204':
-          description: Category 병합 완료
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CategoryMergeResponse'
   /search:
     get:
-      tags: [search]
+      tags:
+      - search
       operationId: search
       parameters:
-        - name: q
-          in: query
-          schema:
-            type: string
-            maxLength: 200
-        - name: status
-          in: query
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/InventoryStatus'
-          style: form
-          explode: false
-        - name: roomId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: shelfId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: boxId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: categoryId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: scope
-          in: query
-          schema:
-            type: string
-            enum: [ALL, OWNED, SHARED]
-            default: ALL
-        - name: ownerId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: hasImage
-          in: query
-          schema:
-            type: boolean
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [RELEVANCE, UPDATED_DESC, NAME_ASC, VIEWED_DESC, STATUS_ASC]
-            default: RELEVANCE
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
+      - name: q
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+      - name: status
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryStatus'
+        style: form
+        explode: false
+      - name: roomId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: shelfId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: boxId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: categoryId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: scope
+        in: query
+        schema:
+          type: string
+          enum:
+          - ALL
+          - OWNED
+          - SHARED
+          default: ALL
+      - name: ownerId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: hasImage
+        in: query
+        schema:
+          type: boolean
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - RELEVANCE
+          - UPDATED_DESC
+          - NAME_ASC
+          - VIEWED_DESC
+          - STATUS_ASC
+          default: RELEVANCE
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
       responses:
         '200':
           description: 검색 결과
@@ -1238,7 +1424,8 @@ paths:
                 $ref: '#/components/schemas/SearchResponse'
   /search/recent:
     get:
-      tags: [search]
+      tags:
+      - search
       operationId: listRecentSearches
       responses:
         '200':
@@ -1248,17 +1435,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/RecentSearchList'
     delete:
-      tags: [search]
+      tags:
+      - search
       operationId: clearRecentSearches
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: 최근 검색어 전체 삭제
   /search/frequent:
     get:
-      tags: [search]
+      tags:
+      - search
       operationId: listFrequentItems
       responses:
         '200':
@@ -1269,7 +1458,8 @@ paths:
                 $ref: '#/components/schemas/FrequentItemList'
   /search/suggestions:
     get:
-      tags: [search]
+      tags:
+      - search
       operationId: listSearchSuggestions
       responses:
         '200':
@@ -1280,75 +1470,85 @@ paths:
                 $ref: '#/components/schemas/SearchSuggestions'
   /search/image:
     post:
-      tags: [search]
+      tags:
+      - search
       operationId: searchByImage
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/InventoryStatus'
-          style: form
-          explode: false
-        - name: roomId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: shelfId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: boxId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: categoryId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: scope
-          in: query
-          schema:
-            type: string
-            enum: [ALL, OWNED, SHARED]
-            default: ALL
-        - name: ownerId
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: hasImage
-          in: query
-          schema:
-            type: boolean
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [RELEVANCE, UPDATED_DESC, NAME_ASC, VIEWED_DESC, STATUS_ASC]
-            default: RELEVANCE
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 20
+      - name: status
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryStatus'
+        style: form
+        explode: false
+      - name: roomId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: shelfId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: boxId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: categoryId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: scope
+        in: query
+        schema:
+          type: string
+          enum:
+          - ALL
+          - OWNED
+          - SHARED
+          default: ALL
+      - name: ownerId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: hasImage
+        in: query
+        schema:
+          type: boolean
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - RELEVANCE
+          - UPDATED_DESC
+          - NAME_ASC
+          - VIEWED_DESC
+          - STATUS_ASC
+          default: RELEVANCE
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
-              required: [file]
+              required:
+              - file
               properties:
                 file:
                   type: string
@@ -1368,11 +1568,12 @@ paths:
           $ref: '#/components/responses/ServiceUnavailable'
   /images/presign:
     post:
-      tags: [images]
+      tags:
+      - images
       operationId: presignImage
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       description: ITEM은 OWNER, INVENTORY는 EDIT 이상, DRAFT는 인증된 사용자 본인의 Space만 허용합니다.
       requestBody:
         required: true
@@ -1395,13 +1596,14 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
   /images/{imageId}/complete:
     parameters:
-      - $ref: '#/components/parameters/ImageId'
+    - $ref: '#/components/parameters/ImageId'
     post:
-      tags: [images]
+      tags:
+      - images
       operationId: completeImageUpload
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1421,17 +1623,20 @@ paths:
           $ref: '#/components/responses/Conflict'
   /images/{imageId}/url:
     parameters:
-      - $ref: '#/components/parameters/ImageId'
+    - $ref: '#/components/parameters/ImageId'
     get:
-      tags: [images]
+      tags:
+      - images
       operationId: getImageUrl
       parameters:
-        - name: variant
-          in: query
-          schema:
-            type: string
-            enum: [THUMB, ORIGINAL]
-            default: THUMB
+      - name: variant
+        in: query
+        schema:
+          type: string
+          enum:
+          - THUMB
+          - ORIGINAL
+          default: THUMB
       responses:
         '200':
           description: 다운로드 URL
@@ -1445,11 +1650,12 @@ paths:
           $ref: '#/components/responses/NotFound'
   /images/urls:
     post:
-      tags: [images]
+      tags:
+      - images
       operationId: getImageUrls
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1467,13 +1673,14 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /images/{imageId}/primary:
     parameters:
-      - $ref: '#/components/parameters/ImageId'
+    - $ref: '#/components/parameters/ImageId'
     post:
-      tags: [images]
+      tags:
+      - images
       operationId: setPrimaryImage
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '200':
           description: 대표 이미지 변경
@@ -1489,13 +1696,14 @@ paths:
           $ref: '#/components/responses/Conflict'
   /images/{imageId}:
     parameters:
-      - $ref: '#/components/parameters/ImageId'
+    - $ref: '#/components/parameters/ImageId'
     delete:
-      tags: [images]
+      tags:
+      - images
       operationId: deleteImage
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: 이미지 삭제
@@ -1503,11 +1711,12 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /ai/recognitions:
     post:
-      tags: [ai]
+      tags:
+      - ai
       operationId: createRecognition
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1527,9 +1736,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
   /ai/jobs/{jobId}:
     parameters:
-      - $ref: '#/components/parameters/JobId'
+    - $ref: '#/components/parameters/JobId'
     get:
-      tags: [ai]
+      tags:
+      - ai
       operationId: getAiJob
       responses:
         '200':
@@ -1542,13 +1752,14 @@ paths:
           $ref: '#/components/responses/NotFound'
   /ai/jobs/{jobId}/retry:
     parameters:
-      - $ref: '#/components/parameters/JobId'
+    - $ref: '#/components/parameters/JobId'
     post:
-      tags: [ai]
+      tags:
+      - ai
       operationId: retryAiJob
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '202':
           description: 재시도 접수
@@ -1558,13 +1769,14 @@ paths:
                 $ref: '#/components/schemas/AiJob'
   /ai/jobs/{jobId}/cancel:
     parameters:
-      - $ref: '#/components/parameters/JobId'
+    - $ref: '#/components/parameters/JobId'
     post:
-      tags: [ai]
+      tags:
+      - ai
       operationId: cancelAiJob
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '202':
           description: 취소 접수
@@ -1574,7 +1786,8 @@ paths:
                 $ref: '#/components/schemas/AiJob'
   /shares:
     get:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: listShares
       responses:
         '200':
@@ -1585,13 +1798,14 @@ paths:
                 $ref: '#/components/schemas/ShareList'
   /shares/{shareId}:
     parameters:
-      - $ref: '#/components/parameters/ShareId'
+    - $ref: '#/components/parameters/ShareId'
     patch:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: updateShare
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1608,11 +1822,12 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
     delete:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: revokeShare
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: 공유 철회
@@ -1620,24 +1835,30 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /share-invitations:
     get:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: listShareInvitations
       parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [PENDING, ACCEPTED, DECLINED, EXPIRED, REVOKED]
-        - name: cursor
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - ACCEPTED
+          - DECLINED
+          - EXPIRED
+          - REVOKED
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
       responses:
         '200':
           description: 보낸 초대 목록
@@ -1646,11 +1867,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ShareInvitationList'
     post:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: createShareInvitation
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1670,11 +1892,12 @@ paths:
           $ref: '#/components/responses/Conflict'
   /share-invitations/accept:
     post:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: acceptInvitationByToken
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1694,11 +1917,12 @@ paths:
           description: 토큰 무효 또는 이메일 불일치
   /share-invitations/decline:
     post:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: declineInvitationByToken
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       requestBody:
         required: true
         content:
@@ -1712,13 +1936,14 @@ paths:
           $ref: '#/components/responses/NotFound'
   /share-invitations/{invitationId}/resend:
     parameters:
-      - $ref: '#/components/parameters/InvitationId'
+    - $ref: '#/components/parameters/InvitationId'
     post:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: resendShareInvitation
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '202':
           description: 초대 재발송
@@ -1734,19 +1959,20 @@ paths:
           $ref: '#/components/responses/Conflict'
   /share-invitations/received:
     get:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: listReceivedShareInvitations
       parameters:
-        - name: cursor
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
       responses:
         '200':
           description: 받은 초대 목록
@@ -1756,13 +1982,14 @@ paths:
                 $ref: '#/components/schemas/ShareInvitationList'
   /share-invitations/{invitationId}:
     parameters:
-      - $ref: '#/components/parameters/InvitationId'
+    - $ref: '#/components/parameters/InvitationId'
     delete:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: revokeShareInvitation
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: 초대 철회
@@ -1770,18 +1997,19 @@ paths:
           $ref: '#/components/responses/Forbidden'
   /share-invitations/received/{invitationId}/accept:
     parameters:
-      - name: invitationId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
+    - name: invitationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     post:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: acceptShareInvitation
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '200':
           description: 초대 수락
@@ -1795,18 +2023,19 @@ paths:
           $ref: '#/components/responses/Conflict'
   /share-invitations/received/{invitationId}/decline:
     parameters:
-      - name: invitationId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
+    - name: invitationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     post:
-      tags: [sharing]
+      tags:
+      - sharing
       operationId: declineShareInvitation
       security:
-        - cookieAuth: []
-          CsrfToken: []
+      - cookieAuth: []
+        CsrfToken: []
       responses:
         '204':
           description: 초대 거절
@@ -1814,6 +2043,43 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+  /items/{itemId}/inventory-targets:
+    get:
+      tags:
+      - items
+      summary: 재고 등록 가능한 위치
+      operationId: listInventoryTargets
+      parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 200
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationListResponse'
 components:
   securitySchemes:
     cookieAuth:
@@ -1980,7 +2246,11 @@ components:
   schemas:
     Problem:
       type: object
-      required: [type, title, status, code]
+      required:
+      - type
+      - title
+      - status
+      - code
       properties:
         type:
           type: string
@@ -2005,7 +2275,12 @@ components:
                 type: string
     User:
       type: object
-      required: [id, email, displayName, status, emailVerified]
+      required:
+      - id
+      - email
+      - displayName
+      - status
+      - emailVerified
       properties:
         emailVerified:
           type: boolean
@@ -2019,10 +2294,16 @@ components:
           type: string
         status:
           type: string
-          enum: [ACTIVE, LOCKED, DELETED]
+          enum:
+          - ACTIVE
+          - LOCKED
+          - DELETED
     Space:
       type: object
-      required: [id, name, ownerUserId]
+      required:
+      - id
+      - name
+      - ownerUserId
       properties:
         id:
           type: string
@@ -2034,7 +2315,9 @@ components:
           format: uuid
     AuthMe:
       type: object
-      required: [user, space]
+      required:
+      - user
+      - space
       properties:
         user:
           $ref: '#/components/schemas/User'
@@ -2042,7 +2325,9 @@ components:
           $ref: '#/components/schemas/Space'
     AuthConfig:
       type: object
-      required: [inviteRequired, invitationEmailDiscoveryEnabled]
+      required:
+      - inviteRequired
+      - invitationEmailDiscoveryEnabled
       properties:
         inviteRequired:
           type: boolean
@@ -2056,13 +2341,15 @@ components:
           default: 128
     CsrfTokenResponse:
       type: object
-      required: [token]
+      required:
+      - token
       properties:
         token:
           type: string
     UpdateMeRequest:
       type: object
-      required: [displayName]
+      required:
+      - displayName
       properties:
         displayName:
           type: string
@@ -2070,7 +2357,8 @@ components:
           maxLength: 80
     UpdateSpaceRequest:
       type: object
-      required: [name]
+      required:
+      - name
       properties:
         name:
           type: string
@@ -2078,7 +2366,10 @@ components:
           maxLength: 120
     SignupRequest:
       type: object
-      required: [email, password, displayName]
+      required:
+      - email
+      - password
+      - displayName
       properties:
         email:
           type: string
@@ -2096,7 +2387,9 @@ components:
           description: auth.signup.invite-required가 true인 환경에서 필수
     LoginRequest:
       type: object
-      required: [email, password]
+      required:
+      - email
+      - password
       properties:
         email:
           type: string
@@ -2105,14 +2398,17 @@ components:
           type: string
     PasswordResetRequest:
       type: object
-      required: [email]
+      required:
+      - email
       properties:
         email:
           type: string
           format: email
     PasswordResetConfirmRequest:
       type: object
-      required: [token, newPassword]
+      required:
+      - token
+      - newPassword
       properties:
         token:
           type: string
@@ -2122,11 +2418,19 @@ components:
           maxLength: 128
     SharedResource:
       type: object
-      required: [resourceType, resourceId, name, ownerName, permission, sharedAt]
+      required:
+      - resourceType
+      - resourceId
+      - name
+      - ownerName
+      - permission
+      - sharedAt
       properties:
         resourceType:
           type: string
-          enum: [ROOM, SHELF]
+          enum:
+          - ROOM
+          - SHELF
         resourceId:
           type: string
           format: uuid
@@ -2147,7 +2451,8 @@ components:
           format: date-time
     SharedResourceList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2155,7 +2460,13 @@ components:
             $ref: '#/components/schemas/SharedResource'
     Room:
       type: object
-      required: [id, name, shelfCount, version, effectivePermission, isShared]
+      required:
+      - id
+      - name
+      - shelfCount
+      - version
+      - effectivePermission
+      - isShared
       properties:
         id:
           type: string
@@ -2183,7 +2494,8 @@ components:
           format: date-time
     RoomList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2194,7 +2506,8 @@ components:
           nullable: true
     CreateRoomRequest:
       type: object
-      required: [name]
+      required:
+      - name
       properties:
         name:
           type: string
@@ -2205,7 +2518,8 @@ components:
           nullable: true
     UpdateRoomRequest:
       type: object
-      required: [version]
+      required:
+      - version
       properties:
         name:
           type: string
@@ -2219,7 +2533,14 @@ components:
           format: int64
     Shelf:
       type: object
-      required: [id, roomId, name, boxCount, version, effectivePermission, isShared]
+      required:
+      - id
+      - roomId
+      - name
+      - boxCount
+      - version
+      - effectivePermission
+      - isShared
       properties:
         id:
           type: string
@@ -2244,7 +2565,8 @@ components:
           format: int64
     ShelfList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2255,7 +2577,8 @@ components:
           nullable: true
     CreateShelfRequest:
       type: object
-      required: [name]
+      required:
+      - name
       properties:
         name:
           type: string
@@ -2266,7 +2589,8 @@ components:
           nullable: true
     UpdateShelfRequest:
       type: object
-      required: [version]
+      required:
+      - version
       properties:
         name:
           type: string
@@ -2280,7 +2604,9 @@ components:
           format: int64
     MoveShelfRequest:
       type: object
-      required: [roomId, version]
+      required:
+      - roomId
+      - version
       properties:
         roomId:
           type: string
@@ -2290,7 +2616,13 @@ components:
           format: int64
     Box:
       type: object
-      required: [id, shelfId, name, version, effectivePermission, isShared]
+      required:
+      - id
+      - shelfId
+      - name
+      - version
+      - effectivePermission
+      - isShared
       properties:
         id:
           type: string
@@ -2312,7 +2644,8 @@ components:
           format: int64
     BoxList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2323,7 +2656,8 @@ components:
           nullable: true
     CreateBoxRequest:
       type: object
-      required: [name]
+      required:
+      - name
       properties:
         name:
           type: string
@@ -2334,7 +2668,8 @@ components:
           nullable: true
     UpdateBoxRequest:
       type: object
-      required: [version]
+      required:
+      - version
       properties:
         name:
           type: string
@@ -2348,7 +2683,9 @@ components:
           format: int64
     MoveBoxRequest:
       type: object
-      required: [shelfId, version]
+      required:
+      - shelfId
+      - version
       properties:
         shelfId:
           type: string
@@ -2358,13 +2695,22 @@ components:
           format: int64
     InventoryStatus:
       type: string
-      enum: [IN_USE, STORED, DISPOSED]
+      enum:
+      - IN_USE
+      - STORED
+      - DISPOSED
     Permission:
       type: string
-      enum: [VIEW, EDIT, MANAGE, OWNER]
+      enum:
+      - VIEW
+      - EDIT
+      - MANAGE
+      - OWNER
     Category:
       type: object
-      required: [id, name]
+      required:
+      - id
+      - name
       properties:
         id:
           type: string
@@ -2378,7 +2724,8 @@ components:
           type: integer
     CategoryList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2386,50 +2733,75 @@ components:
             $ref: '#/components/schemas/Category'
     CreateCategoryRequest:
       type: object
-      required: [name]
       properties:
         name:
           type: string
-          minLength: 1
           maxLength: 80
+          minLength: 0
         color:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+          maxLength: 32
+          minLength: 0
         sortOrder:
           type: integer
+          format: int32
+          minimum: 0
+      required:
+      - name
+      - sortOrder
     UpdateCategoryRequest:
       type: object
       properties:
         name:
-          type: string
-          minLength: 1
+          type:
+          - string
+          - 'null'
           maxLength: 80
+          minLength: 1
         color:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+          maxLength: 32
+          minLength: 0
         sortOrder:
-          type: integer
+          type:
+          - integer
+          - 'null'
+          format: int32
+          minimum: 0
     MergeCategoryRequest:
       type: object
-      required: [targetCategoryId]
       properties:
         targetCategoryId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
+      required:
+      - targetCategoryId
     Price:
       type: object
-      required: [amount, currency]
+      required:
+      - amount
+      - currency
       properties:
         amount:
           type: integer
           minimum: 0
         currency:
           type: string
-          enum: [KRW]
+          enum:
+          - KRW
           default: KRW
     Item:
       type: object
-      required: [id, name, inventoryCount]
+      required:
+      - id
+      - name
+      - inventoryCount
       properties:
         id:
           type: string
@@ -2460,7 +2832,8 @@ components:
           format: date-time
     ItemList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2471,44 +2844,68 @@ components:
           nullable: true
     CreateItemRequest:
       type: object
-      required: [name]
       properties:
         name:
           type: string
-          minLength: 1
-          maxLength: 200
+          maxLength: 120
+          minLength: 0
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+          minLength: 0
         categoryId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-        price:
-          $ref: '#/components/schemas/Price'
+        priceAmount:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          minimum: 0
+      required:
+      - name
     UpdateItemRequest:
       type: object
-      required: [version]
       properties:
         name:
-          type: string
+          type:
+          - string
+          - 'null'
+          maxLength: 120
           minLength: 1
-          maxLength: 200
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+          minLength: 0
         categoryId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-        price:
-          $ref: '#/components/schemas/Price'
+        priceAmount:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          minimum: 0
         version:
-          type: integer
+          type:
+          - integer
+          - 'null'
           format: int64
+          minimum: 0
+      required:
+      - version
     ItemUpdateImpact:
       type: object
-      required: [affectedInventoryCount]
+      required:
+      - affectedInventoryCount
       properties:
         affectedInventoryCount:
           type: integer
@@ -2518,28 +2915,43 @@ components:
           minimum: 0
     NewItemInput:
       type: object
-      required: [name]
       properties:
         name:
           type: string
-          minLength: 1
-          maxLength: 200
+          maxLength: 120
+          minLength: 0
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+          minLength: 0
         categoryId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-        price:
-          $ref: '#/components/schemas/Price'
+        priceAmount:
+          type:
+          - integer
+          - 'null'
+          format: int32
+          minimum: 0
+      required:
+      - name
     Location:
       type: object
-      required: [type, id, path]
+      required:
+      - type
+      - id
+      - path
       properties:
         type:
           type: string
-          enum: [ROOM, SHELF, BOX]
+          enum:
+          - ROOM
+          - SHELF
+          - BOX
         id:
           type: string
           format: uuid
@@ -2548,7 +2960,11 @@ components:
           description: Room > Shelf > Box 표시 경로
     Inventory:
       type: object
-      required: [id, itemId, status, location]
+      required:
+      - id
+      - itemId
+      - status
+      - location
       properties:
         id:
           type: string
@@ -2585,7 +3001,8 @@ components:
           format: date-time
     InventoryList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2596,93 +3013,114 @@ components:
           nullable: true
     CreateInventoryRequest:
       type: object
-      required: [location]
-      description: itemId 또는 newItem 중 정확히 하나를 보냅니다. newItem은 OWNER만 사용할 수 있습니다.
       properties:
         itemId:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
         newItem:
-          $ref: '#/components/schemas/NewItemInput'
-        imageId:
-          type: string
+          oneOf:
+          - $ref: '#/components/schemas/NewItemInput'
+          - type: 'null'
+        roomId:
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-          description: 저장 시 연결할 DRAFT 이미지 ID
-        location:
-          type: object
-          required: [type, id]
-          properties:
-            type:
-              type: string
-              enum: [ROOM, SHELF, BOX]
-            id:
-              type: string
-              format: uuid
-        nameOverride:
-          type: string
-          nullable: true
-        descriptionOverride:
-          type: string
-          nullable: true
-        categoryIdOverride:
-          type: string
+        shelfId:
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
-        priceAmountOverride:
-          type: integer
-          minimum: 0
-          nullable: true
+        boxId:
+          type:
+          - string
+          - 'null'
+          format: uuid
         status:
-          $ref: '#/components/schemas/InventoryStatus'
+          type: string
+          enum:
+          - IN_USE
+          - STORED
+          - DISPOSED
+      required:
+      - status
     UpdateInventoryRequest:
       type: object
-      required: [version]
       properties:
         nameOverride:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+          maxLength: 120
+          minLength: 0
         descriptionOverride:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+          minLength: 0
         categoryIdOverride:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
         priceAmountOverride:
-          type: integer
+          type:
+          - integer
+          - 'null'
+          format: int32
           minimum: 0
-          nullable: true
         status:
-          $ref: '#/components/schemas/InventoryStatus'
+          type:
+          - string
+          - 'null'
+          enum:
+          - IN_USE
+          - STORED
+          - DISPOSED
         confirmDisposal:
           type: boolean
-          default: false
-          description: status를 DISPOSED로 바꿀 때 true여야 합니다.
         version:
-          type: integer
+          type:
+          - integer
+          - 'null'
           format: int64
+          minimum: 0
+      required:
+      - confirmDisposal
+      - version
     MoveInventoryRequest:
       type: object
-      required: [location, version]
       properties:
-        location:
-          type: object
-          required: [type, id]
-          properties:
-            type:
-              type: string
-              enum: [ROOM, SHELF, BOX]
-            id:
-              type: string
-              format: uuid
+        roomId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        shelfId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        boxId:
+          type:
+          - string
+          - 'null'
+          format: uuid
         version:
-          type: integer
+          type:
+          - integer
+          - 'null'
           format: int64
+          minimum: 0
+      required:
+      - version
     SearchResponse:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2693,7 +3131,13 @@ components:
           nullable: true
     SearchItemGroup:
       type: object
-      required: [itemId, itemName, matchedInventoryCount, inventoryCount, hasMoreInventories, inventories]
+      required:
+      - itemId
+      - itemName
+      - matchedInventoryCount
+      - inventoryCount
+      - hasMoreInventories
+      - inventories
       properties:
         itemId:
           type: string
@@ -2737,7 +3181,9 @@ components:
             $ref: '#/components/schemas/SharedResource'
     RecentSearch:
       type: object
-      required: [query, lastSearchedAt]
+      required:
+      - query
+      - lastSearchedAt
       properties:
         id:
           type: string
@@ -2749,7 +3195,8 @@ components:
           format: date-time
     RecentSearchList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2757,7 +3204,10 @@ components:
             $ref: '#/components/schemas/RecentSearch'
     FrequentItem:
       type: object
-      required: [itemId, itemName, viewCount]
+      required:
+      - itemId
+      - itemName
+      - viewCount
       properties:
         itemId:
           type: string
@@ -2775,7 +3225,8 @@ components:
           format: date-time
     FrequentItemList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2783,7 +3234,12 @@ components:
             $ref: '#/components/schemas/FrequentItem'
     Movement:
       type: object
-      required: [id, inventoryId, from, to, movedAt]
+      required:
+      - id
+      - inventoryId
+      - from
+      - to
+      - movedAt
       properties:
         id:
           type: string
@@ -2803,7 +3259,8 @@ components:
           format: date-time
     MovementList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2814,7 +3271,8 @@ components:
           nullable: true
     LocationList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2822,26 +3280,37 @@ components:
             $ref: '#/components/schemas/Location'
     ImagePresignRequest:
       type: object
-      required: [targetType, contentType, sizeBytes]
+      required:
+      - targetType
+      - contentType
+      - sizeBytes
       description: targetType이 DRAFT이면 targetId를 생략합니다.
       properties:
         targetType:
           type: string
-          enum: [ITEM, INVENTORY, DRAFT]
+          enum:
+          - ITEM
+          - INVENTORY
+          - DRAFT
         targetId:
           type: string
           format: uuid
           nullable: true
         contentType:
           type: string
-          enum: [image/webp]
+          enum:
+          - image/webp
         sizeBytes:
           type: integer
           minimum: 1
           maximum: 10485760
     ImagePresignResponse:
       type: object
-      required: [imageId, uploadUrl, objectKey, expiresAt]
+      required:
+      - imageId
+      - uploadUrl
+      - objectKey
+      - expiresAt
       properties:
         imageId:
           type: string
@@ -2855,7 +3324,8 @@ components:
           format: date-time
     ImageCompleteRequest:
       type: object
-      required: [objectKey]
+      required:
+      - objectKey
       properties:
         objectKey:
           type: string
@@ -2864,14 +3334,24 @@ components:
           default: false
     Image:
       type: object
-      required: [id, status, isPrimary]
+      required:
+      - id
+      - status
+      - isPrimary
       properties:
         id:
           type: string
           format: uuid
         status:
           type: string
-          enum: [UPLOADING, DRAFT, PENDING, PROCESSING, READY, FAILED, DELETED]
+          enum:
+          - UPLOADING
+          - DRAFT
+          - PENDING
+          - PROCESSING
+          - READY
+          - FAILED
+          - DELETED
         isPrimary:
           type: boolean
         width:
@@ -2891,7 +3371,8 @@ components:
           format: date-time
     ImageList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2899,7 +3380,9 @@ components:
             $ref: '#/components/schemas/Image'
     ImageUrlResponse:
       type: object
-      required: [url, expiresAt]
+      required:
+      - url
+      - expiresAt
       properties:
         url:
           type: string
@@ -2908,7 +3391,8 @@ components:
           format: date-time
     ImageUrlBatchRequest:
       type: object
-      required: [imageIds]
+      required:
+      - imageIds
       properties:
         imageIds:
           type: array
@@ -2918,11 +3402,16 @@ components:
             format: uuid
         variant:
           type: string
-          enum: [THUMB, ORIGINAL]
+          enum:
+          - THUMB
+          - ORIGINAL
           default: THUMB
     ImageUrlItem:
       type: object
-      required: [imageId, url, expiresAt]
+      required:
+      - imageId
+      - url
+      - expiresAt
       properties:
         imageId:
           type: string
@@ -2934,7 +3423,8 @@ components:
           format: date-time
     ImageUrlBatchResponse:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -2942,14 +3432,18 @@ components:
             $ref: '#/components/schemas/ImageUrlItem'
     AiRecognitionRequest:
       type: object
-      required: [imageId, mode]
+      required:
+      - imageId
+      - mode
       properties:
         imageId:
           type: string
           format: uuid
         mode:
           type: string
-          enum: [NEW_ITEM, INVENTORY_OVERRIDE]
+          enum:
+          - NEW_ITEM
+          - INVENTORY_OVERRIDE
         inventoryId:
           type: string
           format: uuid
@@ -2960,7 +3454,9 @@ components:
           default: ko
     RecognitionResult:
       type: object
-      required: [name, confidence]
+      required:
+      - name
+      - confidence
       properties:
         name:
           type: string
@@ -2997,17 +3493,27 @@ components:
           maximum: 1
     AiJob:
       type: object
-      required: [id, jobType, status]
+      required:
+      - id
+      - jobType
+      - status
       properties:
         id:
           type: string
           format: uuid
         jobType:
           type: string
-          enum: [RECOGNITION, EMBEDDING]
+          enum:
+          - RECOGNITION
+          - EMBEDDING
         status:
           type: string
-          enum: [PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED]
+          enum:
+          - PENDING
+          - PROCESSING
+          - COMPLETED
+          - FAILED
+          - CANCELLED
         provider:
           type: string
           nullable: true
@@ -3036,7 +3542,10 @@ components:
           nullable: true
     Share:
       type: object
-      required: [id, granteeUserId, permission]
+      required:
+      - id
+      - granteeUserId
+      - permission
       properties:
         id:
           type: string
@@ -3062,7 +3571,8 @@ components:
           format: date-time
     ShareList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
@@ -3070,13 +3580,19 @@ components:
             $ref: '#/components/schemas/Share'
     UpdateShareRequest:
       type: object
-      required: [permission]
+      required:
+      - permission
       properties:
         permission:
           $ref: '#/components/schemas/Permission'
     ShareInvitation:
       type: object
-      required: [id, invitedEmail, permission, status, expiresAt]
+      required:
+      - id
+      - invitedEmail
+      - permission
+      - status
+      - expiresAt
       properties:
         id:
           type: string
@@ -3096,7 +3612,12 @@ components:
           $ref: '#/components/schemas/Permission'
         status:
           type: string
-          enum: [PENDING, ACCEPTED, DECLINED, REVOKED, EXPIRED]
+          enum:
+          - PENDING
+          - ACCEPTED
+          - DECLINED
+          - REVOKED
+          - EXPIRED
         expiresAt:
           type: string
           format: date-time
@@ -3110,23 +3631,29 @@ components:
           nullable: true
     ShareInvitationList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/ShareInvitation'
         nextCursor:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
     InvitationTokenRequest:
       type: object
-      required: [token]
+      required:
+      - token
       properties:
         token:
           type: string
     CreateShareInvitationRequest:
       type: object
-      required: [invitedEmail, permission]
+      required:
+      - invitedEmail
+      - permission
       properties:
         roomId:
           type: string
@@ -3141,3 +3668,328 @@ components:
           format: email
         permission:
           $ref: '#/components/schemas/Permission'
+    LocationListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationItemResponse'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+    LocationItemResponse:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: uuid
+        path:
+          type: string
+      required:
+      - id
+      - path
+      - type
+    MovementResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        inventoryId:
+          type: string
+          format: uuid
+        from:
+          $ref: '#/components/schemas/InventoryLocationResponse'
+        to:
+          $ref: '#/components/schemas/InventoryLocationResponse'
+        movedAt:
+          type: string
+          format: date-time
+      required:
+      - from
+      - id
+      - inventoryId
+      - movedAt
+      - to
+    InventoryLocationResponse:
+      type: object
+      properties:
+        type:
+          type: string
+        roomId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        shelfId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        boxId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        name:
+          type: string
+      required:
+      - name
+      - type
+    InventoryListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryResponse'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+    InventoryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        itemId:
+          type: string
+          format: uuid
+        itemName:
+          type: string
+        displayName:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        categoryId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        priceAmount:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        status:
+          type: string
+          enum:
+          - IN_USE
+          - STORED
+          - DISPOSED
+        location:
+          $ref: '#/components/schemas/InventoryLocationResponse'
+        nameOverride:
+          type:
+          - string
+          - 'null'
+        descriptionOverride:
+          type:
+          - string
+          - 'null'
+        categoryIdOverride:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        priceAmountOverride:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        version:
+          type: integer
+          format: int64
+        effectivePermission:
+          type: string
+          enum:
+          - NONE
+          - VIEW
+          - EDIT
+          - MANAGE
+          - OWNER
+        isShared:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - createdAt
+      - displayName
+      - effectivePermission
+      - id
+      - isShared
+      - itemId
+      - itemName
+      - location
+      - status
+      - updatedAt
+      - version
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type:
+          - string
+          - 'null'
+        sortOrder:
+          type: integer
+          format: int32
+      required:
+      - id
+      - name
+      - sortOrder
+    ItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        categoryId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        priceAmount:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        currency:
+          type: string
+        version:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        effectivePermission:
+          type: string
+          enum:
+          - NONE
+          - VIEW
+          - EDIT
+          - MANAGE
+          - OWNER
+        isShared:
+          type: boolean
+      required:
+      - createdAt
+      - currency
+      - effectivePermission
+      - id
+      - isShared
+      - name
+      - updatedAt
+      - version
+    CategoryMergeResponse:
+      type: object
+      properties:
+        mergedItemCount:
+          type: integer
+          format: int32
+        mergedInventoryCount:
+          type: integer
+          format: int32
+      required:
+      - mergedInventoryCount
+      - mergedItemCount
+    CategoryListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryResponse'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+    ItemUpdateImpactPreviewResponse:
+      type: object
+      properties:
+        version:
+          type: integer
+          format: int64
+        changedFields:
+          type: array
+          items:
+            type: string
+        totalInventoryCount:
+          type: integer
+          format: int32
+        affectedInventoryCount:
+          type: integer
+          format: int32
+        fullyProtectedInventoryCount:
+          type: integer
+          format: int32
+        fieldImpacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemFieldImpactResponse'
+      required:
+      - affectedInventoryCount
+      - changedFields
+      - fieldImpacts
+      - fullyProtectedInventoryCount
+      - totalInventoryCount
+      - version
+    ItemFieldImpactResponse:
+      type: object
+      properties:
+        field:
+          type: string
+        affectedInventoryCount:
+          type: integer
+          format: int32
+        protectedInventoryCount:
+          type: integer
+          format: int32
+      required:
+      - affectedInventoryCount
+      - field
+      - protectedInventoryCount
+    ItemListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemResponse'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items

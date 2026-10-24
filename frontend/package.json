@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "generate:api": "openapi-typescript ../docs/generated/openapi.yaml -o src/shared/api/schema.d.ts"
+    "generate:api": "openapi-typescript ../contracts/openapi.snapshot.json -o src/shared/api/schema.d.ts"
   },
   "dependencies": {
     "@fontsource/noto-sans-kr": "5.3.1",

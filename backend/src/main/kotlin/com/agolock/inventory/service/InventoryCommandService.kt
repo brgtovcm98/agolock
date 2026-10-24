@@ -2,6 +2,7 @@ package com.agolock.inventory.service
 
 import com.agolock.common.error.ApiException
 import com.agolock.common.id.UuidV7
+import com.agolock.common.persistence.InventoryWriteLocks
 import com.agolock.hierarchy.domain.Actor
 import com.agolock.hierarchy.domain.GrantLevel
 import com.agolock.hierarchy.service.AccessService
@@ -10,7 +11,7 @@ import com.agolock.inventory.domain.Inventory
 import com.agolock.inventory.domain.InventoryMovement
 import com.agolock.inventory.domain.InventoryStatus
 import com.agolock.inventory.domain.Item
-import com.agolock.inventory.persistence.CategoryMapper
+import com.agolock.inventory.domain.ItemFieldPolicy
 import com.agolock.inventory.persistence.InventoryMapper
 import com.agolock.inventory.persistence.InventoryMovementMapper
 import org.springframework.http.HttpStatus
@@ -26,11 +27,12 @@ class InventoryCommandService(
     private val inventoryMapper: InventoryMapper,
     private val movementMapper: InventoryMovementMapper,
     private val itemService: ItemService,
-    private val categoryMapper: CategoryMapper,
     private val accessService: AccessService,
     private val assembler: InventoryResponseAssembler,
     private val support: InventoryAccessSupport,
     private val clock: Clock,
+    private val locks: InventoryWriteLocks,
+    private val categories: CategoryQueryService,
 ) {
     @Transactional
     fun create(
@@ -39,8 +41,13 @@ class InventoryCommandService(
     ): InventoryResponse {
         validateCreateStatus(command)
         val location = support.resolveLocation(command.roomId, command.shelfId, command.boxId)
-        val permission = accessService.require(actor, locationTarget(location), GrantLevel.MANAGE)
-        val item = resolveItem(actor, command, location.spaceId)
+        accessService.require(actor, locationTarget(location), GrantLevel.MANAGE)
+        val initialItem = resolveItem(actor, command, location.spaceId)
+        locks.lockItems(location.spaceId, listOf(initialItem.id))
+        locks.lockPaths(listOf(locks.path(location.spaceId, command.roomId, command.shelfId, command.boxId)))
+        val latestLocation = support.resolveLocation(command.roomId, command.shelfId, command.boxId)
+        val permission = accessService.require(actor, locationTarget(latestLocation), GrantLevel.MANAGE)
+        val item = itemService.getReadable(actor, initialItem.id)
         val inventory = newInventory(command, location, item)
         inventoryMapper.insert(inventory)
         return assembler.toResponse(inventory, permission)
@@ -52,11 +59,13 @@ class InventoryCommandService(
         inventoryId: UUID,
         command: UpdateInventoryCommand,
     ): InventoryResponse {
-        val current = findInventory(inventoryId)
+        ItemFieldPolicy.version(command.version)
+        validateOverrides(command)
+        val current = lockedInventory(inventoryId, listOfNotNull(command.categoryIdOverride))
         val permission = accessService.require(actor, support.inventoryTarget(current), GrantLevel.EDIT)
         requireVersion(current.version, command.version)
         val targetStatus = resolveTargetStatus(current, command)
-        validateCategoryOverride(current, command)
+        validateCategoryOverride(actor, current, command)
         val overrides = resolveOverrides(current, command)
         if (isNoOp(current, overrides, targetStatus)) {
             return assembler.toResponse(current, permission)
@@ -83,10 +92,13 @@ class InventoryCommandService(
         inventoryId: UUID,
         command: MoveInventoryCommand,
     ): InventoryResponse {
-        val current = findInventory(inventoryId)
+        ItemFieldPolicy.version(command.version)
+        val snapshot = findInventory(inventoryId)
+        val targetLocation = resolveMoveLocation(snapshot, command)
+        val current = lockedInventory(inventoryId, targetLocation = targetLocation)
+        val location = resolveMoveLocation(current, command)
         accessService.require(actor, support.inventoryTarget(current), GrantLevel.MANAGE)
         requireVersion(current.version, command.version)
-        val location = resolveMoveLocation(current, command)
         val permission = accessService.require(actor, locationTarget(location), GrantLevel.MANAGE)
         if (isSameLocation(current, location)) {
             return assembler.toResponse(current, permission)
@@ -125,10 +137,13 @@ class InventoryCommandService(
     fun delete(
         actor: Actor,
         inventoryId: UUID,
+        version: Long,
     ) {
-        val inventory = findInventory(inventoryId)
+        ItemFieldPolicy.version(version)
+        val inventory = lockedInventory(inventoryId)
         accessService.require(actor, support.inventoryTarget(inventory), GrantLevel.MANAGE)
-        inventoryMapper.softDelete(inventory.spaceId, inventoryId, OffsetDateTime.now(clock))
+        requireVersion(inventory.version, version)
+        requireUpdated(inventoryMapper.softDelete(inventory.spaceId, inventoryId, version, OffsetDateTime.now(clock)))
     }
 
     private fun validateCreateStatus(command: CreateInventoryCommand) {
@@ -203,7 +218,8 @@ class InventoryCommandService(
             } else {
                 current.status
             }
-        if (targetStatus == InventoryStatus.DISPOSED && !command.confirmDisposal) {
+        val enteringDisposed = current.status != InventoryStatus.DISPOSED && targetStatus == InventoryStatus.DISPOSED
+        if (enteringDisposed && !command.confirmDisposal) {
             throw ApiException("DISPOSAL_CONFIRMATION_REQUIRED", HttpStatus.UNPROCESSABLE_ENTITY, "폐기 확인이 필요합니다.")
         }
         if (targetStatus != InventoryStatus.DISPOSED && command.confirmDisposal) {
@@ -217,15 +233,13 @@ class InventoryCommandService(
     }
 
     private fun validateCategoryOverride(
+        actor: Actor,
         current: Inventory,
         command: UpdateInventoryCommand,
     ) {
         val categoryId = command.categoryIdOverride
-        if (command.categoryIdOverridePresent &&
-            categoryId != null &&
-            categoryMapper.findById(current.spaceId, categoryId) == null
-        ) {
-            throw notFound("카테고리를 찾을 수 없습니다.")
+        if (command.categoryIdOverridePresent && categoryId != null) {
+            categories.requireSelectable(actor, current.spaceId, categoryId)
         }
     }
 
@@ -236,13 +250,13 @@ class InventoryCommandService(
         Overrides(
             name =
                 if (command.nameOverridePresent) {
-                    command.nameOverride?.trim()?.takeIf(String::isNotEmpty)
+                    command.nameOverride?.let(ItemFieldPolicy::name)
                 } else {
                     current.nameOverride
                 },
             description =
                 if (command.descriptionOverridePresent) {
-                    command.descriptionOverride?.trim()?.takeIf(String::isNotEmpty)
+                    ItemFieldPolicy.description(command.descriptionOverride)
                 } else {
                     current.descriptionOverride
                 },
@@ -288,6 +302,34 @@ class InventoryCommandService(
         current.roomId == location.roomId &&
             current.shelfId == location.shelfId &&
             current.boxId == location.boxId
+
+    private fun validateOverrides(command: UpdateInventoryCommand) {
+        if (command.nameOverridePresent) command.nameOverride?.let(ItemFieldPolicy::name)
+        if (command.descriptionOverridePresent) ItemFieldPolicy.description(command.descriptionOverride)
+        if (command.priceAmountOverridePresent) ItemFieldPolicy.price(command.priceAmountOverride)
+    }
+
+    private fun lockedInventory(
+        inventoryId: UUID,
+        categoryIds: List<UUID> = emptyList(),
+        targetLocation: InventoryAccessSupport.LocationRef? = null,
+    ): Inventory {
+        val snapshot = findInventory(inventoryId)
+        locks.lockCategories(snapshot.spaceId, listOfNotNull(snapshot.categoryIdOverride) + categoryIds)
+        locks.lockItems(snapshot.spaceId, listOf(snapshot.itemId))
+        val source = locks.path(snapshot.spaceId, snapshot.roomId, snapshot.shelfId, snapshot.boxId)
+        val target = targetLocation?.let { locks.path(it.spaceId, it.roomId, it.shelfId, it.boxId) }
+        val paths = listOfNotNull(source, target)
+        locks.lockPaths(paths)
+        locks.lockInventory(snapshot.spaceId, inventoryId)
+        val current = findInventory(inventoryId)
+        if (context(current) != context(snapshot)) {
+            throw ApiException("RESOURCE_CONTEXT_CHANGED", HttpStatus.CONFLICT, "재고 위치 또는 카테고리가 변경되었습니다.")
+        }
+        return current
+    }
+
+    private fun context(row: Inventory) = listOf(row.itemId, row.roomId, row.shelfId, row.boxId, row.categoryIdOverride)
 
     private fun findInventory(inventoryId: UUID): Inventory =
         inventoryMapper.findByIdAny(inventoryId) ?: throw notFound("Inventory를 찾을 수 없습니다.")

@@ -10,8 +10,11 @@ describe('물건 상세', () => {
     renderApp(['/items/i1'], {
       seeds: [
         [['item', 'detail', 'i1'], testItem()],
-        [['item', 'inventories', 'i1'], { items: [testInventory()], nextCursor: null }],
-        [['category', 'list'], { items: [testCategory] }],
+        [
+          ['item', 'inventories', 'i1'],
+          { pages: [{ items: [testInventory()], nextCursor: null }], pageParams: [undefined] },
+        ],
+        [['category', 'list', 'i1'], { items: [testCategory] }],
         [['images', 'item', 'i1'], { items: [] }],
         [['hierarchy', 'rooms', 'picker'], { items: [testRoom()] }],
         [['hierarchy', 'shelves', 'picker', 'owned', 'r1'], { items: [] }],
@@ -21,7 +24,7 @@ describe('물건 상세', () => {
 
     expect(screen.getByRole('heading', { name: '전동 드릴 18V' })).toBeInTheDocument()
     expect(screen.getByText('연결된 재고')).toBeInTheDocument()
-    expect(screen.getByText('같은 물건의 재고 1개 · 129,000원')).toBeInTheDocument()
+    expect(screen.getByText('불러온 재고 1개 · 129,000원')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '사진 추가' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '재고 추가' }))

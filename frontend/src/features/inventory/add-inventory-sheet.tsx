@@ -1,3 +1,4 @@
+import { collectPages } from '@/features/inventory/api'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Plus, X } from 'lucide-react'
@@ -9,14 +10,16 @@ import {
   type InventoryStatus,
   type Item,
   type LocationInput,
+  wireLocation,
 } from './api'
 import type { AddInventoryTarget } from './add-inventory-context'
 import { CategoryCombobox } from './components/category-combobox'
 import { InventoryImages } from '@/features/media/inventory-images'
 import { ItemCombobox } from './components/item-combobox'
+import { TargetPicker } from './components/target-picker'
+import { parsePrice, invalidateInventory } from './edit-state'
 import { LocationPicker } from './components/location-picker'
 import { useAuth } from '@/features/auth/auth-provider'
-import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
@@ -77,7 +80,7 @@ export function AddInventorySheet({
 
   const categoriesQuery = useQuery({
     queryKey: ['category', 'list'],
-    queryFn: inventoryApi.categories,
+    queryFn: () => collectPages((cursor) => inventoryApi.categories({ limit: 100, cursor })),
   })
   const contextItemQuery = useQuery({
     queryKey: ['item', 'detail', context.itemId],
@@ -90,28 +93,26 @@ export function AddInventorySheet({
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      if (!location.roomId) throw new FormError('위치를 선택해 주세요.')
+      if (!Object.values(wireLocation(location)).some(Boolean))
+        throw new FormError('위치를 선택해 주세요.')
 
       if (mode === 'new') {
         if (!name.trim()) throw new FormError('물건 이름을 입력해 주세요.')
-        const priceAmount = price.trim() ? Number(price) : null
-        if (priceAmount !== null && (!Number.isInteger(priceAmount) || priceAmount < 0)) {
-          throw new FormError('가격은 0원 이상의 정수로 입력해 주세요.')
-        }
+        const priceAmount = parsePrice(price)
         const newItem = {
           name: name.trim(),
           description: description.trim() || null,
           categoryId: categoryId || null,
           priceAmount,
         }
-        const signature = JSON.stringify({ newItem, ...location, status })
+        const signature = JSON.stringify({ newItem, ...wireLocation(location), status })
         if (inventorySignatureRef.current !== signature) {
           inventoryKeyRef.current = newKey()
           inventorySignatureRef.current = signature
         }
         const inventory = await inventoryApi.createInventory({
           newItem,
-          ...location,
+          ...wireLocation(location),
           status,
           idempotencyKey: inventoryKeyRef.current,
         })
@@ -120,14 +121,18 @@ export function AddInventorySheet({
 
       if (!selectedItem) throw new FormError('물건을 선택해 주세요.')
 
-      const signature = JSON.stringify({ itemId: selectedItem.id, ...location, status })
+      const signature = JSON.stringify({
+        itemId: selectedItem.id,
+        ...wireLocation(location),
+        status,
+      })
       if (inventorySignatureRef.current !== signature) {
         inventoryKeyRef.current = newKey()
         inventorySignatureRef.current = signature
       }
       const inventory = await inventoryApi.createInventory({
         itemId: selectedItem.id,
-        ...location,
+        ...wireLocation(location),
         status,
         idempotencyKey: inventoryKeyRef.current,
       })
@@ -137,24 +142,20 @@ export function AddInventorySheet({
       setError(null)
       setSuccess(data)
       setTouched(false)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventory'] }),
-        queryClient.invalidateQueries({ queryKey: ['item'] }),
-        queryClient.invalidateQueries({ queryKey: ['hierarchy'] }),
-      ])
+      await invalidateInventory(queryClient)
     },
     onError: (cause) => {
       if (cause instanceof FormError) {
         setError(cause.message)
         return
       }
-      setError(cause instanceof ApiError ? cause.message : '등록하지 못했습니다.')
+      setError(cause instanceof Error ? cause.message : '등록하지 못했습니다.')
     },
   })
 
   const canSubmit =
     !submitMutation.isPending &&
-    Boolean(location.roomId) &&
+    Object.values(wireLocation(location)).some(Boolean) &&
     (mode === 'new' ? Boolean(name.trim()) : Boolean(selectedItem))
 
   function requestClose() {
@@ -171,6 +172,7 @@ export function AddInventorySheet({
     setMode(next)
     setError(null)
     if (next === 'new') {
+      setLocation({})
       setSelection(null)
     } else {
       setSelection(undefined)
@@ -344,23 +346,36 @@ export function AddInventorySheet({
                         <Alert variant="error">물건을 불러오지 못했습니다.</Alert>
                       ) : null}
                       <ItemCombobox
+                        location={wireLocation(location)}
                         value={selectedItem}
                         onChange={(item) => {
                           setSelection(item)
+                          setLocation({})
                           setTouched(true)
                         }}
                       />
                     </>
                   )}
 
-                  <LocationPicker
-                    value={location}
-                    defaultSource={context.source}
-                    onChange={(next) => {
-                      setLocation(next)
-                      setTouched(true)
-                    }}
-                  />
+                  {mode === 'new' ? (
+                    <LocationPicker
+                      value={location}
+                      ownedOnly
+                      onChange={(next) => {
+                        setLocation(next)
+                        setTouched(true)
+                      }}
+                    />
+                  ) : (
+                    <TargetPicker
+                      itemId={selectedItem?.id}
+                      value={location}
+                      onChange={(next) => {
+                        setLocation(next)
+                        setTouched(true)
+                      }}
+                    />
+                  )}
 
                   <fieldset className="flex flex-col gap-2">
                     <legend className="text-xs font-black">상태</legend>

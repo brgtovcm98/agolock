@@ -31,4 +31,15 @@ class InventoryCursorTest {
         assertThat(TimeCursorCodec.limit(101)).isEqualTo(100)
         assertThat(TimeCursorCodec.limit(null)).isEqualTo(20)
     }
+
+    @Test
+    fun `정상 base64 안의 잘못된 시각도 400으로 거부한다`() {
+        val raw = "not-a-time\u0000${UUID.randomUUID()}"
+        val cursor =
+            java.util.Base64
+                .getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(raw.toByteArray())
+        assertThatThrownBy { TimeCursorCodec.decode(cursor) }.isInstanceOf(ApiException::class.java)
+    }
 }

@@ -13,6 +13,7 @@ data class UpdateCategoryCommand(
     val name: String?,
     val color: String?,
     val sortOrder: Int?,
+    val colorPresent: Boolean = false,
 )
 
 data class CreateItemCommand(
@@ -31,6 +32,7 @@ data class UpdateItemCommand(
     val categoryIdPresent: Boolean,
     val priceAmountPresent: Boolean,
     val version: Long,
+    val namePresent: Boolean = false,
 )
 
 data class NewItemCommand(

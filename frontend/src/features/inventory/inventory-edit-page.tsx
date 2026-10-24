@@ -1,7 +1,11 @@
+import { collectPages } from '@/features/inventory/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { inventoryApi, type Category, type Inventory, type Item } from './api'
+import { sparsePatch, parsePrice, invalidateInventory } from './edit-state'
+import { DirtyLeave } from './dirty-leave'
+import { useEditConflict } from './use-edit-conflict'
 import { ApiError } from '@/shared/api/client'
 import { Alert } from '@/shared/ui/alert'
 import { Choice } from '@/shared/ui/choice'
@@ -56,27 +60,56 @@ function InventoryEditForm({
   categories: Category[]
 }) {
   const navigate = useNavigate()
+  const [saved, setSaved] = useState(false)
   const queryClient = useQueryClient()
   const { show } = useToast()
   const [error, setError] = useState<string | null>(null)
-  const [nameOn, setNameOn] = useState(inventory.nameOverride !== null)
+  const [nameOn, setNameOn] = useState(inventory.nameOverride != null)
   const [name, setName] = useState(inventory.nameOverride ?? inventory.displayName)
-  const [descriptionOn, setDescriptionOn] = useState(inventory.descriptionOverride !== null)
+  const [descriptionOn, setDescriptionOn] = useState(inventory.descriptionOverride != null)
   const [description, setDescription] = useState(
     inventory.descriptionOverride ?? inventory.description ?? '',
   )
-  const [categoryOn, setCategoryOn] = useState(inventory.categoryIdOverride !== null)
+  const [categoryOn, setCategoryOn] = useState(inventory.categoryIdOverride != null)
   const [categoryId, setCategoryId] = useState(
     inventory.categoryIdOverride ?? inventory.categoryId ?? '',
   )
-  const [priceOn, setPriceOn] = useState(inventory.priceAmountOverride !== null)
+  const [priceOn, setPriceOn] = useState(inventory.priceAmountOverride != null)
   const [price, setPrice] = useState(
-    inventory.priceAmountOverride !== null
+    inventory.priceAmountOverride != null
       ? String(inventory.priceAmountOverride)
-      : inventory.priceAmount !== null
+      : inventory.priceAmount != null
         ? String(inventory.priceAmount)
         : '',
   )
+
+  const fields = {
+    nameOverride: nameOn ? name.trim() : null,
+    descriptionOverride: descriptionOn ? description : null,
+    categoryIdOverride: categoryOn ? categoryId || null : null,
+    priceAmountOverride: priceOn ? Number(price) : null,
+  }
+  const edit = useEditConflict(
+    {
+      nameOverride: inventory.nameOverride ?? null,
+      descriptionOverride: inventory.descriptionOverride ?? null,
+      categoryIdOverride: inventory.categoryIdOverride ?? null,
+      priceAmountOverride: inventory.priceAmountOverride ?? null,
+    },
+    inventory.version,
+  )
+  const patch = sparsePatch(edit.baseline, fields)
+  const dirty = Object.keys(patch).length > 0
+  function apply(next: typeof fields) {
+    setNameOn(next.nameOverride != null)
+    setName(next.nameOverride ?? inventory.displayName)
+    setDescriptionOn(next.descriptionOverride != null)
+    setDescription(next.descriptionOverride ?? inventory.description ?? '')
+    setCategoryOn(next.categoryIdOverride != null)
+    setCategoryId(next.categoryIdOverride ?? '')
+    setPriceOn(next.priceAmountOverride != null)
+    setPrice(next.priceAmountOverride === null ? '' : String(next.priceAmountOverride))
+  }
 
   const itemCategoryName =
     categories.find((category) => category.id === item?.categoryId)?.name ?? '미분류'
@@ -85,32 +118,44 @@ function InventoryEditForm({
     mutationFn: async () => {
       if (nameOn && !name.trim()) throw new Error('재고 이름을 입력해 주세요.')
       if (priceOn && !price.trim()) throw new Error('재고 가격을 입력해 주세요.')
-      const priceAmount = priceOn ? Number(price) : null
-      if (priceAmount !== null && (!Number.isInteger(priceAmount) || priceAmount < 0)) {
-        throw new Error('가격은 0원 이상의 정수로 입력해 주세요.')
-      }
-      return inventoryApi.updateInventory(inventory.id, {
-        version: inventory.version,
-        nameOverride: nameOn ? name.trim() : null,
-        descriptionOverride: descriptionOn ? description : null,
-        categoryIdOverride: categoryOn ? categoryId || null : null,
-        priceAmountOverride: priceAmount,
-      })
+      if (priceOn) parsePrice(price)
+      if (categoryOn && categoryId && !categories.some((category) => category.id === categoryId))
+        throw new Error('카테고리를 다시 선택해 주세요.')
+      return inventoryApi.updateInventory(inventory.id, { version: edit.version, ...patch })
     },
     onSuccess: async () => {
+      setSaved(true)
       show({
         id: `inventory:${inventory.id}:save`,
         title: '재고 정보를 저장했어요.',
         description: inventory.displayName,
         variant: 'success',
       })
-      await queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      await invalidateInventory(queryClient)
       navigate(`/inventory/${inventory.id}`, { replace: true })
     },
     onError: async (cause) => {
-      if (cause instanceof ApiError && cause.status === 409) {
+      if (
+        await edit.recover(
+          cause,
+          fields,
+          async () => {
+            const latest = await inventoryApi.inventory(inventory.id)
+            void queryClient.invalidateQueries({ queryKey: ['category'] })
+            return {
+              fields: {
+                nameOverride: latest.nameOverride ?? null,
+                descriptionOverride: latest.descriptionOverride ?? null,
+                categoryIdOverride: latest.categoryIdOverride ?? null,
+                priceAmountOverride: latest.priceAmountOverride ?? null,
+              },
+              version: latest.version,
+            }
+          },
+          apply,
+        )
+      ) {
         setError('다른 곳에서 먼저 수정했어요. 최신 정보를 불러온 뒤 다시 저장해 주세요.')
-        await queryClient.invalidateQueries({ queryKey: ['inventory', 'detail', inventory.id] })
         return
       }
       setError(
@@ -125,6 +170,7 @@ function InventoryEditForm({
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
+      <DirtyLeave dirty={dirty && !saved} />
       <PageHeader
         back={{ to: `/inventory/${inventory.id}`, label: '재고 상세' }}
         eyebrow={inventory.displayName}
@@ -133,6 +179,21 @@ function InventoryEditForm({
       />
 
       {error ? <Alert variant="error">{error}</Alert> : null}
+      {edit.blocked ? (
+        <Alert variant="error">
+          최신 정보를 확인할 수 없어 저장을 중단했어요. 입력은 유지됩니다.
+        </Alert>
+      ) : null}
+      {edit.choices(
+        fields,
+        (key, value) => apply({ ...fields, [key]: value }),
+        (key, value) =>
+          String(key).startsWith('categoryId')
+            ? (categories.find((category) => category.id === value)?.name ?? String(value))
+            : typeof value === 'number'
+              ? `${value.toLocaleString('ko-KR')}원`
+              : String(value),
+      )}
 
       <form
         className="flex flex-col gap-4"
@@ -141,95 +202,100 @@ function InventoryEditForm({
           mutation.mutate()
         }}
       >
-        <Card>
-          <CardBody className="gap-3">
-            <SectionTitle>재고 값</SectionTitle>
+        <fieldset disabled={mutation.isPending} className="flex flex-col gap-4">
+          <Card>
+            <CardBody className="gap-3">
+              <SectionTitle>재고 값</SectionTitle>
 
-            <OverrideField
-              enabled={nameOn}
-              label="이름"
-              master={item?.name ?? inventory.itemName}
-              onToggle={setNameOn}
-            >
-              <TextField
-                label="재고 이름"
-                value={name}
-                maxLength={120}
-                disabled={!nameOn}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </OverrideField>
-
-            <OverrideField
-              enabled={descriptionOn}
-              label="설명"
-              master={item?.description ?? '설명 없음'}
-              onToggle={setDescriptionOn}
-            >
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black">재고 설명</span>
-                <textarea
-                  value={description}
-                  maxLength={2000}
-                  disabled={!descriptionOn}
-                  onChange={(event) => setDescription(event.target.value)}
-                  rows={3}
-                  className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
+              <OverrideField
+                enabled={nameOn}
+                label="이름"
+                master={item?.name ?? inventory.itemName}
+                onToggle={setNameOn}
+              >
+                <TextField
+                  label="재고 이름"
+                  value={name}
+                  maxLength={120}
+                  disabled={!nameOn}
+                  onChange={(event) => setName(event.target.value)}
                 />
-              </label>
-            </OverrideField>
+              </OverrideField>
 
-            <OverrideField
-              enabled={categoryOn}
-              label="카테고리"
-              master={itemCategoryName}
-              onToggle={setCategoryOn}
+              <OverrideField
+                enabled={descriptionOn}
+                label="설명"
+                master={item?.description ?? '설명 없음'}
+                onToggle={setDescriptionOn}
+              >
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-black">재고 설명</span>
+                  <textarea
+                    value={description}
+                    maxLength={2000}
+                    disabled={!descriptionOn}
+                    onChange={(event) => setDescription(event.target.value)}
+                    rows={3}
+                    className="border-border bg-card focus-visible:ring-foreground focus-visible:ring-offset-background min-h-20 w-full border-[2.5px] px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
+                  />
+                </label>
+              </OverrideField>
+
+              <OverrideField
+                enabled={categoryOn}
+                label="카테고리"
+                master={itemCategoryName}
+                onToggle={setCategoryOn}
+              >
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-black">재고 카테고리</span>
+                  <Select
+                    aria-label="재고 카테고리"
+                    value={categoryId}
+                    disabled={!categoryOn}
+                    onChange={(event) => setCategoryId(event.target.value)}
+                  >
+                    <option value="">마스터 값 사용</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+              </OverrideField>
+
+              <OverrideField
+                enabled={priceOn}
+                label="가격"
+                master={formatPrice(item?.priceAmount)}
+                onToggle={setPriceOn}
+              >
+                <TextField
+                  label="재고 가격"
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={price}
+                  disabled={!priceOn}
+                  onChange={(event) => setPrice(event.target.value)}
+                />
+              </OverrideField>
+            </CardBody>
+          </Card>
+
+          <div className="flex justify-end gap-2">
+            <Button asChild variant="secondary">
+              <Link to={`/inventory/${inventory.id}`}>취소</Link>
+            </Button>
+            <Button
+              type="submit"
+              disabled={!dirty || edit.blocked || edit.unresolved || mutation.isPending}
             >
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-black">재고 카테고리</span>
-                <Select
-                  aria-label="재고 카테고리"
-                  value={categoryId}
-                  disabled={!categoryOn}
-                  onChange={(event) => setCategoryId(event.target.value)}
-                >
-                  <option value="">마스터 값 사용</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-            </OverrideField>
-
-            <OverrideField
-              enabled={priceOn}
-              label="가격"
-              master={formatPrice(item?.priceAmount)}
-              onToggle={setPriceOn}
-            >
-              <TextField
-                label="재고 가격"
-                type="number"
-                min={0}
-                inputMode="numeric"
-                value={price}
-                disabled={!priceOn}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-            </OverrideField>
-          </CardBody>
-        </Card>
-
-        <div className="flex justify-end gap-2">
-          <Button asChild variant="secondary">
-            <Link to={`/inventory/${inventory.id}`}>취소</Link>
-          </Button>
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? '저장 중…' : '저장'}
-          </Button>
-        </div>
+              {mutation.isPending ? '저장 중…' : '저장'}
+            </Button>
+          </div>
+        </fieldset>
       </form>
     </div>
   )
@@ -248,8 +314,11 @@ export function InventoryEditPage() {
     enabled: Boolean(inventoryQuery.data?.itemId),
   })
   const categoriesQuery = useQuery({
-    queryKey: ['category', 'list'],
-    queryFn: inventoryApi.categories,
+    queryKey: ['category', 'list', inventoryQuery.data?.itemId],
+    queryFn: () =>
+      collectPages((cursor) =>
+        inventoryApi.categories({ itemId: inventoryQuery.data?.itemId, limit: 100, cursor }),
+      ),
   })
 
   if (inventoryQuery.isLoading) {
@@ -268,7 +337,7 @@ export function InventoryEditPage() {
 
   return (
     <InventoryEditForm
-      key={`${inventoryQuery.data.id}-${inventoryQuery.data.version}`}
+      key={inventoryQuery.data.id}
       inventory={inventoryQuery.data}
       item={itemQuery.data}
       categories={categoriesQuery.data?.items ?? []}
