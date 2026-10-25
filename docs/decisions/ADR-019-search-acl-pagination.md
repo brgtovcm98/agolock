@@ -38,9 +38,7 @@ M6 검색은 Item 10,000·Inventory 50,000 규모에서 공유 ACL을 적용하�
 
 ## 링크
 
-- [PLAN-007 M6 검색과 추천 상세 구현 계획](../implementation/PLAN-007-search.md)
 - [검색과 추천](../search.md)
 - [공유와 권한](../sharing.md)
 - [ADR-003 누적 권한 모델](ADR-003-permission-model.md)
 - [ADR-004 MyBatis와 Flyway](ADR-004-mybatis.md)
-- [PLAN-006 M5 이미지·메시징](../implementation/PLAN-006-media-messaging.md)

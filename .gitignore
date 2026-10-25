@@ -48,8 +48,8 @@ deploy/.env.staging
 .docker-config/
 .docker-buildx/
 
-# Temporary design review artifacts
-.tmp-ux/
+# Local AI agent session state
+.junie/
 
-# Local review probes
-.review-tmp/
+# Local IDE MCP server settings (ports change per IDE run)
+.codex/

@@ -32,7 +32,7 @@
 | React·Vite·Tailwind·E안 디자인 토큰·3개 화면 미리보기 | 완료 |
 | OpenAPI·이벤트·데이터 사전 미리보기 생성기 | 완료 |
 | `docs_check.py` 계약 검사 확장 | 완료 |
-| docs·backend·frontend·contract CI workflow | 작성 완료, GitHub 원격 실행 대기 |
+| docs·backend·frontend·contract CI workflow | `.github/workflows/` 4개 작성 완료. 실행 결과는 GitHub Actions에서 확인 |
 
 ## 빠른 시작
 
@@ -163,7 +163,7 @@ frontend/       React + TypeScript + Vite, E안 디자인 시스템
 design/         A/B/C/E 시안 HTML, CSS, 스크린샷
 infra/          Docker Compose, MinIO 초기화
 scripts/        로컬 도구, 계약 생성·검사, 문서 영향 분석
-docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
+docs/           제품 사양, 설계, ADR, generated 초안
 ```
 
 - Gradle wrapper는 루트에 있고 `backend` 하위 프로젝트를 실행합니다.
@@ -206,8 +206,6 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 | [docs/design-system.md](docs/design-system.md) | E안 토큰, 컴포넌트, 반응형, 다크 모드, 접근성 |
 | [docs/operations.md](docs/operations.md) | 인프라, 배포, 보안, 테스트, 관측, 제품 단계 로드맵 |
 | [docs/todo.md](docs/todo.md) | 앞으로 할 기능·개선·배포·운영 작업과 완료 기준 |
-| [기존 구현 로드맵](docs/implementation-roadmap.md) | 보관된 초기 마일스톤 검토 기록 |
-| [과거 PLAN 문서](docs/implementation/) | 당시 설계·제안·구현·검증 기록. 현재 개발 절차에는 적용하지 않음 |
 | [docs/generated/data-dictionary.md](docs/generated/data-dictionary.md) | 테이블·컬럼·인덱스·제약 (설계 초안) |
 | [docs/generated/openapi.yaml](docs/generated/openapi.yaml) | HTTP API 계약 (설계 초안) |
 | [docs/generated/events.yaml](docs/generated/events.yaml) | 비동기 이벤트 계약 (설계 초안) |
@@ -236,10 +234,10 @@ docs/           제품 사양, 설계, ADR, 구현 계획, generated 초안
 
 ## 구현·검증 기록
 
-2026-10-24 기준 기존 릴리스·검색 보완과 물건·재고 개선(`447c971`·`7c42304`)은 로컬 `main`(`298a2cb`)에 반영됐습니다. push하지 않았으므로 로컬 `origin/main` 추적 ref(`9e1f066`)보다 `main`이 앞서 있습니다.
+2026-10-25 기준 `main`은 `origin/main`과 같은 `20d84f1`이고, 기존 릴리스·검색 보완과 물건·재고 개선(`447c971`·`7c42304`·`09121d0`·`298a2cb`)이 모두 반영돼 있습니다.
 
-- 백엔드 전체 테스트는 46클래스·175개가 단일 실행으로 통과합니다. INV-02에서 테스트 컨테이너를 테스트 JVM당 한 쌍으로 공유하도록 고쳐 175개 중 169개만 통과하던 상태를 없앴고, 연속 2회 통과와 컨테이너 14개 → 4개, 전체 실행 148초 → 약 45초를 확인했습니다(`09121d0` 병합).
-- 실제 API 브라우저 시나리오는 모킹 없이 데스크톱·모바일에서 통과합니다. INV-01에서 편집 화면 시간 초과 원인을 체크박스 로케이터 결함으로 확정해 고쳤고, Mailpit 초대 수락과 공유 `MANAGE` 재고 추가·이동까지 확인했습니다(`298a2cb` 병합).
+- 백엔드 전체 테스트는 46클래스·175개가 단일 실행으로 통과합니다. 테스트 컨테이너를 테스트 JVM당 한 쌍으로 공유하도록 고쳐 컨테이너 14개 → 4개, 전체 실행 148초 → 약 45초를 확인했습니다(`09121d0` 병합).
+- 실제 API 브라우저 시나리오는 모킹 없이 데스크톱·모바일에서 통과합니다. Mailpit 초대 수락과 공유 `MANAGE` 재고 추가·이동까지 확인했습니다(`298a2cb` 병합).
 - 같은 커밋에서 `verify --scope full`(docs·backend·frontend·contract·e2e)이 통과한 기록을 남겼습니다.
 
-현재 할 일은 [TODO](docs/todo.md)를 확인합니다. 제품 단계와 출시 조건은 [운영](docs/operations.md)이 기준입니다. 과거 완료 작업과 검증 근거는 [PLAN-015 보관 기록](docs/implementation/PLAN-015-current-status-and-followups.md), 물건·재고의 상세 결과는 [PLAN-014 보관 기록](docs/implementation/PLAN-014-inventory-hardening.md)에 남아 있습니다. 보관된 작업 순서·워크트리·승인 절차는 현재 기능 개발의 선행 조건이 아닙니다.
+현재 할 일은 [TODO](docs/todo.md)를 확인합니다. 제품 단계와 출시 조건은 [운영](docs/operations.md)이 기준입니다. 완료된 작업의 상세 근거는 git 커밋 기록에 남아 있습니다.

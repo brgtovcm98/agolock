@@ -23,13 +23,12 @@
 | [ADR-014](ADR-014-generated-docs-draft.md) | 설계 단계 생성 문서 운영 | 승인됨 | [AGENTS.md](../../AGENTS.md) |
 | [ADR-015](ADR-015-contract-preview-mode.md) | M0 계약 생성 미리보기 모드 | 승인됨 | [계약](../contracts.md) |
 | [ADR-016](ADR-016-neo-brutal-design-system.md) | E안 네오 브루탈 디자인 시스템 | 승인됨 | [디자인 시스템](../design-system.md) |
-| [ADR-019](ADR-019-search-acl-pagination.md) | 검색 ACL과 Item 그룹 페이지네이션 | 승인됨 | [검색](../search.md), [PLAN-007](../implementation/PLAN-007-search.md) |
+| [ADR-019](ADR-019-search-acl-pagination.md) | 검색 ACL과 Item 그룹 페이지네이션 | 승인됨 | [검색](../search.md) |
 | [ADR-020](ADR-020-registration-action-ia.md) | 등록 행동 중심 정보 구조 | 승인됨 | [화면과 흐름](../frontend.md), [디자인 시스템](../design-system.md) |
-| [ADR-021](ADR-021-microinteractions.md) | 레이아웃 일관성과 마이크로인터랙션 | 승인됨 | [디자인 시스템](../design-system.md), [PLAN-012](../implementation/PLAN-012-microinteractions.md) |
+| [ADR-021](ADR-021-microinteractions.md) | 레이아웃 일관성과 마이크로인터랙션 | 승인됨 | [디자인 시스템](../design-system.md), [화면과 흐름](../frontend.md) |
+| [ADR-023](ADR-023-inventory-write-consistency.md) | 물건·재고 변경 일관성과 편집 계약 | 승인됨 | [도메인](../domain.md), [공유](../sharing.md), [화면과 흐름](../frontend.md) |
 
-ADR-017·018은 과거 [이미지 설계 기록](../implementation/PLAN-006-media-messaging.md)에서 이미지 후처리·보관 정책용으로 예약한 번호이며 아직 작성 전입니다. 작성 필요 여부는 [TODO의 DOC-01](../todo.md)에서 확인합니다.
-
-| [ADR-023](ADR-023-inventory-write-consistency.md) | 물건·재고 변경 일관성과 편집 계약 | 승인됨 | [도메인](../domain.md), [PLAN-014](../implementation/PLAN-014-inventory-hardening.md) |
+ADR-017·018은 이미지 후처리·보관 정책용으로 예약한 번호이며 아직 작성 전입니다. 작성 필요 여부는 [TODO의 DOC-01](../todo.md)에서 확인합니다.
 
 ## 작성 규칙
 

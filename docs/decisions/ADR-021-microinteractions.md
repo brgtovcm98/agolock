@@ -37,5 +37,4 @@ P0·P1에서 화면이 늘어나면서 버튼·입력·필터의 높이와 페�
 
 - [디자인 시스템](../design-system.md)
 - [화면과 흐름](../frontend.md)
-- [PLAN-012](../implementation/PLAN-012-microinteractions.md)
 - [ADR-016](ADR-016-neo-brutal-design-system.md)

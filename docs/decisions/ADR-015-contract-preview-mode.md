@@ -35,6 +35,4 @@ M0의 실제 코드에는 `GET /api/v1/info`와 Flyway 확장 이력만 있습�
 ## 링크
 
 - [ADR-014](ADR-014-generated-docs-draft.md)
-- [구현 로드맵](../implementation-roadmap.md)
-- [M0 계약·CI·검증 계획](../implementation/PLAN-001-foundation-delivery.md)
 - [문서 검사 스크립트](../../scripts/docs_check.py)

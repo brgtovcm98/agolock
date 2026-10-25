@@ -432,7 +432,7 @@ scripts/staging_runbook.sh smoke
 - 감사 로그 UI와 데이터 내보내기
 - OAuth
 
-현재 할 일과 개별 작업의 기술 의존성은 [TODO](todo.md)를 참고합니다. [기존 구현 로드맵](implementation-roadmap.md)은 초기 마일스톤 검토 기록으로 보관합니다. 제품 단계별 출시 조건은 위 종료 조건을 따릅니다.
+현재 할 일과 개별 작업의 기술 의존성은 [TODO](todo.md)를 참고합니다. 제품 단계별 출시 조건은 위 종료 조건을 따릅니다.
 
 ## 10. 위험과 대응
 

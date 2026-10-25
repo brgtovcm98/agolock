@@ -291,5 +291,5 @@ flowchart TD
 - API는 실제 제품과 같은 `local` 프로필로 띄우고 `DATABASE_URL`은 독립 DB를, `AUTH_SIGNUP_INVITE_REQUIRED=false`와 `PUBLIC_BASE_URL`은 그 환경에 맞는 값을 넘깁니다. 준비 판정은 기동 로그의 `Started AgolockApplicationKt`와 `GET /api/v1/auth/csrf` = 200이며, `/actuator/health`는 로컬 프로필에서도 인증이 필요해 판정에 쓰지 않습니다.
 - Vite는 `VITE_API_TARGET`으로 API를 고정합니다. `playwright.config.ts`의 `webServer`는 이 값을 넘기지 않으므로 서버는 Playwright보다 먼저 직접 띄우고, 5173은 이 작업 디렉터리 서버만 점유하게 합니다.
 - 셸에 `CI=1`이 있으면 `reuseExistingServer`가 꺼져 5173 점유만으로 실패합니다. 그래서 `env -u CI INVENTORY_LIVE=1 MAILPIT_URL=http://127.0.0.1:8025 pnpm exec playwright test e2e/inventory-live.spec.ts --workers=1 --trace on --reporter=line`으로 실행합니다.
-- `desktop-chromium`과 `mobile-chromium` 두 프로젝트에서 각각 통과해야 합니다. 2026-10-24 실행에서 두 프로젝트를 각각 두 번씩, 총 네 번 모두 통과했습니다(프로젝트당 6.6~7.3초, 두 프로젝트 연속 16.8초). 환경 값과 근거는 [PLAN-016 6.2](implementation/PLAN-016-item-workflow-and-queue.md)에 있습니다.
+- `desktop-chromium`과 `mobile-chromium` 두 프로젝트에서 각각 통과해야 합니다. 2026-10-24 실행에서 두 프로젝트를 각각 두 번씩, 총 네 번 모두 통과했습니다(프로젝트당 6.6~7.3초, 두 프로젝트 연속 16.8초). 환경 값은 위 실행 조건을 따르고, 로컬 인프라 준비는 [로컬 실행 Runbook](local-runbook.md)을 참고합니다.
 - 체크박스·라디오는 `Choice`가 `sr-only` 입력 위에 22px 장식 박스를 그리므로([디자인 시스템 3번 항목 R-15](design-system.md)) 스펙에서 `check()`를 쓰지 않고 `label`을 클릭한 뒤 `toBeChecked()`로 확인합니다.

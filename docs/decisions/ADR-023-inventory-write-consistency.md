@@ -39,5 +39,4 @@
 - [도메인](../domain.md)
 - [공유](../sharing.md)
 - [화면과 흐름](../frontend.md)
-- [구현 계획](../implementation/PLAN-014-inventory-hardening.md)
 - [생성 미리보기](ADR-015-contract-preview-mode.md)
