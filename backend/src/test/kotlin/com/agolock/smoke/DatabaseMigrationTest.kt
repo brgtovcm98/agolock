@@ -83,6 +83,23 @@ class DatabaseMigrationTest
         }
 
         @Test
+        fun `최근 검색 정리 인덱스가 적용된다`() {
+            val indexDefinition =
+                jdbcTemplate.queryForObject(
+                    """
+                    SELECT indexdef
+                    FROM pg_indexes
+                    WHERE schemaname = 'public'
+                      AND tablename = 'recent_search'
+                      AND indexname = 'ix_recent_search_time'
+                    """.trimIndent(),
+                    String::class.java,
+                )
+
+            assertThat(indexDefinition).contains("last_searched_at")
+        }
+
+        @Test
         fun `MyBatis가 실제 PostgreSQL에 연결한다`() {
             assertThat(systemMapper.selectOne()).isEqualTo(1)
         }

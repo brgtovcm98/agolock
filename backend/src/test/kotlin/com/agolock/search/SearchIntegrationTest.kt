@@ -6,6 +6,7 @@ import com.agolock.common.cursor.TimeCursorCodec
 import com.agolock.identity.service.InMemoryRateLimiter
 import com.agolock.identity.service.LoginAttemptService
 import com.agolock.messaging.outbox.OutboxRelayService
+import com.agolock.search.persistence.RecentSearchMapper
 import com.agolock.support.AuthTestClient
 import com.agolock.support.FakeMailConfiguration
 import com.agolock.support.FakeMailPort
@@ -25,6 +26,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @SpringBootTest(
@@ -46,14 +48,20 @@ class SearchIntegrationTest
         @Autowired
         private lateinit var jdbc: JdbcTemplate
 
+        @Autowired
+        private lateinit var recentSearchMapper: RecentSearchMapper
+
         private lateinit var client: AuthTestClient
+
+        private lateinit var email: String
 
         @BeforeEach
         fun setUp() {
             rateLimiter.clear()
             loginAttempts.clear()
             client = AuthTestClient(restTemplate, objectMapper)
-            client.signup("search-${UUID.randomUUID()}@example.com", "password-1234", "검색 사용자")
+            email = "search-${UUID.randomUUID()}@example.com"
+            client.signup(email, "password-1234", "검색 사용자")
         }
 
         @Test
@@ -106,6 +114,88 @@ class SearchIntegrationTest
             val clear = client.delete("/api/v1/search/recent")
             assertThat(clear.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
             assertThat(json(client.get("/api/v1/search/recent").body)["items"].size()).isZero()
+        }
+
+        @Test
+        fun `최근 검색은 만료된 항목을 조회에서 제외하고 다시 검색하면 되살아난다`() {
+            client.get("/api/v1/search?q=유지")
+            client.get("/api/v1/search?q=만료")
+            val userId = userIdOf(email)
+            val other = AuthTestClient(restTemplate, objectMapper)
+            val otherEmail = "recent-other-${UUID.randomUUID()}@example.com"
+            other.signup(otherEmail, "password-1234", "다른 사용자")
+            other.get("/api/v1/search?q=다른")
+            val otherId = userIdOf(otherEmail)
+
+            val now = OffsetDateTime.now()
+            setSearchedAt(userId, "유지", now.minusDays(29))
+            setSearchedAt(userId, "만료", now.minusDays(31))
+            setSearchedAt(otherId, "다른", now.minusDays(31))
+
+            assertThat(json(client.get("/api/v1/search/recent").body)["items"].map { it["query"].asText() })
+                .containsExactly("유지")
+            assertThat(json(client.get("/api/v1/search/suggestions").body)["recentSearches"]["items"].size())
+                .isEqualTo(1)
+            assertThat(json(other.get("/api/v1/search/recent").body)["items"].size()).isZero()
+
+            client.get("/api/v1/search?q=만료")
+
+            assertThat(json(client.get("/api/v1/search/recent").body)["items"].map { it["query"].asText() })
+                .containsExactly("만료", "유지")
+        }
+
+        @Test
+        fun `최근 검색 조회는 정확히 30일 전 행을 유지하고 1초 더 지나면 제외한다`() {
+            client.get("/api/v1/search?q=경계")
+            val userId = userIdOf(email)
+            val cutoff = OffsetDateTime.now().truncatedTo(ChronoUnit.MICROS)
+            setSearchedAt(userId, "경계", cutoff)
+
+            assertThat(recentSearchMapper.list(userId, cutoff).map { it.normalizedQuery })
+                .containsExactly("경계")
+            assertThat(recentSearchMapper.list(userId, cutoff.plusSeconds(1))).isEmpty()
+        }
+
+        @Test
+        fun `최근 검색 정리는 30일을 넘긴 행만 모든 사용자에서 삭제한다`() {
+            client.get("/api/v1/search?q=최신")
+            client.get("/api/v1/search?q=오래됨")
+            val userId = userIdOf(email)
+            val other = AuthTestClient(restTemplate, objectMapper)
+            val otherEmail = "recent-sweep-${UUID.randomUUID()}@example.com"
+            other.signup(otherEmail, "password-1234", "다른 사용자")
+            other.get("/api/v1/search?q=오래된남")
+            other.get("/api/v1/search?q=다른최신")
+            val otherId = userIdOf(otherEmail)
+
+            val now = OffsetDateTime.now()
+            setSearchedAt(userId, "오래됨", now.minusDays(31))
+            setSearchedAt(otherId, "오래된남", now.minusDays(31))
+
+            recentSearchMapper.deleteBefore(now.minusDays(30))
+
+            assertThat(countRecentRows(userId, "오래됨")).isZero()
+            assertThat(countRecentRows(userId, "최신")).isEqualTo(1)
+            assertThat(countRecentRows(otherId, "오래된남")).isZero()
+            assertThat(countRecentRows(otherId, "다른최신")).isEqualTo(1)
+        }
+
+        @Test
+        fun `최근 검색 전체 삭제는 만료된 행도 함께 삭제한다`() {
+            client.get("/api/v1/search?q=남길검색")
+            client.get("/api/v1/search?q=만료검색")
+            val userId = userIdOf(email)
+            setSearchedAt(userId, "만료검색", OffsetDateTime.now().minusDays(31))
+
+            assertThat(countRecentRows(userId, "만료검색")).isEqualTo(1)
+            assertThat(json(client.get("/api/v1/search/recent").body)["items"].map { it["query"].asText() })
+                .containsExactly("남길검색")
+
+            val clear = client.delete("/api/v1/search/recent")
+
+            assertThat(clear.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+            assertThat(countRecentRows(userId, "남길검색")).isZero()
+            assertThat(countRecentRows(userId, "만료검색")).isZero()
         }
 
         @Test
@@ -459,6 +549,33 @@ class SearchIntegrationTest
             assertThat(rejected.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
             assertThat(json(rejected.body)["code"].asText()).isEqualTo("INVALID_CURSOR")
         }
+
+        private fun userIdOf(email: String): UUID =
+            jdbc.queryForObject("SELECT id FROM app_user WHERE email = ?", UUID::class.java, email)!!
+
+        private fun setSearchedAt(
+            userId: UUID,
+            normalizedQuery: String,
+            searchedAt: OffsetDateTime,
+        ) {
+            jdbc.update(
+                "UPDATE recent_search SET last_searched_at = ?::timestamptz WHERE user_id = ?::uuid AND normalized_query = ?",
+                searchedAt,
+                userId.toString(),
+                normalizedQuery,
+            )
+        }
+
+        private fun countRecentRows(
+            userId: UUID,
+            normalizedQuery: String,
+        ): Int =
+            jdbc.queryForObject(
+                "SELECT count(*) FROM recent_search WHERE user_id = ?::uuid AND normalized_query = ?",
+                Int::class.java,
+                userId.toString(),
+                normalizedQuery,
+            )!!
 
         private fun json(body: String?): JsonNode = objectMapper.readTree(body ?: "{}")
     }

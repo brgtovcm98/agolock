@@ -642,6 +642,7 @@
 인덱스:
 
 - `(user_id, last_searched_at DESC)`
+- `(last_searched_at)`
 
 ## 12. Spring Session JDBC
 

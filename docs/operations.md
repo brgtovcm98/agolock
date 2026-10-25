@@ -77,6 +77,7 @@ docker compose -f infra/docker-compose.yml up -d
 - 생성 요청 멱등성은 `idempotency_record`로 관리합니다.
 - 운영 백업은 일 1회 전체, 시간별 증분을 권장합니다.
 - 복구 훈련을 분기 1회 수행합니다.
+- 백업 복구 후 첫 worker 정리 회차가 30일을 넘긴 최근 검색을 다시 삭제합니다. 정책상 정상이며 복구 훈련 결과에 함께 기록합니다.
 - 목표 RPO는 1시간, RTO는 4시간입니다.
 
 ### 3.1 인덱스 원칙
@@ -97,7 +98,7 @@ docker compose -f infra/docker-compose.yml up -d
 - `FAILED` 이미지는 7일 후 삭제합니다.
 - soft delete된 이미지는 30일 후 원본과 썸네일을 함께 삭제합니다.
 - 만료된 공유 초대는 `EXPIRED`로 표시합니다.
-- 만료된 최근 검색은 30일 후 삭제합니다.
+- 만료된 최근 검색은 마지막 검색 30일 후 삭제하며, worker가 `agolock.search.recent-cleanup-interval-ms`(기본 1시간)마다 정리합니다.
 - 만료된 `idempotency_record`는 24시간 후 삭제합니다.
 - worker는 `attempts >= 5`로 고립된 PENDING outbox를 FAILED로 회수하고, `PUBLISHED` outbox를 기본 30일, `FAILED` outbox를 기본 90일 보관 후 삭제하며(`agolock.outbox.retention.published-days`, `failed-days`), 만료된 `notification_secret`을 1시간마다 정리합니다.
 

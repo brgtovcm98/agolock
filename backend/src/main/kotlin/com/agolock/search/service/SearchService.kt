@@ -17,6 +17,7 @@ import com.agolock.search.api.SearchInventory
 import com.agolock.search.api.SearchItemGroup
 import com.agolock.search.api.SearchResponse
 import com.agolock.search.api.SearchSuggestions
+import com.agolock.search.domain.RecentSearchRetention
 import com.agolock.search.persistence.RecentSearchMapper
 import com.agolock.search.persistence.SearchMapper
 import com.agolock.search.persistence.SearchQuery
@@ -115,12 +116,14 @@ class SearchService(
         return SearchResponse(page, nextCursor)
     }
 
-    fun recent(actor: Actor): RecentSearchList =
-        RecentSearchList(
-            recentSearchMapper.list(actor.userId).map {
+    fun recent(actor: Actor): RecentSearchList {
+        val cutoff = OffsetDateTime.now(clock).minusDays(RecentSearchRetention.DAYS)
+        return RecentSearchList(
+            recentSearchMapper.list(actor.userId, cutoff).map {
                 RecentSearchResponse(it.id, it.query, it.lastSearchedAt)
             },
         )
+    }
 
     @Transactional
     fun clearRecent(actor: Actor) {
