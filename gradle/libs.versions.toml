@@ -1,12 +1,12 @@
 [versions]
-kotlin = "2.2.21"
-springBoot = "3.5.16"
+kotlin = "2.4.21"
+springBoot = "4.1.2"
 springDependencyManagement = "1.1.7"
-springdoc = "2.8.17"
-mybatis = "3.0.5"
-logstash = "8.1"
+springdoc = "3.2.0"
+mybatis = "4.1.0"
+logstash = "9.0"
 bouncycastle = "1.86"
-awsSdk = "2.35.10"
+awsSdk = "2.57.5"
 ktlintPlugin = "14.2.0"
 detektPlugin = "1.23.8"
 
